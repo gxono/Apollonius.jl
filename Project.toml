@@ -1,7 +1,7 @@
 name = "EuclideanGeometry"
 uuid = "b1cfe91b-89b0-40c2-94e7-715cbacdec75"
 authors = ["Jonatan Perren"]
-version = "0.1.0"
+version = "0.1.0-DEV"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
