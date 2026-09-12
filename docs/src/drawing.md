@@ -8,11 +8,9 @@ CurrentModule = EuclideanGeometry
     Everything on this page comes from a **package extension**, not from
     `EuclideanGeometry.jl` itself. The package never depends on
     [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl) — `path` has *no
-    methods at all* until your own code also loads Luxor. This is also the
-    newest, least settled corner of the package: keyword names and default
-    behavior may still change. Everything described on the rest of this
-    site (points, lines, circles, triangles, conics, tangency, affine
-    maps...) is unaffected either way.
+    methods at all* until your own code also loads Luxor. Everything
+    described on the rest of this site (points, lines, circles, triangles,
+    conics, tangency, affine maps...) is unaffected either way.
 
 ## Activating it
 
@@ -318,8 +316,6 @@ finish()
 ```
 
 ### `current_path_bbox`
-
-Experimental, not yet stable — names and behavior may still change.
 
 [`current_path_bbox`](@ref) is the Luxor-side complement: the
 [`EGBoundingBox`](@ref) of whatever is currently on the active `Drawing`'s

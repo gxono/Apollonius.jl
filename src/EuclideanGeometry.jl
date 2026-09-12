@@ -118,8 +118,6 @@ export path
 """
     path(obj; action=:path, kwargs...)
 
-Experimental, not yet stable — names and behavior may still change.
-
 Add `obj` (an `EGPoint`, `EGVector`, `EGSegment`, `EGLine`, `EGRay`,
 `EGCircle2`, `EGBoundingBox`, `EGEllipse2`, `EGParabola2`, `EGHyperbola2`,
 `EGAngle2`, `EGHalfPlane2`, `EGStrip2`, any conic arc (`EGCircularArc2`,
@@ -158,8 +156,6 @@ export current_path_bbox
 
 """
     current_path_bbox()
-
-Experimental, not yet stable — names and behavior may still change.
 
 The [`EGBoundingBox`](@ref) of whatever is currently on the active Luxor
 `Drawing`'s Cairo path (in the current user-space coordinates, i.e. after
