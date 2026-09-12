@@ -49,16 +49,18 @@ direct than describing the map via three point correspondences:
 | [`translation_map`](@ref) | `p -> p + v` |
 | [`rotation_map`](@ref) | `p -> rotate(p, angle, center)` |
 | [`homothety_map`](@ref) | `p -> homothety(p, k, center)` |
-| [`reflection_map`](@ref) | `p -> reflection(p, l)` |
+| [`reflection_map`](@ref) | `p -> reflection(p, l)` or `p -> reflection(p, about)` |
 
 `rotation_map` and `homothety_map` both require `center` explicitly — there
 is no zero-argument default here, unlike [`rotate`](@ref)/[`homothety`](@ref)
 themselves (a default would let `rotation_map(angle)`/`homothety_map(k)`
 alone silently rotate/scale about the origin with no `center` in sight at
-the call site).
+the call site). `translation_map` takes either an `EGVector` or an `EGPoint`
+for `v`; `reflection_map` takes either an `EGLine` (mirror) or an `EGPoint`
+(point reflection).
 
 ```@example geo
-tm = translation_map(EGPoint(3.0, -2.0))
+tm = translation_map(EGVector(3.0, -2.0))
 rm = rotation_map(pi / 2, EGPoint(1.0, 1.0))
 hm = homothety_map(2.0, EGPoint(1.0, 1.0))
 refm = reflection_map(EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0)))
@@ -69,6 +71,42 @@ Each of these agrees exactly with its point-based counterpart —
 for the other three — the map versions exist purely so the transformation
 itself can be stored, composed and reused, rather than re-specifying
 `angle`/`center` (or `k`/`center`, or `l`) on every call.
+
+## `rotate`/`homothety`/`translate`/`reflection`, called with one argument
+
+`rotate`, `homothety`, `translate` and `reflection` themselves have a
+single-argument form that builds exactly this: `rotate(angle, center)` is
+`rotation_map(angle, center)`, `homothety(k, center)` is
+`homothety_map(k, center)`, `translate(v)` is `translation_map(v)`, and
+`reflection(about)` is `reflection_map(about)` — same `EGAffineMap` values,
+under the more familiar names, and with the same origin-defaulting
+`center` that the point-based `rotate`/`homothety` already have:
+
+```@example geo
+t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
+
+rotate(pi / 2)(t)                 # rotation_map(pi/2, origin)(t)
+t |> translate(EGVector(2.0, 0.0)) |> rotate(pi / 2)  # pipe several in a row
+
+# the circle comes back as an EGEllipse2 here, same as applying any other
+# EGAffineMap would (see "Conics: type is preserved, but never a circle"
+# above) -- unlike homothety(circumcircle(t), 2.0), which keeps it a circle
+map(homothety(2.0), [t, circumcircle(t)])
+```
+
+Since the result is a genuine `EGAffineMap`, composing two of these builds
+one combined map (computed once, applied as cheaply as any other single
+map), exactly like composing `rotation_map`/`translation_map`/etc.
+directly:
+
+```@example geo
+(rotate(pi / 2) ∘ translate(EGVector(2.0, 0.0))) isa EGAffineMap
+```
+
+[`invert`](@ref)/[`invert_neg`](@ref) have the same single-argument
+convenience (`invert(center; k=1.0)`, see [Circles](@ref)) — but circle
+inversion isn't an affine transformation at all, so those build a plain
+closure instead of an `EGAffineMap`.
 
 ## Applying and composing
 

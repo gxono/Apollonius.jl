@@ -194,13 +194,32 @@ distance(s::EGSegment) = distance(s.p1, s.p2)
 midpoint(s::EGSegment) = midpoint(s.p1, s.p2)
 
 """
-    projection(p::EGPoint, l::EGLine)
+    projection(p::EGPoint, l::EGLine; angle::Real=pi/2)
+
+Where a line through `p`, at `angle` radians from `l`'s own direction
+(counterclockwise; the default `pi/2` is the ordinary perpendicular/
+orthogonal projection), meets `l` — the oblique projection of `p` onto
+`l` for any other `angle`. `angle` must be strictly between `0` and `π`:
+at either end, the projecting line becomes parallel to `l` itself, so
+there's no longer a single intersection point.
 """
-function projection(p::EGPoint, l::EGLine)
+function projection(p::EGPoint, l::EGLine; angle::Real=pi / 2)
     d = direction(l)
-    t = dot(p - l.p1, d) / dot(d, d)
+    angle == pi / 2 && return l.p1 + (dot(p - l.p1, d) / dot(d, d)) * d
+    0 < angle < pi || throw(ArgumentError("projection: angle must be strictly between 0 and π (got $angle)"))
+    u = rotate(d, angle)
+    t = cross2(u, p - l.p1) / cross2(u, d)
     return l.p1 + t * d
 end
+
+"""
+    projection(l::EGLine; angle::Real=pi/2)
+
+`p -> projection(p, l; angle=angle)` — for composing with `|>`/`map`/
+`filter`, e.g. `map(projection(l), points)` to project a whole collection
+onto `l` at once.
+"""
+projection(l::EGLine; angle::Real=pi / 2) = p -> projection(p, l; angle=angle)
 
 distance(p::EGPoint, l::EGLine) = abs(cross2(direction(l), p - l.p1)) / norm(direction(l))
 distance(l::EGLine, p::EGPoint) = distance(p, l)
@@ -369,6 +388,44 @@ EGBoundingBox(points::AbstractVector{<:Tuple}) = EGBoundingBox([_topoint(p) for 
 
 EGBoundingBox(s::EGSegment) = EGBoundingBox([s.p1, s.p2])
 
+"""
+    EGBoundingBox(p::EGPoint)
+
+The degenerate box `EGBoundingBox(p, p)` — zero-size, but still a real
+position, so `p` grows a [`bbox_union`](@ref) exactly like any other
+shape would.
+"""
+EGBoundingBox(p::EGPoint) = EGBoundingBox(p, p)
+
+"""
+    EGBoundingBox()
+
+The *empty* bounding box: the neutral element for [`bbox_union`](@ref) —
+`bbox_union(EGBoundingBox(), bb) == bb` for any `bb`. This is what
+`EGBoundingBox` returns for values that have no position of their own to
+contribute to a picture's extent: a plain number, an [`EGVector`](@ref)
+(a direction, not a location — unlike [`EGPoint`](@ref), which *does* get
+its own degenerate box above), or an unbounded curve/region
+([`EGLine`](@ref), [`EGRay`](@ref), `EGAngle2`, `EGHalfPlane2`,
+`EGStrip2`, which have no finite extent to report). It exists so generic
+code — [`@boundingbox`](@ref), [`@to_luxor_picture`](@ref) — can call
+`EGBoundingBox` on every value named in a block without special-casing the
+ones that aren't meant to be drawn or sized.
+"""
+EGBoundingBox() = EGBoundingBox(EGPoint(Inf, Inf), EGPoint(-Inf, -Inf))
+
+EGBoundingBox(::EGVector) = EGBoundingBox()
+EGBoundingBox(::Real) = EGBoundingBox()
+EGBoundingBox(::EGLine) = EGBoundingBox()
+EGBoundingBox(::EGRay) = EGBoundingBox()
+
+"""
+    isempty(bb::EGBoundingBox)
+
+Whether `bb` is the empty box (see [`EGBoundingBox()`](@ref)).
+"""
+Base.isempty(bb::EGBoundingBox) = bb.min[1] > bb.max[1]
+
 Base.:(==)(a::EGBoundingBox, b::EGBoundingBox) = a.min == b.min && a.max == b.max
 Base.isapprox(a::EGBoundingBox, b::EGBoundingBox; kwargs...) =
     isapprox(a.min, b.min; kwargs...) && isapprox(a.max, b.max; kwargs...)
@@ -471,9 +528,12 @@ end
 
 The smallest box containing both `a` and `b`. Unlike
 [`bbox_intersection`](@ref), this always exists — `a`/`b` don't need to
-overlap.
+overlap. The empty box (see [`EGBoundingBox()`](@ref)) is the identity
+element: `bbox_union` with it returns the other box unchanged.
 """
 function bbox_union(a::EGBoundingBox{2}, b::EGBoundingBox{2})
+    isempty(a) && return b
+    isempty(b) && return a
     lo = EGPoint(min(a.min[1], b.min[1]), min(a.min[2], b.min[2]))
     hi = EGPoint(max(a.max[1], b.max[1]), max(a.max[2], b.max[2]))
     return EGBoundingBox(lo, hi)
@@ -581,17 +641,28 @@ function _picture_layout(bw::Real, bh::Real, width, height, scale, margin::Real)
     return s, W, H
 end
 
-# Shift `shape` so `bb.min` lands on the origin, scale uniformly by `s`
-# about the origin (so e.g. a circle always stays a circle), then shift
-# again to center the scaled content within the final `(W, H)` canvas --
-# equivalent to insetting by `margin` on every side when the content
-# already fills `(W, H)` exactly, and splitting any extra leftover space
-# evenly otherwise (the "contain fit" case, see `_picture_layout`).
-function _place_in_picture(shape, bb::EGBoundingBox, s::Real, W::Real, H::Real)
-    shifted = translate(shape, EGVector(-bb.min[1], -bb.min[2]))
-    scaled = homothety(shifted, s, EGPoint(0.0, 0.0))
-    offset = EGVector((W - bbox_width(bb) * s) / 2, (H - bbox_height(bb) * s) / 2)
-    return translate(scaled, offset)
+# Shift `shape` so `bb`'s own center lands on the origin, then scale
+# uniformly by `s` about the origin (so e.g. a circle always stays a
+# circle). This matches Luxor's `origin()` convention -- (0,0) at the
+# canvas center -- so the result is ready to draw right after `origin()`
+# (which `@png`/`@svg`/`@pdf` already call for you). Centering on (0,0)
+# also handles the "contain fit" leftover-space centering for free: since
+# the canvas itself is centered on (0,0) too (`_picture_layout` always
+# splits `margin`/leftover space evenly), no separate centering offset is
+# needed here.
+#
+# A `shape` with no position of its own -- a plain number, an EGVector, an
+# unbounded curve/region (see `EGBoundingBox()`) -- is left untouched
+# instead: it has nothing to move, and (for a number especially) isn't
+# even the kind of value `translate`/`homothety` know how to transform.
+# These typically reach here as construction helpers named earlier in the
+# block (e.g. `radio = 5` before `EGCircle2(centro, radio)`), not shapes
+# meant to be drawn/sized themselves.
+function _place_in_picture(shape, bb::EGBoundingBox, s::Real)
+    isempty(EGBoundingBox(shape)) && return shape
+    center = EGVector((bb.min[1] + bb.max[1]) / 2, (bb.min[2] + bb.max[2]) / 2)
+    shifted = translate(shape, -center)
+    return homothety(shifted, s, EGPoint(0.0, 0.0))
 end
 
 const _PICTURE_KWNAMES = (:width, :height, :scale, :margin)
@@ -645,16 +716,18 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin)
     s = gensym(:s)
     W = gensym(:W)
     H = gensym(:H)
+    macroname = mutating ? "@to_luxor_picture!" : "@to_luxor_picture"
     push!(body.args, quote
-        isempty($shapes) && throw(ArgumentError("@to_luxor_picture: the block has no shapes"))
+        isempty($shapes) && throw(ArgumentError($macroname * ": the block has no shapes"))
         $bb = reduce(bbox_union, EGBoundingBox.($shapes))
+        isempty($bb) && throw(ArgumentError($macroname * ": none of the shapes in the block have a finite bounding box (only numbers/vectors/unbounded shapes?)"))
         $s, $W, $H = $picture_layout(bbox_width($bb), bbox_height($bb), $width, $height, $scale, $margin)
     end)
 
     results = gensym(:picture_results)
     push!(body.args, :($results = Any[]))
     for (i, slot) in enumerate(slots)
-        transformed = :($place_in_picture($shapes[$i], $bb, $s, $W, $H))
+        transformed = :($place_in_picture($shapes[$i], $bb, $s))
         if slot === nothing
             push!(body.args, :(push!($results, $transformed)))
         else
@@ -687,23 +760,36 @@ end
 
 Prepares every shape named in the block for drawing at a known, exact
 canvas size: translate/scale them so their combined [`EGBoundingBox`](@ref)
-fits centered inside that canvas, always preserving aspect ratio (the
-scale factor is always the same in `x` and `y` — a circle always stays a
+fits centered on the *origin*, always preserving aspect ratio (the scale
+factor is always the same in `x` and `y` — a circle always stays a
 circle). Returns `((width, height), shapes)` — `width`/`height` is the
 exact canvas size to pass to `Drawing`, and `shapes` are the
 translated/scaled copies (`c`/`s`/`t` themselves are untouched — see
 [`@to_luxor_picture!`](@ref) for the mutating form), in the same order as
-the block, as a tuple (or bare, for a single shape). Since no `origin()`
-call is needed afterward — the content is already positioned for the
-returned canvas — draw directly in the default top-left-anchored device
-space:
+the block, as a tuple (or bare, for a single shape).
+
+Centering on `(0, 0)` matches Luxor's own `origin()` convention (device
+`(0, 0)` moved to the center of the canvas), so the result is ready to
+draw right after `origin()` — which `@png`/`@svg`/`@pdf` already call for
+you:
 
 ```julia
 (w, h), (c2, s2) = @to_luxor_picture width=400 begin
     c = EGCircle2(EGPoint(3.0, -1.0), 5.0)
     s = EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
 end
+@png begin
+    path(c2; action=:stroke)
+    path(s2; action=:stroke)
+end w h
+```
+
+Building the `Drawing` by hand instead needs its own `origin()` call
+first, since `Drawing` itself doesn't move `(0, 0)`:
+
+```julia
 Drawing(w, h, "out.png")
+origin()
 path(c2; action=:stroke)
 path(s2; action=:stroke)
 finish()

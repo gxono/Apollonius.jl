@@ -77,6 +77,34 @@ end
 bbox_union(EGBoundingBox(t), EGBoundingBox(circ))   # exactly what @boundingbox computed above
 ```
 
+Blocks like this often mix in plain construction helpers alongside the
+actual shapes — a center point, a radius, a scalar computed along the
+way. `EGBoundingBox` handles every one of those without erroring:
+
+  - a bare [`EGPoint`](@ref) gets its own degenerate (zero-size) box at
+    its own location — a point *is* a position, so it grows a
+    [`bbox_union`](@ref) exactly like any other shape;
+  - a plain number, an [`EGVector`](@ref) (a direction, not a location),
+    or an unbounded curve/region (`EGLine`, `EGRay`, `EGAngle2`,
+    `EGHalfPlane2`, `EGStrip2`) has no position of its own to report, so
+    `EGBoundingBox` returns the *empty* box for these instead — the
+    identity element for `bbox_union`, so combining it with anything else
+    just returns that other box unchanged:
+
+```@example geo
+centro = EGPoint(2.0, 1.0)
+radio = 5.0
+
+@boundingbox begin
+    centro
+    radio
+end
+```
+
+```@example geo
+isempty(EGBoundingBox(radio)), bbox_union(EGBoundingBox(radio), EGBoundingBox(centro)) == EGBoundingBox(centro)
+```
+
 An empty block is an `ArgumentError` — there's no box to build:
 
 ```@example geo
@@ -94,10 +122,12 @@ fiddly questions by hand: how big is this thing, how far do I need to
 shift it so it isn't half off-canvas, and what canvas size do I even pass
 to `Drawing`? [`@to_luxor_picture`](@ref) answers all three in one call:
 it translates and uniformly scales every shape in the block so their
-combined [`EGBoundingBox`](@ref) fits centered inside a canvas of a known,
-exact size, and returns that size alongside the transformed shapes.
-Despite the name, this macro is plain geometry — it has no Luxor
-dependency at all; see [Drawing with Luxor.jl](@ref) for the full
+combined [`EGBoundingBox`](@ref) fits centered on `(0, 0)`, and returns
+the exact canvas size alongside the transformed shapes. Centering on
+`(0, 0)` matches Luxor's own `origin()` convention, so the result is
+ready to draw right after `origin()` — which `@png`/`@svg`/`@pdf` already
+call for you. Despite the name, this macro is plain geometry — it has no
+Luxor dependency at all; see [Drawing with Luxor.jl](@ref) for the full
 `Drawing`/`path`/`finish` workflow this is designed to feed directly.
 
 ```@example geo
@@ -112,14 +142,35 @@ end
 ```
 
 ```@example geo
-c2, s2   # translated so the combined bbox's min corner sits at (0, 0)
+c2, s2   # translated so the combined bbox is centered on (0, 0)
 ```
 
 `c`/`s` themselves are untouched (see [`@to_luxor_picture!`](@ref) below
 for the mutating form); the block is read exactly like
 [`@boundingbox`](@ref)'s (an assignment binds `name` as usual, a bare
 expression contributes without binding anything, and a single
-shape/expression works without `begin`/`end` too).
+shape/expression works without `begin`/`end` too) — including how
+construction helpers are handled: a bare [`EGPoint`](@ref) is repositioned
+along with everything else (it's a real position), while a plain number,
+an [`EGVector`](@ref), or an unbounded shape is left completely untouched
+(there's no position to move, and a number in particular isn't the kind
+of value `translate`/`homothety` know how to transform):
+
+```@example geo
+centro = EGPoint(2.0, 1.0)
+radio = 5.0
+circ2 = EGCircle2(centro, radio)
+
+(w, h), (centro2, radio2, c2) = @to_luxor_picture width = 400.0 begin
+    centro
+    radio
+    circ2
+end
+radio2 == radio, centro2   # radio2 untouched; centro2 repositioned like circ2
+```
+
+A block with nothing but such non-positional values is an `ArgumentError`
+too — there's no finite content to size a canvas around.
 
 ### Sizing options
 

@@ -266,8 +266,10 @@ so nothing ends up off-canvas, how much breathing room to leave around
 the edges? [`@to_luxor_picture`](@ref) (from the core package — see
 [Transforming in Bulk: Macros](@ref) for the full option reference)
 answers all of that in one call: it translates and uniformly scales a
-whole set of shapes so they fit centered inside a canvas of a known,
-exact size, and hands back that size directly.
+whole set of shapes so they fit centered on `(0, 0)`, and hands back the
+exact canvas size directly. Centering on `(0, 0)` matches Luxor's own
+`origin()` convention, so the result is ready to draw right after
+`origin()` — which `@png` already calls for you:
 
 ```julia
 using EuclideanGeometry, Luxor
@@ -282,7 +284,19 @@ end
 # (w, h) = (300.0, 328.0) -- exactly 300 wide (as requested), tall enough
 # to keep t/circ's own aspect ratio, plus a 10-unit margin on every side
 
+@png begin
+    sethue("steelblue")
+    path(t2; action=:stroke)
+    path(circ2; action=:stroke)
+end w h
+```
+
+Building the `Drawing` by hand instead needs its own `origin()` call
+first, since `Drawing` itself doesn't move `(0, 0)`:
+
+```julia
 Drawing(w, h, "figure.png")
+origin()
 background("white")
 sethue("steelblue")
 path(t2; action=:stroke)
@@ -290,9 +304,6 @@ path(circ2; action=:stroke)
 finish()
 ```
 
-Note there's no `origin()` call: `@to_luxor_picture` already positions
-`t2`/`circ2` for a canvas starting at `(0, 0)` in the default, top-left
-device space, so adding one would only shift everything off-center again.
 `t`/`circ` themselves are untouched — see [`@to_luxor_picture!`](@ref) for
 the mutating form, which rebinds them in place instead.
 
@@ -308,6 +319,7 @@ CSS `object-fit: contain` or an image viewer's "fit to window" would give:
     circ
 end
 Drawing(w, h, "figure_wide.png")
+origin()
 background("white")
 sethue("steelblue")
 path(t2; action=:stroke)
@@ -327,10 +339,11 @@ or when the path also has plain Luxor calls mixed in that
 
 ```julia
 Drawing(w, h, "figure.png")
+origin()
 path(t2; action=:path)      # action=:path: build the path, don't render yet
 path(circ2; action=:path)
 
-current_path_bbox()   # EGBoundingBox([10.0, 10.0] .. [290.0, 318.0])
+current_path_bbox()   # EGBoundingBox([-140.0, -154.0] .. [140.0, 154.0])
                        # matches bbox_union(EGBoundingBox(t2), EGBoundingBox(circ2)) exactly here,
                        # since both t2/circ2 draw via a native Cairo primitive (no sampling)
 

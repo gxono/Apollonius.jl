@@ -84,6 +84,19 @@ circle's own center (i.e. on ray `p -> O` rather than `O -> p`):
 inversion_neg(EGPoint(10.0, 0.0), c)   # (-2.5, 0.0): the mirror image of the positive one
 ```
 
+`invert`/`invert_neg` also take just `center` (and, as a keyword, `k`) to
+build a reusable one-argument function — the same convenience
+[`rotate`](@ref)/[`homothety`](@ref)/etc. have (see
+[Affine Maps](@ref)), except this returns a plain closure rather than an
+[`EGAffineMap`](@ref), since circle inversion isn't an affine
+transformation at all:
+
+```@example geo
+inv5 = invert(EGPoint(0.0, 0.0); k=5.0)   # p -> invert(p, EGPoint(0.0,0.0); k=5.0)
+inv5(EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0))) isa EGCircle2
+map(inv5, [EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0)), EGLine(EGPoint(-3.0, 0.0), EGPoint(-3.0, 1.0))])
+```
+
 ## Inverting a segment, triangle or polygon
 
 A straight side doesn't generally stay straight under inversion: it only

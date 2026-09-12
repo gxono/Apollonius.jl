@@ -28,6 +28,14 @@ on_line(p::EGPoint, l::EGLine; atol=1e-9) =
     distance(p, l) <= sqrt(atol) * max(norm(p), norm(l.p1), norm(l.p2), 1.0)
 
 """
+    on_line(l::EGLine; atol=1e-9)
+
+`p -> on_line(p, l; atol=atol)` — for composing with `filter`/`map`, e.g.
+`filter(on_line(l), points)`.
+"""
+on_line(l::EGLine; atol=1e-9) = p -> on_line(p, l; atol=atol)
+
+"""
     on_segment(p::EGPoint, s::EGSegment; atol=1e-9)
 
 Whether point `p` lies on the finite segment `s` (endpoints included).
@@ -42,6 +50,13 @@ function on_segment(p::EGPoint, s::EGSegment; atol=1e-9)
 end
 
 """
+    on_segment(s::EGSegment; atol=1e-9)
+
+`p -> on_segment(p, s; atol=atol)` — see the single-argument [`on_line`](@ref).
+"""
+on_segment(s::EGSegment; atol=1e-9) = p -> on_segment(p, s; atol=atol)
+
+"""
     on_ray(p::EGPoint, r::EGRay; atol=1e-9)
 
 Whether point `p` lies on the half-line `r` (the origin included).
@@ -54,6 +69,13 @@ function on_ray(p::EGPoint, r::EGRay; atol=1e-9)
     t = dot(p - a, b - a) / ab2
     return t >= -atol
 end
+
+"""
+    on_ray(r::EGRay; atol=1e-9)
+
+`p -> on_ray(p, r; atol=atol)` — see the single-argument [`on_line`](@ref).
+"""
+on_ray(r::EGRay; atol=1e-9) = p -> on_ray(p, r; atol=atol)
 
 # `Base.in` for the three straight curves: without these, `p in s`/`p in
 # l`/`p in r` fall through to Julia's own generic, iteration-based

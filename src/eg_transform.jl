@@ -310,11 +310,20 @@ function affine_map(src::NTuple{3,<:EGPoint{2}}, dst::NTuple{3,<:EGPoint{2}}; at
 end
 
 """
+    translation_map(v::EGVector)
     translation_map(v::EGPoint)
 
 The affine map `p -> p + v`.
 """
-translation_map(v::EGPoint{2}) = EGAffineMap(one(v[1]), zero(v[1]), zero(v[1]), one(v[1]), v[1], v[2])
+translation_map(v::EGPointOrVector{2}) = EGAffineMap(one(v[1]), zero(v[1]), zero(v[1]), one(v[1]), v[1], v[2])
+
+"""
+    translate(v::EGVector)
+
+The affine map `p -> p + v` — equivalent to `translation_map(v)`, and to
+`p -> translate(p, v)`, but composable (via `∘`) and reusable as a value.
+"""
+translate(v::EGVector{2}) = translation_map(v)
 
 """
     rotation_map(angle::Real, center::EGPoint)
@@ -335,6 +344,25 @@ function rotation_map(angle::Real, center::EGPoint{2})
 end
 
 """
+    rotate(angle::Real, center::EGPoint=EGPoint(0.0, 0.0))
+
+The affine map rotating by `angle` radians (counterclockwise) around
+`center` — equivalent to `rotation_map(angle, center)`, and to
+`p -> rotate(p, angle, center)`, but composable (via `∘`) and reusable as
+a value:
+
+```julia
+t |> rotate(pi/2)                              # pipe
+(rotate(pi/2) ∘ translate(EGVector(1.0, 0.0)))(t)  # compose, then apply once
+map(rotate(pi/2), [t1, t2, t3])                # apply to several shapes
+```
+
+Unlike [`rotation_map`](@ref), `center` here defaults to the origin, same
+as the two-or-three-argument `rotate` itself.
+"""
+rotate(angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) = rotation_map(angle, center)
+
+"""
     homothety_map(k::Real, center::EGPoint)
 
 The affine map scaling by ratio `k` about `center`. Equivalent to
@@ -347,6 +375,17 @@ function homothety_map(k::Real, center::EGPoint{2})
 end
 
 """
+    homothety(k::Real, center::EGPoint=EGPoint(0.0, 0.0))
+
+The affine map scaling by ratio `k` about `center` — equivalent to
+`homothety_map(k, center)`, and to `p -> homothety(p, k, center)`, but
+composable (via `∘`) and reusable as a value. Unlike [`homothety_map`](@ref),
+`center` here defaults to the origin, same as the two-or-three-argument
+`homothety` itself.
+"""
+homothety(k::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) = homothety_map(k, center)
+
+"""
     reflection_map(l::EGLine)
 
 The affine map reflecting across `l`. Equivalent to `p -> reflection(p, l)`,
@@ -356,6 +395,26 @@ function reflection_map(l::EGLine{2})
     n = orthogonal(direction(l))
     return affine_map((l.p1, l.p2, l.p1 + n), (l.p1, l.p2, l.p1 - n))
 end
+
+"""
+    reflection_map(about::EGPoint)
+
+The affine map point-reflecting through `about` (`p -> 2*about - p`).
+Equivalent to `p -> reflection(p, about)`, but composable.
+"""
+reflection_map(about::EGPoint{2}) = EGAffineMap(-one(about[1]), zero(about[1]), zero(about[1]), -one(about[1]), 2about[1], 2about[2])
+
+"""
+    reflection(about::EGPoint)
+    reflection(about::EGLine)
+
+The affine map reflecting through the point `about`, or across the line
+`about` — equivalent to `reflection_map(about)`, and to
+`p -> reflection(p, about)`, but composable (via `∘`) and reusable as a
+value.
+"""
+reflection(about::EGPoint{2}) = reflection_map(about)
+reflection(about::EGLine{2}) = reflection_map(about)
 
 function Base.:∘(m2::EGAffineMap, m1::EGAffineMap)
     a11 = m2.a11 * m1.a11 + m2.a12 * m1.a21

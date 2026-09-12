@@ -149,6 +149,10 @@ reflection(ang::EGAngle2, about::EGPoint) =
 reflection(ang::EGAngle2, about::EGLine) =
     EGAngle2(reflection(ang.vertex, about), reflection(ang.b, about), reflection(ang.a, about))
 
+# The empty box (not its own bbox): `ang` is an infinite wedge with no
+# finite extent to report -- see `EGBoundingBox()` in eg_primitives.jl.
+EGBoundingBox(::EGAngle2) = EGBoundingBox()
+
 # --- EGHalfPlane2 -------------------------------------------------------------
 
 """
@@ -227,6 +231,9 @@ function distance(p::EGPoint, hp::EGHalfPlane2; mode::Symbol=:region)
     return p in hp ? zero(d) : d
 end
 distance(hp::EGHalfPlane2, p::EGPoint; mode::Symbol=:region) = distance(p, hp; mode=mode)
+
+# The empty box: `hp` is unbounded on both sides of its own boundary line.
+EGBoundingBox(::EGHalfPlane2) = EGBoundingBox()
 
 # --- EGStrip2 -----------------------------------------------------------------
 
@@ -313,3 +320,6 @@ function distance(p::EGPoint, s::EGStrip2; mode::Symbol=:region)
     return p in s ? zero(d) : d
 end
 distance(s::EGStrip2, p::EGPoint; mode::Symbol=:region) = distance(p, s; mode=mode)
+
+# The empty box: `s` is unbounded along both lines' own direction.
+EGBoundingBox(::EGStrip2) = EGBoundingBox()

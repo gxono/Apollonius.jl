@@ -124,6 +124,25 @@ invert_neg(l::EGLine, center::EGPoint; k::Real=1.0, atol=1e-9) = reflection(inve
 invert_neg(c::EGCircle2, center::EGPoint; k::Real=1.0, atol=1e-9) = reflection(invert(c, center; k=k, atol=atol), center)
 
 """
+    invert(center::EGPoint; k::Real=1.0, atol=1e-9)
+
+`p -> invert(p, center; k=k, atol=atol)` — for composing with `|>`/`map`/`∘`,
+same as [`rotate`](@ref)/[`homothety`](@ref)'s own single-argument forms.
+Unlike those, this is *not* an [`EGAffineMap`](@ref) (circle inversion
+isn't affine), so it's a plain closure rather than a reusable, inspectable
+value.
+"""
+invert(center::EGPoint; k::Real=1.0, atol=1e-9) = shape -> invert(shape, center; k=k, atol=atol)
+
+"""
+    invert_neg(center::EGPoint; k::Real=1.0, atol=1e-9)
+
+`p -> invert_neg(p, center; k=k, atol=atol)` — see the single-argument
+[`invert`](@ref).
+"""
+invert_neg(center::EGPoint; k::Real=1.0, atol=1e-9) = shape -> invert_neg(shape, center; k=k, atol=atol)
+
+"""
     polar_line(c::EGCircle2, p::EGPoint; atol=1e-9)
 
 The polar line of `p` with respect to `c`: the line through `inversion(p, c)`

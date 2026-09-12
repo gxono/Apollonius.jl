@@ -144,6 +144,15 @@ using Base.MathConstants: golden
             @test distance(off, l) == 3.0
             @test distance(l, off) == distance(off, l)
             @test reflection(off, l) == EGPoint(2.0, -3.0)
+
+            # angle=pi/2 is the same ordinary orthogonal projection, explicit
+            @test projection(off, l; angle=pi / 2) == projection(off, l)
+            # oblique projection at 45 degrees from l's own direction
+            @test isapprox(projection(off, l; angle=pi / 4), EGPoint(-1.0, 0.0); atol=1e-9)
+            # angle strictly between 0 and pi -- either end is parallel to l
+            @test_throws ArgumentError projection(off, l; angle=0.0)
+            @test_throws ArgumentError projection(off, l; angle=pi)
+            @test_throws ArgumentError projection(off, l; angle=-0.1)
         end
 
         @testset "rotate / homothety / reflection on Segment/Line/Ray" begin
@@ -193,6 +202,40 @@ using Base.MathConstants: golden
             @test bbox_intersection(bb, far) === nothing
 
             @test EGBoundingBox(s) == EGBoundingBox([p1, p2])
+        end
+
+        @testset "EGBoundingBox: empty box (neutral element) and EGPoint's own box" begin
+            # a bare point gets a real, degenerate (zero-size) box at its own
+            # location -- it's a position, so it can grow a union like any shape
+            p = EGPoint(3.0, -2.0)
+            @test EGBoundingBox(p) == EGBoundingBox(p, p)
+            @test bbox_width(EGBoundingBox(p)) == 0.0 && bbox_height(EGBoundingBox(p)) == 0.0
+
+            # non-positional values -- a number, a direction, unbounded shapes --
+            # get the empty box instead: nothing to report, and (for a number)
+            # not even something translate/homothety know how to move
+            @test isempty(EGBoundingBox(5))
+            @test isempty(EGBoundingBox(5.0))
+            @test isempty(EGBoundingBox(EGVector(1.0, 0.0)))
+            l = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))
+            r = EGRay(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0))
+            ang = EGAngle2(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
+            hp = EGHalfPlane2(l, 1)
+            strip = EGStrip2(l, EGLine(EGPoint(1.0, 0.0), EGPoint(2.0, 1.0)))
+            @test isempty(EGBoundingBox(l))
+            @test isempty(EGBoundingBox(r))
+            @test isempty(EGBoundingBox(ang))
+            @test isempty(EGBoundingBox(hp))
+            @test isempty(EGBoundingBox(strip))
+            @test !isempty(EGBoundingBox(EGCircle2(EGPoint(0.0, 0.0), 1.0)))  # sanity check
+
+            # the empty box is the identity element for bbox_union, both ways,
+            # and empty `union` empty stays empty
+            bb = EGBoundingBox(EGPoint(1.0, 2.0), EGPoint(4.0, 6.0))
+            empty1, empty2 = EGBoundingBox(5), EGBoundingBox(EGVector(0.0, 0.0))
+            @test bbox_union(empty1, bb) == bb
+            @test bbox_union(bb, empty1) == bb
+            @test isempty(bbox_union(empty1, empty2))
         end
 
         @testset "3D construction works (forward-compat check)" begin
@@ -664,6 +707,73 @@ using Base.MathConstants: golden
         vec = EGVector(1.0, 0.0)
         @test isapprox(rmap(vec), EGVector(cos(pi / 3), sin(pi / 3)); atol=1e-9)
         @test isapprox(tmap(vec), vec; atol=1e-9)
+
+        # translation_map also accepts an EGVector directly now, not just EGPoint
+        vvec = EGVector(3.0, -2.0)
+        @test isapprox(translation_map(vvec)(p), translation_map(v)(p); atol=1e-9)
+    end
+
+    # Single-argument ("curried") forms of the transform/predicate functions,
+    # for `|>`/`∘`/`map`/`filter` composition without needing a shape to
+    # already be in hand. rotate/homothety/translate/reflection return a
+    # genuine EGAffineMap (composable, inspectable, reused as a value);
+    # invert/invert_neg return a plain closure instead, since circle
+    # inversion isn't an affine map at all.
+    @testset "curried transform/predicate forms" begin
+        t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(0.0, 3.0))
+
+        # isapprox, not ==: EGAffineMap application and the direct per-type
+        # rotate/homothety/etc. use different (both correct) arithmetic
+        # sequences, so results can differ in the last bit or two.
+        @test isapprox(rotate(pi / 2)(t), rotate(t, pi / 2); atol=1e-9)
+        @test rotate(pi / 2) isa EGAffineMap
+        @test isapprox(rotate(pi / 3, EGPoint(1.0, 1.0))(t), rotate(t, pi / 3, EGPoint(1.0, 1.0)); atol=1e-9)
+
+        @test isapprox(homothety(2.0)(t), homothety(t, 2.0); atol=1e-9)
+        @test homothety(2.0) isa EGAffineMap
+        @test isapprox(homothety(2.0, EGPoint(1.0, 1.0))(t), homothety(t, 2.0, EGPoint(1.0, 1.0)); atol=1e-9)
+
+        v = EGVector(3.0, -1.0)
+        @test isapprox(translate(v)(t), translate(t, v); atol=1e-9)
+        @test translate(v) isa EGAffineMap
+
+        about_pt = EGPoint(2.0, 2.0)
+        @test isapprox(reflection(about_pt)(t), reflection(t, about_pt); atol=1e-9)
+        @test reflection(about_pt) isa EGAffineMap
+        l = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))
+        @test isapprox(reflection(l)(t), reflection(t, l); atol=1e-9)
+
+        # composition: a single combined EGAffineMap, not a chain of closures
+        composed = rotate(pi / 2) ∘ translate(v)
+        @test composed isa EGAffineMap
+        @test isapprox(composed(t), rotate(translate(t, v), pi / 2); atol=1e-9)
+        @test isapprox(t |> translate(v) |> rotate(pi / 2), composed(t); atol=1e-9)
+        mapped = map(rotate(pi / 2), [t, t])
+        @test isapprox(mapped[1], rotate(t, pi / 2); atol=1e-9) && isapprox(mapped[2], rotate(t, pi / 2); atol=1e-9)
+
+        center = EGPoint(0.0, 0.0)
+        l_offset = EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0))  # doesn't pass through center
+        @test invert(center; k=3.0)(l_offset) == invert(l_offset, center; k=3.0)
+        @test invert(center) isa Function && !(invert(center) isa EGAffineMap)
+        @test invert_neg(center; k=3.0)(l_offset) == invert_neg(l_offset, center; k=3.0)
+
+        p_off = EGPoint(2.0, 3.0)
+        lx = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0))
+        @test projection(lx)(p_off) == projection(p_off, lx)
+        @test projection(lx; angle=pi / 4)(p_off) == projection(p_off, lx; angle=pi / 4)
+
+        s = EGSegment(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0))
+        r = EGRay(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0))
+        mid = EGPoint(2.0, 0.0)
+        @test on_line(lx)(mid) == on_line(mid, lx)
+        @test on_segment(s)(mid) == on_segment(mid, s)
+        @test on_ray(r)(mid) == on_ray(mid, r)
+        @test filter(on_line(lx), [mid, EGPoint(1.0, 1.0)]) == [mid]
+
+        # Base's own generic Fix2 currying already covers `in` for free --
+        # no code of ours needed for `in(shape)` to work
+        @test in(t) isa Base.Fix2
+        @test in(t)(EGPoint(1.0, 1.0)) == (EGPoint(1.0, 1.0) in t)
     end
 
     @testset "EG predicates" begin
@@ -3546,7 +3656,8 @@ using Base.MathConstants: golden
             fresh() = (EGCircle2(EGPoint(3.0, -1.0), 5.0), EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0)))
             # bbox of (c, s): min=(-2,-6), max=(8,4) -- 10x10
 
-            # no scaling options: natural size, min corner translated to (0,0)
+            # no scaling options: natural size, bbox center translated to (0,0)
+            # (matches Luxor's own origin() convention)
             c, s = fresh()
             (w, h), (c2, s2) = @to_luxor_picture begin
                 c
@@ -3554,9 +3665,10 @@ using Base.MathConstants: golden
             end
             @test (w, h) == (10.0, 10.0)
             @test c == EGCircle2(EGPoint(3.0, -1.0), 5.0)   # original untouched (non-mutating form)
-            @test c2 == EGCircle2(EGPoint(5.0, 5.0), 5.0)
-            @test s2 == EGSegment(EGPoint(0.0, 10.0), EGPoint(8.0, 3.0))
-            @test bbox_union(EGBoundingBox(c2), EGBoundingBox(s2)) == EGBoundingBox(EGPoint(0.0, 0.0), EGPoint(w, h))
+            @test c2 == EGCircle2(EGPoint(0.0, 0.0), 5.0)
+            @test s2 == EGSegment(EGPoint(-5.0, 5.0), EGPoint(3.0, -2.0))
+            @test bbox_union(EGBoundingBox(c2), EGBoundingBox(s2)) ==
+                  EGBoundingBox(EGPoint(-w / 2, -h / 2), EGPoint(w / 2, h / 2))
 
             # width alone: uniform scale (bbox is square here, so trivially uniform)
             c, s = fresh()
@@ -3582,8 +3694,8 @@ using Base.MathConstants: golden
                 s
             end
             @test (w, h) == (16.0, 16.0)
-            @test c2 == EGCircle2(EGPoint(8.0, 8.0), 5.0)
-            @test s2 == EGSegment(EGPoint(3.0, 13.0), EGPoint(11.0, 6.0))
+            @test c2 == EGCircle2(EGPoint(0.0, 0.0), 5.0)
+            @test s2 == EGSegment(EGPoint(-5.0, 5.0), EGPoint(3.0, -2.0))
 
             # margin (single, applied to all 4 sides) adds to the reported size
             # and insets the content
@@ -3593,8 +3705,8 @@ using Base.MathConstants: golden
                 s
             end
             @test (w, h) == (100.0, 100.0)
-            @test c2 == EGCircle2(EGPoint(50.0, 50.0), 45.0)
-            @test s2 == EGSegment(EGPoint(5.0, 95.0), EGPoint(77.0, 32.0))
+            @test c2 == EGCircle2(EGPoint(0.0, 0.0), 45.0)
+            @test s2 == EGSegment(EGPoint(-45.0, 45.0), EGPoint(27.0, -18.0))
 
             # width and height both given, with a different aspect ratio than
             # the content (here a square bbox): a "contain" fit -- scale is
@@ -3608,8 +3720,8 @@ using Base.MathConstants: golden
             end
             @test (w, h) == (400.0, 200.0)
             @test c2 isa EGCircle2   # never distorted
-            @test c2 == EGCircle2(EGPoint(200.0, 100.0), 100.0)
-            @test s2 == EGSegment(EGPoint(100.0, 200.0), EGPoint(260.0, 60.0))
+            @test c2 == EGCircle2(EGPoint(0.0, 0.0), 100.0)
+            @test s2 == EGSegment(EGPoint(-100.0, 100.0), EGPoint(60.0, -40.0))
 
             # `scale` combined with `width`/`height` errors as soon as the macro
             # call is expanded (not a runtime exception the generated code
@@ -3627,8 +3739,8 @@ using Base.MathConstants: golden
                 s
             end
             @test (w, h) == (50.0, 50.0)
-            @test c == EGCircle2(EGPoint(25.0, 25.0), 25.0)
-            @test s == EGSegment(EGPoint(0.0, 50.0), EGPoint(40.0, 15.0))
+            @test c == EGCircle2(EGPoint(0.0, 0.0), 25.0)
+            @test s == EGSegment(EGPoint(-25.0, 25.0), EGPoint(15.0, -10.0))
 
             # mutating form rejects an unnamed expression -- nothing to rebind
             function _to_luxor_picture_unnamed_mutating_test()
@@ -3644,7 +3756,33 @@ using Base.MathConstants: golden
             c, _ = fresh()
             (w, h), c2 = @to_luxor_picture c
             @test (w, h) == (10.0, 10.0)   # a lone EGCircle2's bbox is a square of side 2r
-            @test c2 == EGCircle2(EGPoint(5.0, 5.0), 5.0)
+            @test c2 == EGCircle2(EGPoint(0.0, 0.0), 5.0)
+
+            # construction helpers mixed into the block: a plain number and a
+            # bare EGPoint used only to build the actual shape. The number
+            # contributes nothing to the bbox and is left untouched (nothing
+            # for a plain number to transform); the point *does* contribute
+            # (it's the circle's own center here, so it doesn't grow the bbox
+            # beyond the circle's own) and *is* repositioned like any shape.
+            centro = EGPoint(2.0, 1.0)
+            radio = 5.0
+            circle = EGCircle2(centro, radio)
+            (w, h) = @to_luxor_picture! width = 400.0 height = 300.0 begin
+                centro
+                radio
+                circle
+            end
+            @test (w, h) == (400.0, 300.0)
+            @test radio == 5.0                                   # untouched
+            @test centro == EGPoint(0.0, 0.0)                    # circle's own center -> origin
+            @test circle == EGCircle2(EGPoint(0.0, 0.0), 150.0)  # bbox 10x10 -> s = 30
+
+            # a block with nothing but non-positional values has no finite
+            # content to size a canvas around
+            @test_throws ArgumentError @to_luxor_picture begin
+                5.0
+                EGVector(1.0, 0.0)
+            end
         end
 
         @testset "@translate/@rotate/@homothety/@reflection macros" begin
@@ -4660,7 +4798,7 @@ using Base.MathConstants: golden
 
             mktempdir() do dir
                 Luxor.Drawing(w, h, joinpath(dir, "picture.png"))
-                # deliberately no origin() call: the content already starts at (0,0)
+                Luxor.origin()
                 path(t2; action=:path)
                 path(c2; action=:path)
 

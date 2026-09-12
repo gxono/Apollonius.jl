@@ -151,13 +151,27 @@ on_segment(EGPoint(6.0, 8.0), s) # false: beyond A
 | [`slope_angle`](@ref) | angle | `atan(dy, dx)` of that direction, in radians |
 | [`is_collinear`](@ref) | `Bool` | do three points lie on a common line? |
 | [`is_parallel`](@ref) / [`is_perpendicular`](@ref) | `Bool` | relation between two lines |
-| [`on_line`](@ref) / [`on_segment`](@ref) | `Bool` | is a point on this line / this finite segment? |
+| [`on_line`](@ref) / [`on_segment`](@ref) / [`on_ray`](@ref) | `Bool` | is a point on this line / this finite segment / this half-line? |
 | [`side_of_line`](@ref) | `-1`, `0` or `1` | which side of a line a point falls on |
 
 ```@example geo
 l_horiz = EGLine(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0))
 side_of_line(EGPoint(2.0, 1.0), l_horiz)   #  1 : "above"
 side_of_line(EGPoint(2.0, -1.0), l_horiz)  # -1 : "below"
+```
+
+```@example geo
+r = EGRay(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0))
+on_ray(EGPoint(10.0, 0.0), r)    # true: ahead of the origin, same direction
+on_ray(EGPoint(-1.0, 0.0), r)    # false: on the line, but behind the origin
+```
+
+`on_line`/`on_segment`/`on_ray` each also take just the line/segment/ray
+(no point) to build a reusable one-argument predicate, for `filter`:
+
+```@example geo
+pts = [EGPoint(2.0, 0.0), EGPoint(2.0, 1.0), EGPoint(-1.0, 0.0)]
+filter(on_ray(r), pts)   # only the point that's on r
 ```
 
 ## Projection, reflection and the perpendicular foot
@@ -174,6 +188,35 @@ C = EGPoint(2.0, 6.0)
 
 foot = projection(C, l)      # the perpendicular foot of C on l
 Cref = reflection(C, foot)   # C mirrored through that foot — i.e. across l
+```
+
+`projection` also takes an `angle` keyword (radians, default `pi/2`,
+measured counterclockwise from `l`'s own direction) for the **oblique**
+projection of `p` onto `l` — the point where a line through `p` at that
+angle meets `l`, instead of the perpendicular:
+
+```@example geo
+projection(C, l; angle=pi / 2) == foot   # pi/2 is the ordinary case
+projection(C, l; angle=pi / 3)            # a genuinely oblique projection
+```
+
+`angle` must be strictly between `0` and `π` — at either end the
+projecting line would be parallel to `l` itself, so there'd be no single
+intersection point:
+
+```@example geo
+try
+    projection(C, l; angle=0.0)
+catch e
+    e
+end
+```
+
+Like the predicates above, `projection(l; angle=...)` (no point) builds a
+reusable one-argument function, for `map`/`|>`:
+
+```@example geo
+map(projection(l), [C, P, Q])   # project a whole collection onto l at once
 ```
 
 ## Rotation and homothety
