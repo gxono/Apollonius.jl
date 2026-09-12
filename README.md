@@ -1,4 +1,4 @@
-# EuclideanGeometry [![Build Status](https://github.com/gxono/EuclideanGeometry.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/gxono/EuclideanGeometry.jl/actions/workflows/CI.yml?query=branch%3Amaster) [![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://gxono.github.io/EuclideanGeometry.jl/dev)
+# EuclideanGeometry [![Build Status](https://github.com/gxono/EuclideanGeometry.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/gxono/EuclideanGeometry.jl/actions/workflows/CI.yml?query=branch%3Amaster) [![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://gxono.github.io/EuclideanGeometry.jl/dev) [![Coverage](https://codecov.io/gh/gxono/EuclideanGeometry.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gxono/EuclideanGeometry.jl)
 
 A Julia toolkit for planar Euclidean geometry — points, segments, lines,
 rays, circles, triangles, quadrilaterals, conics and circular arcs, plus
