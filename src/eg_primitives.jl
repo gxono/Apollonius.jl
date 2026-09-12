@@ -532,6 +532,233 @@ macro boundingbox(block)
     return esc(body)
 end
 
+# --- @to_luxor_picture / @to_luxor_picture! ---------------------------------
+#
+# Turns a set of shapes into a ready-to-draw "picture": translate/scale them
+# so their combined EGBoundingBox lands inside a known, exact canvas size,
+# always preserving aspect ratio (scaling is always uniform in x and y).
+# Despite the name, this is plain geometry with no Luxor dependency at all
+# -- it only computes where things should go; `path(...)` (the Luxor
+# extension) is what actually draws them. Kept alongside
+# @boundingbox/@translate!/etc. for the same reason those live here rather
+# than in the extension.
+
+# The uniform scale factor `s` and final canvas size `(W, H)` for a content
+# bounding box of size `(bw, bh)`:
+#   - `scale` given: canvas hugs the scaled content exactly (plus margin on
+#     every side) -- W/H are *derived*, not requested.
+#   - only `width` (or only `height`) given: scaled so that side comes out
+#     exactly `width` (resp. `height`) minus the margin; the other side
+#     follows to preserve the aspect ratio, so there's never leftover space
+#     to center away.
+#   - both `width` and `height` given: a "contain" fit -- scaled by
+#     whichever of the two is more restrictive, so the content fits inside
+#     *both* (never distorted, never cropped); W/H are exactly the
+#     requested values, and any leftover space on the less-restrictive axis
+#     is later split evenly on both sides (see `_place_in_picture`).
+#   - neither given: scale factor `1.0`.
+function _picture_layout(bw::Real, bh::Real, width, height, scale, margin::Real)
+    if scale !== nothing
+        s = Float64(scale)
+        W = bw * s + 2margin
+        H = bh * s + 2margin
+    elseif width !== nothing && height !== nothing
+        W, H = Float64(width), Float64(height)
+        s = min((W - 2margin) / bw, (H - 2margin) / bh)
+    elseif width !== nothing
+        W = Float64(width)
+        s = (W - 2margin) / bw
+        H = bh * s + 2margin
+    elseif height !== nothing
+        H = Float64(height)
+        s = (H - 2margin) / bh
+        W = bw * s + 2margin
+    else
+        s = 1.0
+        W = bw + 2margin
+        H = bh + 2margin
+    end
+    return s, W, H
+end
+
+# Shift `shape` so `bb.min` lands on the origin, scale uniformly by `s`
+# about the origin (so e.g. a circle always stays a circle), then shift
+# again to center the scaled content within the final `(W, H)` canvas --
+# equivalent to insetting by `margin` on every side when the content
+# already fills `(W, H)` exactly, and splitting any extra leftover space
+# evenly otherwise (the "contain fit" case, see `_picture_layout`).
+function _place_in_picture(shape, bb::EGBoundingBox, s::Real, W::Real, H::Real)
+    shifted = translate(shape, EGVector(-bb.min[1], -bb.min[2]))
+    scaled = homothety(shifted, s, EGPoint(0.0, 0.0))
+    offset = EGVector((W - bbox_width(bb) * s) / 2, (H - bbox_height(bb) * s) / 2)
+    return translate(scaled, offset)
+end
+
+const _PICTURE_KWNAMES = (:width, :height, :scale, :margin)
+
+# Reads the trailing `key = value` arguments a macro call was given before
+# its final (block) argument -- e.g. `@to_luxor_picture width=400 begin ... end`
+# -- and returns the 4 option expressions in a fixed order, still
+# unevaluated (they're spliced into the generated code and evaluated in the
+# caller's scope, same as the block itself).
+function _parse_picture_kwargs(macroname, exprs)
+    given = Dict{Symbol,Any}()
+    for e in exprs
+        (e isa Expr && e.head === :(=) && e.args[1] isa Symbol && e.args[1] in _PICTURE_KWNAMES) ||
+            error("$macroname: unrecognized argument `$e` -- expected one of $_PICTURE_KWNAMES, or the shapes block as the last argument")
+        given[e.args[1]] = e.args[2]
+    end
+    if haskey(given, :scale) && (haskey(given, :width) || haskey(given, :height))
+        error("$macroname: `scale` cannot be combined with `width`/`height`")
+    end
+    getval(k, default) = get(given, k, default)
+    return (getval(:width, nothing), getval(:height, nothing), getval(:scale, nothing), getval(:margin, 0.0))
+end
+
+function _picture_body(mutating::Bool, block, width, height, scale, margin)
+    block isa Expr && block.head === :block || (block = Expr(:block, block))
+
+    shapes = gensym(:picture_shapes)
+    slots = Union{Symbol,Nothing}[]   # nothing = anonymous result slot; Symbol = rebind target (mutating only)
+    body = Expr(:block, :($shapes = Any[]))
+    for stmt in block.args
+        if stmt isa LineNumberNode
+            push!(body.args, stmt)
+        elseif stmt isa Symbol
+            push!(body.args, :(push!($shapes, $stmt)))
+            push!(slots, mutating ? stmt : nothing)
+        elseif stmt isa Expr && stmt.head === :(=) && stmt.args[1] isa Symbol
+            push!(body.args, stmt, :(push!($shapes, $(stmt.args[1]))))
+            push!(slots, mutating ? stmt.args[1] : nothing)
+        elseif mutating
+            push!(body.args, :(throw(ArgumentError("@to_luxor_picture!: cannot mutate an unnamed expression — assign it to a variable first"))))
+        else
+            push!(body.args, :(push!($shapes, $stmt)))
+            push!(slots, nothing)
+        end
+    end
+
+    picture_layout = GlobalRef(@__MODULE__, :_picture_layout)
+    place_in_picture = GlobalRef(@__MODULE__, :_place_in_picture)
+
+    bb = gensym(:bb)
+    s = gensym(:s)
+    W = gensym(:W)
+    H = gensym(:H)
+    push!(body.args, quote
+        isempty($shapes) && throw(ArgumentError("@to_luxor_picture: the block has no shapes"))
+        $bb = reduce(bbox_union, EGBoundingBox.($shapes))
+        $s, $W, $H = $picture_layout(bbox_width($bb), bbox_height($bb), $width, $height, $scale, $margin)
+    end)
+
+    results = gensym(:picture_results)
+    push!(body.args, :($results = Any[]))
+    for (i, slot) in enumerate(slots)
+        transformed = :($place_in_picture($shapes[$i], $bb, $s, $W, $H))
+        if slot === nothing
+            push!(body.args, :(push!($results, $transformed)))
+        else
+            push!(body.args, :($slot = $transformed), :(push!($results, $slot)))
+        end
+    end
+
+    size_expr = :(($W, $H))
+    if mutating
+        push!(body.args, size_expr)
+    else
+        shapes_expr = length(slots) == 1 ? :($results[1]) : :(($results...,))
+        push!(body.args, :(($size_expr, $shapes_expr)))
+    end
+    return esc(body)
+end
+
+"""
+    @to_luxor_picture begin
+        c = EGCircle2(...)
+        s = EGSegment(...)
+        t                     # a shape already defined earlier
+    end
+    @to_luxor_picture c        # a single shape/expression also works
+    @to_luxor_picture width=400 begin ... end
+    @to_luxor_picture height=300 begin ... end
+    @to_luxor_picture width=400 height=300 begin ... end
+    @to_luxor_picture scale=2.0 begin ... end
+    @to_luxor_picture width=400 margin=10 begin ... end
+
+Prepares every shape named in the block for drawing at a known, exact
+canvas size: translate/scale them so their combined [`EGBoundingBox`](@ref)
+fits centered inside that canvas, always preserving aspect ratio (the
+scale factor is always the same in `x` and `y` — a circle always stays a
+circle). Returns `((width, height), shapes)` — `width`/`height` is the
+exact canvas size to pass to `Drawing`, and `shapes` are the
+translated/scaled copies (`c`/`s`/`t` themselves are untouched — see
+[`@to_luxor_picture!`](@ref) for the mutating form), in the same order as
+the block, as a tuple (or bare, for a single shape). Since no `origin()`
+call is needed afterward — the content is already positioned for the
+returned canvas — draw directly in the default top-left-anchored device
+space:
+
+```julia
+(w, h), (c2, s2) = @to_luxor_picture width=400 begin
+    c = EGCircle2(EGPoint(3.0, -1.0), 5.0)
+    s = EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+end
+Drawing(w, h, "out.png")
+path(c2; action=:stroke)
+path(s2; action=:stroke)
+finish()
+```
+
+Scaling options (mutually exclusive: `scale` cannot be combined with
+`width`/`height`):
+
+  - neither given: scale factor `1.0` (the shapes' own coordinate units
+    become output units directly, no resizing) — the returned canvas size
+    is exactly the content size (plus `margin`);
+  - `scale`: a literal, uniform multiplier — the returned canvas size is
+    *derived* from the scaled content (plus `margin`), same as above;
+  - `width` alone (or `height` alone): scaled so that side comes out
+    exactly `width` (resp. `height`) minus `margin`, the other side
+    following to preserve the aspect ratio — there's never leftover space
+    to center away in this case;
+  - `width` *and* `height` together: a "contain" fit — scaled by whichever
+    of the two is more restrictive, so the content fits inside *both*
+    without distortion. The returned canvas is exactly `(width, height)`
+    regardless; if the content's aspect ratio doesn't match, it's centered,
+    leaving extra blank space on one axis beyond `margin`.
+
+`margin` (default `0.0`) is the minimum blank space guaranteed around the
+content on every side, in output units.
+
+Each line in the block is read exactly like [`@boundingbox`](@ref)'s (an
+assignment binds `name` in the enclosing scope as usual, or a bare
+expression contributes without binding anything); a bare, unnamed
+expression works here too since nothing needs to be rebound.
+"""
+macro to_luxor_picture(args...)
+    isempty(args) && error("@to_luxor_picture: missing the shapes block")
+    width, height, scale, margin = _parse_picture_kwargs("@to_luxor_picture", args[1:end-1])
+    return _picture_body(false, args[end], width, height, scale, margin)
+end
+
+"""
+    @to_luxor_picture! begin ... end
+    @to_luxor_picture! width=400 begin ... end
+
+The mutating counterpart of [`@to_luxor_picture`](@ref): rebinds each
+*named* shape (an assignment, or a bare reference to a shape defined
+earlier) to its own translated/scaled image, instead of returning copies.
+Returns just `(width, height)` — the shapes are already accessible under
+their own names. A bare, unnamed expression has nothing to rebind, so this
+form rejects it (same as [`@translate!`](@ref) and the rest of that
+family).
+"""
+macro to_luxor_picture!(args...)
+    isempty(args) && error("@to_luxor_picture!: missing the shapes block")
+    width, height, scale, margin = _parse_picture_kwargs("@to_luxor_picture!", args[1:end-1])
+    return _picture_body(true, args[end], width, height, scale, margin)
+end
+
 # Shared codegen for the @translate/@rotate/@homothety/@reflection family
 # (and their `!` counterparts) below: walk a `begin...end` block (or a
 # single expression, treated as a one-line block) the same way

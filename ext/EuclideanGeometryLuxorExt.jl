@@ -21,14 +21,9 @@
 # EGInterstice2/EGCurvilinearTriangle2/EGCurvilinearQuadrilateral2/
 # EGCurvilinearNgon2) alike — by walking `sides(pg)` via the same
 # `_polygon_walk` the package's own `area`/`perimeter` already use. This is
-# the direct payoff of the EG type hierarchy: the old Point2-based
-# extension needed 3 near-identical vertex-based methods (Triangle/Polygon/
-# Quadrilateral) plus separate hand-written arc-walking methods per curved
-# type (and no method at all for the 3 brand-new curved types); one method
-# now covers all of them. The one behavior change from the old vertex-based
-# methods: no more `close=false` (open-polyline) option, since a walked
-# side sequence is always a closed loop — unexercised in this package's
-# own tests/docs, and revisited if it turns out to matter.
+# the direct payoff of the EG type hierarchy: one method, not one per
+# concrete type. The path is always closed (no `close=false` open-polyline
+# option), since a walked side sequence is inherently a loop.
 # -------------------------------------------------------------------------
 
 module EuclideanGeometryLuxorExt
@@ -304,6 +299,11 @@ function EG.path(pg::EG.EGPolygon; n=60, action=:path)
     end
     Luxor.closepath()
     Luxor.do_action(action)
+end
+
+function EG.current_path_bbox()
+    x1, y1, x2, y2 = Luxor.path_extents(Luxor.currentdrawing().cr)
+    return EG.EGBoundingBox(EG.EGPoint(x1, y1), EG.EGPoint(x2, y2))
 end
 
 end # module EuclideanGeometryLuxorExt

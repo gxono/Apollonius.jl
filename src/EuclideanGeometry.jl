@@ -101,6 +101,7 @@ export power_of_point, radical_axis, radical_center, radical_circle
 export vertices, is_convex, point_in_polygon, convex_hull
 export bbox_width, bbox_height, bbox_center, bbox_diagonal, bbox_aspect_ratio,
        bboxes_intersect, bbox_intersection, bbox_union, @boundingbox
+export @to_luxor_picture, @to_luxor_picture!
 export @translate, @translate!, @rotate, @rotate!, @homothety, @homothety!, @reflection, @reflection!
 export @invert, @invert!, @invert_neg, @invert_neg!, @affinemap, @affinemap!
 export inversion, invert, inversion_neg, invert_neg, polar_line, pole
@@ -152,5 +153,31 @@ Note: `EGBoundingBox` is ambiguous when both packages are loaded with
 `EuclideanGeometry.EGBoundingBox` explicitly when you mean this package's.
 """
 function path end
+
+export current_path_bbox
+
+"""
+    current_path_bbox()
+
+Experimental, not yet stable — names and behavior may still change.
+
+The [`EGBoundingBox`](@ref) of whatever is currently on the active Luxor
+`Drawing`'s Cairo path (in the current user-space coordinates, i.e. after
+any `origin`/`translate`/`scale`/`rotate` already applied) — via
+`Luxor.path_extents`. Unlike computing an `EGBoundingBox` directly from
+the EG shapes themselves (exact, needs no `Drawing` at all), this reflects
+whatever Cairo itself actually measured, so it also picks up anything
+drawn with plain Luxor calls, and only approximates the true extent of a
+shape whose `path` method samples points (`EGParabola2`, `EGHyperbola2`,
+the non-circular conic arcs) rather than using a native Cairo primitive.
+Like [`path`](@ref), this is a package extension: only callable once
+Luxor is also loaded.
+
+Call it *before* a non-`:path` action (`:stroke`, `:fill`, ...) — Cairo
+clears the current path as a side effect of actually rendering it, same
+as most of Luxor's own shape functions, so `current_path_bbox()` reads as
+an empty (all-zero) box afterward.
+"""
+function current_path_bbox end
 
 end # module EuclideanGeometry

@@ -260,6 +260,98 @@ path(skew(sec); action=:stroke)   # an EGCurvilinearTriangle2 with one elliptic-
 `arc2r` if it's an `EGCircularArc2`, or sampled at `n` points (the same
 `n` `path` itself takes) if it's any of the other three arc types.
 
+## Sizing a canvas automatically
+
+Setting up a `Drawing` normally means guessing values by hand: how wide
+and tall does the canvas need to be, how far do the shapes need to shift
+so nothing ends up off-canvas, how much breathing room to leave around
+the edges? [`@to_luxor_picture`](@ref) (from the core package — see
+[Transforming in Bulk: Macros](@ref) for the full option reference)
+answers all of that in one call: it translates and uniformly scales a
+whole set of shapes so they fit centered inside a canvas of a known,
+exact size, and hands back that size directly.
+
+```julia
+using EuclideanGeometry, Luxor
+
+t = EGTriangle(EGPoint(2.0, -5.0), EGPoint(9.0, 3.0), EGPoint(-1.0, 6.0))
+circ = EGCircle2(EGPoint(4.0, 1.0), 4.0)
+
+(w, h), (t2, circ2) = @to_luxor_picture width=300.0 margin=10.0 begin
+    t
+    circ
+end
+# (w, h) = (300.0, 328.0) -- exactly 300 wide (as requested), tall enough
+# to keep t/circ's own aspect ratio, plus a 10-unit margin on every side
+
+Drawing(w, h, "figure.png")
+background("white")
+sethue("steelblue")
+path(t2; action=:stroke)
+path(circ2; action=:stroke)
+finish()
+```
+
+Note there's no `origin()` call: `@to_luxor_picture` already positions
+`t2`/`circ2` for a canvas starting at `(0, 0)` in the default, top-left
+device space, so adding one would only shift everything off-center again.
+`t`/`circ` themselves are untouched — see [`@to_luxor_picture!`](@ref) for
+the mutating form, which rebinds them in place instead.
+
+When the requested `width`/`height` don't match the content's own aspect
+ratio, the content is scaled (still uniformly — a circle never becomes an
+ellipse) to fit inside both, and centered, leaving extra blank space
+beyond `margin` on whichever axis has slack — the same "contain fit" a
+CSS `object-fit: contain` or an image viewer's "fit to window" would give:
+
+```julia
+(w, h), (t2, circ2) = @to_luxor_picture width=400.0 height=200.0 margin=10.0 begin
+    t
+    circ
+end
+Drawing(w, h, "figure_wide.png")
+background("white")
+sethue("steelblue")
+path(t2; action=:stroke)
+path(circ2; action=:stroke)
+finish()
+```
+
+### `current_path_bbox`
+
+Experimental, not yet stable — names and behavior may still change.
+
+[`current_path_bbox`](@ref) is the Luxor-side complement: the
+[`EGBoundingBox`](@ref) of whatever is currently on the active `Drawing`'s
+Cairo path, via `Luxor.path_extents`. Unlike computing an `EGBoundingBox`
+straight from the EG shapes (exact, and needs no `Drawing` open at all),
+this reflects whatever Cairo itself measured — useful as a sanity check,
+or when the path also has plain Luxor calls mixed in that
+`EuclideanGeometry` has no way to know about:
+
+```julia
+Drawing(w, h, "figure.png")
+path(t2; action=:path)      # action=:path: build the path, don't render yet
+path(circ2; action=:path)
+
+current_path_bbox()   # EGBoundingBox([10.0, 10.0] .. [290.0, 318.0])
+                       # matches bbox_union(EGBoundingBox(t2), EGBoundingBox(circ2)) exactly here,
+                       # since both t2/circ2 draw via a native Cairo primitive (no sampling)
+
+strokepath()
+current_path_bbox()   # EGBoundingBox([0.0, 0.0] .. [0.0, 0.0]) -- stroking consumes the path,
+                       # same as most of Luxor's own shape functions
+finish()
+```
+
+Call it *before* a non-`:path` action — `:stroke`/`:fill`/etc. clear the
+current path as a side effect of actually rendering it, so
+`current_path_bbox()` reads as an empty (all-zero) box afterward, as shown
+above. For a shape whose `path` method samples points rather than using a
+native Cairo primitive (`EGParabola2`, `EGHyperbola2`, the non-circular
+conic arcs), `current_path_bbox()` only approximates the true extent, to
+the same accuracy as that sampling.
+
 ## Worked example: the package logo
 
 ![EuclideanGeometry.jl logo](assets/logo.svg)

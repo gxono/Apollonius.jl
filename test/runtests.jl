@@ -3542,6 +3542,111 @@ using Base.MathConstants: golden
             @test mc5 == EGCircle2(EGPoint(9.0, 9.0), 2.0)
         end
 
+        @testset "@to_luxor_picture / @to_luxor_picture!" begin
+            fresh() = (EGCircle2(EGPoint(3.0, -1.0), 5.0), EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0)))
+            # bbox of (c, s): min=(-2,-6), max=(8,4) -- 10x10
+
+            # no scaling options: natural size, min corner translated to (0,0)
+            c, s = fresh()
+            (w, h), (c2, s2) = @to_luxor_picture begin
+                c
+                s
+            end
+            @test (w, h) == (10.0, 10.0)
+            @test c == EGCircle2(EGPoint(3.0, -1.0), 5.0)   # original untouched (non-mutating form)
+            @test c2 == EGCircle2(EGPoint(5.0, 5.0), 5.0)
+            @test s2 == EGSegment(EGPoint(0.0, 10.0), EGPoint(8.0, 3.0))
+            @test bbox_union(EGBoundingBox(c2), EGBoundingBox(s2)) == EGBoundingBox(EGPoint(0.0, 0.0), EGPoint(w, h))
+
+            # width alone: uniform scale (bbox is square here, so trivially uniform)
+            c, s = fresh()
+            (w, h), _ = @to_luxor_picture width = 400.0 begin
+                c
+                s
+            end
+            @test (w, h) == (400.0, 400.0)
+
+            # scale=: literal multiplier
+            c, s = fresh()
+            (w, h), _ = @to_luxor_picture scale = 2.0 begin
+                c
+                s
+            end
+            @test (w, h) == (20.0, 20.0)
+
+            # margin alone (no width/height/scale): scale factor stays 1.0,
+            # margin just pads the natural content size on every side
+            c, s = fresh()
+            (w, h), (c2, s2) = @to_luxor_picture margin = 3.0 begin
+                c
+                s
+            end
+            @test (w, h) == (16.0, 16.0)
+            @test c2 == EGCircle2(EGPoint(8.0, 8.0), 5.0)
+            @test s2 == EGSegment(EGPoint(3.0, 13.0), EGPoint(11.0, 6.0))
+
+            # margin (single, applied to all 4 sides) adds to the reported size
+            # and insets the content
+            c, s = fresh()
+            (w, h), (c2, s2) = @to_luxor_picture width = 100.0 margin = 5.0 begin
+                c
+                s
+            end
+            @test (w, h) == (100.0, 100.0)
+            @test c2 == EGCircle2(EGPoint(50.0, 50.0), 45.0)
+            @test s2 == EGSegment(EGPoint(5.0, 95.0), EGPoint(77.0, 32.0))
+
+            # width and height both given, with a different aspect ratio than
+            # the content (here a square bbox): a "contain" fit -- scale is
+            # still uniform (never distorts: the circle stays an EGCircle2),
+            # canvas is exactly (width, height), content centered with extra
+            # blank space on the less-restrictive axis (here, x)
+            c, s = fresh()
+            (w, h), (c2, s2) = @to_luxor_picture width = 400.0 height = 200.0 begin
+                c
+                s
+            end
+            @test (w, h) == (400.0, 200.0)
+            @test c2 isa EGCircle2   # never distorted
+            @test c2 == EGCircle2(EGPoint(200.0, 100.0), 100.0)
+            @test s2 == EGSegment(EGPoint(100.0, 200.0), EGPoint(260.0, 60.0))
+
+            # `scale` combined with `width`/`height` errors as soon as the macro
+            # call is expanded (not a runtime exception the generated code
+            # throws), so it's only catchable by forcing that expansion to
+            # happen inside the `@test_throws` call itself, via `eval`.
+            c1 = EGCircle2(EGPoint(0.0, 0.0), 1.0)
+            @test_throws LoadError eval(:(@to_luxor_picture scale = 2.0 width = 10.0 c1))
+
+            @test_throws ArgumentError @to_luxor_picture begin end
+
+            # mutating form: rebinds c/s in place, returns just (w, h)
+            c, s = fresh()
+            (w, h) = @to_luxor_picture! width = 50.0 begin
+                c
+                s
+            end
+            @test (w, h) == (50.0, 50.0)
+            @test c == EGCircle2(EGPoint(25.0, 25.0), 25.0)
+            @test s == EGSegment(EGPoint(0.0, 50.0), EGPoint(40.0, 15.0))
+
+            # mutating form rejects an unnamed expression -- nothing to rebind
+            function _to_luxor_picture_unnamed_mutating_test()
+                c = EGCircle2(EGPoint(0.0, 0.0), 1.0)
+                @to_luxor_picture! begin
+                    c
+                    EGCircle2(EGPoint(1.0, 1.0), 1.0)
+                end
+            end
+            @test_throws ArgumentError _to_luxor_picture_unnamed_mutating_test()
+
+            # a single shape/expression (not begin/end) works too
+            c, _ = fresh()
+            (w, h), c2 = @to_luxor_picture c
+            @test (w, h) == (10.0, 10.0)   # a lone EGCircle2's bbox is a square of side 2r
+            @test c2 == EGCircle2(EGPoint(5.0, 5.0), 5.0)
+        end
+
         @testset "@translate/@rotate/@homothety/@reflection macros" begin
             v = EGVector(3.0, -2.0)
 
@@ -4542,6 +4647,35 @@ using Base.MathConstants: golden
 
             Luxor.finish()
             @test isfile(joinpath(dir, "test.png"))
+        end
+
+        @testset "current_path_bbox and @to_luxor_picture together" begin
+            t = EGTriangle(EGPoint(2.0, -5.0), EGPoint(9.0, 3.0), EGPoint(-1.0, 6.0))
+            circ = EuclideanGeometry.EGCircle2(EGPoint(4.0, 1.0), 4.0)
+
+            (w, h), (t2, c2) = @to_luxor_picture width = 300.0 margin = 10.0 begin
+                t
+                circ
+            end
+
+            mktempdir() do dir
+                Luxor.Drawing(w, h, joinpath(dir, "picture.png"))
+                # deliberately no origin() call: the content already starts at (0,0)
+                path(t2; action=:path)
+                path(c2; action=:path)
+
+                # matches the analytic EG-side bbox exactly (both types have
+                # native Cairo primitives here, so no sampling error)
+                expected = bbox_union(EuclideanGeometry.EGBoundingBox(t2), EuclideanGeometry.EGBoundingBox(c2))
+                @test current_path_bbox() ≈ expected
+
+                Luxor.strokepath()
+                # the path is consumed by the stroke action, same as Luxor's
+                # own shape functions
+                @test current_path_bbox() == EuclideanGeometry.EGBoundingBox(EGPoint(0.0, 0.0), EGPoint(0.0, 0.0))
+
+                Luxor.finish()
+            end
         end
     end
 

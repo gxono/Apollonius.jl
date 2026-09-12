@@ -87,6 +87,139 @@ catch e
 end
 ```
 
+## `@to_luxor_picture` / `@to_luxor_picture!`
+
+Preparing a set of shapes to actually *draw* usually means answering three
+fiddly questions by hand: how big is this thing, how far do I need to
+shift it so it isn't half off-canvas, and what canvas size do I even pass
+to `Drawing`? [`@to_luxor_picture`](@ref) answers all three in one call:
+it translates and uniformly scales every shape in the block so their
+combined [`EGBoundingBox`](@ref) fits centered inside a canvas of a known,
+exact size, and returns that size alongside the transformed shapes.
+Despite the name, this macro is plain geometry — it has no Luxor
+dependency at all; see [Drawing with Luxor.jl](@ref) for the full
+`Drawing`/`path`/`finish` workflow this is designed to feed directly.
+
+```@example geo
+c = EGCircle2(EGPoint(3.0, -1.0), 5.0)
+s = EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+
+(w, h), (c2, s2) = @to_luxor_picture begin
+    c
+    s
+end
+(w, h)   # the combined bbox is already 10x10, so this is its natural size
+```
+
+```@example geo
+c2, s2   # translated so the combined bbox's min corner sits at (0, 0)
+```
+
+`c`/`s` themselves are untouched (see [`@to_luxor_picture!`](@ref) below
+for the mutating form); the block is read exactly like
+[`@boundingbox`](@ref)'s (an assignment binds `name` as usual, a bare
+expression contributes without binding anything, and a single
+shape/expression works without `begin`/`end` too).
+
+### Sizing options
+
+| Option | Effect |
+|:-------|:-------|
+| *(none)* | scale factor `1.0` — the shapes' own coordinate units become output units directly |
+| `scale` | a literal, uniform multiplier |
+| `width` (alone) | scaled so the content's width comes out exactly `width` minus `margin`; height follows to preserve the aspect ratio |
+| `height` (alone) | symmetric |
+| `width` *and* `height` | a "contain" fit: scaled by whichever of the two is more restrictive, so the content fits inside *both* without distortion |
+| `margin` | blank space guaranteed around the content on every side (default `0.0`) |
+
+`scale` and `width`/`height` are mutually exclusive — combining them is an
+error. The scale factor is **always** the same in `x` and `y`: a circle
+passed through `@to_luxor_picture` is always still a circle, never
+distorted into an ellipse, no matter which sizing option is used.
+
+```@example geo
+c, s = EGCircle2(EGPoint(3.0, -1.0), 5.0), EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+(w, h), _ = @to_luxor_picture width=400.0 begin
+    c
+    s
+end
+(w, h)   # height follows to keep the (here already square) aspect ratio
+```
+
+```@example geo
+c, s = EGCircle2(EGPoint(3.0, -1.0), 5.0), EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+(w, h), _ = @to_luxor_picture scale=2.0 begin
+    c
+    s
+end
+(w, h)   # canvas size is derived from the scaled content, not requested
+```
+
+When `width` and `height` are given together and don't match the
+content's own aspect ratio, the content is scaled by whichever bound is
+more restrictive and *centered* in the requested canvas — extra blank
+space (beyond `margin`) lands on whichever axis has slack, rather than
+stretching the content to fill it:
+
+```@example geo
+t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(6.0, 0.0), EGPoint(3.0, 5.0))
+circ = EGCircle2(EGPoint(3.0, 2.0), 1.5)
+
+(w, h), (t2, circ2) = @to_luxor_picture width=400.0 height=200.0 margin=10.0 begin
+    t
+    circ
+end
+(w, h), circ2   # circ2 is still an EGCircle2 -- never distorted
+```
+
+`margin` works the same way whether or not `width`/`height` are given —
+with neither, it simply pads the content's own natural size on every side:
+
+```@example geo
+c, s = EGCircle2(EGPoint(3.0, -1.0), 5.0), EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+(w, h), _ = @to_luxor_picture margin=3.0 begin
+    c
+    s
+end
+(w, h)   # the natural 10x10 size, padded by 3 on every side
+```
+
+Combining `scale` with `width`/`height` is an error — raised as soon as
+the macro call itself is expanded, before any of the block even runs:
+
+```@example geo
+try
+    eval(:(@to_luxor_picture scale=2.0 width=10.0 c))
+catch e
+    e
+end
+```
+
+### `@to_luxor_picture!`
+
+The mutating counterpart: rebinds each *named* shape (an assignment, or a
+bare reference to a shape defined earlier) to its own translated/scaled
+image, instead of returning copies — the same relationship
+[`@translate!`](@ref) has to [`@translate`](@ref). Since the shapes are
+already accessible under their own names afterward, it returns just
+`(width, height)`:
+
+```@example geo
+c3 = EGCircle2(EGPoint(3.0, -1.0), 5.0)
+s3 = EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+
+(w, h) = @to_luxor_picture! width=50.0 begin
+    c3
+    s3
+end
+(w, h), c3, s3   # c3/s3 themselves now refer to the translated/scaled shapes
+```
+
+A bare, unnamed expression has nothing to rebind, so this form rejects it
+(same as `@translate!` and the rest of that family) — see
+[Drawing with Luxor.jl](@ref) for the complete pipeline, from a bare set
+of `EGPoint`/`EGTriangle`/etc. all the way to a finished PNG.
+
 ## `@translate` / `@translate!`
 
 ```@example geo
