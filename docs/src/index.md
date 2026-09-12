@@ -4,6 +4,12 @@ CurrentModule = EuclideanGeometry
 
 # EuclideanGeometry.jl
 
+!!! note "Illustrations are still on their way"
+    Several pages on this site have a placeholder image (labeled "TODO:
+    diagram") standing in for a real illustration. The text and code
+    examples around them are complete and verified; the actual diagrams
+    will be filled in over time.
+
 Documentation for [EuclideanGeometry.jl](https://github.com/gxono/EuclideanGeometry.jl), a Julia toolkit for planar Euclidean geometry — points, segments, lines, rays, circles and triangles, plus the constructions you build with them (midpoints, intersections, projections, reflections, rotations, triangle centers, tangency, conics...).
 
 Every exported type is its own struct, prefixed `EG` (`EGPoint`, `EGCircle2`,
@@ -123,10 +129,14 @@ perpendicular_through(l, c)   # altitude from c
 intersection(l, circumcircle(t))
 ```
 
-## Drawing with Luxor.jl (experimental)
+## Figures, via Luxor.jl
 
 This package doesn't depend on [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl),
 but if you load both, a [`path`](@ref) function becomes available for
-every type here, via a package extension — this is new and not yet a
-stable, finished part of the API. See [Drawing with Luxor.jl](@ref) at
-the end of this site for the full rundown.
+every type here, via a package extension, plus [`@to_luxor_picture`](@ref)
+and [`current_path_bbox`](@ref) for sizing/positioning a `Drawing`
+automatically instead of guessing coordinates by hand. The point of all
+of it is exactly what this documentation itself needs: it's the tool
+this site's own illustrations (once filled in, see the note above) get
+built with. See [Drawing with Luxor.jl](@ref) at the end of this site for
+the full rundown.
