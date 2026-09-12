@@ -333,6 +333,17 @@ reverse(ang) == ang2, reverse(reverse(ang)) == ang
 rays = angle_trisectors(O, P1, P2)   # 2 rays, each 30° apart (a 90° angle, /3)
 ```
 
+[`distance`](@ref)`(p, ang)` follows the same `mode = :region`/`:boundary`
+convention as the other [`EGSet`](@ref) types (see
+[Unbounded Regions: Half-Planes, Strips & Angles](@ref)): `0.0` from inside the
+wedge with the default `:region`, or always the distance to the nearer of
+the two bounding rays (`vertex -> a`, `vertex -> b`) with `:boundary`:
+
+```@example geo
+distance(EGPoint(1.0, 1.0), ang)                  # 0.0: inside the wedge
+distance(EGPoint(-1.0, -1.0), ang; mode=:boundary) # distance to the nearer ray
+```
+
 `rotate`, `reflection` and `homothety` transform `vertex`, `a` and `b`
 pointwise, so `abs(ang)` is always preserved, and so is the *sign* of
 `measure` — for every one of them, including `reflection`. That's a

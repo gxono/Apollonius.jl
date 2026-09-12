@@ -42,6 +42,20 @@ rotate(pg, pi / 4, centroid(pg))
 homothety(pg, 2.0)
 ```
 
+## Distance to a polygon
+
+[`distance`](@ref)`(p, pg)` works the same way for every [`EGPolygon`](@ref)
+(straight or curved). With `mode = :region` (the default), it's `0.0` for a
+point inside or on `pg`, otherwise the distance to the nearest side; with
+`mode = :boundary`, it's always the distance to the boundary, even from
+inside:
+
+```@example geo
+distance(EGPoint(2.0, 1.0), pg)                    # 0.0: strictly inside
+distance(EGPoint(2.0, 1.0), pg; mode=:boundary)     # > 0.0: distance to the nearest side instead
+distance(EGPoint(6.0, 1.0), pg)                     # outside: both modes agree
+```
+
 ## Convexity and containment
 
 ```@example geo
@@ -111,6 +125,15 @@ EGPoint(1.0, 1.0) in bb   # containment, boundary included
 bb2 = EGBoundingBox(EGPoint(2.0, 1.0), EGPoint(6.0, 5.0))
 bboxes_intersect(bb, bb2)     # true: they overlap
 bbox_intersection(bb, bb2)    # the overlapping region itself
+```
+
+[`distance`](@ref)`(p, bb)` has the same `mode = :region`/`:boundary` pair
+as `distance(p, pg::EGPolygon)` above — `0.0` from inside with the default
+`:region`, or always the distance to the box's edge with `:boundary`:
+
+```@example geo
+distance(EGPoint(1.0, 1.0), bb)                  # 0.0: inside bb
+distance(EGPoint(1.0, 1.0), bb; mode=:boundary)   # > 0.0: distance to the nearest edge
 ```
 
 [`bboxes_intersect`](@ref) treats touching (sharing just an edge or corner)

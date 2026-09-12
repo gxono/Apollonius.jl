@@ -481,7 +481,7 @@ for _ in 1:max_circles
     push!(V, EGCircle2(real_circle.center, r))
 end
 
-V = reflection.(V, Ref(EGLine(K.center, A)))
+V = reflection(V, EGLine(K.center, A))
 
 Drawing(400, 400, "logo.svg")
 origin()
@@ -489,7 +489,7 @@ origin()
 colors = (Luxor.julia_green, Luxor.julia_purple, Luxor.julia_red)
 for (i, color) in enumerate(colors)
     sethue(color)
-    path.(rotate.(V, deg2rad((i - 1) * 120)); action=:fill)
+    path(rotate(V, deg2rad((i - 1) * 120)); action=:fill)
 end
 
 finish()

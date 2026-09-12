@@ -19,6 +19,19 @@ using EuclideanGeometry
 EGCircle2(EGPoint(0.0, 0.0), EGPoint(3.0, 4.0))   # radius 5, same as EGCircle2(EGPoint(0.0, 0.0), 5.0)
 ```
 
+Three points on the circumference work too — `EGCircle2(p1, p2, p3)` is
+their circumcircle, computed directly (the same formula
+[`circumcenter`](@ref) uses on an [`EGTriangle`](@ref), without needing to
+build one first):
+
+```@example geo
+EGCircle2(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(0.0, 3.0))
+```
+
+It throws an `ArgumentError` if the three points are (or are too close
+to) collinear, same as [`affine_map`](@ref) does for its three source
+points — there's no finite circle through them in that case.
+
 ## Power of a point and tangent lines
 
 The [`power_of_point`](@ref) of `p` with respect to a circle `c` is

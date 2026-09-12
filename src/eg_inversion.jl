@@ -161,8 +161,9 @@ The polar line of `p` with respect to `c`: the line through `inversion(p, c)`
 perpendicular to the line from `c.center` to `p`. When `p` is outside `c`,
 this is the chord of contact of the two tangent lines from `p` (see
 [`tangent_points`](@ref)); when `p` is on `c`, it's the tangent line at `p`.
-`nothing` when `p` is `c`'s center (matching the `EGEllipse2`/`EGHyperbola2`/
-`EGParabola2` methods, once ported), rather than throwing.
+`nothing` when `p` is `c`'s center (matching the
+[`polar_line(::EGEllipse2, ::EGPoint)`](@ref)/`EGHyperbola2`/`EGParabola2`
+methods), rather than throwing.
 """
 function polar_line(c::EGCircle2, p::EGPoint; atol=1e-9)
     distance(p, c.center) <= sqrt(atol) * max(c.r, norm(p), norm(c.center), 1.0) && return nothing

@@ -177,6 +177,12 @@ family via [`sides`](@ref) — straight or curved alike. With `mode =
 of `pg`, otherwise the distance to the nearest point on `sides(pg)`. With
 `mode = :boundary`, always the distance to the boundary itself, even from
 inside `pg`.
+
+```julia
+t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(0.0, 3.0))
+distance(EGPoint(1.0, 1.0), t)                    # 0.0: p is inside t
+distance(EGPoint(1.0, 1.0), t; mode=:boundary)    # > 0.0: distance to the nearest side instead
+```
 """
 function distance(p::EGPoint, pg::EGPolygon; mode::Symbol=:region)
     _check_distance_mode(mode)

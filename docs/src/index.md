@@ -114,19 +114,33 @@ See the [README](https://github.com/gxono/EuclideanGeometry.jl#readme) for the f
 
 ## Quick example
 
-```julia
+```@example geo
 using EuclideanGeometry
 
-a, b, c = EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(0.0, 3.0)
+a, b, c = EGPoint(0.0, 0.0), EGPoint(5.0, 0.0), EGPoint(1.0, 4.0)
 t = EGTriangle(a, b, c)
-
 centroid(t)        # center of mass
-circumcircle(t)    # circle through a, b, c
-incenter(t)        # center of the inscribed circle
+```
 
+```@example geo
+circumcircle(t)    # circle through a, b, c
+```
+
+```@example geo
+incenter(t)        # center of the inscribed circle
+```
+
+```@example geo
 l = EGLine(a, b)
 perpendicular_through(l, c)   # altitude from c
+```
+
+```@example geo
 intersection(l, circumcircle(t))
+```
+
+```@raw html
+<img src="assets/img/quick_example.svg" alt="Triangle with vertices A, B, C marked, its circumcircle, centroid G, incenter I, the altitude from C with its foot and right-angle marker" style="width:100%; max-width: 700px;">
 ```
 
 ## Figures, via Luxor.jl

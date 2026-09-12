@@ -422,6 +422,13 @@ using Base.MathConstants: golden
             @test c2 == EGCircle2(EGPoint(1.0, 2.0), 5.0)
             @test EGCircle2((1.0, 2.0), (4.0, 6.0)) == c2         # tuples work too
             @test EGCircle2(EGPoint(1.0, 2.0), (4.0, 6.0)) == c2  # and mixed
+
+            # the circle through 3 points -- same as circumcircle(EGTriangle(...))
+            p1, p2, p3 = EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(0.0, 3.0)
+            c3 = EGCircle2(p1, p2, p3)
+            @test c3 ≈ circumcircle(EGTriangle(p1, p2, p3))
+            @test EGCircle2((0.0, 0.0), (4.0, 0.0), (0.0, 3.0)) ≈ c3  # tuples work too
+            @test_throws ArgumentError EGCircle2(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(2.0, 0.0))  # collinear
         end
 
         @testset "EGEllipse2" begin

@@ -54,6 +54,41 @@ generally gives two such circles — often of very different sizes, since
 one tends to hug the line closely while the other bulges around to reach
 it from the far side.
 
+The same function also takes a circle instead of a line as the third,
+tangent-to object:
+
+```@example geo
+a2, b2 = EGPoint(-2.0, 1.0), EGPoint(2.0, 1.0)
+given_c = EGCircle2(EGPoint(0.0, -3.0), 2.0)
+
+sols_c = tangent_circles_through_points(a2, b2, given_c)
+length(sols_c)   # 2 here: one tangent externally, one internally
+```
+
+## Tangent to two or three circles/lines
+
+`tangent_circles` covers every "no points, ≥2 circles/lines" combination —
+two lines and a circle (`CLL`), two circles and a line (`CCL`), or three
+circles (`CCC`, Apollonius' original problem, below):
+
+```@example geo
+l1 = EGLine(EGPoint(0.0, 0.0), EGPoint(0.0, 1.0))   # the y-axis
+l2 = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0))   # the x-axis
+c_cll = EGCircle2(EGPoint(6.0, 6.0), 2.0)
+
+sols_cll = tangent_circles(l1, l2, c_cll)
+length(sols_cll)   # 4
+```
+
+```@example geo
+c1_ccl = EGCircle2(EGPoint(0.0, 0.0), 2.0)
+c2_ccl = EGCircle2(EGPoint(6.0, 0.0), 2.0)
+l_ccl = EGLine(EGPoint(0.0, -3.0), EGPoint(1.0, -3.0))
+
+sols_ccl = tangent_circles(c1_ccl, c2_ccl, l_ccl)
+length(sols_ccl)   # 6
+```
+
 ## Tangent to three circles
 
 With three circles and no points at all, this is Apollonius' original

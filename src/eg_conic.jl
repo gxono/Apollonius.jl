@@ -85,6 +85,30 @@ circle is more natural to give than the radius itself.
 EGCircle2(center::EGPointLike, through::EGPointLike) =
     EGCircle2(_topoint(center), distance(_topoint(center), _topoint(through)))
 
+"""
+    EGCircle2(p1::EGPoint, p2::EGPoint, p3::EGPoint; atol=1e-9)
+
+The circle through three points — their circumcircle, computed directly
+(same formula [`circumcenter`](@ref) uses on an [`EGTriangle`](@ref),
+without needing to build one first). Throws an `ArgumentError` if `p1`,
+`p2`, `p3` are (or are too close to) collinear, since then no finite
+circle passes through all three.
+"""
+function EGCircle2(p1::EGPointLike, p2::EGPointLike, p3::EGPointLike; atol=1e-9)
+    p1, p2, p3 = _topoint(p1), _topoint(p2), _topoint(p3)
+    is_collinear(p1, p2, p3; atol=atol) &&
+        throw(ArgumentError("EGCircle2: p1, p2, p3 must not be collinear (no finite circle through them)"))
+    x1, y1 = p1[1], p1[2]
+    x2, y2 = p2[1], p2[2]
+    x3, y3 = p3[1], p3[2]
+    d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+    s1, s2, s3 = x1^2 + y1^2, x2^2 + y2^2, x3^2 + y3^2
+    ux = (s1 * (y2 - y3) + s2 * (y3 - y1) + s3 * (y1 - y2)) / d
+    uy = (s1 * (x3 - x2) + s2 * (x1 - x3) + s3 * (x2 - x1)) / d
+    center = EGPoint(ux, uy)
+    return EGCircle2(center, distance(center, p1))
+end
+
 Base.:(==)(a::EGCircle2, b::EGCircle2) = a.center == b.center && a.r == b.r
 Base.convert(::Type{EGCircle2{T}}, c::EGCircle2) where {T} = EGCircle2{T}(c.center, T(c.r))
 Base.isapprox(a::EGCircle2, b::EGCircle2; kwargs...) = isapprox(a.center, b.center; kwargs...) && isapprox(a.r, b.r; kwargs...)
