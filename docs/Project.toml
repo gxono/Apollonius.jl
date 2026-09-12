@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+EuclideanGeometry = "b1cfe91b-89b0-40c2-94e7-715cbacdec75"
+
+[compat]
+Documenter = "1"

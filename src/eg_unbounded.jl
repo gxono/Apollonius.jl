@@ -1,0 +1,259 @@
+# -------------------------------------------------------------------------
+# EGAngle2, EGHalfPlane2, EGStrip2 (<: EGSet, not <: EGRegion — all three
+# are unbounded regions of the plane).
+# -------------------------------------------------------------------------
+
+# `side_of_line(p::EGPoint, l::EGLine)` is defined in the later-included
+# eg_predicates.jl — used here only inside function bodies (`Base.in` for
+# EGHalfPlane2/EGStrip2), so the include order doesn't matter: Julia only
+# needs the method to exist by call time, not by the time this file is
+# parsed.
+
+"""
+    angle_at(vertex, p1, p2)
+
+Unsigned interior angle (in radians, in `[0, π]`) at `vertex` between the
+rays `vertex -> p1` and `vertex -> p2`. See also [`angle_between`](@ref)
+for the signed version, and [`EGAngle2`](@ref) for a reusable object
+carrying the three points around instead of just the number.
+"""
+angle_at(vertex::EGPoint, p1::EGPoint, p2::EGPoint) =
+    acos(clamp(dot(p1 - vertex, p2 - vertex) / (norm(p1 - vertex) * norm(p2 - vertex)), -1.0, 1.0))
+
+# --- EGAngle2 ---------------------------------------------------------------
+
+"""
+    EGAngle2(vertex::EGPoint, a::EGPoint, b::EGPoint)
+
+The angle at `vertex` between the rays `vertex -> a` and `vertex -> b`,
+plus (since it's an [`EGSet`](@ref)) the infinite wedge they bound — the
+region swept counterclockwise from ray `vertex -> a` to ray `vertex -> b`
+by [`normalized_measure`](@ref) radians. Unlike [`angle_at`](@ref)/
+[`angle_between`](@ref), which just return a number, this keeps the three
+defining points around.
+"""
+struct EGAngle2{T<:Real} <: EGSet{2,T}
+    vertex::EGPoint{2,T}
+    a::EGPoint{2,T}
+    b::EGPoint{2,T}
+end
+function EGAngle2(vertex::EGPoint{2,T1}, a::EGPoint{2,T2}, b::EGPoint{2,T3}) where {T1,T2,T3}
+    T = promote_type(T1, T2, T3)
+    return EGAngle2{T}(vertex, a, b)
+end
+
+Base.:(==)(x::EGAngle2, y::EGAngle2) = x.vertex == y.vertex && x.a == y.a && x.b == y.b
+Base.isapprox(x::EGAngle2, y::EGAngle2; kwargs...) =
+    isapprox(x.vertex, y.vertex; kwargs...) && isapprox(x.a, y.a; kwargs...) && isapprox(x.b, y.b; kwargs...)
+Base.show(io::IO, ang::EGAngle2) = print(io, "EGAngle2(vertex=", ang.vertex, ", a=", ang.a, ", b=", ang.b, ")")
+
+"""
+    measure(ang::EGAngle2)
+
+The signed measure of `ang` (radians, in `(-π, π]`, counterclockwise from
+ray `vertex -> a` to ray `vertex -> b`) — see [`angle_between`](@ref).
+"""
+measure(ang::EGAngle2) = angle_between(ang.a - ang.vertex, ang.b - ang.vertex)
+
+"""
+    normalized_measure(ang::EGAngle2)
+
+The measure of `ang`, in `[0, 2π)` instead of `(-π, π]`.
+"""
+function normalized_measure(ang::EGAngle2)
+    m = measure(ang)
+    return m < 0 ? m + 2 * pi : m
+end
+
+"""
+    abs(ang::EGAngle2)
+
+The unsigned measure of `ang` (radians, in `[0, π]`) — see [`angle_at`](@ref).
+"""
+Base.abs(ang::EGAngle2) = angle_at(ang.vertex, ang.a, ang.b)
+
+"""
+    is_direct(ang::EGAngle2)
+
+Whether `ang` is oriented counterclockwise (its signed [`measure`](@ref) is positive).
+"""
+is_direct(ang::EGAngle2) = measure(ang) > 0
+
+"""
+    p in ang::EGAngle2
+
+Whether `p` lies in the infinite wedge swept counterclockwise from ray
+`vertex -> a` to ray `vertex -> b` (see [`EGAngle2`](@ref)).
+"""
+function Base.in(p::EGPoint, ang::EGAngle2)
+    p == ang.vertex && return true
+    a1 = atan(ang.a[2] - ang.vertex[2], ang.a[1] - ang.vertex[1])
+    ap = atan(p[2] - ang.vertex[2], p[1] - ang.vertex[1])
+    return mod(ap - a1, 2 * pi) <= normalized_measure(ang)
+end
+
+"""
+    rotate(ang::EGAngle2, angle, center=EGPoint(0.0, 0.0))
+    homothety(ang::EGAngle2, k, center=EGPoint(0.0, 0.0))
+
+Transform `ang` pointwise (`vertex`, `a` and `b`). [`measure`](@ref) is
+preserved by both (a rotation or a homothety of any ratio, positive or
+negative, is orientation-preserving in 2D and never changes an angle's
+own signed measure).
+"""
+rotate(ang::EGAngle2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGAngle2(rotate(ang.vertex, angle, center), rotate(ang.a, angle, center), rotate(ang.b, angle, center))
+homothety(ang::EGAngle2, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGAngle2(homothety(ang.vertex, k, center), homothety(ang.a, k, center), homothety(ang.b, k, center))
+
+"""
+    reflection(ang::EGAngle2, about::EGPoint)
+    reflection(ang::EGAngle2, about::EGLine)
+
+Reflect `ang`. Since `EGAngle2` is an [`EGSet`](@ref) — the infinite wedge
+swept counterclockwise from `a` to `b`, not just a bare signed value —
+reflecting about an `EGLine` (a true mirror) swaps `a`/`b` so the result
+is a genuine mirror image of the wedge (exactly the same swap convention
+[`EGCircularArc2`](@ref)/[`EGEllipticArc2`](@ref) use to stay a true
+mirror image rather than the complementary region); reflecting about an
+`EGPoint` (a point reflection) needs no swap. Consequently [`measure`](@ref)'s
+sign is preserved by *both* — a point reflection and a mirror are both
+"apply the same swap-or-not rule uniformly across the EG hierarchy",
+rather than the sign-flip-under-mirror convention a bare rotation
+instruction would suggest.
+"""
+reflection(ang::EGAngle2, about::EGPoint) =
+    EGAngle2(reflection(ang.vertex, about), reflection(ang.a, about), reflection(ang.b, about))
+reflection(ang::EGAngle2, about::EGLine) =
+    EGAngle2(reflection(ang.vertex, about), reflection(ang.b, about), reflection(ang.a, about))
+
+# --- EGHalfPlane2 -------------------------------------------------------------
+
+"""
+    EGHalfPlane2(boundary::EGLine, side::Int)
+    EGHalfPlane2(boundary::EGLine, interior_point::EGPoint)
+
+The closed half-plane bounded by `boundary`: `side = +1` means the side
+left of `boundary` (oriented `p1 -> p2`), `side = -1` means the right
+side — see [`side_of_line`](@ref)'s convention, which this mirrors. The
+second form is often easier to reason about: pass any point known to lie
+inside instead of working out left/right by hand.
+"""
+struct EGHalfPlane2{T<:Real} <: EGSet{2,T}
+    boundary::EGLine{2,T}
+    side::Int
+end
+function EGHalfPlane2(boundary::EGLine{2,T}, p::EGPoint{2,T}) where {T}
+    s = side_of_line(p, boundary)
+    s == 0 && throw(ArgumentError("EGHalfPlane2: interior_point must not lie on boundary"))
+    return EGHalfPlane2(boundary, s)
+end
+
+Base.:(==)(x::EGHalfPlane2, y::EGHalfPlane2) = x.boundary == y.boundary && x.side == y.side
+Base.isapprox(x::EGHalfPlane2, y::EGHalfPlane2; kwargs...) =
+    isapprox(x.boundary, y.boundary; kwargs...) && x.side == y.side
+Base.show(io::IO, hp::EGHalfPlane2) = print(io, "EGHalfPlane2(", hp.boundary, ", side=", hp.side, ")")
+
+"""
+    p in hp::EGHalfPlane2
+
+Whether `p` lies in the closed half-plane `hp` (on `hp.boundary` counts as inside).
+"""
+Base.in(p::EGPoint, hp::EGHalfPlane2) = side_of_line(p, hp.boundary) in (0, hp.side)
+
+"""
+    rotate(hp::EGHalfPlane2, angle, center=EGPoint(0.0, 0.0))
+    homothety(hp::EGHalfPlane2, k, center=EGPoint(0.0, 0.0))
+
+Transform `hp`'s boundary pointwise. `side` is unchanged by both: a
+rotation or a homothety of any ratio (positive or negative) is
+orientation-preserving in 2D, so "left of the transformed boundary" still
+corresponds to the same physical half-plane.
+"""
+rotate(hp::EGHalfPlane2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGHalfPlane2(rotate(hp.boundary, angle, center), hp.side)
+homothety(hp::EGHalfPlane2, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGHalfPlane2(homothety(hp.boundary, k, center), hp.side)
+
+"""
+    reflection(hp::EGHalfPlane2, about::EGPoint)
+    reflection(hp::EGHalfPlane2, about::EGLine)
+
+Reflect `hp`'s boundary. Reflecting about an `EGPoint` (a point
+reflection) is orientation-preserving, so `side` is unchanged. Reflecting
+about an `EGLine` (a true mirror) reverses orientation, so `side` flips —
+otherwise the reflected half-plane would represent the wrong side of its
+own (also reflected) boundary.
+"""
+reflection(hp::EGHalfPlane2, about::EGPoint) = EGHalfPlane2(reflection(hp.boundary, about), hp.side)
+reflection(hp::EGHalfPlane2, about::EGLine) = EGHalfPlane2(reflection(hp.boundary, about), -hp.side)
+
+# --- EGStrip2 -----------------------------------------------------------------
+
+"""
+    EGStrip2(line1::EGLine, line2::EGLine; atol=1e-9)
+
+The closed band between two parallel lines `line1`/`line2` (either
+boundary counts as inside). Throws `ArgumentError` if the lines aren't
+parallel.
+"""
+struct EGStrip2{T<:Real} <: EGSet{2,T}
+    line1::EGLine{2,T}
+    line2::EGLine{2,T}
+    # An inner constructor is defined here specifically to suppress Julia's
+    # auto-generated default outer constructor `EGStrip2(line1::EGLine{T},
+    # line2::EGLine{T}) where T` — without this, that unconstrained default
+    # is MORE specific than (and silently wins over) the validating outer
+    # constructor below whenever line1/line2 already share the same T,
+    # letting non-parallel lines slip through with no ArgumentError (the
+    # exact bug already hit once this phase with EGAnnularSector2).
+    function EGStrip2{T}(line1::EGLine{2,T}, line2::EGLine{2,T}; atol=1e-9) where {T<:Real}
+        d1, d2 = direction(line1), direction(line2)
+        abs(cross2(d1, d2)) <= atol * norm(d1) * norm(d2) ||
+            throw(ArgumentError("EGStrip2: line1 and line2 must be parallel"))
+        return new{T}(line1, line2)
+    end
+end
+function EGStrip2(line1::EGLine{2,T1}, line2::EGLine{2,T2}; atol=1e-9) where {T1,T2}
+    T = promote_type(T1, T2)
+    return EGStrip2{T}(line1, line2; atol=atol)
+end
+
+Base.:(==)(x::EGStrip2, y::EGStrip2) = x.line1 == y.line1 && x.line2 == y.line2
+Base.isapprox(x::EGStrip2, y::EGStrip2; kwargs...) =
+    isapprox(x.line1, y.line1; kwargs...) && isapprox(x.line2, y.line2; kwargs...)
+Base.show(io::IO, s::EGStrip2) = print(io, "EGStrip2(", s.line1, ", ", s.line2, ")")
+
+"""
+    p in s::EGStrip2
+
+Whether `p` lies in the closed band between `s.line1` and `s.line2`.
+"""
+function Base.in(p::EGPoint, s::EGStrip2)
+    side1, ref1 = side_of_line(p, s.line1), side_of_line(s.line2.p1, s.line1)
+    side2, ref2 = side_of_line(p, s.line2), side_of_line(s.line1.p1, s.line2)
+    return (side1 == 0 || side1 == ref1) && (side2 == 0 || side2 == ref2)
+end
+
+"""
+    strip_width(s::EGStrip2)
+
+The perpendicular distance between `s`'s two boundary lines.
+"""
+strip_width(s::EGStrip2) = distance(s.line2.p1, s.line1)
+
+"""
+    rotate(s::EGStrip2, angle, center=EGPoint(0.0, 0.0))
+    homothety(s::EGStrip2, k, center=EGPoint(0.0, 0.0))
+    reflection(s::EGStrip2, about)
+
+Transform both boundary lines pointwise. Since "the band between two
+lines" doesn't depend on either line's own orientation, no
+`side`-flipping bookkeeping is needed here (unlike [`EGHalfPlane2`](@ref))
+— membership is recomputed fresh from the transformed lines every time.
+"""
+rotate(s::EGStrip2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGStrip2(rotate(s.line1, angle, center), rotate(s.line2, angle, center))
+homothety(s::EGStrip2, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGStrip2(homothety(s.line1, k, center), homothety(s.line2, k, center))
+reflection(s::EGStrip2, about) = EGStrip2(reflection(s.line1, about), reflection(s.line2, about))
