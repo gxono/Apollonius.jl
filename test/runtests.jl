@@ -242,6 +242,28 @@ using Base.MathConstants: golden
             s3 = EGSegment(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 2.0, 2.0))
             @test distance(s3) == 3.0
         end
+
+        @testset "every EGObject/EGTransform broadcasts as a scalar" begin
+            # without a `Broadcast.broadcastable` override, Julia's default
+            # fallback `collect`s any type it doesn't recognize -- silently
+            # wrong for types that define `iterate`/`length` purely for
+            # destructuring convenience (EGPoint/EGVector, EGSegment,
+            # EGTriangle, ...), and a confusing MethodError from inside
+            # `collect` for every other type (EGLine, EGCircle2, ...)
+            p = EGPoint(1.0, 2.0)
+            vs = [EGVector(1.0, 0.0), EGVector(0.0, 1.0)]
+            @test translate.(p, vs) == [translate(p, vs[1]), translate(p, vs[2])]
+
+            t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
+            @test translate.(t, vs) == [translate(t, vs[1]), translate(t, vs[2])]
+
+            l = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))
+            cs = [EGCircle2(EGPoint(0.0, 0.0), 1.0), EGCircle2(EGPoint(5.0, 0.0), 1.0)]
+            @test intersection.(l, cs) == [intersection(l, cs[1]), intersection(l, cs[2])]
+
+            m = rotation_map(pi / 2, EGPoint(0.0, 0.0))
+            @test m.(vs) == [m(vs[1]), m(vs[2])]
+        end
     end
 
     @testset "EGTriangle / EGQuadrilateral / EGStraightNgon" begin
@@ -3524,6 +3546,20 @@ using Base.MathConstants: golden
             @test distance(c2.center, l) ≈ 1.0 atol = 1e-9
         end
 
+        # p1/p2 are the actual points of tangency on c1/c2 respectively --
+        # not just any two points determining the line -- checked here with
+        # different radii, where a naive implementation could instead return
+        # the (off-circle) similitude center as one endpoint
+        cd1, cd2 = EGCircle2(EGPoint(500.0, 400.0), 200.0), EGCircle2(EGPoint(900.0, 200.0), 100.0)
+        for l in external_tangent_lines(cd1, cd2)
+            @test distance(l.p1, cd1.center) ≈ cd1.r atol = 1e-9
+            @test distance(l.p2, cd2.center) ≈ cd2.r atol = 1e-9
+        end
+        for l in internal_tangent_lines(cd1, cd2)
+            @test distance(l.p1, cd1.center) ≈ cd1.r atol = 1e-9
+            @test distance(l.p2, cd2.center) ≈ cd2.r atol = 1e-9
+        end
+
         # degenerate branches (equal radii with coincident centers, and
         # touching circles with no internal tangent) must return the same
         # concrete element type as the normal branches, not an abstract EGLine[]
@@ -3684,6 +3720,25 @@ using Base.MathConstants: golden
             @test s2 == EGSegment(EGPoint(-5.0, 5.0), EGPoint(3.0, -2.0))
             @test bbox_union(EGBoundingBox(c2), EGBoundingBox(s2)) ==
                   EGBoundingBox(EGPoint(-w / 2, -h / 2), EGPoint(w / 2, h / 2))
+
+            # the size is a NamedTuple -- (w, h) = ... still works
+            # positionally (checked just above), and so does field access
+            c, s = fresh()
+            sz, _ = @to_luxor_picture begin
+                c
+                s
+            end
+            @test sz isa NamedTuple{(:width, :height)}
+            @test sz.width == 10.0 && sz.height == 10.0
+
+            # ...same for the mutating form, which returns just the size
+            c, s = fresh()
+            sz2 = @to_luxor_picture! width = 50.0 begin
+                c
+                s
+            end
+            @test sz2 isa NamedTuple{(:width, :height)}
+            @test sz2.width == 50.0 && sz2.height == 50.0
 
             # width alone: uniform scale (bbox is square here, so trivially uniform)
             c, s = fresh()

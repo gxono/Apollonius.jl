@@ -791,7 +791,7 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin)
         end
     end
 
-    size_expr = :(($W, $H))
+    size_expr = :((width=$W, height=$H))
     if mutating
         push!(body.args, size_expr)
     else
@@ -818,11 +818,12 @@ Prepares every shape named in the block for drawing at a known, exact
 canvas size: translate/scale them so their combined [`EGBoundingBox`](@ref)
 fits centered on the *origin*, always preserving aspect ratio (the scale
 factor is always the same in `x` and `y` — a circle always stays a
-circle). Returns `((width, height), shapes)` — `width`/`height` is the
-exact canvas size to pass to `Drawing`, and `shapes` are the
-translated/scaled copies (`c`/`s`/`t` themselves are untouched — see
-[`@to_luxor_picture!`](@ref) for the mutating form), in the same order as
-the block, as a tuple (or bare, for a single shape).
+circle). Returns `((width=w, height=h), shapes)` — a `NamedTuple` with the
+exact canvas size to pass to `Drawing` (`w, h = ...` still works
+positionally, same as a plain tuple, alongside `sz.width`/`sz.height`),
+and `shapes` are the translated/scaled copies (`c`/`s`/`t` themselves are
+untouched — see [`@to_luxor_picture!`](@ref) for the mutating form), in
+the same order as the block, as a tuple (or bare, for a single shape).
 
 Centering on `(0, 0)` matches Luxor's own `origin()` convention (device
 `(0, 0)` moved to the center of the canvas), so the result is ready to
@@ -890,10 +891,11 @@ end
 The mutating counterpart of [`@to_luxor_picture`](@ref): rebinds each
 *named* shape (an assignment, or a bare reference to a shape defined
 earlier) to its own translated/scaled image, instead of returning copies.
-Returns just `(width, height)` — the shapes are already accessible under
-their own names. A bare, unnamed expression has nothing to rebind, so this
-form rejects it (same as [`@translate!`](@ref) and the rest of that
-family).
+Returns just `(width=w, height=h)` — a `NamedTuple` (see
+[`@to_luxor_picture`](@ref) for what that gives you beyond a plain tuple)
+— the shapes are already accessible under their own names. A bare,
+unnamed expression has nothing to rebind, so this form rejects it (same
+as [`@translate!`](@ref) and the rest of that family).
 """
 macro to_luxor_picture!(args...)
     isempty(args) && error("@to_luxor_picture!: missing the shapes block")

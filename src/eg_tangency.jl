@@ -93,7 +93,9 @@ end
     external_tangent_lines(c1::EGCircle2, c2::EGCircle2; atol=1e-9)
 
 The common external tangent lines of `c1` and `c2` (the ones that don't
-cross the segment between the centers). Returns 0, 1 or 2 lines.
+cross the segment between the centers). Returns 0, 1 or 2 lines, each as
+`EGLine(p1, p2)` with `p1` the point of tangency on `c1` and `p2` the
+point of tangency on `c2`.
 """
 function external_tangent_lines(c1::EGCircle2, c2::EGCircle2; atol=1e-9)
     if abs(c1.r - c2.r) <= atol * max(c1.r, c2.r, 1.0)
@@ -105,8 +107,14 @@ function external_tangent_lines(c1::EGCircle2, c2::EGCircle2; atol=1e-9)
             EGLine(c1.center - c1.r * n, c2.center - c1.r * n)]
     end
 
+    # The external similitude center is the fixed point of the homothety
+    # (ratio c2.r/c1.r) that sends c1 onto c2, so it maps each tangent
+    # point on c1 to the matching tangent point on the *same* common
+    # tangent line, on c2 -- giving both endpoints on their own circle
+    # instead of one of them being the (off-circle) similitude center.
     center_e = external_similitude_center(c1, c2; atol=atol)
-    return [EGLine(center_e, t) for t in tangent_points(c1, center_e; atol=atol)]
+    k = c2.r / c1.r
+    return [EGLine(t, homothety(t, k, center_e)) for t in tangent_points(c1, center_e; atol=atol)]
 end
 
 """
@@ -114,12 +122,15 @@ end
 
 The common internal tangent lines of `c1` and `c2` (the ones that cross the
 segment between the centers). Returns 0, 1 or 2 lines; empty when the
-circles overlap (no internal tangents exist).
+circles overlap (no internal tangents exist). Each is `EGLine(p1, p2)`
+with `p1` the point of tangency on `c1` and `p2` the point of tangency on
+`c2` (see [`external_tangent_lines`](@ref) for the same convention there).
 """
 function internal_tangent_lines(c1::EGCircle2, c2::EGCircle2; atol=1e-9)
     c1.r + c2.r <= atol && return EGLine{2,Float64}[]
     center_i = internal_similitude_center(c1, c2; atol=atol)
-    return [EGLine(center_i, t) for t in tangent_points(c1, center_i; atol=atol)]
+    k = -c2.r / c1.r
+    return [EGLine(t, homothety(t, k, center_i)) for t in tangent_points(c1, center_i; atol=atol)]
 end
 
 # -------------------------------------------------------------------------

@@ -77,8 +77,8 @@ removed before the sweep.
 [`EGBoundingBox`](@ref) is a separate, minimal type — just two points,
 `.min` and `.max` — for when a full polygon is more machinery than you
 need (a quick overlap test, a viewport, a spatial-indexing key). It has
-constructors from a vector of points or directly from an `EGSegment`,
-`EGTriangle`, `EGPolygon` or `EGCircle2`:
+constructors from a vector of points, or directly from most shapes in the
+package (`EGSegment`, `EGTriangle`, `EGPolygon`, `EGCircle2`, ...):
 
 ```@example geo
 bb = EGBoundingBox(pg)          # same as EGBoundingBox(vertices(pg))
@@ -116,6 +116,37 @@ bbox_intersection(bb, bb2)    # the overlapping region itself
 [`bboxes_intersect`](@ref) treats touching (sharing just an edge or corner)
 as intersecting. [`bbox_intersection`](@ref) returns `nothing` instead of a
 degenerate box when they don't overlap at all.
+
+[`bbox_union`](@ref) is the other direction — the smallest box containing
+both, always defined (unlike the intersection, `a`/`b` don't need to
+overlap):
+
+```@example geo
+bbox_union(bb, bb2)
+```
+
+Not everything has a *finite* box to report. [`EGPoint`](@ref) gets a real
+but degenerate (zero-size) box at its own location — a point is a
+position, so it can still grow a union — while a plain number, an
+[`EGVector`](@ref) (a direction, not a location), and any unbounded
+curve/region (`EGLine`, `EGRay`, `EGAngle2`, `EGHalfPlane2`, `EGStrip2`)
+have none at all. `EGBoundingBox` returns the special **empty box**,
+[`EGBoundingBox()`](@ref), for these — the identity element for
+`bbox_union`: unioning it with anything just returns the other box
+unchanged, and [`isempty`](@ref) tells the two apart:
+
+```@example geo
+isempty(EGBoundingBox(5.0)), isempty(EGBoundingBox(EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))))
+```
+
+```@example geo
+bbox_union(EGBoundingBox(5.0), bb) == bb
+```
+
+This is what lets [`@boundingbox`](@ref)/[`@to_luxor_picture`](@ref) (see
+[Transforming in Bulk: Macros](@ref)) call `EGBoundingBox` on *every*
+value named in a block — construction helpers included — without needing
+to special-case the ones that were never meant to be drawn or sized.
 
 ## Named polygon constructors
 

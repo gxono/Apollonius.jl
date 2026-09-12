@@ -136,22 +136,32 @@ shift it so it isn't half off-canvas, and what canvas size do I even pass
 to `Drawing`? [`@to_luxor_picture`](@ref) answers all three in one call:
 it translates and uniformly scales every shape in the block so their
 combined [`EGBoundingBox`](@ref) fits centered on `(0, 0)`, and returns
-the exact canvas size alongside the transformed shapes. Centering on
-`(0, 0)` matches Luxor's own `origin()` convention, so the result is
-ready to draw right after `origin()` — which `@png`/`@svg`/`@pdf` already
-call for you. Despite the name, this macro is plain geometry — it has no
-Luxor dependency at all; see [Drawing with Luxor.jl](@ref) for the full
-`Drawing`/`path`/`finish` workflow this is designed to feed directly.
+the exact canvas size — as a `(width=w, height=h)` `NamedTuple` — alongside
+the transformed shapes. Centering on `(0, 0)` matches Luxor's own
+`origin()` convention, so the result is ready to draw right after
+`origin()` — which `@png`/`@svg`/`@pdf` already call for you. Despite the
+name, this macro is plain geometry — it has no Luxor dependency at all;
+see [Drawing with Luxor.jl](@ref) for the full `Drawing`/`path`/`finish`
+workflow this is designed to feed directly.
 
 ```@example geo
 c = EGCircle2(EGPoint(3.0, -1.0), 5.0)
 s = EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
 
-(w, h), (c2, s2) = @to_luxor_picture begin
+sz, (c2, s2) = @to_luxor_picture begin
     c
     s
 end
-(w, h)   # the combined bbox is already 10x10, so this is its natural size
+sz   # the combined bbox is already 10x10, so this is its natural size
+```
+
+Being a `NamedTuple`, `sz` supports `sz.width`/`sz.height` — but also still
+destructures positionally exactly like a plain tuple would, so `(w, h) =
+sz` (or `(w, h), (c2, s2) = @to_luxor_picture begin ... end` directly)
+works too, if that's all you need:
+
+```@example geo
+sz.width, sz.height
 ```
 
 ```@example geo
@@ -285,8 +295,8 @@ The mutating counterpart: rebinds each *named* shape (an assignment, or a
 bare reference to a shape defined earlier) to its own translated/scaled
 image, instead of returning copies — the same relationship
 [`@translate!`](@ref) has to [`@translate`](@ref). Since the shapes are
-already accessible under their own names afterward, it returns just
-`(width, height)`:
+already accessible under their own names afterward, it returns just the
+`(width=w, height=h)` `NamedTuple`:
 
 ```@example geo
 c3 = EGCircle2(EGPoint(3.0, -1.0), 5.0)

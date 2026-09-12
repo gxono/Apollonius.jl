@@ -21,6 +21,13 @@ covers the other two.
 | [`EGStrip2`](@ref) | the band between two parallel lines (both included) | two parallel [`EGLine`](@ref)s |
 | [`EGAngle2`](@ref) | the infinite wedge between two rays from a shared vertex | two [`EGRay`](@ref)s — see [Angles](@ref) |
 
+Being unbounded, none of the three has a finite extent to report:
+[`EGBoundingBox`](@ref) returns the empty box for all three (see
+[Bounding boxes](@ref) for what that means and why) — they still get
+`translate`/`rotate`/`homothety`/`reflection`ed normally, they just don't
+contribute anything if mixed into a [`@boundingbox`](@ref)/
+[`@to_luxor_picture`](@ref) block alongside bounded shapes.
+
 ## `EGHalfPlane2`
 
 A half-plane needs a boundary line and a choice of *which* side is

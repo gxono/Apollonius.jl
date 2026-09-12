@@ -39,6 +39,14 @@ and `p1` — but `EGSegment` and `EGRay` do remember which of their two
 points comes first, since that is what makes them finite/one-sided in the
 first place.
 
+`EGPoint`/`EGVector`/`EGSegment` also support **destructuring** (`x, y = p`,
+`p1, p2 = s`) for convenience — but every `EGObject`/`EGTransform` (this
+one included) is always a *scalar* for **broadcasting** purposes, so
+`translate.(p, [v1, v2])` or `intersection.(l, [c1, c2])` repeats the
+single shape against each element of the other argument, rather than
+Julia's usual `f.(x)` mistaking an iterable `x` for a collection to
+broadcast over its own components.
+
 ## Creating them
 
 ```@example geo

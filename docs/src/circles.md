@@ -160,13 +160,17 @@ Two circles have two centers of similitude: the [`external_similitude_center`](@
 (where their external common tangents meet) and the
 [`internal_similitude_center`](@ref) (where the internal ones — the ones
 that cross between the circles — meet). [`external_tangent_lines`](@ref)
-and [`internal_tangent_lines`](@ref) return those tangent lines directly.
+and [`internal_tangent_lines`](@ref) return those tangent lines directly,
+each as `EGLine(p1, p2)` with `p1`/`p2` the actual points of tangency on
+`c1`/`c2` respectively (not the similitude center, even though every one
+of these lines does pass through it):
 
 ```@example geo
 external_similitude_center(c1, c2)   # (24.0, 0.0)
 internal_similitude_center(c1, c2)   # (4.8, 0.0)
 ext = external_tangent_lines(c1, c2)
 int = internal_tangent_lines(c1, c2)
+distance(ext[1].p1, c1.center), distance(ext[1].p2, c2.center)   # (c1.r, c2.r)
 ```
 
 The external center is far from both circles here because `c1` and `c2`
