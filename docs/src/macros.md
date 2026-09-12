@@ -36,6 +36,10 @@ top to bottom, as ordinary code (not a new scope — there's no `let`):
 
 * an **assignment** `name = expr` runs as written, and `name`'s value is
   the one transformed;
+* a **destructuring assignment** `name1, name2, ... = expr` — what
+  functions returning several shapes at once naturally look like, e.g.
+  [`external_tangent_lines`](@ref) — runs the same way, and *each* name is
+  transformed individually, exactly as if it had its own `name = ...` line;
 * a **bare expression** — most often the name of a shape defined earlier,
   outside the block or on an earlier line inside it — has its value
   transformed directly, with nothing (re)assigned.
@@ -55,6 +59,15 @@ C2, S2 = @rotate (pi / 2) begin
     s
 end
 C2, S2
+```
+
+```@example geo
+c1, c2 = EGCircle2(EGPoint(0.0, 0.0), 2.0), EGCircle2(EGPoint(10.0, 0.0), 1.0)
+
+L1, L2 = @rotate (pi / 2) begin
+    l1, l2 = external_tangent_lines(c1, c2)   # destructuring assignment
+end
+L1, L2
 ```
 
 ## `@boundingbox`
@@ -147,14 +160,15 @@ c2, s2   # translated so the combined bbox is centered on (0, 0)
 
 `c`/`s` themselves are untouched (see [`@to_luxor_picture!`](@ref) below
 for the mutating form); the block is read exactly like
-[`@boundingbox`](@ref)'s (an assignment binds `name` as usual, a bare
-expression contributes without binding anything, and a single
-shape/expression works without `begin`/`end` too) — including how
-construction helpers are handled: a bare [`EGPoint`](@ref) is repositioned
-along with everything else (it's a real position), while a plain number,
-an [`EGVector`](@ref), or an unbounded shape is left completely untouched
-(there's no position to move, and a number in particular isn't the kind
-of value `translate`/`homothety` know how to transform):
+[`@boundingbox`](@ref)'s (an assignment or a destructuring assignment
+binds its name(s) as usual, a bare expression contributes without binding
+anything, and a single shape/expression works without `begin`/`end` too)
+— including how construction helpers are handled: a bare
+[`EGPoint`](@ref) is repositioned along with everything else (it's a real
+position), while a plain number or an [`EGVector`](@ref) is left
+completely untouched (there's no position to move, and a number in
+particular isn't the kind of value `translate`/`homothety` know how to
+transform):
 
 ```@example geo
 centro = EGPoint(2.0, 1.0)
@@ -169,8 +183,27 @@ end
 radio2 == radio, centro2   # radio2 untouched; centro2 repositioned like circ2
 ```
 
-A block with nothing but such non-positional values is an `ArgumentError`
-too — there's no finite content to size a canvas around.
+An unbounded shape (`EGLine`, `EGRay`, `EGAngle2`, `EGHalfPlane2`,
+`EGStrip2`) is a third case: it doesn't contribute to the canvas size
+(no finite extent to report — see [`EGBoundingBox()`](@ref)), but it *is*
+still repositioned along with everything else, since — unlike a number or
+a vector — it does have a position and does support `translate`/
+`homothety` like any other shape:
+
+```@example geo
+c1, c2 = EGCircle2(EGPoint(0.0, 0.0), 3.0), EGCircle2(EGPoint(10.0, 0.0), 3.0)
+
+(w, h), (c1_2, c2_2, ext1, ext2) = @to_luxor_picture width = 200.0 begin
+    c1
+    c2
+    ext1, ext2 = external_tangent_lines(c1, c2)  # destructuring assignment
+end
+ext1   # repositioned exactly like c1_2/c2_2, even though its own bbox is empty
+```
+
+A block with nothing but non-positional values (numbers/vectors, with no
+shape carrying a real position at all) is an `ArgumentError` — there's no
+finite content to size a canvas around.
 
 ### Sizing options
 

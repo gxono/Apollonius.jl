@@ -9,6 +9,16 @@ what follows is a method *on* a circle (`area`, `rotate`, ...); the rest —
 tangency, power of a point, radical axes, inversion — is a function *of*
 one or more circles.
 
+A point on the circumference works instead of the radius, when that's the
+more natural thing on hand — `EGCircle2(center, through)` is exactly
+`EGCircle2(center, distance(center, through))`:
+
+```@example geo
+using EuclideanGeometry
+
+EGCircle2(EGPoint(0.0, 0.0), EGPoint(3.0, 4.0))   # radius 5, same as EGCircle2(EGPoint(0.0, 0.0), 5.0)
+```
+
 ## Power of a point and tangent lines
 
 The [`power_of_point`](@ref) of `p` with respect to a circle `c` is

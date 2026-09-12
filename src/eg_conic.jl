@@ -72,8 +72,18 @@ struct EGCircle2{T<:Real} <: EGConic2{T}
     center::EGPoint{2,T}
     r::T
 end
-EGCircle2(center::EGPoint{2,T1}, r::T2) where {T1,T2} = EGCircle2{promote_type(T1, T2)}(center, promote_type(T1, T2)(r))
+EGCircle2(center::EGPoint{2,T1}, r::T2) where {T1,T2<:Real} = EGCircle2{promote_type(T1, T2)}(center, promote_type(T1, T2)(r))
 EGCircle2(center::Tuple, r::Real) = EGCircle2(_topoint(center), r)
+
+"""
+    EGCircle2(center::EGPoint, through::EGPoint)
+
+The circle centered at `center` passing through `through` — same as
+`EGCircle2(center, distance(center, through))`, for when a point on the
+circle is more natural to give than the radius itself.
+"""
+EGCircle2(center::EGPointLike, through::EGPointLike) =
+    EGCircle2(_topoint(center), distance(_topoint(center), _topoint(through)))
 
 Base.:(==)(a::EGCircle2, b::EGCircle2) = a.center == b.center && a.r == b.r
 Base.convert(::Type{EGCircle2{T}}, c::EGCircle2) where {T} = EGCircle2{T}(c.center, T(c.r))

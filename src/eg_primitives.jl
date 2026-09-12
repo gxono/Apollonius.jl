@@ -539,6 +539,33 @@ function bbox_union(a::EGBoundingBox{2}, b::EGBoundingBox{2})
     return EGBoundingBox(lo, hi)
 end
 
+# Classifies one top-level statement from a "shapes block" the way every
+# macro in this family reads one -- shared by @boundingbox,
+# _shape_transform_body (@translate/@rotate/@homothety/@reflection/
+# @invert/@invert_neg/@affinemap) and _picture_body (@to_luxor_picture).
+# A bare name, `name = expr`, or a destructuring `name1, name2, ... =
+# expr` (a plain tuple of symbols on the left, e.g. what
+# `external_tangent_lines`/`tangent_points`/`intersection` naturally
+# return) all introduce one or more names to fold into the result/rebind;
+# anything else -- a bare expression, or an assignment whose left side
+# isn't a plain symbol or tuple-of-symbols (a splat, a nested pattern) --
+# is an unnamed expression, same as before this handled destructuring.
+# Returns `(names, run_first)`: `names` is the list of symbols introduced
+# (empty for an unnamed expression); `run_first` is whether the statement
+# itself needs to run before those names exist (true for any assignment,
+# false for a bare existing name).
+function _block_stmt_names(stmt)
+    stmt isa Symbol && return ([stmt], false)
+    if stmt isa Expr && stmt.head === :(=)
+        lhs = stmt.args[1]
+        lhs isa Symbol && return ([lhs], true)
+        if lhs isa Expr && lhs.head === :tuple && all(a -> a isa Symbol, lhs.args)
+            return (Vector{Symbol}(lhs.args), true)
+        end
+    end
+    return (Symbol[], false)
+end
+
 """
     @boundingbox begin
         c = EGCircle2(...)
@@ -554,7 +581,11 @@ The [`bbox_union`](@ref) of every shape named in the block — via
   - an assignment `name = expr`: `expr` is evaluated and bound to `name`
     exactly as if the `@boundingbox` weren't there (so `name` stays usable
     on later lines, or after the macro, exactly like ordinary code), *and*
-    its value is folded into the union; or
+    its value is folded into the union;
+  - a destructuring assignment `name1, name2, ... = expr` (e.g.
+    `l1, l2 = external_tangent_lines(c1, c2)`): runs the same way, and
+    *each* of `name1`/`name2`/... is folded into the union individually,
+    exactly as if each had its own `name = ...` line; or
   - a bare expression (most often just the name of a shape defined
     earlier, outside the block or on an earlier line inside it): its
     value is folded into the union, nothing is assigned.
@@ -579,10 +610,16 @@ macro boundingbox(block)
     for stmt in block.args
         if stmt isa LineNumberNode
             push!(body.args, stmt)
-        elseif stmt isa Expr && stmt.head === :(=) && stmt.args[1] isa Symbol
-            push!(body.args, stmt, :(push!($shapes, $(stmt.args[1]))))
-        else
+            continue
+        end
+        names, run_first = _block_stmt_names(stmt)
+        if isempty(names)
             push!(body.args, :(push!($shapes, $stmt)))
+        else
+            run_first && push!(body.args, stmt)
+            for name in names
+                push!(body.args, :(push!($shapes, $name)))
+            end
         end
     end
     push!(body.args, quote
@@ -651,16 +688,30 @@ end
 # splits `margin`/leftover space evenly), no separate centering offset is
 # needed here.
 #
-# A `shape` with no position of its own -- a plain number, an EGVector, an
-# unbounded curve/region (see `EGBoundingBox()`) -- is left untouched
-# instead: it has nothing to move, and (for a number especially) isn't
-# even the kind of value `translate`/`homothety` know how to transform.
-# These typically reach here as construction helpers named earlier in the
-# block (e.g. `radio = 5` before `EGCircle2(centro, radio)`), not shapes
-# meant to be drawn/sized themselves.
+# A `shape` with no position of its own -- a plain number, an EGVector --
+# is left untouched instead of being run through translate/homothety,
+# which don't have a method for either (there's nothing to move; for a
+# number especially, it isn't even the kind of value they know how to
+# transform). These typically reach here as construction helpers named
+# earlier in the block (e.g. `radio = 5` before `EGCircle2(centro,
+# radio)`), not shapes meant to be drawn/sized themselves.
+#
+# This is deliberately NOT the same test as "does this have a finite
+# EGBoundingBox" -- an unbounded shape (EGLine, EGRay, EGAngle2,
+# EGHalfPlane2, EGStrip2) has no finite extent to contribute to the
+# picture's *size*, but it very much has a position, and does support
+# translate/homothety like anything else, so it still needs to move
+# along with everything else in the picture. Checking `applicable`
+# directly (rather than `EGBoundingBox`'s emptiness) gets both right: a
+# type that supports the transform is always transformed, regardless of
+# whether it has a finite bbox; one that doesn't is left alone only if
+# its bbox is *also* empty (confirming it was never meant to be
+# positioned) -- if a shape claims a real bbox but doesn't support
+# translate, that's a bug in its own definition and should still surface
+# as a MethodError, not be silently swallowed here.
 function _place_in_picture(shape, bb::EGBoundingBox, s::Real)
-    isempty(EGBoundingBox(shape)) && return shape
     center = EGVector((bb.min[1] + bb.max[1]) / 2, (bb.min[2] + bb.max[2]) / 2)
+    !applicable(translate, shape, center) && isempty(EGBoundingBox(shape)) && return shape
     shifted = translate(shape, -center)
     return homothety(shifted, s, EGPoint(0.0, 0.0))
 end
@@ -688,6 +739,7 @@ end
 
 function _picture_body(mutating::Bool, block, width, height, scale, margin)
     block isa Expr && block.head === :block || (block = Expr(:block, block))
+    macroname = mutating ? "@to_luxor_picture!" : "@to_luxor_picture"
 
     shapes = gensym(:picture_shapes)
     slots = Union{Symbol,Nothing}[]   # nothing = anonymous result slot; Symbol = rebind target (mutating only)
@@ -695,17 +747,22 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin)
     for stmt in block.args
         if stmt isa LineNumberNode
             push!(body.args, stmt)
-        elseif stmt isa Symbol
-            push!(body.args, :(push!($shapes, $stmt)))
-            push!(slots, mutating ? stmt : nothing)
-        elseif stmt isa Expr && stmt.head === :(=) && stmt.args[1] isa Symbol
-            push!(body.args, stmt, :(push!($shapes, $(stmt.args[1]))))
-            push!(slots, mutating ? stmt.args[1] : nothing)
-        elseif mutating
-            push!(body.args, :(throw(ArgumentError("@to_luxor_picture!: cannot mutate an unnamed expression — assign it to a variable first"))))
-        else
-            push!(body.args, :(push!($shapes, $stmt)))
-            push!(slots, nothing)
+            continue
+        end
+        names, run_first = _block_stmt_names(stmt)
+        if isempty(names)
+            if mutating
+                push!(body.args, :(throw(ArgumentError($macroname * ": cannot mutate an unnamed expression — assign it to a variable first"))))
+            else
+                push!(body.args, :(push!($shapes, $stmt)))
+                push!(slots, nothing)
+            end
+            continue
+        end
+        run_first && push!(body.args, stmt)
+        for name in names
+            push!(body.args, :(push!($shapes, $name)))
+            push!(slots, mutating ? name : nothing)
         end
     end
 
@@ -716,7 +773,6 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin)
     s = gensym(:s)
     W = gensym(:W)
     H = gensym(:H)
-    macroname = mutating ? "@to_luxor_picture!" : "@to_luxor_picture"
     push!(body.args, quote
         isempty($shapes) && throw(ArgumentError($macroname * ": the block has no shapes"))
         $bb = reduce(bbox_union, EGBoundingBox.($shapes))
@@ -869,20 +925,25 @@ function _shape_transform_body(mutating::Bool, make_call, block)
     for stmt in block.args
         if stmt isa LineNumberNode
             push!(body.args, stmt)
-        elseif stmt isa Symbol || (stmt isa Expr && stmt.head === :(=) && stmt.args[1] isa Symbol)
-            name = stmt isa Symbol ? stmt : stmt.args[1]
-            stmt isa Symbol || push!(body.args, stmt) # run the assignment itself first
+            continue
+        end
+        names, run_first = _block_stmt_names(stmt)
+        if isempty(names)
+            if mutating
+                push!(body.args, :(throw(ArgumentError("cannot mutate an unnamed expression — assign it to a variable first"))))
+            else
+                push!(body.args, :(push!($results, $(make_call(stmt)))))
+            end
+            n_items += 1
+            continue
+        end
+        run_first && push!(body.args, stmt) # run the assignment itself first
+        for name in names
             if mutating
                 push!(body.args, :($name = $(make_call(name))), :(push!($results, $name)))
             else
                 push!(body.args, :(push!($results, $(make_call(name)))))
             end
-            n_items += 1
-        elseif mutating
-            push!(body.args, :(throw(ArgumentError("cannot mutate an unnamed expression — assign it to a variable first"))))
-            n_items += 1
-        else
-            push!(body.args, :(push!($results, $(make_call(stmt)))))
             n_items += 1
         end
     end
@@ -903,9 +964,10 @@ end
 [`translate`](@ref) every shape named in the block by `v`, returning them
 as a tuple in order (`C, S, T = @translate v begin ... end`) — `c`/`s`/`t`
 themselves are untouched, exactly like calling `translate` by hand and
-keeping the result under a new name. Each top-level line is either an
-assignment `name = expr` (runs as ordinary code, and its value is
-translated into the result tuple) or a bare expression (most often the
+keeping the result under a new name. Each top-level line is an assignment
+`name = expr` (runs as ordinary code, and its value is translated into the
+result tuple), a destructuring assignment `name1, name2, ... = expr`
+(each name translated individually), or a bare expression (most often the
 name of a shape defined earlier); see [`@boundingbox`](@ref) for the full
 rundown of that part, which works identically here.
 

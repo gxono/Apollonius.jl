@@ -344,6 +344,12 @@ using Base.MathConstants: golden
             @test rotate(c, pi / 4, EGPoint(0.0, 0.0)).r == c.r
             @test homothety(c, -2.0).r ≈ 2 * c.r
             @test reflection(c, EGPoint(0.0, 0.0)).r == c.r
+
+            # center + a point on the circumference, as an alternative to center + r
+            c2 = EGCircle2(EGPoint(1.0, 2.0), EGPoint(4.0, 6.0))
+            @test c2 == EGCircle2(EGPoint(1.0, 2.0), 5.0)
+            @test EGCircle2((1.0, 2.0), (4.0, 6.0)) == c2         # tuples work too
+            @test EGCircle2(EGPoint(1.0, 2.0), (4.0, 6.0)) == c2  # and mixed
         end
 
         @testset "EGEllipse2" begin
@@ -3629,6 +3635,15 @@ using Base.MathConstants: golden
             end
             @test bb3 == bbox_union(EGBoundingBox(mt3), EGBoundingBox(me3))
 
+            # destructuring assignment `name1, name2 = expr` folds in each
+            # name individually, exactly like two separate lines would
+            c1, c2 = EGCircle2(EGPoint(0.0, 0.0), 2.0), EGCircle2(EGPoint(10.0, 0.0), 1.0)
+            bb4 = @boundingbox begin
+                p1, p2 = external_tangent_lines(c1, c2)
+            end
+            @test bb4 == bbox_union(EGBoundingBox(p1), EGBoundingBox(p2))
+            @test isempty(bb4)  # both are EGLine -- unbounded, no finite extent
+
             # works the same inside a function (proper local scope, not global leakage)
             function _boundingbox_macro_test_fn()
                 bb = @boundingbox begin
@@ -3783,6 +3798,27 @@ using Base.MathConstants: golden
                 5.0
                 EGVector(1.0, 0.0)
             end
+
+            # destructuring assignment (`name1, name2 = expr`) is recognized
+            # just like a single-name one, folding each name in/rebinding
+            # each individually -- this is what functions like
+            # external_tangent_lines/internal_tangent_lines naturally return
+            c1 = EGCircle2(EGPoint(0.0, 0.0), 3.0)
+            c2 = EGCircle2(EGPoint(10.0, 0.0), 3.0)
+            (w, h) = @to_luxor_picture! width = 200.0 begin
+                c1
+                c2
+                el1, el2 = external_tangent_lines(c1, c2)
+            end
+            @test (w, h) == (200.0, 75.0)
+            @test c1 == EGCircle2(EGPoint(-62.5, 0.0), 37.5)
+            @test c2 == EGCircle2(EGPoint(62.5, 0.0), 37.5)
+            # el1/el2 are EGLine -- unbounded, so EGBoundingBox(el1) is empty
+            # and they don't grow the canvas -- but they DO get the same
+            # shift+scale as c1/c2, since (unlike a plain number or an
+            # EGVector) EGLine still supports translate/homothety
+            @test el1 == EGLine(EGPoint(-62.5, 37.5), EGPoint(62.5, 37.5))
+            @test el2 == EGLine(EGPoint(-62.5, -37.5), EGPoint(62.5, -37.5))
         end
 
         @testset "@translate/@rotate/@homothety/@reflection macros" begin
@@ -3815,6 +3851,23 @@ using Base.MathConstants: golden
             @test_throws ArgumentError @translate! v begin
                 EGCircle2(EGPoint(9.0, 9.0), 1.0)
             end
+
+            # destructuring assignment `name1, name2 = expr` folds in each
+            # name individually, exactly like two separate lines would --
+            # copying form
+            c1, c2 = EGCircle2(EGPoint(0.0, 0.0), 2.0), EGCircle2(EGPoint(10.0, 0.0), 1.0)
+            l1, l2 = external_tangent_lines(c1, c2)
+            D1, D2 = @translate v begin
+                dl1, dl2 = external_tangent_lines(c1, c2)
+            end
+            @test D1 == translate(l1, v) && D2 == translate(l2, v)
+            @test dl1 == l1 && dl2 == l2 # untouched (copying form)
+
+            # ...and mutating form: both names get rebound
+            @translate! v begin
+                dl1, dl2 = external_tangent_lines(c1, c2)
+            end
+            @test dl1 == translate(l1, v) && dl2 == translate(l2, v)
 
             # @rotate: 1-arg (default center) and 2-arg (explicit center) forms
             # (the macro call itself needs its own parens when embedded inside
