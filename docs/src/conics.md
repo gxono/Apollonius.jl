@@ -226,6 +226,21 @@ exactly one unambiguous arc; there's no sweep direction to pick. See
 Cairo primitive for the circular case, a sampled polyline for the other
 three, since Luxor has no native primitive for them).
 
+All four arc types (this trio plus [`EGCircularArc2`](@ref)) support
+[`reverse`](@ref), swapping `p1`/`p2`. For the *closed* conics
+(`EGCircularArc2`/`EGEllipticArc2`), this gives the complementary arc — a
+genuinely different piece of the curve, "the rest of the way around" (same
+gotcha as [`reverse(::EGAngle2)`](@ref): useful when the arc was built from
+points already in a mirrored coordinate space, e.g. after
+[`@to_luxor_picture`](@ref)'s default `flip=true`). For the *open* ones
+(`EGParabolicArc2`/`EGHyperbolicArc2`), there's no such ambiguity — `reverse`
+just re-parametrizes the same arc in the opposite direction (`point_on_arc(arc,
+t)` becomes `point_on_arc(reverse(arc), 1 - t)`):
+
+```@example geo
+reverse(reverse(parc)) == parc, point_on_arc(reverse(parc), 0.0) ≈ parc.p2
+```
+
 ## Transforming conics
 
 `rotate`, `reflection` and `homothety` work on all three types. For

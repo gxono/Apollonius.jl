@@ -29,9 +29,9 @@ All four are part of the package's own EG-prefixed type hierarchy (see
 |:-----|:-----------|:-------|
 | [`EGPoint`](@ref) | a point in the plane | `p[1]`, `p[2]` (x, y) |
 | [`EGVector`](@ref) | a free direction/displacement | `v[1]`, `v[2]` (x, y) |
-| [`EGSegment`](@ref) | the segment `[p1, p2]` | `s[1]`, `s[2]` |
-| [`EGLine`](@ref) | the infinite line through `p1`, `p2` | `.p1`, `.p2` |
-| [`EGRay`](@ref) | the half-line from `origin` through `through` | `.origin`, `.through` |
+| [`EGSegment`](@ref) | the segment `[p1, p2]` | `s[1]`, `s[2]` (also `.p1`, `.p2`) |
+| [`EGLine`](@ref) | the infinite line through `p1`, `p2` | `l[1]`, `l[2]` (also `.p1`, `.p2`) |
+| [`EGRay`](@ref) | the half-line from `origin` through `through` | `r[1]`, `r[2]` (also `.origin`, `.through`) |
 
 None of `EGSegment`/`EGLine`/`EGRay` carry a direction *magnitude* — an
 `EGLine` through `p1` and `p2` is the same object as the line through `p2`
@@ -39,13 +39,25 @@ and `p1` — but `EGSegment` and `EGRay` do remember which of their two
 points comes first, since that is what makes them finite/one-sided in the
 first place.
 
-`EGPoint`/`EGVector`/`EGSegment` also support **destructuring** (`x, y = p`,
-`p1, p2 = s`) for convenience — but every `EGObject`/`EGTransform` (this
-one included) is always a *scalar* for **broadcasting** purposes, so
-`translate.(p, [v1, v2])` or `intersection.(l, [c1, c2])` repeats the
-single shape against each element of the other argument, rather than
-Julia's usual `f.(x)` mistaking an iterable `x` for a collection to
-broadcast over its own components.
+`EGPoint`/`EGVector`/`EGSegment`/`EGLine`/`EGRay` all support
+**destructuring** (`x, y = p`, `p1, p2 = s`) for convenience — including
+flattening a whole collection of them into their defining points at once,
+via `Iterators.flatten`:
+
+```@example geo
+using EuclideanGeometry
+
+c1, c2 = EGCircle2(EGPoint(0.0, 0.0), 2.0), EGCircle2(EGPoint(10.0, 0.0), 1.0)
+l1, l2 = external_tangent_lines(c1, c2)
+collect(Iterators.flatten([l1, l2]))   # the 4 points of tangency, in one Vector{EGPoint}
+```
+
+But every `EGObject`/`EGTransform` (this one included) is always a
+*scalar* for **broadcasting** purposes, so `translate.(p, [v1, v2])` or
+`intersection.(l, [c1, c2])` repeats the single shape against each
+element of the other argument, rather than Julia's usual `f.(x)`
+mistaking an iterable `x` for a collection to broadcast over its own
+components.
 
 ## Creating them
 
@@ -300,6 +312,17 @@ leaves `abs` unchanged:
 ang2 = EGAngle2(O, P2, P1)
 measure(ang2), is_direct(ang2)   # (-π/2, false) — same magnitude, opposite orientation
 normalized_measure(ang2)          # -π/2 + 2π = 3π/2 rad (270°), shifted into [0, 2π)
+```
+
+[`reverse`](@ref)`(ang)` does exactly that swap for you (`ang2 == reverse(ang)`
+above) — handy when you've built an `EGAngle2` from points that already
+live in a mirrored coordinate space (e.g. after
+[`@to_luxor_picture`](@ref)'s default `flip=true`, see
+[Drawing with Luxor.jl](@ref)) and need the wedge that matches what you'd
+see drawn, rather than its mirror image:
+
+```@example geo
+reverse(ang) == ang2, reverse(reverse(ang)) == ang
 ```
 
 [`angle_trisectors`](@ref) is the free-function analogue of

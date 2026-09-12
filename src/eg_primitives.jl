@@ -87,7 +87,8 @@ end
 """
     EGLine(p1::EGPoint, p2::EGPoint)
 
-The infinite straight line passing through `p1` and `p2`.
+The infinite straight line passing through `p1` and `p2`. `l[1]`/`l[2]`
+access the two defining points.
 """
 struct EGLine{Dim,T<:Real} <: EGCurve{Dim,T}
     p1::EGPoint{Dim,T}
@@ -103,6 +104,7 @@ EGLine(s::EGSegment) = EGLine(s.p1, s.p2)
     EGRay(origin::EGPoint, through::EGPoint)
 
 The half-line starting at `origin` and passing through `through`.
+`r[1]`/`r[2]` access `origin`/`through`.
 """
 struct EGRay{Dim,T<:Real} <: EGCurve{Dim,T}
     origin::EGPoint{Dim,T}
@@ -116,6 +118,26 @@ end
 Base.getindex(s::EGSegment, i::Integer) = i == 1 ? s.p1 : s.p2
 Base.length(::EGSegment) = 2
 Base.iterate(s::EGSegment, i::Int=1) = i > 2 ? nothing : (s[i], i + 1)
+Base.eltype(::Type{<:EGSegment{Dim,T}}) where {Dim,T} = EGPoint{Dim,T}
+
+# Same `[i]`/iteration/destructuring protocol as EGSegment above (`p1, p2 =
+# l`, `l[1]`, `for p in l`, `collect(Iterators.flatten(lines))` to flatten
+# a collection of lines into their defining points, ...). Safe to add
+# despite EGLine/EGRay being used throughout as single "shape" values --
+# `Broadcast.broadcastable(x::EGObject) = Ref(x)` (eg_point.jl) already
+# keeps them from being mistaken for a collection under broadcasting.
+# `eltype` (not just `iterate`/`length`) is what lets `collect`/
+# `Iterators.flatten` infer `Vector{EGPoint{Dim,T}}` instead of falling
+# back to `Vector{Any}`.
+Base.getindex(l::EGLine, i::Integer) = i == 1 ? l.p1 : l.p2
+Base.length(::EGLine) = 2
+Base.iterate(l::EGLine, i::Int=1) = i > 2 ? nothing : (l[i], i + 1)
+Base.eltype(::Type{<:EGLine{Dim,T}}) where {Dim,T} = EGPoint{Dim,T}
+
+Base.getindex(r::EGRay, i::Integer) = i == 1 ? r.origin : r.through
+Base.length(::EGRay) = 2
+Base.iterate(r::EGRay, i::Int=1) = i > 2 ? nothing : (r[i], i + 1)
+Base.eltype(::Type{<:EGRay{Dim,T}}) where {Dim,T} = EGPoint{Dim,T}
 
 Base.:(==)(a::EGSegment, b::EGSegment) = a.p1 == b.p1 && a.p2 == b.p2
 Base.:(==)(a::EGLine, b::EGLine) = a.p1 == b.p1 && a.p2 == b.p2
@@ -420,6 +442,21 @@ EGBoundingBox(::EGLine) = EGBoundingBox()
 EGBoundingBox(::EGRay) = EGBoundingBox()
 
 """
+    EGBoundingBox(v::AbstractVector{<:EGObject})
+
+The [`bbox_union`](@ref) of every element's own box — the empty box (see
+[`EGBoundingBox()`](@ref) above) for an empty `v`, so this composes
+exactly like a single value would, rather than erroring on "no points"
+the way [`EGBoundingBox(::AbstractVector{<:EGPoint})`](@ref) does. This is
+what lets a plain `Vector` of shapes — what [`intersection`](@ref)/
+[`tangent_points`](@ref) return, since they can give 0, 1 or 2 points
+depending on the geometry — work as a single named item inside a
+[`@boundingbox`](@ref)/[`@to_luxor_picture`](@ref) block, without
+unwrapping it by hand first.
+"""
+EGBoundingBox(v::AbstractVector{<:EGObject}) = reduce(bbox_union, EGBoundingBox.(v); init=EGBoundingBox())
+
+"""
     isempty(bb::EGBoundingBox)
 
 Whether `bb` is the empty box (see [`EGBoundingBox()`](@ref)).
@@ -688,6 +725,17 @@ end
 # splits `margin`/leftover space evenly), no separate centering offset is
 # needed here.
 #
+# `flip`: reflect across the x-axis (negate y) after shifting/scaling.
+# This package's own geometry uses the standard math convention (y up,
+# counterclockwise angles positive), but Luxor -- like most 2D graphics
+# APIs -- draws with y increasing *downward*. Left uncorrected, that
+# mismatch renders everything as a vertical mirror image of how it reads
+# on paper (what's "above" the origin ends up drawn below it). `flip`
+# defaults to `true` so the common case (draw once, look right) needs no
+# extra thought; pass `flip=false` to see the raw, un-mirrored
+# coordinates instead (e.g. if you're deliberately working in screen/y-down
+# coordinates already).
+#
 # A `shape` with no position of its own -- a plain number, an EGVector --
 # is left untouched instead of being run through translate/homothety,
 # which don't have a method for either (there's nothing to move; for a
@@ -709,14 +757,16 @@ end
 # positioned) -- if a shape claims a real bbox but doesn't support
 # translate, that's a bug in its own definition and should still surface
 # as a MethodError, not be silently swallowed here.
-function _place_in_picture(shape, bb::EGBoundingBox, s::Real)
+function _place_in_picture(shape, bb::EGBoundingBox, s::Real, flip::Bool)
     center = EGVector((bb.min[1] + bb.max[1]) / 2, (bb.min[2] + bb.max[2]) / 2)
     !applicable(translate, shape, center) && isempty(EGBoundingBox(shape)) && return shape
     shifted = translate(shape, -center)
-    return homothety(shifted, s, EGPoint(0.0, 0.0))
+    scaled = homothety(shifted, s, EGPoint(0.0, 0.0))
+    flip || return scaled
+    return reflection(scaled, EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0)))
 end
 
-const _PICTURE_KWNAMES = (:width, :height, :scale, :margin)
+const _PICTURE_KWNAMES = (:width, :height, :scale, :margin, :flip)
 
 # Reads the trailing `key = value` arguments a macro call was given before
 # its final (block) argument -- e.g. `@to_luxor_picture width=400 begin ... end`
@@ -734,10 +784,10 @@ function _parse_picture_kwargs(macroname, exprs)
         error("$macroname: `scale` cannot be combined with `width`/`height`")
     end
     getval(k, default) = get(given, k, default)
-    return (getval(:width, nothing), getval(:height, nothing), getval(:scale, nothing), getval(:margin, 0.0))
+    return (getval(:width, nothing), getval(:height, nothing), getval(:scale, nothing), getval(:margin, 0.0), getval(:flip, true))
 end
 
-function _picture_body(mutating::Bool, block, width, height, scale, margin)
+function _picture_body(mutating::Bool, block, width, height, scale, margin, flip)
     block isa Expr && block.head === :block || (block = Expr(:block, block))
     macroname = mutating ? "@to_luxor_picture!" : "@to_luxor_picture"
 
@@ -783,7 +833,7 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin)
     results = gensym(:picture_results)
     push!(body.args, :($results = Any[]))
     for (i, slot) in enumerate(slots)
-        transformed = :($place_in_picture($shapes[$i], $bb, $s))
+        transformed = :($place_in_picture($shapes[$i], $bb, $s, $flip))
         if slot === nothing
             push!(body.args, :(push!($results, $transformed)))
         else
@@ -813,6 +863,7 @@ end
     @to_luxor_picture width=400 height=300 begin ... end
     @to_luxor_picture scale=2.0 begin ... end
     @to_luxor_picture width=400 margin=10 begin ... end
+    @to_luxor_picture flip=false width=400 begin ... end
 
 Prepares every shape named in the block for drawing at a known, exact
 canvas size: translate/scale them so their combined [`EGBoundingBox`](@ref)
@@ -828,7 +879,14 @@ the same order as the block, as a tuple (or bare, for a single shape).
 Centering on `(0, 0)` matches Luxor's own `origin()` convention (device
 `(0, 0)` moved to the center of the canvas), so the result is ready to
 draw right after `origin()` — which `@png`/`@svg`/`@pdf` already call for
-you:
+you. The shapes are also reflected across the x-axis (`flip=true` by
+default): this package's own geometry follows the standard math
+convention (y up, counterclockwise angles positive), but Luxor -- like
+most 2D graphics APIs -- draws with y increasing *downward*, so without
+this correction everything would render as a vertical mirror image of how
+it reads on paper. Pass `flip=false` to get the raw, un-mirrored
+coordinates instead (e.g. if you're already deliberately working in
+screen/y-down coordinates).
 
 ```julia
 (w, h), (c2, s2) = @to_luxor_picture width=400 begin
@@ -871,7 +929,8 @@ Scaling options (mutually exclusive: `scale` cannot be combined with
     leaving extra blank space on one axis beyond `margin`.
 
 `margin` (default `0.0`) is the minimum blank space guaranteed around the
-content on every side, in output units.
+content on every side, in output units. `flip` (default `true`) is
+independent of all of the above -- see the note above.
 
 Each line in the block is read exactly like [`@boundingbox`](@ref)'s (an
 assignment binds `name` in the enclosing scope as usual, or a bare
@@ -880,8 +939,8 @@ expression works here too since nothing needs to be rebound.
 """
 macro to_luxor_picture(args...)
     isempty(args) && error("@to_luxor_picture: missing the shapes block")
-    width, height, scale, margin = _parse_picture_kwargs("@to_luxor_picture", args[1:end-1])
-    return _picture_body(false, args[end], width, height, scale, margin)
+    width, height, scale, margin, flip = _parse_picture_kwargs("@to_luxor_picture", args[1:end-1])
+    return _picture_body(false, args[end], width, height, scale, margin, flip)
 end
 
 """
@@ -899,8 +958,8 @@ as [`@translate!`](@ref) and the rest of that family).
 """
 macro to_luxor_picture!(args...)
     isempty(args) && error("@to_luxor_picture!: missing the shapes block")
-    width, height, scale, margin = _parse_picture_kwargs("@to_luxor_picture!", args[1:end-1])
-    return _picture_body(true, args[end], width, height, scale, margin)
+    width, height, scale, margin, flip = _parse_picture_kwargs("@to_luxor_picture!", args[1:end-1])
+    return _picture_body(true, args[end], width, height, scale, margin, flip)
 end
 
 # Shared codegen for the @translate/@rotate/@homothety/@reflection family

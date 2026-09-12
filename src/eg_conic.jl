@@ -681,6 +681,16 @@ Base.isapprox(x::EGCircularArc2, y::EGCircularArc2; kwargs...) =
     isapprox(x.circle, y.circle; kwargs...) && isapprox(x.p1, y.p1; kwargs...) && isapprox(x.p2, y.p2; kwargs...)
 Base.show(io::IO, arc::EGCircularArc2) = print(io, "EGCircularArc2(", arc.circle, ", ", arc.p1, " -> ", arc.p2, ")")
 
+"""
+    reverse(arc::EGCircularArc2)
+
+The *complementary* arc: same circle, `p1`/`p2` swapped, so it sweeps the
+rest of the way around (`measure` goes from `θ` to `2π - θ`, 0 stays 0).
+See [`reverse(::EGAngle2)`](@ref) for why this exists — the same
+already-mirrored-coordinates gotcha applies here.
+"""
+Base.reverse(arc::EGCircularArc2) = EGCircularArc2(arc.circle, arc.p2, arc.p1)
+
 _arc_angle(arc::EGCircularArc2, p::EGPoint) = atan(p[2] - arc.circle.center[2], p[1] - arc.circle.center[1])
 
 # Shared by `EGBoundingBox` for EGCircularArc2/EGEllipticArc2: whether angle
@@ -811,6 +821,15 @@ function EGEllipticArc2(ellipse::EGEllipse2, p1::EGPointLike, p2::EGPointLike)
     return EGEllipticArc2{T}(convert(EGEllipse2{T}, ellipse), convert(EGPoint{2,T}, p1), convert(EGPoint{2,T}, p2))
 end
 Base.convert(::Type{EGEllipticArc2{T}}, a::EGEllipticArc2) where {T} = EGEllipticArc2{T}(a.ellipse, a.p1, a.p2)
+
+"""
+    reverse(arc::EGEllipticArc2)
+
+The *complementary* arc: same ellipse, `p1`/`p2` swapped, so it sweeps the
+rest of the way around. See [`reverse(::EGAngle2)`](@ref) for why this
+exists — the same already-mirrored-coordinates gotcha applies here.
+"""
+Base.reverse(arc::EGEllipticArc2) = EGEllipticArc2(arc.ellipse, arc.p2, arc.p1)
 
 function _ellipse_param(e::EGEllipse2, p::EGPoint)
     lx, ly = _to_ellipse_local(p, e)
@@ -953,6 +972,17 @@ function EGParabolicArc2(parabola::EGParabola2, p1::EGPointLike, p2::EGPointLike
 end
 Base.convert(::Type{EGParabolicArc2{T}}, a::EGParabolicArc2) where {T} = EGParabolicArc2{T}(a.parabola, a.p1, a.p2)
 
+"""
+    reverse(arc::EGParabolicArc2)
+
+`p1`/`p2` swapped: since a parabola is open, this is the *same* arc (same
+point set) with its parametrization direction reversed — unlike
+[`reverse(::EGCircularArc2)`](@ref)/[`reverse(::EGEllipticArc2)`](@ref),
+there's no complementary-arc ambiguity to resolve here. Provided mainly
+for consistency with the closed-conic arcs' `reverse`.
+"""
+Base.reverse(arc::EGParabolicArc2) = EGParabolicArc2(arc.parabola, arc.p2, arc.p1)
+
 function _parabola_param(par::EGParabola2, p::EGPoint)
     V, u, w = _parabola_frame(par)
     _, y = _to_local_frame(p, V, u, w)
@@ -1082,6 +1112,15 @@ function EGHyperbolicArc2(hyperbola::EGHyperbola2, p1::EGPointLike, p2::EGPointL
     return EGHyperbolicArc2{T}(convert(EGHyperbola2{T}, hyperbola), convert(EGPoint{2,T}, p1), convert(EGPoint{2,T}, p2))
 end
 Base.convert(::Type{EGHyperbolicArc2{T}}, a::EGHyperbolicArc2) where {T} = EGHyperbolicArc2{T}(a.hyperbola, a.p1, a.p2)
+
+"""
+    reverse(arc::EGHyperbolicArc2)
+
+`p1`/`p2` swapped: since a single hyperbola branch is open, this is the
+*same* arc (same point set) with its parametrization direction reversed
+— see [`reverse(::EGParabolicArc2)`](@ref) for the same reasoning.
+"""
+Base.reverse(arc::EGHyperbolicArc2) = EGHyperbolicArc2(arc.hyperbola, arc.p2, arc.p1)
 
 function _hyperbola_param(h::EGHyperbola2, p::EGPoint)
     lx, ly = _to_hyperbola_local(p, h)

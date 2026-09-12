@@ -89,11 +89,14 @@ path(t; action=:stroke)
 
 And for a label, `Luxor.label` (or plain `Luxor.text`) at whatever anchor
 point makes sense for that shape — which is almost always a point the
-package already gives you a name for, so there's nothing to look up:
+package already gives you a name for, so there's nothing to look up.
+`Luxor.label` accepts an `EGPoint` directly (both the alignment-`Symbol`
+form and the direction-angle one), no `Luxor.Point(p...)` conversion
+needed:
 
 ```julia
-Luxor.label("I", :N, Luxor.Point(incenter(t)...))
-Luxor.label("O", :N, Luxor.Point(circumcenter(t)...))
+Luxor.label("I", :N, incenter(t))
+Luxor.label("O", :N, circumcenter(t))
 ```
 
 ## What each type builds
@@ -107,7 +110,7 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 |:-----|:---------------------|:------------------------|
 | `EGPoint` | a small circle | `radius=3` |
 | `EGSegment` | a straight line between its two points, or — pass `as=:arrow` — an arrow (see [Arrows](@ref) below) | `as=:plain` (default) |
-| `EGLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point; `as=:plain`/`:arrow` |
+| `EGLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point — or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow` |
 | `EGRay` | likewise, extended only past `through` (not past `origin`); `extend=0.0` draws the exact finite segment from `origin` to `through` | `extend=1000.0`; `as=:plain`/`:arrow` |
 | `EGCircle2` | Luxor's native circle | — |
 | any [`EGPolygon`](@ref) | every side, chained end to end into one closed path — a straight line for an `EGSegment` side, a true arc for an `EGCircularArc2` side, an `n`-point sampled polyline for any other conic-arc side (see below); covers `EGTriangle`, `EGQuadrilateral`, `EGStraightNgon`, `EGCircularSector2`, `EGCircularSegment2`, `EGAnnularSector2`, `EGInterstice2`, `EGCurvilinearTriangle2`, `EGCurvilinearQuadrilateral2` and `EGCurvilinearNgon2` — **one** method for the whole family | `n=60` (only matters if some side needs sampling) |
@@ -117,10 +120,50 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | `EGHyperbola2` | likewise (no native primitive), sampled via [`point_on_hyperbola`](@ref) on one branch at a time | `trange=(-2.0, 2.0)`, `n=60`, `branch=1` (pass `branch=-1` and call again for the other branch) |
 | `EGCircularArc2` | a true circular arc from `p1` to `p2`, via Luxor's own `arc2r` (Cairo's native arc primitive — not a polygonal approximation) | — |
 | `EGEllipticArc2`, `EGParabolicArc2`, `EGHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on_arc`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
-| `EGAngle2` | see below — it has no single canonical path | `as=:arc` (default), `radius` |
+| `EGAngle2` | see below — it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
 | `EGVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=EGPoint(0.0, 0.0)`, `as=:plain`/`:arrow` |
 | `EGHalfPlane2` | unbounded, so this draws its boundary line only (see `EGLine` above) | `extend=1000.0` |
 | `EGStrip2` | likewise unbounded: both boundary lines, one call each | `extend=1000.0` |
+| `AbstractVector{<:EGObject}` | each element in turn, with the same `kwargs` every time (see below) | whatever that element's own type takes |
+
+The last row is what lets a plain `Vector` — what [`intersection`](@ref)/
+[`tangent_points`](@ref) return, since they can give 0, 1 or 2 points
+depending on the geometry — get drawn directly, without unwrapping it by
+hand first:
+
+```julia
+pts = intersection(l, c)   # a Vector{EGPoint}, however many points there are
+path(pts; action=:fill)    # each point drawn as its own small circle
+```
+
+It also calls `Luxor.newsubpath()` before each element, so this is the
+safe way to batch several shapes into *one* combined path with the
+default `action=:path` — e.g. to fill them one color and outline them
+another with a single `fillpreserve()`/`strokepath()` pair, rather than
+drawing each one twice:
+
+```julia
+path(pts; action=:path)   # builds all the circles into one path
+sethue("white"); fillpreserve()
+sethue("blue"); strokepath()
+```
+
+Without the `newsubpath()`, Cairo's own circle/arc primitives connect to
+wherever the current path left off with a straight line the moment a
+second one starts — a well-known Cairo gotcha, not something specific to
+this package, but one `path(::AbstractVector)` takes care of for you.
+
+!!! warning "`path(v)` is not the same as `path.(v)`"
+    Broadcasting (`path.(pts; action=:path)`, with the dot) calls the
+    scalar `path` method on each point directly — it never reaches
+    `path(::AbstractVector)` at all, so none of the `newsubpath()`
+    handling above applies. For an immediately-rendering action
+    (`:stroke`, `:fill`, `:fillstroke`) the two look identical, since each
+    element renders and clears on its own regardless of how it got there.
+    But for the default `action=:path`, only the no-dot form `path(pts)`
+    batches safely; `path.(pts)` (or a hand-written loop without its own
+    `newsubpath()` calls) reproduces the stray-line bug this method exists
+    to avoid.
 
 Most types default effectively to an outline when you pass `action=:stroke`
 (`EGPoint` would need `action=:fill` to actually show up, since an
@@ -171,17 +214,20 @@ immediately, with no deferred form, so `action` is ignored when
 `as=:arrow`. Keyword arguments other than `as`/`extend` (`arrowheadlength`,
 `arrowheadangle`, `linewidth`, ...) are forwarded straight to `Luxor.arrow`.
 
-### `EGAngle2`: rays, arc, or sector
+### `EGAngle2`: rays, arc, sector, or the parallelogram-law marker
 
 An `EGAngle2` is genuinely just the space between two rays — but it's
-conventionally *drawn* as a small arc, or a filled wedge. `as` picks which:
+conventionally *drawn* as a small arc, a filled wedge, or (especially for
+a right angle) a small square in the corner. `as` picks which:
 
 ```julia
 ang = EGAngle2(t[2], t[1], t[3])   # the angle at vertex t[2]
 
-path(ang; as=:rays, action=:stroke)   # the literal two half-lines, a-vertex-b
-path(ang; as=:arc, action=:stroke)    # the conventional small arc (default)
-path(ang; as=:sector, action=:fill)   # closed pie-wedge, for shading
+path(ang; as=:rays, action=:stroke)      # the literal two half-lines, a-vertex-b
+path(ang; as=:arc, action=:stroke)       # the conventional small arc (default)
+path(ang; as=:sector, action=:fill)      # closed pie-wedge, for shading
+path(ang; as=:rarc, action=:stroke)      # the parallelogram-law corner marker (open)
+path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
 ```
 
 `radius` defaults to `0.15` times the shorter of the distances from the
@@ -191,6 +237,17 @@ scale without having to think about it — pass it explicitly to override.
 `path(EGCircularArc2(...))` and `path(EGCircularSector2(...))` under the
 hood (see below) — `EGAngle2` just works out the right circle and
 endpoints first.
+
+`as=:rarc`/`:rsector` generalize the little square textbooks use to mark
+a *right* angle to any angle, via the parallelogram law: `pa`/`pb` are the
+points at distance `radius` along each ray, and `pc = pa + pb - vertex`
+completes the parallelogram `vertex, pa, pc, pb`. At exactly 90° that
+parallelogram is the familiar square corner marker (`pa`/`pb` are
+perpendicular and equal in length); at any other angle it's still a
+rhombus (`pa`/`pb` are always exactly `radius` from the vertex), tracing
+the same idea. `:rarc` draws just the two "far" sides, `pa -> pc -> pb`
+(open, so it doesn't retrace the rays themselves); `:rsector` closes the
+whole parallelogram, for filling.
 
 ## Circular arcs, sectors, segments, interstices and curvilinear polygons
 

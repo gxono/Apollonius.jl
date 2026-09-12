@@ -140,3 +140,58 @@ of it is exactly what this documentation itself needs: it's the tool
 this site's own illustrations (once filled in, see the note above) get
 built with. See [Drawing with Luxor.jl](@ref) at the end of this site for
 the full rundown.
+
+A quick taste — the four common tangent lines of two circles, sized and
+centered automatically by [`@to_luxor_picture!`](@ref), with the points
+of tangency picked out, the angle between the two external tangents
+shaded, and one radius dashed in:
+
+```julia
+using EuclideanGeometry
+using Luxor: @svg, sethue, setdash, setopacity,
+     fillpreserve, strokepath,
+    julia_blue, julia_green, julia_red, julia_purple,
+    gsave, grestore
+import Luxor
+
+sz = @to_luxor_picture! width=500 height=320 margin=20 begin
+    circle1 = EGCircle2((300,300), 300)
+    circle2 = EGCircle2((900,200), 100)
+    el1, el2 = external_tangent_lines(circle1, circle2)
+    il1, il2 = internal_tangent_lines(circle1, circle2)
+    ang = EGAngle2(el1.p1, circle1.center, el1.p2)
+end
+
+pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
+
+@svg begin
+    sethue(julia_blue)
+    path(circle1, action = :stroke)
+    path(circle2, action = :stroke)
+
+    gsave()
+        sethue(julia_purple)
+        setopacity(0.5)
+        path(ang, action = :fill, as = :rsector, radius = 20)
+    grestore()
+
+    path([il1, il2], action = :stroke, extend = 20)
+    path([el1, el2], action = :stroke, extend = 0)
+
+    gsave()
+        setdash(:dash)
+        path(EGSegment(circle1.center, el1.p1), action = :stroke)
+    grestore()
+
+    path(pts)
+    path([circle1.center, circle2.center])
+    sethue("white"); fillpreserve()
+    sethue(julia_red); strokepath()
+
+    label("A", :NW, circle1.center)
+end sz.width sz.height
+```
+
+```@raw html
+<img src="assets/img/tangent_lines_luxor.svg" alt="Two circles with their four common tangent lines, tangent points marked, the angle between the external tangents shaded, and one radius dashed in" style="width:100%; max-width: 700px;">
+```

@@ -70,6 +70,23 @@ end
 L1, L2
 ```
 
+A named item can even be a plain `Vector` of shapes — what
+[`intersection`](@ref)/[`tangent_points`](@ref) return, since they can
+give 0, 1 or 2 points depending on the geometry — and it's transformed
+element-wise, via [`translate`](@ref)/[`rotate`](@ref)/[`homothety`](@ref)/
+[`reflection`](@ref)/[`invert`](@ref)/[`invert_neg`](@ref)'s own
+`AbstractVector{<:EGObject}` methods (plain broadcasting under the hood):
+
+```@example geo
+P1, P2 = intersection.(l1, [c1, c2])   # each a Vector{EGPoint} (l1 is tangent to both)
+
+Q1, Q2 = @rotate (pi / 2) begin
+    P1
+    P2
+end
+Q1, Q2
+```
+
 ## `@boundingbox`
 
 Builds one [`EGBoundingBox`](@ref) around every shape listed — shorthand
@@ -144,6 +161,29 @@ name, this macro is plain geometry — it has no Luxor dependency at all;
 see [Drawing with Luxor.jl](@ref) for the full `Drawing`/`path`/`finish`
 workflow this is designed to feed directly.
 
+It also reflects everything across the x-axis by default (`flip=true`):
+this package's own geometry follows the standard math convention (`y` up,
+counterclockwise angles positive), but Luxor — like most 2D graphics
+APIs — draws with `y` increasing *downward*, so left uncorrected,
+everything would render as a vertical mirror image of how it reads on
+paper. Pass `flip=false` to get the raw, un-mirrored coordinates instead:
+
+```@example geo
+t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(80.0, 0.0), EGPoint(0.0, 80.0))
+
+_, t2 = @to_luxor_picture width = 200.0 begin
+    t
+end
+t2.c   # (0, 80) in t's own coordinates ends up with a *negative* y here
+```
+
+```@example geo
+_, t2_noflip = @to_luxor_picture width = 200.0 flip = false begin
+    t
+end
+t2_noflip.c   # flip=false: the raw, un-mirrored coordinates
+```
+
 ```@example geo
 c = EGCircle2(EGPoint(3.0, -1.0), 5.0)
 s = EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
@@ -214,6 +254,11 @@ ext1   # repositioned exactly like c1_2/c2_2, even though its own bbox is empty
 A block with nothing but non-positional values (numbers/vectors, with no
 shape carrying a real position at all) is an `ArgumentError` — there's no
 finite content to size a canvas around.
+
+A named item can also be a plain `Vector` of shapes (see the same
+capability under [Reading the block](@ref) above) — e.g. the result of
+`intersection.(ext1, [c1, c2])` — and it's repositioned element-wise right
+alongside everything else.
 
 ### Sizing options
 

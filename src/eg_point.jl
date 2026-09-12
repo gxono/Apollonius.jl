@@ -119,6 +119,18 @@ abstract type EGTransform{T<:Real} end
 Base.Broadcast.broadcastable(x::EGObject) = Ref(x)
 Base.Broadcast.broadcastable(x::EGTransform) = Ref(x)
 
+# `translate`/`rotate`/`homothety`/`reflection` on a `Vector` of shapes:
+# transform each element, via ordinary broadcasting. This is what lets a
+# plain `Vector` returned by something like `intersection`/`tangent_points`
+# (0/1/2 points, depending on the geometry) be transformed directly as a
+# single "item" -- e.g. inside a `@translate`/`@to_luxor_picture` block --
+# without unwrapping it by hand first. `invert`/`invert_neg` get the same
+# treatment in eg_inversion.jl, next to their own definitions.
+translate(v::AbstractVector{<:EGObject}, args...; kwargs...) = translate.(v, args...; kwargs...)
+rotate(v::AbstractVector{<:EGObject}, args...; kwargs...) = rotate.(v, args...; kwargs...)
+homothety(v::AbstractVector{<:EGObject}, args...; kwargs...) = homothety.(v, args...; kwargs...)
+reflection(v::AbstractVector{<:EGObject}, args...; kwargs...) = reflection.(v, args...; kwargs...)
+
 """
     EGPoint(x, y)
     EGPoint(x, y, z)

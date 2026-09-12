@@ -143,6 +143,18 @@ invert(center::EGPoint; k::Real=1.0, atol=1e-9) = shape -> invert(shape, center;
 invert_neg(center::EGPoint; k::Real=1.0, atol=1e-9) = shape -> invert_neg(shape, center; k=k, atol=atol)
 
 """
+    invert(v::AbstractVector{<:EGObject}, center::EGPoint; k::Real=1.0, atol=1e-9)
+    invert_neg(v::AbstractVector{<:EGObject}, center::EGPoint; k::Real=1.0, atol=1e-9)
+
+Invert every element of `v` — see the `AbstractVector` forms of
+[`translate`](@ref)/[`rotate`](@ref)/[`homothety`](@ref)/[`reflection`](@ref)
+for why this exists (a plain `Vector` of shapes, e.g. from
+[`intersection`](@ref)/[`tangent_points`](@ref), used as a single item).
+"""
+invert(v::AbstractVector{<:EGObject}, center::EGPoint; k::Real=1.0, atol=1e-9) = invert.(v, center; k=k, atol=atol)
+invert_neg(v::AbstractVector{<:EGObject}, center::EGPoint; k::Real=1.0, atol=1e-9) = invert_neg.(v, center; k=k, atol=atol)
+
+"""
     polar_line(c::EGCircle2, p::EGPoint; atol=1e-9)
 
 The polar line of `p` with respect to `c`: the line through `inversion(p, c)`

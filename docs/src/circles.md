@@ -235,9 +235,26 @@ midpoint(arc)                   # point_on_arc(arc, 0.5)
 Swapping `p1` and `p2` gives the *complementary* arc (the other `3/4` of
 this circle here), not the same arc traversed backwards — `EGCircularArc2`
 only ever sweeps counterclockwise, so which points is `p1` and which is
-`p2` is exactly what picks one of the two candidate arcs. Ellipses have
-the exact same arc type, [`EGEllipticArc2`](@ref), and the exact same
-convention — see [Conics: Ellipse, Parabola & Hyperbola](@ref).
+`p2` is exactly what picks one of the two candidate arcs. [`reverse`](@ref)
+does exactly that swap:
+
+```@example geo
+reverse(arc) == EGCircularArc2(c, p2, p1), measure(reverse(arc)) ≈ 2pi - measure(arc)
+```
+
+This is the fix for a common gotcha: if `arc` gets built from points that
+already live in a mirrored coordinate space — e.g. after
+[`@to_luxor_picture`](@ref)'s default `flip=true` (see
+[Drawing with Luxor.jl](@ref)) — the "counterclockwise" sweep comes out
+backwards, since it's computed straight from the `(x, y)` values with no
+idea they're mirrored; `reverse` corrects that after the fact (building
+the arc *before* the flip and letting the whole object pass through
+`@to_luxor_picture` handles it automatically instead, the same as for
+[`EGAngle2`](@ref)).
+
+Ellipses have the exact same arc type, [`EGEllipticArc2`](@ref), and the
+exact same convention (`reverse` included) — see
+[Conics: Ellipse, Parabola & Hyperbola](@ref).
 
 `EGCircularArc2` is also what [`interstices`](@ref) (see
 [Tangency & Apollonius Problems](@ref)) builds a curvilinear triangle's

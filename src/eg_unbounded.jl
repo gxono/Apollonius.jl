@@ -49,6 +49,26 @@ Base.isapprox(x::EGAngle2, y::EGAngle2; kwargs...) =
 Base.show(io::IO, ang::EGAngle2) = print(io, "EGAngle2(vertex=", ang.vertex, ", a=", ang.a, ", b=", ang.b, ")")
 
 """
+    reverse(ang::EGAngle2)
+
+The *complementary* wedge: same vertex, `a`/`b` swapped, so the sweep
+runs the other way around the vertex. [`normalized_measure`](@ref) goes
+from `θ` to `2π - θ` (0 stays 0) — same rays, opposite orientation.
+
+This is the fix for a common gotcha: [`EGAngle2`](@ref)'s "counterclockwise
+from `a` to `b`" is computed straight from the `(x, y)` values it's given,
+with no idea whether those coordinates already live in a mirrored
+coordinate space (e.g. after [`@to_luxor_picture`](@ref)'s default
+`flip=true`, which reflects everything to match Luxor's `y`-down screen
+convention). Building the angle *before* that reflection and letting the
+whole object pass through the macro handles this automatically (see
+[Drawing with Luxor.jl](@ref)); reconstructing it *after*, straight from
+already-mirrored points, silently picks up the reversed sense instead —
+`reverse` is the manual fix for that second case.
+"""
+Base.reverse(ang::EGAngle2) = EGAngle2(ang.vertex, ang.b, ang.a)
+
+"""
     measure(ang::EGAngle2)
 
 The signed measure of `ang` (radians, in `(-π, π]`, counterclockwise from

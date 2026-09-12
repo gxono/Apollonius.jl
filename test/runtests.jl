@@ -125,6 +125,19 @@ using Base.MathConstants: golden
 
         @test s[1] == p1 && s[2] == p2
         @test collect(s) == [p1, p2]
+
+        # EGLine/EGRay support the same [i]/iteration/destructuring
+        # protocol as EGSegment -- e.g. to flatten a collection of lines
+        # into their defining points via Iterators.flatten
+        @test l[1] == p1 && l[2] == p2
+        @test collect(l) == [p1, p2]
+        a, b = l
+        @test a == p1 && b == p2
+        @test r[1] == p1 && r[2] == p2
+        @test collect(r) == [p1, p2]
+        l2 = EGLine(EGPoint(5.0, 5.0), EGPoint(6.0, 6.0))
+        @test collect(Iterators.flatten([l, l2])) == [p1, p2, EGPoint(5.0, 5.0), EGPoint(6.0, 6.0)]
+
         @test midpoint(s.p1, s.p2) == EGPoint(2.0, 0.0)
         @test distance(s) == 4.0
         @test distance(p1, p2) == 4.0
@@ -236,6 +249,17 @@ using Base.MathConstants: golden
             @test bbox_union(empty1, bb) == bb
             @test bbox_union(bb, empty1) == bb
             @test isempty(bbox_union(empty1, empty2))
+
+            # EGBoundingBox on a Vector{<:EGObject}: unions each element's own
+            # box, empty (not an error) for an empty vector -- unlike
+            # EGBoundingBox(::AbstractVector{<:EGPoint}), which still throws
+            l1 = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))
+            l2 = EGLine(EGPoint(5.0, 5.0), EGPoint(6.0, 6.0))
+            @test isempty(EGBoundingBox([l1, l2]))  # both unbounded -> still empty
+            mixed = [l1, EGCircle2(EGPoint(0.0, 0.0), 2.0)]
+            @test EGBoundingBox(mixed) == EGBoundingBox(mixed[2])  # the line contributes nothing
+            @test isempty(EGBoundingBox(EGLine{2,Float64}[]))
+            @test_throws ArgumentError EGBoundingBox(EGPoint{2,Float64}[])
         end
 
         @testset "3D construction works (forward-compat check)" begin
@@ -263,6 +287,32 @@ using Base.MathConstants: golden
 
             m = rotation_map(pi / 2, EGPoint(0.0, 0.0))
             @test m.(vs) == [m(vs[1]), m(vs[2])]
+        end
+
+        @testset "translate/rotate/homothety/reflection/invert/invert_neg on a Vector of shapes" begin
+            # lets a plain Vector -- what intersection/tangent_points return,
+            # since they can give 0/1/2 points depending on the geometry --
+            # work as a single named item inside e.g. a @translate/
+            # @to_luxor_picture block, instead of needing to be unwrapped
+            v = EGVector(1.0, -2.0)
+            pts = [EGPoint(0.0, 0.0), EGPoint(3.0, 4.0)]
+            @test translate(pts, v) == translate.(pts, v)
+            @test rotate(pts, pi / 2) == rotate.(pts, pi / 2)
+            @test homothety(pts, 2.0) == homothety.(pts, 2.0)
+            @test reflection(pts, EGPoint(1.0, 1.0)) == reflection.(pts, EGPoint(1.0, 1.0))
+
+            # invert/invert_neg aren't defined for a bare EGPoint (only for
+            # EGLine/EGCircle2/EGSegment/EGTriangle/EGStraightNgon), so
+            # exercise them -- and the "Vector of a non-point EGObject"
+            # case -- with EGLine instead
+            center = EGPoint(0.0, 0.0)
+            lines = [EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0)), EGLine(EGPoint(3.0, 0.0), EGPoint(3.0, 1.0))]
+            @test translate(lines, v) == translate.(lines, v)
+            @test invert(lines, center; k=2.0) == invert.(lines, center; k=2.0)
+            @test invert_neg(lines, center; k=2.0) == invert_neg.(lines, center; k=2.0)
+
+            # empty vector: nothing to transform, no error
+            @test translate(EGPoint[], v) == EGPoint[]
         end
     end
 
@@ -472,6 +522,10 @@ using Base.MathConstants: golden
                 expected = reflection(point_on_arc(earc, 1 - t), line_eg)
                 @test isapprox(point_on_arc(refl_l, t), expected; atol=1e-6)
             end
+
+            rev = reverse(earc)
+            @test rev == EGEllipticArc2(e2, pb, pa)
+            @test reverse(rev) == earc
         end
 
         @testset "EGParabolicArc2 (new)" begin
@@ -490,6 +544,14 @@ using Base.MathConstants: golden
                 expected = reflection(point_on_arc(parc, t), about_l)
                 @test isapprox(point_on_arc(refl, t), expected; atol=1e-6)
             end
+
+            # reverse: same point set, parametrization direction flipped
+            # (no complementary-arc ambiguity for an open curve)
+            rev = reverse(parc)
+            @test rev == EGParabolicArc2(par, pb, pa)
+            @test isapprox(point_on_arc(rev, 0.0), pb; atol=1e-6)
+            @test isapprox(point_on_arc(rev, 1.0), pa; atol=1e-6)
+            @test reverse(rev) == parc
         end
 
         @testset "EGHyperbolicArc2 (new)" begin
@@ -507,6 +569,10 @@ using Base.MathConstants: golden
                 expected = reflection(point_on_arc(harc, t), about_l)
                 @test isapprox(point_on_arc(refl, t), expected; atol=1e-6)
             end
+
+            rev = reverse(harc)
+            @test rev == EGHyperbolicArc2(h, pb, pa)
+            @test reverse(rev) == harc
         end
     end
 
@@ -2155,6 +2221,11 @@ using Base.MathConstants: golden
         @test abs(rev) ≈ pi / 2  # unsigned: same as `ang`
         @test !is_direct(rev)
 
+        # reverse(ang): the complementary wedge (a/b swapped) -- same thing
+        # as `rev` above, and its own inverse
+        @test reverse(ang) == rev
+        @test reverse(reverse(ang)) == ang
+
         @test ang == EGAngle2(vertex, a, b)
         @test ang ≈ EGAngle2(vertex, a, b)
 
@@ -2733,6 +2804,9 @@ using Base.MathConstants: golden
 
         @test arc ≈ EGCircularArc2(circ, p1, p2)
         @test !(arc ≈ rev)
+
+        @test reverse(arc) == rev
+        @test reverse(reverse(arc)) == arc
 
         # degenerate: p1 == p2 -> zero measure, not a full turn
         deg = EGCircularArc2(circ, p1, p1)
@@ -3710,7 +3784,7 @@ using Base.MathConstants: golden
             # no scaling options: natural size, bbox center translated to (0,0)
             # (matches Luxor's own origin() convention)
             c, s = fresh()
-            (w, h), (c2, s2) = @to_luxor_picture begin
+            (w, h), (c2, s2) = @to_luxor_picture flip = false begin
                 c
                 s
             end
@@ -3740,6 +3814,24 @@ using Base.MathConstants: golden
             @test sz2 isa NamedTuple{(:width, :height)}
             @test sz2.width == 50.0 && sz2.height == 50.0
 
+            # flip (default true): reflects across the x-axis, since this
+            # package's own geometry is y-up but Luxor draws y-down --
+            # flip=false gives back the raw, un-mirrored coordinates
+            c, s = fresh()
+            (_, (c2, s2)) = @to_luxor_picture begin
+                c
+                s
+            end
+            (_, (c2f, s2f)) = @to_luxor_picture flip = false begin
+                c
+                s
+            end
+            @test c2 == EGCircle2(EGPoint(c2f.center[1], -c2f.center[2]), c2f.r)
+            @test s2 == EGSegment(EGPoint(s2f.p1[1], -s2f.p1[2]), EGPoint(s2f.p2[1], -s2f.p2[2]))
+            @test c2f == EGCircle2(EGPoint(0.0, 0.0), 5.0)              # matches the flip=false tests elsewhere
+            @test s2f == EGSegment(EGPoint(-5.0, 5.0), EGPoint(3.0, -2.0))
+            @test s2 == EGSegment(EGPoint(-5.0, -5.0), EGPoint(3.0, 2.0))   # flip=true (default): y negated
+
             # width alone: uniform scale (bbox is square here, so trivially uniform)
             c, s = fresh()
             (w, h), _ = @to_luxor_picture width = 400.0 begin
@@ -3759,7 +3851,7 @@ using Base.MathConstants: golden
             # margin alone (no width/height/scale): scale factor stays 1.0,
             # margin just pads the natural content size on every side
             c, s = fresh()
-            (w, h), (c2, s2) = @to_luxor_picture margin = 3.0 begin
+            (w, h), (c2, s2) = @to_luxor_picture margin = 3.0 flip = false begin
                 c
                 s
             end
@@ -3770,7 +3862,7 @@ using Base.MathConstants: golden
             # margin (single, applied to all 4 sides) adds to the reported size
             # and insets the content
             c, s = fresh()
-            (w, h), (c2, s2) = @to_luxor_picture width = 100.0 margin = 5.0 begin
+            (w, h), (c2, s2) = @to_luxor_picture width = 100.0 margin = 5.0 flip = false begin
                 c
                 s
             end
@@ -3784,7 +3876,7 @@ using Base.MathConstants: golden
             # canvas is exactly (width, height), content centered with extra
             # blank space on the less-restrictive axis (here, x)
             c, s = fresh()
-            (w, h), (c2, s2) = @to_luxor_picture width = 400.0 height = 200.0 begin
+            (w, h), (c2, s2) = @to_luxor_picture width = 400.0 height = 200.0 flip = false begin
                 c
                 s
             end
@@ -3804,7 +3896,7 @@ using Base.MathConstants: golden
 
             # mutating form: rebinds c/s in place, returns just (w, h)
             c, s = fresh()
-            (w, h) = @to_luxor_picture! width = 50.0 begin
+            (w, h) = @to_luxor_picture! width = 50.0 flip = false begin
                 c
                 s
             end
@@ -3860,7 +3952,7 @@ using Base.MathConstants: golden
             # external_tangent_lines/internal_tangent_lines naturally return
             c1 = EGCircle2(EGPoint(0.0, 0.0), 3.0)
             c2 = EGCircle2(EGPoint(10.0, 0.0), 3.0)
-            (w, h) = @to_luxor_picture! width = 200.0 begin
+            (w, h) = @to_luxor_picture! width = 200.0 flip = false begin
                 c1
                 c2
                 el1, el2 = external_tangent_lines(c1, c2)
@@ -3874,6 +3966,21 @@ using Base.MathConstants: golden
             # EGVector) EGLine still supports translate/homothety
             @test el1 == EGLine(EGPoint(-62.5, 37.5), EGPoint(62.5, 37.5))
             @test el2 == EGLine(EGPoint(-62.5, -37.5), EGPoint(62.5, -37.5))
+
+            # a destructured item that's itself a Vector (what intersection
+            # returns, since it can give 0/1/2 points) is transformed
+            # element-wise too, via the Vector{<:EGObject} translate/
+            # homothety methods -- this used to error inside _place_in_picture
+            cc1 = EGCircle2(EGPoint(0.0, 0.0), 3.0)
+            cc2 = EGCircle2(EGPoint(10.0, 0.0), 3.0)
+            (w2, h2) = @to_luxor_picture! width = 200.0 begin
+                cc1
+                cc2
+                ee1, ee2 = external_tangent_lines(cc1, cc2)
+                P1, P2 = intersection.(ee1, [cc1, cc2])
+            end
+            @test (w2, h2) == (200.0, 75.0)
+            @test P1 == [ee1.p1] && P2 == [ee1.p2]  # ee1's own endpoints, transformed the same way
         end
 
         @testset "@translate/@rotate/@homothety/@reflection macros" begin
@@ -4834,6 +4941,8 @@ using Base.MathConstants: golden
             path(ang; as=:rays, action=:stroke)
             path(ang; as=:arc, action=:stroke)
             path(ang; as=:sector, action=:fill)
+            path(ang; as=:rarc, action=:stroke)
+            path(ang; as=:rsector, action=:fill)
             @test_throws ArgumentError path(ang; as=:bogus)
 
             arc = EGCircularArc2(EuclideanGeometry.EGCircle2(EGPoint(0.0, 0.0), 30.0), EGPoint(30.0, 0.0), EGPoint(0.0, 30.0))
@@ -4891,8 +5000,108 @@ using Base.MathConstants: golden
             path(EGHalfPlane2(EGLine(EGPoint(0.0, 0.0), EGPoint(0.0, 1.0)), EGPoint(1.0, 0.0)); action=:stroke)
             path(EGStrip2(EGLine(EGPoint(-20.0, 0.0), EGPoint(-20.0, 1.0)), EGLine(EGPoint(20.0, 0.0), EGPoint(20.0, 1.0))); action=:stroke)
 
+            # Luxor's own label() accepts an EGPoint directly (converted via
+            # _lp), for both the alignment-Symbol and direction-angle forms
+            Luxor.label("I", :N, incenter(t))
+            Luxor.label("O", pi / 4, circumcenter(t); offset=10)
+
+            # path() on a Vector{<:EGObject}: each element gets its own
+            # path+action, same as broadcasting `path.(v; ...)` by hand --
+            # this is what lets intersection's result (always a Vector, even
+            # for a single point) get drawn directly
+            path([EGPoint(0.0, 0.0), EGPoint(10.0, 10.0)]; action=:fill)
+            path(intersection(EGLine(EGPoint(-50.0, 0.0), EGPoint(50.0, 0.0)), circumcircle(t)); action=:fill)
+            path(EGPoint{2,Float64}[]; action=:fill)   # empty vector: no-op, no error
+
             Luxor.finish()
             @test isfile(joinpath(dir, "test.png"))
+        end
+
+        @testset "path(::Vector) batches into one path without a stray connecting line" begin
+            # Cairo's circle/arc primitives connect to wherever the current
+            # path left off with a straight line unless a fresh subpath is
+            # started first -- path(::AbstractVector) calls Luxor.newsubpath()
+            # before each element specifically to avoid that, so several
+            # circles/points can share one fillpreserve()+strokepath() (e.g.
+            # to fill them one color and outline them another) without a
+            # spurious line fanning out between them.
+            pts = [EGPoint(-50.0, -50.0), EGPoint(50.0, 50.0), EGPoint(-50.0, 50.0)]
+            mktempdir() do dir
+                fn = joinpath(dir, "t.svg")
+                Luxor.Drawing(200, 200, fn)
+                Luxor.origin()
+                path(pts; action=:path)
+                Luxor.sethue("white")
+                Luxor.fillpreserve()
+                Luxor.sethue("blue")
+                Luxor.strokepath()
+                Luxor.finish()
+                svg = read(fn, String)
+                @test occursin("<path ", svg)
+                @test !occursin(" L ", svg)   # no line segment -- only M (move) and C (curve) commands
+            end
+        end
+
+        @testset "path(::EGAngle2) as=:rarc/:rsector -- the parallelogram-law angle marker" begin
+            # at exactly 90 degrees, pa/pc/pb form the familiar square corner
+            # marker (pa/pb are `radius` from the vertex along each ray; pc =
+            # pa + pb - vertex completes the parallelogram/square)
+            ang90 = EGAngle2(EGPoint(0.0, 0.0), EGPoint(50.0, 0.0), EGPoint(0.0, 50.0))
+            mktempdir() do dir
+                Luxor.Drawing(200, 200, joinpath(dir, "rarc.png"))
+                Luxor.origin()
+                path(ang90; as=:rarc, radius=20.0, action=:path)
+                @test current_path_bbox() ≈ EuclideanGeometry.EGBoundingBox(EGPoint(0.0, 0.0), EGPoint(20.0, 20.0))
+                Luxor.strokepath()
+
+                path(ang90; as=:rsector, radius=20.0, action=:path)
+                @test current_path_bbox() ≈ EuclideanGeometry.EGBoundingBox(EGPoint(0.0, 0.0), EGPoint(20.0, 20.0))
+                Luxor.finish()
+            end
+
+            # a non-right angle still traces a rhombus (pa/pb both `radius`
+            # from the vertex), not a right-angle square, but the same
+            # parallelogram-law construction
+            ang60 = EGAngle2(EGPoint(0.0, 0.0), EGPoint(50.0, 0.0), EuclideanGeometry.rotate(EGPoint(50.0, 0.0), pi / 3))
+            vertex, a, b = ang60.vertex, ang60.a, ang60.b
+            r = 15.0
+            pa = vertex + r * (a - vertex) / norm(a - vertex)
+            pb = vertex + r * (b - vertex) / norm(b - vertex)
+            pc = pa + pb - vertex
+            @test EuclideanGeometry.distance(pa, pc) ≈ r && EuclideanGeometry.distance(pb, pc) ≈ r   # rhombus: all 4 sides equal
+            @test !is_perpendicular(EGLine(vertex, pa), EGLine(vertex, pb))   # not a right angle
+            mktempdir() do dir
+                Luxor.Drawing(200, 200, joinpath(dir, "rarc60.png"))
+                Luxor.origin()
+                path(ang60; as=:rarc, radius=r, action=:path)
+                # atol here (rather than the default isapprox tolerance):
+                # Cairo's internal fixed-point path representation rounds
+                # coordinates slightly, and pa/pb/pc themselves involve
+                # sin/cos(pi/3), so a couple thousandths of a unit of slack
+                # is expected, not a sign of a real geometry bug
+                @test current_path_bbox() ≈ EuclideanGeometry.EGBoundingBox([pa, pc, pb]) atol = 1e-2
+                Luxor.finish()
+            end
+        end
+
+        @testset "path(::EGLine) with a 2-tuple extend" begin
+            l = EGLine(EGPoint(0.0, 0.0), EGPoint(10.0, 0.0))
+            mktempdir() do dir
+                Luxor.Drawing(200, 200, joinpath(dir, "extend.png"))
+                Luxor.origin()
+
+                # extend=(0.0, 5.0): nothing added past p1, 5 units past p2
+                path(l; extend=(0.0, 5.0), action=:path)
+                @test current_path_bbox() ≈ EuclideanGeometry.EGBoundingBox(EGPoint(0.0, 0.0), EGPoint(15.0, 0.0))
+                Luxor.strokepath()
+
+                # a bare number is still short for extending both ends equally
+                path(l; extend=5.0, action=:path)
+                @test current_path_bbox() ≈ EuclideanGeometry.EGBoundingBox(EGPoint(-5.0, 0.0), EGPoint(15.0, 0.0))
+                Luxor.strokepath()
+
+                Luxor.finish()
+            end
         end
 
         @testset "current_path_bbox and @to_luxor_picture together" begin
