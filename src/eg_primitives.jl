@@ -1,0 +1,819 @@
+# -------------------------------------------------------------------------
+# EGSegment/EGLine/EGRay (<: EGCurve) and EGBoundingBox, built on
+# EGPoint/EGVector.
+# -------------------------------------------------------------------------
+
+# --- Point-level transforms (needed before Segment/Line/Ray can define
+# their own pointwise versions) ---------------------------------------
+
+"""
+    rotate(p::EGPoint, angle, center=EGPoint(0.0, 0.0))
+
+Rotate `p` by `angle` radians (counterclockwise) around `center`.
+"""
+function rotate(p::EGPoint, angle::Real, center::EGPoint=EGPoint(0.0, 0.0))
+    v = p - center
+    c, s = cos(angle), sin(angle)
+    return center + EGPoint(c * v[1] - s * v[2], s * v[1] + c * v[2])
+end
+
+"""
+    homothety(p::EGPoint, k, center=EGPoint(0.0, 0.0))
+
+Scale `p` by ratio `k` about `center`.
+"""
+homothety(p::EGPoint, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) = center + k * (p - center)
+
+"""
+    reflection(p::EGPoint, about::EGPoint)
+
+Reflect `p` through the point `about` (point symmetry).
+"""
+reflection(p::EGPoint, about::EGPoint) = 2 * about - p
+
+"""
+    translate(p::EGPoint, v::EGVector)
+
+Translate `p` by `v`. The fourth member of the `rotate`/`homothety`/
+`reflection`/`translate` quartet implemented across the whole package;
+unlike the other three, it takes no `center` (a translation has none).
+"""
+translate(p::EGPoint, v::EGVector) = p + v
+
+"""
+    midpoint(p1::EGPoint, p2::EGPoint)
+"""
+midpoint(p1::EGPoint, p2::EGPoint) = (p1 + p2) / 2
+
+"""
+    distance(p1::EGPoint, p2::EGPoint)
+"""
+distance(p1::EGPoint, p2::EGPoint) = norm(p2 - p1)
+
+"""
+    orthogonal(v::EGVector)
+
+`v` rotated by +90 degrees (counterclockwise). 2D only.
+"""
+orthogonal(v::EGVector{2}) = EGVector(-v[2], v[1])
+
+# Also needed on EGPoint: since EGPoint arithmetic stays permissive
+# (Point - Point -> Point, not Vector, per the session's explicit design
+# choice), a "direction" computed as a difference of two points is itself
+# an EGPoint, and several ported formulas (e.g. `intersection(::EGCircle2,
+# ::EGCircle2)`) call `orthogonal` on exactly that.
+orthogonal(p::EGPoint{2}) = EGVector(-p[2], p[1])
+
+# `cross2` is already defined, untyped, in primitives.jl (`a[1]*b[2] -
+# a[2]*b[1]`) — it works on EGPoint/EGVector for free via indexing, no
+# new method needed here.
+
+# --- EGSegment, EGLine, EGRay ------------------------------------------
+
+"""
+    EGSegment(p1::EGPoint, p2::EGPoint)
+
+The finite segment `[p1, p2]`. `s[1]`/`s[2]` access its two endpoints.
+"""
+struct EGSegment{Dim,T<:Real} <: EGCurve{Dim,T}
+    p1::EGPoint{Dim,T}
+    p2::EGPoint{Dim,T}
+end
+function EGSegment(p1::EGPointLike, p2::EGPointLike)
+    p1, p2 = _topoint(p1), _topoint(p2)
+    return EGSegment{length(p1),promote_type(eltype(p1), eltype(p2))}(p1, p2)
+end
+
+"""
+    EGLine(p1::EGPoint, p2::EGPoint)
+
+The infinite straight line passing through `p1` and `p2`.
+"""
+struct EGLine{Dim,T<:Real} <: EGCurve{Dim,T}
+    p1::EGPoint{Dim,T}
+    p2::EGPoint{Dim,T}
+end
+function EGLine(p1::EGPointLike, p2::EGPointLike)
+    p1, p2 = _topoint(p1), _topoint(p2)
+    return EGLine{length(p1),promote_type(eltype(p1), eltype(p2))}(p1, p2)
+end
+EGLine(s::EGSegment) = EGLine(s.p1, s.p2)
+
+"""
+    EGRay(origin::EGPoint, through::EGPoint)
+
+The half-line starting at `origin` and passing through `through`.
+"""
+struct EGRay{Dim,T<:Real} <: EGCurve{Dim,T}
+    origin::EGPoint{Dim,T}
+    through::EGPoint{Dim,T}
+end
+function EGRay(o::EGPointLike, t::EGPointLike)
+    o, t = _topoint(o), _topoint(t)
+    return EGRay{length(o),promote_type(eltype(o), eltype(t))}(o, t)
+end
+
+Base.getindex(s::EGSegment, i::Integer) = i == 1 ? s.p1 : s.p2
+Base.length(::EGSegment) = 2
+Base.iterate(s::EGSegment, i::Int=1) = i > 2 ? nothing : (s[i], i + 1)
+
+Base.:(==)(a::EGSegment, b::EGSegment) = a.p1 == b.p1 && a.p2 == b.p2
+Base.:(==)(a::EGLine, b::EGLine) = a.p1 == b.p1 && a.p2 == b.p2
+Base.:(==)(a::EGRay, b::EGRay) = a.origin == b.origin && a.through == b.through
+
+# Lets these convert like EGPoint/EGVector do (see the comment there) when
+# nested as a field inside another struct with a different element type —
+# e.g. EGStrip2 holding two EGLines, or EGParabola2 holding an EGLine
+# directrix. Delegating to the type-parameterized inner constructor is
+# enough: it already converts each field itself (that's what needed the
+# EGPoint/EGVector fix in the first place).
+Base.convert(::Type{EGSegment{Dim,T}}, s::EGSegment{Dim}) where {Dim,T} = EGSegment{Dim,T}(s.p1, s.p2)
+Base.convert(::Type{EGLine{Dim,T}}, l::EGLine{Dim}) where {Dim,T} = EGLine{Dim,T}(l.p1, l.p2)
+Base.convert(::Type{EGRay{Dim,T}}, r::EGRay{Dim}) where {Dim,T} = EGRay{Dim,T}(r.origin, r.through)
+Base.isapprox(a::EGSegment, b::EGSegment; kwargs...) = isapprox(a.p1, b.p1; kwargs...) && isapprox(a.p2, b.p2; kwargs...)
+Base.isapprox(a::EGLine, b::EGLine; kwargs...) = isapprox(a.p1, b.p1; kwargs...) && isapprox(a.p2, b.p2; kwargs...)
+Base.isapprox(a::EGRay, b::EGRay; kwargs...) = isapprox(a.origin, b.origin; kwargs...) && isapprox(a.through, b.through; kwargs...)
+Base.show(io::IO, s::EGSegment) = print(io, "EGSegment(", s.p1, " -> ", s.p2, ")")
+Base.show(io::IO, l::EGLine) = print(io, "EGLine(", l.p1, " -> ", l.p2, ")")
+Base.show(io::IO, r::EGRay) = print(io, "EGRay(", r.origin, " -> ", r.through, ")")
+
+"""
+    direction(obj)
+
+The direction of a `EGLine`, `EGRay` or `EGSegment`, as an [`EGVector`](@ref).
+"""
+direction(l::EGLine) = EGVector(l.p2 - l.p1)
+direction(r::EGRay) = EGVector(r.through - r.origin)
+direction(s::EGSegment) = EGVector(s.p2 - s.p1)
+
+# --- EGVector transforms --------------------------------------------------
+#
+# A free vector has no position, only direction and magnitude, so it gets
+# just the transforms that are actually meaningful for that: `rotate`
+# (turns the direction) and `reflection` (mirrors the direction, about a
+# point or a line — either way position-independent, since there's no
+# anchor to reflect). No `center` argument, unlike `rotate`/`homothety`
+# on `EGPoint`. `homothety(v, k)` is just `k * v` (already supported via
+# `*`) and `translate` would be the identity (translating a positionless
+# vector changes nothing) — neither adds anything, so neither is defined.
+
+"""
+    rotate(v::EGVector{2}, angle::Real)
+
+Rotate the direction `v` by `angle` radians (counterclockwise).
+"""
+function rotate(v::EGVector{2}, angle::Real)
+    c, s = cos(angle), sin(angle)
+    return EGVector(c * v[1] - s * v[2], s * v[1] + c * v[2])
+end
+
+"""
+    reflection(v::EGVector, about::EGPoint)
+
+Point-reflect the direction `v` — simply `-v`, since a free vector has no
+position for `about` to act on.
+"""
+reflection(v::EGVector, about::EGPoint) = -v
+
+"""
+    reflection(v::EGVector{2}, about::EGLine)
+
+Reflect the direction `v` across `about`'s own direction (axial
+symmetry); `about`'s position is irrelevant, only its direction matters.
+"""
+function reflection(v::EGVector{2}, about::EGLine)
+    d = direction(about)
+    return 2 * (dot(v, d) / dot(d, d)) * d - v
+end
+
+# `slope_angle` is already defined, untyped, in primitives.jl
+# (`atan(direction(obj)[2], direction(obj)[1])`) — works here for free
+# since it just calls `direction`, already overloaded above.
+
+distance(s::EGSegment) = distance(s.p1, s.p2)
+midpoint(s::EGSegment) = midpoint(s.p1, s.p2)
+
+"""
+    projection(p::EGPoint, l::EGLine)
+"""
+function projection(p::EGPoint, l::EGLine)
+    d = direction(l)
+    t = dot(p - l.p1, d) / dot(d, d)
+    return l.p1 + t * d
+end
+
+distance(p::EGPoint, l::EGLine) = abs(cross2(direction(l), p - l.p1)) / norm(direction(l))
+distance(l::EGLine, p::EGPoint) = distance(p, l)
+
+"""
+    distance(p::EGPoint, s::EGSegment)
+
+Distance from `p` to the closest point of the *finite* segment `s` (unlike
+[`distance(::EGPoint, ::EGLine)`](@ref), which measures to the infinite
+line through `s`'s two points).
+"""
+function distance(p::EGPoint, s::EGSegment)
+    d = s.p2 - s.p1
+    dd = dot(d, d)
+    dd <= 0 && return distance(p, s.p1)
+    t = clamp(dot(p - s.p1, d) / dd, 0.0, 1.0)
+    return distance(p, s.p1 + t * d)
+end
+distance(s::EGSegment, p::EGPoint) = distance(p, s)
+
+"""
+    distance(p::EGPoint, r::EGRay)
+
+Distance from `p` to the closest point of the *half-line* `r` (clamped at
+`r.origin`, unbounded past `r.through`).
+"""
+function distance(p::EGPoint, r::EGRay)
+    d = r.through - r.origin
+    dd = dot(d, d)
+    dd <= 0 && return distance(p, r.origin)
+    t = max(dot(p - r.origin, d) / dd, 0.0)
+    return distance(p, r.origin + t * d)
+end
+distance(r::EGRay, p::EGPoint) = distance(p, r)
+
+# Whether the infinite lines through (origin1,dir1) and (origin2,dir2) cross
+# at parameters (t1,t2) landing inside [t1min,t1max] and [t2min,t2max] —
+# shared by every EGLine/EGRay/EGSegment pairwise `distance` below, since
+# for any two of these "clipped line" curves, either they genuinely cross
+# within both curves' own valid ranges (distance 0), or — because each is
+# an affine (straight, unclamped-slope) parametrization — the minimum
+# distance is always achieved at one of the finite endpoints among the two
+# curves (a Line contributes none, a Ray one, a Segment two).
+function _clipped_lines_cross(origin1, dir1, t1min, t1max, origin2, dir2, t2min, t2max; atol=1e-9)
+    denom = cross2(dir1, dir2)
+    abs(denom) <= atol * norm(dir1) * norm(dir2) && return false
+    diff = origin2 - origin1
+    t1 = cross2(diff, dir2) / denom
+    t2 = cross2(diff, dir1) / denom
+    tol1 = sqrt(atol) * max(norm(dir1), 1.0)
+    tol2 = sqrt(atol) * max(norm(dir2), 1.0)
+    return (t1min - tol1 <= t1 <= t1max + tol1) && (t2min - tol2 <= t2 <= t2max + tol2)
+end
+
+"""
+    distance(l1::EGLine, l2::EGLine; atol=1e-9)
+
+`0` if `l1` and `l2` cross; otherwise (they're parallel) the constant
+perpendicular gap between them.
+"""
+function distance(l1::EGLine, l2::EGLine; atol=1e-9)
+    _clipped_lines_cross(l1.p1, direction(l1), -Inf, Inf, l2.p1, direction(l2), -Inf, Inf; atol=atol) && return 0.0
+    return distance(l1.p1, l2)
+end
+
+"""
+    distance(l::EGLine, r::EGRay; atol=1e-9)
+"""
+function distance(l::EGLine, r::EGRay; atol=1e-9)
+    _clipped_lines_cross(l.p1, direction(l), -Inf, Inf, r.origin, direction(r), 0.0, Inf; atol=atol) && return 0.0
+    return distance(r.origin, l)
+end
+distance(r::EGRay, l::EGLine; atol=1e-9) = distance(l, r; atol=atol)
+
+"""
+    distance(l::EGLine, s::EGSegment; atol=1e-9)
+"""
+function distance(l::EGLine, s::EGSegment; atol=1e-9)
+    _clipped_lines_cross(l.p1, direction(l), -Inf, Inf, s.p1, direction(s), 0.0, 1.0; atol=atol) && return 0.0
+    return min(distance(s.p1, l), distance(s.p2, l))
+end
+distance(s::EGSegment, l::EGLine; atol=1e-9) = distance(l, s; atol=atol)
+
+"""
+    distance(r1::EGRay, r2::EGRay; atol=1e-9)
+"""
+function distance(r1::EGRay, r2::EGRay; atol=1e-9)
+    _clipped_lines_cross(r1.origin, direction(r1), 0.0, Inf, r2.origin, direction(r2), 0.0, Inf; atol=atol) && return 0.0
+    return min(distance(r1.origin, r2), distance(r2.origin, r1))
+end
+
+"""
+    distance(r::EGRay, s::EGSegment; atol=1e-9)
+"""
+function distance(r::EGRay, s::EGSegment; atol=1e-9)
+    _clipped_lines_cross(r.origin, direction(r), 0.0, Inf, s.p1, direction(s), 0.0, 1.0; atol=atol) && return 0.0
+    return min(distance(r.origin, s), distance(s.p1, r), distance(s.p2, r))
+end
+distance(s::EGSegment, r::EGRay; atol=1e-9) = distance(r, s; atol=atol)
+
+"""
+    distance(s1::EGSegment, s2::EGSegment; atol=1e-9)
+"""
+function distance(s1::EGSegment, s2::EGSegment; atol=1e-9)
+    _clipped_lines_cross(s1.p1, direction(s1), 0.0, 1.0, s2.p1, direction(s2), 0.0, 1.0; atol=atol) && return 0.0
+    return min(distance(s1.p1, s2), distance(s1.p2, s2), distance(s2.p1, s1), distance(s2.p2, s1))
+end
+
+"""
+    reflection(p::EGPoint, l::EGLine)
+
+Reflect `p` across the line `l` (axial symmetry).
+"""
+reflection(p::EGPoint, l::EGLine) = 2 * projection(p, l) - p
+
+reflection(s::EGSegment, about) = EGSegment(reflection(s.p1, about), reflection(s.p2, about))
+reflection(l::EGLine, about) = EGLine(reflection(l.p1, about), reflection(l.p2, about))
+reflection(r::EGRay, about) = EGRay(reflection(r.origin, about), reflection(r.through, about))
+
+rotate(s::EGSegment, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGSegment(rotate(s.p1, angle, center), rotate(s.p2, angle, center))
+rotate(l::EGLine, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGLine(rotate(l.p1, angle, center), rotate(l.p2, angle, center))
+rotate(r::EGRay, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGRay(rotate(r.origin, angle, center), rotate(r.through, angle, center))
+
+homothety(s::EGSegment, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGSegment(homothety(s.p1, k, center), homothety(s.p2, k, center))
+homothety(l::EGLine, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGLine(homothety(l.p1, k, center), homothety(l.p2, k, center))
+homothety(r::EGRay, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+    EGRay(homothety(r.origin, k, center), homothety(r.through, k, center))
+
+translate(s::EGSegment, v::EGVector) = EGSegment(translate(s.p1, v), translate(s.p2, v))
+translate(l::EGLine, v::EGVector) = EGLine(translate(l.p1, v), translate(l.p2, v))
+translate(r::EGRay, v::EGVector) = EGRay(translate(r.origin, v), translate(r.through, v))
+
+# --- EGBoundingBox --------------------------------------------------------
+
+"""
+    EGBoundingBox(min::EGPoint, max::EGPoint)
+
+An axis-aligned bounding box. Deliberately not part of the `EGRegion`
+hierarchy and has no `rotate`/`reflection` methods: an arbitrary rotation
+or reflection wouldn't generally produce another axis-aligned box.
+Translation (`+`/`-`) and uniform scaling about the origin (`*`) are the
+only transforms that always keep it axis-aligned, so those are what's
+supported.
+"""
+struct EGBoundingBox{Dim,T<:Real} <: EGObject{Dim,T}
+    min::EGPoint{Dim,T}
+    max::EGPoint{Dim,T}
+end
+function EGBoundingBox(min::EGPointLike, max::EGPointLike)
+    min, max = _topoint(min), _topoint(max)
+    return EGBoundingBox{length(min),promote_type(eltype(min), eltype(max))}(min, max)
+end
+
+function EGBoundingBox(points::AbstractVector{<:EGPoint{Dim}}) where {Dim}
+    isempty(points) && throw(ArgumentError("EGBoundingBox requires at least one point"))
+    lo = EGPoint(ntuple(i -> minimum(p[i] for p in points), Dim))
+    hi = EGPoint(ntuple(i -> maximum(p[i] for p in points), Dim))
+    return EGBoundingBox(lo, hi)
+end
+EGBoundingBox(points::AbstractVector{<:Tuple}) = EGBoundingBox([_topoint(p) for p in points])
+
+EGBoundingBox(s::EGSegment) = EGBoundingBox([s.p1, s.p2])
+
+Base.:(==)(a::EGBoundingBox, b::EGBoundingBox) = a.min == b.min && a.max == b.max
+Base.isapprox(a::EGBoundingBox, b::EGBoundingBox; kwargs...) =
+    isapprox(a.min, b.min; kwargs...) && isapprox(a.max, b.max; kwargs...)
+Base.:+(bb::EGBoundingBox, p::EGPoint) = EGBoundingBox(bb.min + p, bb.max + p)
+Base.:-(bb::EGBoundingBox, p::EGPoint) = EGBoundingBox(bb.min - p, bb.max - p)
+translate(bb::EGBoundingBox, v::EGVector) = EGBoundingBox(bb.min + v, bb.max + v)
+function Base.:*(bb::EGBoundingBox{Dim}, k::Real) where {Dim}
+    p1, p2 = bb.min * k, bb.max * k
+    lo = EGPoint(ntuple(i -> min(p1[i], p2[i]), Dim))
+    hi = EGPoint(ntuple(i -> max(p1[i], p2[i]), Dim))
+    return EGBoundingBox(lo, hi)
+end
+Base.show(io::IO, bb::EGBoundingBox) = print(io, "EGBoundingBox(", bb.min, " .. ", bb.max, ")")
+
+"""
+    p in bb::EGBoundingBox
+"""
+Base.in(p::EGPoint{Dim}, bb::EGBoundingBox{Dim}) where {Dim} = all(i -> bb.min[i] <= p[i] <= bb.max[i], 1:Dim)
+
+# Shared by every `distance(p, region; mode)` method (EGBoundingBox here;
+# EGPolygon in eg_polygon.jl; EGHalfPlane2/EGStrip2/EGAngle2 in
+# eg_unbounded.jl): `mode = :region` (default) is the standard "distance to
+# a closed set" convention (0 exactly when p belongs to it); `mode =
+# :boundary` always measures to the boundary itself, even from inside.
+function _check_distance_mode(mode::Symbol)
+    mode in (:region, :boundary) ||
+        throw(ArgumentError("distance: mode must be :region or :boundary, got $(repr(mode))"))
+end
+
+"""
+    distance(p::EGPoint, bb::EGBoundingBox; mode::Symbol=:region)
+
+`mode=:region` (default): `0` when `p` is inside or on `bb`, otherwise the
+usual point-to-axis-aligned-box distance. `mode=:boundary`: always the
+distance to the nearest edge, even from inside.
+"""
+function distance(p::EGPoint{2}, bb::EGBoundingBox{2}; mode::Symbol=:region)
+    _check_distance_mode(mode)
+    if p in bb
+        mode == :region && return 0.0
+        return min(p[1] - bb.min[1], bb.max[1] - p[1], p[2] - bb.min[2], bb.max[2] - p[2])
+    end
+    dx = max(bb.min[1] - p[1], 0.0, p[1] - bb.max[1])
+    dy = max(bb.min[2] - p[2], 0.0, p[2] - bb.max[2])
+    return sqrt(dx^2 + dy^2)
+end
+distance(bb::EGBoundingBox{2}, p::EGPoint{2}; mode::Symbol=:region) = distance(p, bb; mode=mode)
+
+"""
+    bbox_width(bb::EGBoundingBox)
+"""
+bbox_width(bb::EGBoundingBox) = bb.max[1] - bb.min[1]
+
+"""
+    bbox_height(bb::EGBoundingBox)
+"""
+bbox_height(bb::EGBoundingBox) = bb.max[2] - bb.min[2]
+
+"""
+    bbox_center(bb::EGBoundingBox)
+"""
+bbox_center(bb::EGBoundingBox) = midpoint(bb.min, bb.max)
+
+"""
+    bbox_diagonal(bb::EGBoundingBox)
+
+The distance between `bb.min` and `bb.max`.
+"""
+bbox_diagonal(bb::EGBoundingBox) = distance(bb.min, bb.max)
+
+"""
+    bbox_aspect_ratio(bb::EGBoundingBox)
+
+`bbox_width(bb) / bbox_height(bb)`.
+"""
+bbox_aspect_ratio(bb::EGBoundingBox) = bbox_width(bb) / bbox_height(bb)
+
+"""
+    bboxes_intersect(a::EGBoundingBox, b::EGBoundingBox)
+
+Whether `a` and `b` overlap (touching counts as intersecting).
+"""
+bboxes_intersect(a::EGBoundingBox{2}, b::EGBoundingBox{2}) =
+    !(a.max[1] < b.min[1] || b.max[1] < a.min[1] || a.max[2] < b.min[2] || b.max[2] < a.min[2])
+
+"""
+    bbox_intersection(a::EGBoundingBox, b::EGBoundingBox)
+
+The overlapping box of `a` and `b`, or `nothing` if they don't intersect.
+"""
+function bbox_intersection(a::EGBoundingBox{2}, b::EGBoundingBox{2})
+    bboxes_intersect(a, b) || return nothing
+    lo = EGPoint(max(a.min[1], b.min[1]), max(a.min[2], b.min[2]))
+    hi = EGPoint(min(a.max[1], b.max[1]), min(a.max[2], b.max[2]))
+    return EGBoundingBox(lo, hi)
+end
+
+"""
+    bbox_union(a::EGBoundingBox, b::EGBoundingBox)
+
+The smallest box containing both `a` and `b`. Unlike
+[`bbox_intersection`](@ref), this always exists — `a`/`b` don't need to
+overlap.
+"""
+function bbox_union(a::EGBoundingBox{2}, b::EGBoundingBox{2})
+    lo = EGPoint(min(a.min[1], b.min[1]), min(a.min[2], b.min[2]))
+    hi = EGPoint(max(a.max[1], b.max[1]), max(a.max[2], b.max[2]))
+    return EGBoundingBox(lo, hi)
+end
+
+"""
+    @boundingbox begin
+        c = EGCircle2(...)
+        s = EGSegment(...)
+        t                     # a shape already defined earlier
+    end
+    @boundingbox c             # a single shape/expression also works
+
+The [`bbox_union`](@ref) of every shape named in the block — via
+[`EGBoundingBox`](@ref) applied to each, then `reduce`d with `bbox_union`
+— as a single expression. Each top-level line in the block is either:
+
+  - an assignment `name = expr`: `expr` is evaluated and bound to `name`
+    exactly as if the `@boundingbox` weren't there (so `name` stays usable
+    on later lines, or after the macro, exactly like ordinary code), *and*
+    its value is folded into the union; or
+  - a bare expression (most often just the name of a shape defined
+    earlier, outside the block or on an earlier line inside it): its
+    value is folded into the union, nothing is assigned.
+
+Lines run in order, top to bottom, exactly as written — this is not a new
+scope (no `let`): a bare name refers to whatever `name` already means at
+that point, and an assignment defines `name` in the enclosing scope, so
+mixing "build a new shape here" and "also include this shape from
+earlier" freely on different lines works as expected.
+
+A single expression instead of a `begin ... end` block (`@boundingbox c`,
+or even `@boundingbox c = EGCircle2(...)`) works the same way, treated as
+a one-line block — `EGBoundingBox(c)` directly is simpler for that case,
+but this stays consistent rather than requiring `begin`/`end` only
+sometimes.
+"""
+macro boundingbox(block)
+    block isa Expr && block.head === :block || (block = Expr(:block, block))
+
+    shapes = gensym(:boundingbox_shapes)
+    body = Expr(:block, :($shapes = Any[]))
+    for stmt in block.args
+        if stmt isa LineNumberNode
+            push!(body.args, stmt)
+        elseif stmt isa Expr && stmt.head === :(=) && stmt.args[1] isa Symbol
+            push!(body.args, stmt, :(push!($shapes, $(stmt.args[1]))))
+        else
+            push!(body.args, :(push!($shapes, $stmt)))
+        end
+    end
+    push!(body.args, quote
+        isempty($shapes) && throw(ArgumentError("@boundingbox: the block has no shapes"))
+        reduce(bbox_union, EGBoundingBox.($shapes))
+    end)
+    return esc(body)
+end
+
+# Shared codegen for the @translate/@rotate/@homothety/@reflection family
+# (and their `!` counterparts) below: walk a `begin...end` block (or a
+# single expression, treated as a one-line block) the same way
+# `@boundingbox` does, but instead of folding everything into one value,
+# apply `make_call` (a closure building `transform_fn(x, args...)` for a
+# given value-expression `x`) to each named item and collect the results
+# into a returned tuple.
+#
+# `mutating`: for an assignment `name = expr` or a bare `name`, whether to
+# also rebind `name` to its own transformed value — the closest Julia gets
+# to "mutating" an immutable shape in place (the object itself never
+# changes; the *variable* is repointed at a new one, same trick
+# `Setfield.jl`'s `@set!` uses). An unnamed bare expression (no variable to
+# rebind) is fine for the non-mutating form but an error for the mutating
+# one — there's nothing for `!` to rebind.
+function _shape_transform_body(mutating::Bool, make_call, block)
+    block isa Expr && block.head === :block || (block = Expr(:block, block))
+
+    results = gensym(:transformed)
+    body = Expr(:block, :($results = Any[]))
+    n_items = 0
+    for stmt in block.args
+        if stmt isa LineNumberNode
+            push!(body.args, stmt)
+        elseif stmt isa Symbol || (stmt isa Expr && stmt.head === :(=) && stmt.args[1] isa Symbol)
+            name = stmt isa Symbol ? stmt : stmt.args[1]
+            stmt isa Symbol || push!(body.args, stmt) # run the assignment itself first
+            if mutating
+                push!(body.args, :($name = $(make_call(name))), :(push!($results, $name)))
+            else
+                push!(body.args, :(push!($results, $(make_call(name)))))
+            end
+            n_items += 1
+        elseif mutating
+            push!(body.args, :(throw(ArgumentError("cannot mutate an unnamed expression — assign it to a variable first"))))
+            n_items += 1
+        else
+            push!(body.args, :(push!($results, $(make_call(stmt)))))
+            n_items += 1
+        end
+    end
+    # a single item returns its bare value, not a 1-tuple — same ergonomics
+    # as `@boundingbox`'s "a single shape/expression also works"
+    push!(body.args, n_items == 1 ? :($results[1]) : :(($results...,)))
+    return esc(body)
+end
+
+"""
+    @translate v begin
+        c = EGCircle2(...)
+        s = EGSegment(...)
+        t                     # a shape already defined earlier
+    end
+    @translate v c             # a single shape/expression also works
+
+[`translate`](@ref) every shape named in the block by `v`, returning them
+as a tuple in order (`C, S, T = @translate v begin ... end`) — `c`/`s`/`t`
+themselves are untouched, exactly like calling `translate` by hand and
+keeping the result under a new name. Each top-level line is either an
+assignment `name = expr` (runs as ordinary code, and its value is
+translated into the result tuple) or a bare expression (most often the
+name of a shape defined earlier); see [`@boundingbox`](@ref) for the full
+rundown of that part, which works identically here.
+
+    @translate! v begin ... end
+
+The mutating form: instead of leaving `c`/`s`/`t` alone and returning
+copies, it rebinds each *named* one (an assignment or a bare existing
+variable) to its own translated value. `EGCircle2`/`EGSegment`/... are all
+immutable structs, so nothing is changed in place — the object itself
+never mutates, only the *variable* is repointed at a new one (the same
+trick `Setfield.jl`'s `@set!` uses for immutable structs generally). A
+bare *unnamed* expression (nothing to rebind) is an `ArgumentError` in
+this form.
+
+When embedding a call to `@translate`/`@rotate`/`@homothety`/`@reflection`
+directly inside another expression — as an argument to a function, say
+— wrap it in its own parentheses: `f((@rotate angle p), other_arg)`, not
+`f(@rotate angle p, other_arg)`. Without them, Julia's bare `@macro arg1
+arg2 ...` call syntax swallows the surrounding comma-separated arguments
+into an unwanted tuple; this is a general Julia parsing rule for any
+multi-argument macro call, not specific to these. A bare statement
+(`x = @rotate angle p`) never has this problem.
+"""
+macro translate(v, block)
+    _shape_transform_body(false, x -> :(translate($x, $v)), block)
+end
+
+"""
+    @translate! v begin ... end
+    @translate! v c
+
+The mutating counterpart of [`@translate`](@ref) — see its docstring for
+the full rundown (what "mutating" means for immutable shapes, and the
+`ArgumentError` on a bare unnamed expression).
+"""
+macro translate!(v, block)
+    _shape_transform_body(true, x -> :(translate($x, $v)), block)
+end
+
+"""
+    @rotate angle begin ... end
+    @rotate angle center begin ... end
+    @rotate angle c             # a single shape/expression also works
+
+[`rotate`](@ref) every shape named in the block by `angle` (about `center`,
+defaulting to the origin exactly like `rotate` itself), returning them as
+a tuple — see [`@translate`](@ref) for the full rundown of how the block
+is read (assignments vs. bare references) and what it returns.
+
+    @rotate! angle begin ... end
+    @rotate! angle center begin ... end
+
+The mutating form — see [`@translate!`](@ref).
+"""
+macro rotate(angle, block)
+    _shape_transform_body(false, x -> :(rotate($x, $angle)), block)
+end
+macro rotate(angle, center, block)
+    _shape_transform_body(false, x -> :(rotate($x, $angle, $center)), block)
+end
+
+"""
+    @rotate! angle begin ... end
+    @rotate! angle center begin ... end
+    @rotate! angle c
+
+The mutating counterpart of [`@rotate`](@ref) — see [`@translate!`](@ref)
+for what "mutating" means for immutable shapes.
+"""
+macro rotate!(angle, block)
+    _shape_transform_body(true, x -> :(rotate($x, $angle)), block)
+end
+macro rotate!(angle, center, block)
+    _shape_transform_body(true, x -> :(rotate($x, $angle, $center)), block)
+end
+
+"""
+    @homothety k begin ... end
+    @homothety k center begin ... end
+    @homothety k c              # a single shape/expression also works
+
+[`homothety`](@ref) every shape named in the block by ratio `k` (about
+`center`, defaulting to the origin exactly like `homothety` itself),
+returning them as a tuple — see [`@translate`](@ref) for the full rundown
+of how the block is read and what it returns.
+
+    @homothety! k begin ... end
+    @homothety! k center begin ... end
+
+The mutating form — see [`@translate!`](@ref).
+"""
+macro homothety(k, block)
+    _shape_transform_body(false, x -> :(homothety($x, $k)), block)
+end
+macro homothety(k, center, block)
+    _shape_transform_body(false, x -> :(homothety($x, $k, $center)), block)
+end
+
+"""
+    @homothety! k begin ... end
+    @homothety! k center begin ... end
+    @homothety! k c
+
+The mutating counterpart of [`@homothety`](@ref) — see
+[`@translate!`](@ref) for what "mutating" means for immutable shapes.
+"""
+macro homothety!(k, block)
+    _shape_transform_body(true, x -> :(homothety($x, $k)), block)
+end
+macro homothety!(k, center, block)
+    _shape_transform_body(true, x -> :(homothety($x, $k, $center)), block)
+end
+
+"""
+    @reflection about begin ... end
+    @reflection about c         # a single shape/expression also works
+
+[`reflection`](@ref) every shape named in the block `about` a point or a
+line, returning them as a tuple — see [`@translate`](@ref) for the full
+rundown of how the block is read and what it returns.
+
+    @reflection! about begin ... end
+
+The mutating form — see [`@translate!`](@ref).
+"""
+macro reflection(about, block)
+    _shape_transform_body(false, x -> :(reflection($x, $about)), block)
+end
+
+"""
+    @reflection! about begin ... end
+    @reflection! about c
+
+The mutating counterpart of [`@reflection`](@ref) — see
+[`@translate!`](@ref) for what "mutating" means for immutable shapes.
+"""
+macro reflection!(about, block)
+    _shape_transform_body(true, x -> :(reflection($x, $about)), block)
+end
+
+"""
+    @invert center begin ... end
+    @invert center k begin ... end
+    @invert center c              # a single shape/expression also works
+
+[`invert`](@ref) every shape named in the block with respect to the
+circle centered at `center` (radius `k`, defaulting to `1.0` exactly like
+`invert` itself) — see [`@translate`](@ref) for the full rundown of how
+the block is read and what it returns. `invert` can change a shape's own
+type (an `EGLine` inverts to an `EGCircle2` and vice versa) — no
+different here.
+"""
+macro invert(center, block)
+    _shape_transform_body(false, x -> :(invert($x, $center)), block)
+end
+macro invert(center, k, block)
+    _shape_transform_body(false, x -> :(invert($x, $center; k=$k)), block)
+end
+
+"""
+    @invert! center begin ... end
+    @invert! center k begin ... end
+
+The mutating counterpart of [`@invert`](@ref) — see [`@translate!`](@ref)
+for what "mutating" means for immutable shapes.
+"""
+macro invert!(center, block)
+    _shape_transform_body(true, x -> :(invert($x, $center)), block)
+end
+macro invert!(center, k, block)
+    _shape_transform_body(true, x -> :(invert($x, $center; k=$k)), block)
+end
+
+"""
+    @invert_neg center begin ... end
+    @invert_neg center k begin ... end
+    @invert_neg center c
+
+[`invert_neg`](@ref) every shape named in the block — the negative-ratio
+counterpart of [`@invert`](@ref); see [`@translate`](@ref) for the full
+rundown of how the block is read and what it returns.
+"""
+macro invert_neg(center, block)
+    _shape_transform_body(false, x -> :(invert_neg($x, $center)), block)
+end
+macro invert_neg(center, k, block)
+    _shape_transform_body(false, x -> :(invert_neg($x, $center; k=$k)), block)
+end
+
+"""
+    @invert_neg! center begin ... end
+    @invert_neg! center k begin ... end
+
+The mutating counterpart of [`@invert_neg`](@ref) — see
+[`@translate!`](@ref) for what "mutating" means for immutable shapes.
+"""
+macro invert_neg!(center, block)
+    _shape_transform_body(true, x -> :(invert_neg($x, $center)), block)
+end
+macro invert_neg!(center, k, block)
+    _shape_transform_body(true, x -> :(invert_neg($x, $center; k=$k)), block)
+end
+
+"""
+    @affinemap m begin ... end
+    @affinemap m c                # a single shape/expression also works
+
+Apply the [`EGAffineMap`](@ref) `m` to every shape named in the block —
+see [`@translate`](@ref) for the full rundown of how the block is read
+and what it returns.
+"""
+macro affinemap(m, block)
+    _shape_transform_body(false, x -> :($m($x)), block)
+end
+
+"""
+    @affinemap! m begin ... end
+
+The mutating counterpart of [`@affinemap`](@ref) — see
+[`@translate!`](@ref) for what "mutating" means for immutable shapes.
+"""
+macro affinemap!(m, block)
+    _shape_transform_body(true, x -> :($m($x)), block)
+end
