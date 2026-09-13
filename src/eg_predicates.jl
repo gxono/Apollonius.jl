@@ -20,6 +20,36 @@ is_collinear(a::EGPoint, b::EGPoint, c::EGPoint; atol=1e-9) =
     abs(cross2(b - a, c - a)) <= atol * norm(b - a) * norm(c - a)
 
 """
+    is_coplanar(a::EGPoint{3}, b::EGPoint{3}, c::EGPoint{3}, d::EGPoint{3}; atol=1e-9)
+
+Whether the four 3D points lie on a common plane (via the scalar triple
+product `(b-a, c-a, d-a)`, which vanishes exactly when they're coplanar —
+the 3D analogue of [`is_collinear`](@ref)).
+"""
+function is_coplanar(a::EGPoint{3}, b::EGPoint{3}, c::EGPoint{3}, d::EGPoint{3}; atol=1e-9)
+    u, v, w = b - a, c - a, d - a
+    scale = max(norm(u) * norm(v), norm(u) * norm(w), norm(v) * norm(w), 1.0)
+    return abs(dot(cross3(u, v), w)) <= atol * scale
+end
+
+"""
+    line_line_position(l1::EGLine{3}, l2::EGLine{3}; atol=1e-9)
+
+How two 3D lines relate: `:coincident` (the same line), `:parallel`
+(same direction, distinct), `:intersecting` (coplanar, cross at a single
+point), or `:skew` (not coplanar at all — the genuinely 3D case that never
+arises for `EGLine{2}`, where two non-parallel lines always meet).
+"""
+function line_line_position(l1::EGLine{3}, l2::EGLine{3}; atol=1e-9)
+    d1, d2 = direction(l1), direction(l2)
+    tol = sqrt(atol) * max(norm(d1) * norm(d2), 1.0)
+    if norm(cross3(d1, d2)) <= tol
+        return on_line(l2.p1, l1; atol=atol) ? :coincident : :parallel
+    end
+    return is_coplanar(l1.p1, l1.p2, l2.p1, l2.p2; atol=atol) ? :intersecting : :skew
+end
+
+"""
     on_line(p::EGPoint, l::EGLine; atol=1e-9)
 
 Whether point `p` lies on the infinite line `l`.

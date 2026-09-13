@@ -7,14 +7,40 @@ import LinearAlgebra
 # (EGObject/EGLocus/EGCurve/EGSet/EGRegion/EGPolygon/EGTransform) that
 # everything else in the package builds on.
 include("eg_point.jl")
-export EGObject, EGLocus, EGCurve, EGSet, EGRegion, EGPolygon, EGTransform
+export EGObject, EGLocus, EGCurve, EGSet, EGRegion, EGPolygon, EGPolyhedron, EGSurface, EGTransform
 export EGPoint, EGVector
 
 include("eg_primitives.jl")
 export EGSegment, EGLine, EGRay, EGBoundingBox
 
+# 3D foundation: EGPlane3/EGSphere3 (<: EGSurface), a minimal EGCircle3
+# stub, and every pairwise distance/projection/intersection between
+# EGPoint{3}/EGLine{3}/EGPlane3/EGSphere3. Phase 1 of the 3D geometry
+# rollout -- see the design plan for the full phased roadmap.
+include("eg_plane.jl")
+export EGPlane3, EGSphere3, EGCircle3
+export on_plane, on_sphere, side_of_plane, volume, surface_area, plane
+
+include("eg_unbounded3.jl")
+export EGHalfSpace3, EGSlab3, EGDihedralAngle3, EGPolyhedralAngle3
+export slab_width, solid_angle
+
 include("eg_polygon.jl")
 export EGTriangle, EGQuadrilateral, EGStraightNgon
+
+# EGPolyhedron: the flat-faced-solid sibling of EGPolygon, one dimension
+# up -- needs EGTriangle/EGQuadrilateral/EGStraightNgon above (its
+# concrete faces) already defined.
+include("eg_polyhedron.jl")
+export EGTetrahedron3, EGParallelepiped3, EGPyramid3, EGPrism3, EGGeneralPolyhedron3
+export faces, box3, cube3
+
+# EGCylinder3/EGCone3: curved-lateral-surface solids, deliberately NOT
+# EGPolyhedron (see eg_polyhedron.jl's header note) -- own closed-form
+# volume/surface_area/centroid.
+include("eg_curved_solid.jl")
+export EGCylinder3, EGCone3
+export height, slant_height, caps, base
 
 include("eg_conic.jl")
 export EGCircle2, EGEllipse2, EGParabola2, EGHyperbola2
@@ -34,6 +60,9 @@ export EGAngle2, EGHalfPlane2, EGStrip2, strip_width
 
 include("eg_transform.jl")
 export EGAffineMap
+
+include("eg_transform3.jl")
+export EGAffineMap3
 
 include("eg_predicates.jl")
 include("eg_intersections.jl")
@@ -62,7 +91,7 @@ export measure, normalized_measure, is_direct
 export arc_length, point_on_arc
 export interstices
 export is_collinear, is_parallel, is_perpendicular, on_line, on_segment, on_ray, side_of_line, is_concyclic,
-       line_circle_position, circles_position
+       line_circle_position, circles_position, is_coplanar, line_line_position
 export projection, reflection, rotate, homothety, translate, barycenter
 export parallel_through, perpendicular_through, perpendicular_bisector, angle_bisectors, angle_trisectors
 export golden_ratio_point, harmonic_conjugate, apollonius_circle
@@ -98,7 +127,7 @@ export tangent_length, tangent_points, tangent_lines, external_tangent_lines, in
        tangent_parallel
 export external_similitude_center, internal_similitude_center
 export power_of_point, radical_axis, radical_center, radical_circle
-export vertices, is_convex, point_in_polygon, convex_hull
+export vertices, is_convex, point_in_polygon, convex_hull, is_planar
 export bbox_width, bbox_height, bbox_center, bbox_diagonal, bbox_aspect_ratio,
        bboxes_intersect, bbox_intersection, bbox_union, @boundingbox
 export @to_luxor_picture, @to_luxor_picture!

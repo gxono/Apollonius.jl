@@ -4911,6 +4911,498 @@ using Base.MathConstants: golden
         end
     end
 
+    # 3D geometry (Phase 1: plane/sphere foundation). Placed before the
+    # Luxor extension testset for the same reason as the "distance
+    # extension" testset above: that testset's `using Luxor` brings in
+    # Luxor's own exported `distance`, which would otherwise make every
+    # unqualified `distance(...)` call below ambiguous.
+    @testset "3D geometry (Phase 1: plane/sphere foundation)" begin
+        @testset "EGPlane3 construction, distance, projection, reflection" begin
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            @test xy.normal ≈ EGVector(0.0, 0.0, 1.0)
+
+            # normal is normalized on construction, even from a non-unit input
+            pl2 = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 5.0))
+            @test pl2.normal ≈ EGVector(0.0, 0.0, 1.0)
+
+            # 3-point constructor
+            pl3 = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0), EGPoint(0.0, 1.0, 0.0))
+            @test abs(pl3.normal[3]) ≈ 1.0
+            @test_throws ArgumentError EGPlane3(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0), EGPoint(2.0, 0.0, 0.0))
+
+            p = EGPoint(1.0, 2.0, 3.0)
+            @test distance(p, xy) ≈ 3.0
+            @test distance(xy, p) ≈ 3.0
+            @test side_of_plane(p, xy) == 1
+            @test side_of_plane(EGPoint(1.0, 2.0, -3.0), xy) == -1
+            @test side_of_plane(EGPoint(1.0, 2.0, 0.0), xy) == 0
+            @test on_plane(EGPoint(5.0, -3.0, 0.0), xy)
+            @test !on_plane(p, xy)
+
+            @test projection(p, xy) ≈ EGPoint(1.0, 2.0, 0.0)
+            @test reflection(p, xy) ≈ EGPoint(1.0, 2.0, -3.0)
+
+            # reflecting twice is the identity
+            @test reflection(reflection(p, xy), xy) ≈ p
+        end
+
+        @testset "EGSphere3: volume, surface_area, distance modes, on_sphere" begin
+            sph = EGSphere3(EGPoint(1.0, 1.0, 1.0), 2.0)
+            @test volume(sph) ≈ (4 / 3) * pi * 8.0
+            @test surface_area(sph) ≈ 4 * pi * 4.0
+            @test centroid(sph) == sph.center
+
+            @test on_sphere(EGPoint(3.0, 1.0, 1.0), sph)
+            @test !on_sphere(EGPoint(1.0, 1.0, 1.0), sph)
+
+            pin, pout = EGPoint(1.0, 1.0, 1.0), EGPoint(10.0, 1.0, 1.0)
+            @test distance(pin, sph) == 0.0
+            @test distance(pin, sph; mode=:boundary) ≈ 2.0
+            @test distance(pout, sph) ≈ distance(pout, sph.center) - 2.0
+            @test distance(pout, sph; mode=:boundary) ≈ distance(pout, sph; mode=:region)
+        end
+
+        @testset "rotate(::EGPoint{3}, angle, axis) via Rodrigues" begin
+            zaxis = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            @test rotate(EGPoint(1.0, 0.0, 0.0), pi / 2, zaxis) ≈ EGPoint(0.0, 1.0, 0.0) atol = 1e-12
+            @test rotate(EGPoint(1.0, 0.0, 5.0), pi / 2, zaxis) ≈ EGPoint(0.0, 1.0, 5.0) atol = 1e-12 # axis coord untouched
+            @test rotate(EGPoint(1.0, 0.0, 0.0), 2pi, zaxis) ≈ EGPoint(1.0, 0.0, 0.0) atol = 1e-9
+
+            # an off-origin axis: only the component perpendicular to it moves
+            axis = EGLine(EGPoint(1.0, 0.0, 0.0), EGPoint(1.0, 0.0, 1.0))
+            @test rotate(EGPoint(2.0, 0.0, 0.0), pi / 2, axis) ≈ EGPoint(1.0, 1.0, 0.0) atol = 1e-12
+            @test rotate(EGPoint(1.0, 0.0, 7.0), pi / 3, axis) ≈ EGPoint(1.0, 0.0, 7.0) atol = 1e-12 # on the axis: fixed
+
+            # EGSegment/EGLine/EGRay rotate about an axis (pointwise, via the new dispatch)
+            seg = EGSegment(EGPoint(2.0, 0.0, 0.0), EGPoint(2.0, 0.0, 5.0))
+            rseg = rotate(seg, pi / 2, axis)
+            @test rseg.p1 ≈ EGPoint(1.0, 1.0, 0.0) atol = 1e-12
+            @test rseg.p2 ≈ EGPoint(1.0, 1.0, 5.0) atol = 1e-12
+
+            # translate/homothety/reflection on EGSegment{3} already "just work"
+            # generically (dimension-generic point-level formulas underneath)
+            v = EGVector(0.0, 0.0, 10.0)
+            @test translate(seg, v).p1 ≈ EGPoint(2.0, 0.0, 10.0)
+            @test homothety(seg, 2.0, EGPoint(0.0, 0.0, 0.0)).p2 ≈ EGPoint(4.0, 0.0, 10.0)
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            @test reflection(seg, xy).p2 ≈ EGPoint(2.0, 0.0, -5.0)
+
+            # reflection(::EGPoint{2}, ::EGLine{2}) must NOT silently accept 3D args
+            # (the orientation-changing trap the plan calls out)
+            @test_throws MethodError reflection(EGPoint(1.0, 0.0, 0.0), EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0)))
+        end
+
+        @testset "distance(::EGPoint{3}, ::EGLine{3}) via cross3" begin
+            l = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0))
+            @test distance(EGPoint(0.0, 3.0, 4.0), l) ≈ 5.0
+            @test distance(l, EGPoint(0.0, 3.0, 4.0)) ≈ 5.0
+            @test distance(EGPoint(0.5, 0.0, 0.0), l) ≈ 0.0 atol = 1e-12
+        end
+
+        @testset "is_coplanar / line_line_position / line-line intersection & distance" begin
+            a, b, c = EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0), EGPoint(0.0, 1.0, 0.0)
+            @test is_coplanar(a, b, c, EGPoint(1.0, 1.0, 0.0))
+            @test !is_coplanar(a, b, c, EGPoint(0.0, 0.0, 1.0))
+
+            l1 = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0))
+            l2 = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 1.0, 0.0))
+            @test line_line_position(l1, l2) == :intersecting
+            @test only(intersection(l1, l2)) ≈ EGPoint(0.0, 0.0, 0.0)
+            @test distance(l1, l2) ≈ 0.0 atol = 1e-12
+
+            l_par = EGLine(EGPoint(0.0, 1.0, 0.0), EGPoint(1.0, 1.0, 0.0))
+            @test line_line_position(l1, l_par) == :parallel
+            @test isempty(intersection(l1, l_par))
+            @test distance(l1, l_par) ≈ 1.0
+
+            l_coincident = EGLine(EGPoint(2.0, 0.0, 0.0), EGPoint(3.0, 0.0, 0.0))
+            @test line_line_position(l1, l_coincident) == :coincident
+
+            l_skew = EGLine(EGPoint(0.0, 0.0, 1.0), EGPoint(0.0, 1.0, 1.0))
+            @test line_line_position(l1, l_skew) == :skew
+            @test isempty(intersection(l1, l_skew))
+            @test distance(l1, l_skew) ≈ 1.0
+        end
+
+        @testset "line <-> plane" begin
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            crossing = EGLine(EGPoint(0.0, 0.0, -1.0), EGPoint(0.0, 0.0, 1.0))
+            @test only(intersection(crossing, xy)) ≈ EGPoint(0.0, 0.0, 0.0)
+            @test only(intersection(xy, crossing)) ≈ EGPoint(0.0, 0.0, 0.0)
+            @test distance(crossing, xy) == 0.0
+
+            parallel_line = EGLine(EGPoint(0.0, 0.0, 5.0), EGPoint(1.0, 0.0, 5.0))
+            @test isempty(intersection(parallel_line, xy))
+            @test distance(parallel_line, xy) ≈ 5.0
+
+            contained_line = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 1.0, 0.0))
+            @test_throws ArgumentError intersection(contained_line, xy)
+        end
+
+        @testset "plane <-> plane" begin
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            xz = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 1.0, 0.0))
+            iline = intersection(xy, xz)
+            @test iline isa EGLine
+            @test on_line(EGPoint(0.0, 0.0, 0.0), iline)
+            @test on_line(EGPoint(7.0, 0.0, 0.0), iline)
+            @test distance(xy, xz) == 0.0
+
+            z1 = EGPlane3(EGPoint(0.0, 0.0, 1.0), EGVector(0.0, 0.0, 1.0))
+            @test intersection(xy, z1) === nothing
+            @test distance(xy, z1) ≈ 1.0
+        end
+
+        @testset "line <-> sphere, plane <-> sphere, sphere <-> sphere" begin
+            sph = EGSphere3(EGPoint(0.0, 0.0, 0.0), 5.0)
+
+            through = EGLine(EGPoint(-10.0, 0.0, 0.0), EGPoint(10.0, 0.0, 0.0))
+            pts = intersection(through, sph)
+            @test length(pts) == 2
+            @test all(p -> on_sphere(p, sph), pts)
+
+            tangent_l = EGLine(EGPoint(5.0, -1.0, 0.0), EGPoint(5.0, 1.0, 0.0))
+            @test length(intersection(tangent_l, sph)) == 1
+
+            missing_l = EGLine(EGPoint(10.0, -1.0, 0.0), EGPoint(10.0, 1.0, 0.0))
+            @test isempty(intersection(missing_l, sph))
+            @test isempty(intersection(sph, missing_l))
+
+            # plane through the center -> a great circle of the same radius
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            gc = intersection(xy, sph)
+            @test gc isa EGCircle3
+            @test gc.r ≈ 5.0
+            @test gc.center ≈ EGPoint(0.0, 0.0, 0.0)
+
+            # tangent plane
+            tangent_pl = EGPlane3(EGPoint(0.0, 0.0, 5.0), EGVector(0.0, 0.0, 1.0))
+            tp = intersection(tangent_pl, sph)
+            @test tp isa EGPoint
+            @test tp ≈ EGPoint(0.0, 0.0, 5.0)
+
+            # disjoint plane
+            far_pl = EGPlane3(EGPoint(0.0, 0.0, 10.0), EGVector(0.0, 0.0, 1.0))
+            @test intersection(far_pl, sph) === nothing
+
+            # sphere-sphere: overlapping -> circle, verified by construction
+            s1 = EGSphere3(EGPoint(0.0, 0.0, 0.0), 5.0)
+            s2 = EGSphere3(EGPoint(6.0, 0.0, 0.0), 5.0)
+            circ = intersection(s1, s2)
+            @test circ isa EGCircle3
+            @test circ.center ≈ EGPoint(3.0, 0.0, 0.0)
+            @test circ.r ≈ 4.0
+            @test all(isapprox.(distance.(Ref(circ.center), (s1.center, s2.center)), (3.0, 3.0)))
+
+            # sphere-sphere: tangent -> point
+            s3 = EGSphere3(EGPoint(10.0, 0.0, 0.0), 5.0)
+            tangent_pt = intersection(s1, s3)
+            @test tangent_pt isa EGPoint
+            @test tangent_pt ≈ EGPoint(5.0, 0.0, 0.0)
+
+            # sphere-sphere: disjoint -> nothing
+            s4 = EGSphere3(EGPoint(100.0, 0.0, 0.0), 5.0)
+            @test intersection(s1, s4) === nothing
+
+            # sphere-sphere: concentric -> nothing
+            s5 = EGSphere3(EGPoint(0.0, 0.0, 0.0), 2.0)
+            @test intersection(s1, s5) === nothing
+        end
+
+        @testset "EGAffineMap3: rotation_map/homothety_map/reflection_map/translation_map, ∘, affine_map" begin
+            axis = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            p = EGPoint(1.0, 0.0, 0.0)
+
+            rm = rotation_map(pi / 2, axis)
+            @test rm(p) ≈ rotate(p, pi / 2, axis) atol = 1e-12
+            @test rotate(pi / 2, axis)(p) ≈ rm(p) atol = 1e-12 # curried single-arg form
+            @test rm(EGVector(1.0, 0.0, 0.0)) ≈ EGVector(0.0, 1.0, 0.0) atol = 1e-12 # linear part only, no translation
+
+            hm = homothety_map(2.0, EGPoint(1.0, 1.0, 1.0))
+            @test hm(EGPoint(3.0, 1.0, 1.0)) ≈ EGPoint(5.0, 1.0, 1.0)
+            @test homothety(2.0, EGPoint(1.0, 1.0, 1.0))(p) ≈ hm(p)
+
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            refm = reflection_map(xy)
+            @test refm(EGPoint(1.0, 2.0, 3.0)) ≈ EGPoint(1.0, 2.0, -3.0)
+            @test reflection(xy)(EGPoint(1.0, 2.0, 3.0)) ≈ refm(EGPoint(1.0, 2.0, 3.0))
+
+            ptrefm = reflection_map(EGPoint(1.0, 1.0, 1.0))
+            @test ptrefm(EGPoint(2.0, 1.0, 1.0)) ≈ EGPoint(0.0, 1.0, 1.0)
+            @test reflection(EGPoint(1.0, 1.0, 1.0))(p) ≈ ptrefm(p)
+
+            tm = translation_map(EGVector(1.0, 2.0, 3.0))
+            @test tm(EGPoint(0.0, 0.0, 0.0)) ≈ EGPoint(1.0, 2.0, 3.0)
+            @test translate(EGVector(1.0, 2.0, 3.0))(p) ≈ tm(p)
+
+            # composition, right-to-left like ordinary functions
+            composed = rm ∘ tm
+            @test composed(EGPoint(0.0, 0.0, 0.0)) ≈ rm(tm(EGPoint(0.0, 0.0, 0.0))) atol = 1e-12
+            @test composed isa EGAffineMap3
+
+            # apply directly to EGSegment/EGLine/EGRay
+            seg = EGSegment(EGPoint(1.0, 0.0, 0.0), EGPoint(2.0, 0.0, 0.0))
+            @test rm(seg).p1 ≈ EGPoint(0.0, 1.0, 0.0) atol = 1e-12
+
+            # affine_map: 4 non-coplanar point correspondences
+            src = (EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0), EGPoint(0.0, 1.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            dst = (EGPoint(2.0, 3.0, 5.0), EGPoint(3.0, 3.0, 5.0), EGPoint(2.0, 4.0, 5.0), EGPoint(2.0, 3.0, 6.0))
+            am = affine_map(src, dst)
+            @test all(isapprox(am(s), d; atol=1e-9) for (s, d) in zip(src, dst))
+            @test_throws ArgumentError affine_map(
+                (EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0), EGPoint(2.0, 0.0, 0.0), EGPoint(3.0, 0.0, 0.0)),
+                dst)
+        end
+    end
+
+    @testset "3D geometry (unbounded sets, polyhedra, curved solids)" begin
+        @testset "EGHalfSpace3" begin
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            hs = EGHalfSpace3(xy, EGPoint(0.0, 0.0, 5.0))
+            @test EGPoint(0.0, 0.0, 3.0) in hs
+            @test !(EGPoint(0.0, 0.0, -3.0) in hs)
+            @test EGPoint(0.0, 0.0, 0.0) in hs # boundary included
+            @test distance(EGPoint(0.0, 0.0, 3.0), hs) == 0.0
+            @test distance(EGPoint(0.0, 0.0, 3.0), hs; mode=:boundary) ≈ 3.0
+            @test distance(EGPoint(0.0, 0.0, -3.0), hs) ≈ 3.0
+            @test_throws ArgumentError EGHalfSpace3(xy, EGPoint(1.0, 1.0, 0.0))
+
+            # k < 0 is orientation-reversing in 3D: the half-space flips
+            hs2 = homothety(hs, -1.0, EGPoint(0.0, 0.0, 0.0))
+            @test !(EGPoint(0.0, 0.0, 3.0) in hs2)
+            @test EGPoint(0.0, 0.0, -3.0) in hs2
+        end
+
+        @testset "EGSlab3" begin
+            z0 = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            z5 = EGPlane3(EGPoint(0.0, 0.0, 5.0), EGVector(0.0, 0.0, 1.0))
+            slab = EGSlab3(z0, z5)
+            @test slab_width(slab) ≈ 5.0
+            @test EGPoint(0.0, 0.0, 2.0) in slab
+            @test !(EGPoint(0.0, 0.0, 10.0) in slab)
+            @test distance(EGPoint(0.0, 0.0, 2.0), slab) == 0.0
+            @test distance(EGPoint(0.0, 0.0, 2.0), slab; mode=:boundary) ≈ 2.0
+
+            not_parallel = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(1.0, 0.0, 0.0))
+            @test_throws ArgumentError EGSlab3(z0, not_parallel)
+        end
+
+        @testset "EGDihedralAngle3" begin
+            edge = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            d = EGDihedralAngle3(edge, EGPoint(1.0, 0.0, 5.0), EGPoint(0.0, 1.0, -3.0))
+            @test measure(d) ≈ pi / 2
+            @test abs(d) ≈ pi / 2
+            @test is_direct(d)
+            @test measure(reverse(d)) ≈ -pi / 2
+            @test EGPoint(1.0, 1.0, 0.0) in d
+            @test !(EGPoint(-1.0, 0.0, 0.0) in d)
+
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            # both plane- and point-reflection swap a/b in 3D (both are
+            # orientation-reversing here, unlike 2D where only the mirror is)
+            @test measure(reflection(d, xy)) ≈ pi / 2
+            @test measure(reflection(d, EGPoint(0.0, 0.0, 0.0))) ≈ pi / 2
+            # k < 0 is also orientation-reversing in 3D -> swap; k > 0 doesn't
+            @test measure(homothety(d, -1.0, EGPoint(0.0, 0.0, 0.0))) ≈ pi / 2
+            @test measure(homothety(d, 2.0, EGPoint(0.0, 0.0, 0.0))) ≈ pi / 2
+        end
+
+        @testset "EGPolyhedralAngle3 (n=3 is the 'triedro')" begin
+            vertex = EGPoint(0.0, 0.0, 0.0)
+            rays = [EGPoint(1.0, 0.0, 0.0), EGPoint(0.0, 1.0, 0.0), EGPoint(0.0, 0.0, 1.0)]
+            pa = EGPolyhedralAngle3(vertex, rays)
+            @test solid_angle(pa) ≈ pi / 2 # one octant = 1/8 of 4π steradians
+            @test EGPoint(1.0, 1.0, 1.0) in pa
+            @test !(EGPoint(-1.0, -1.0, -1.0) in pa)
+            @test_throws ArgumentError EGPolyhedralAngle3(vertex, rays[1:2])
+        end
+
+        @testset "EGTetrahedron3" begin
+            t = EGTetrahedron3(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0), EGPoint(0.0, 1.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            @test volume(t) ≈ 1 / 6
+            @test centroid(t) ≈ EGPoint(0.25, 0.25, 0.25)
+            @test surface_area(t) ≈ 1.5 + sqrt(3) / 2
+            @test length(faces(t)) == 4
+
+            # order-independence: faces() works out outward orientation itself
+            t2 = EGTetrahedron3(EGPoint(0.0, 0.0, 1.0), EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0), EGPoint(0.0, 1.0, 0.0))
+            @test volume(t2) ≈ 1 / 6
+            @test centroid(t2) ≈ EGPoint(0.25, 0.25, 0.25)
+
+            axis = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            @test volume(rotate(t, pi / 3, axis)) ≈ volume(t)
+            @test volume(translate(t, EGVector(10.0, 20.0, 30.0))) ≈ volume(t)
+            @test volume(homothety(t, 2.0, EGPoint(0.0, 0.0, 0.0))) ≈ volume(t) * 8
+            @test volume(homothety(t, -2.0, EGPoint(0.0, 0.0, 0.0))) ≈ volume(t) * 8 # abs
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+            @test volume(reflection(t, xy)) ≈ volume(t)
+        end
+
+        @testset "EGParallelepiped3, box3, cube3" begin
+            b = box3(EGPoint(0.0, 0.0, 0.0), 2.0, 3.0, 4.0)
+            @test volume(b) ≈ 24.0
+            @test surface_area(b) ≈ 2 * (2 * 3 + 2 * 4 + 3 * 4)
+            @test centroid(b) ≈ EGPoint(1.0, 1.5, 2.0)
+            @test length(vertices(b)) == 8
+            @test length(faces(b)) == 6
+
+            c = cube3(EGPoint(1.0, 1.0, 1.0), 5.0)
+            @test volume(c) ≈ 125.0
+        end
+
+        @testset "EGPyramid3" begin
+            base_sq = EGStraightNgon([EGPoint(-1.0, -1.0, 0.0), EGPoint(1.0, -1.0, 0.0), EGPoint(1.0, 1.0, 0.0), EGPoint(-1.0, 1.0, 0.0)])
+            pyr = EGPyramid3(EGPoint(0.0, 0.0, 3.0), base_sq)
+            @test volume(pyr) ≈ 4.0 # (1/3)*base_area(4)*height(3)
+            c = centroid(pyr)
+            @test c[3] ≈ 0.75 # 1/4 of the way from base to apex
+            @test c[1] ≈ 0.0 atol = 1e-12
+            @test c[2] ≈ 0.0 atol = 1e-12
+            @test length(faces(pyr)) == 5 # 1 base + 4 lateral
+        end
+
+        @testset "EGPrism3" begin
+            base_sq = EGStraightNgon([EGPoint(-1.0, -1.0, 0.0), EGPoint(1.0, -1.0, 0.0), EGPoint(1.0, 1.0, 0.0), EGPoint(-1.0, 1.0, 0.0)])
+            prism = EGPrism3(base_sq, EGVector(0.0, 0.0, 5.0))
+            @test volume(prism) ≈ 20.0 # base_area(4)*height(5)
+            @test centroid(prism) ≈ EGPoint(0.0, 0.0, 2.5)
+            @test surface_area(prism) ≈ 2 * 4 + 4 * (2 * 5)
+            @test length(faces(prism)) == 6 # base + top + 4 lateral
+        end
+
+        @testset "EGGeneralPolyhedron3" begin
+            t = EGTetrahedron3(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0), EGPoint(0.0, 1.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            gp = EGGeneralPolyhedron3(collect(faces(t)))
+            @test volume(gp) ≈ volume(t)
+            @test surface_area(gp) ≈ surface_area(t)
+        end
+
+        @testset "EGCylinder3" begin
+            cyl = EGCylinder3(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 10.0), 2.0)
+            @test height(cyl) ≈ 10.0
+            @test volume(cyl) ≈ pi * 4 * 10
+            @test surface_area(cyl) ≈ 2 * pi * 4 + 2 * pi * 2 * 10
+            @test centroid(cyl) ≈ EGPoint(0.0, 0.0, 5.0)
+            @test EGPoint(1.0, 0.0, 5.0) in cyl
+            @test !(EGPoint(3.0, 0.0, 5.0) in cyl) # outside radius
+            @test !(EGPoint(1.0, 0.0, 15.0) in cyl) # beyond height
+            c1, c2 = caps(cyl)
+            @test c1.r == 2.0 && c2.r == 2.0
+
+            axis = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0))
+            @test volume(rotate(cyl, pi / 4, axis)) ≈ volume(cyl)
+            @test volume(homothety(cyl, 2.0, EGPoint(0.0, 0.0, 0.0))) ≈ volume(cyl) * 8
+        end
+
+        @testset "EGCone3" begin
+            cone = EGCone3(EGPoint(0.0, 0.0, 9.0), EGPoint(0.0, 0.0, 0.0), 3.0)
+            @test height(cone) ≈ 9.0
+            @test slant_height(cone) ≈ sqrt(81.0 + 9.0)
+            @test volume(cone) ≈ pi * 9 * 9 / 3
+            @test surface_area(cone) ≈ pi * 9 + pi * 3 * sqrt(90.0)
+            @test centroid(cone) ≈ EGPoint(0.0, 0.0, 2.25)
+            @test EGPoint(0.0, 0.0, 0.0) in cone
+            @test EGPoint(2.0, 0.0, 0.0) in cone # base edge, r=3
+            @test EGPoint(0.0, 0.0, 9.0) in cone # apex
+            @test !(EGPoint(2.0, 0.0, 8.0) in cone) # radius shrinks near apex
+            @test base(cone).r == 3.0
+        end
+    end
+
+    @testset "3D geometry (correctness fixes and coverage gaps)" begin
+        @testset "centroid/is_convex/point_in_polygon/is_planar for EGPolygon{3}" begin
+            tri3 = EGTriangle(EGPoint(0.0, 0.0, 0.0), EGPoint(4.0, 0.0, 0.0), EGPoint(0.0, 4.0, 0.0))
+            @test centroid(tri3) ≈ EGPoint(4 / 3, 4 / 3, 0.0)
+            @test is_convex(tri3)
+            @test area(tri3) ≈ 8.0 # already fixed earlier; re-verified alongside its siblings
+
+            # a genuinely tilted (non-axis-aligned) planar square
+            sq = EGStraightNgon([EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 1.0), EGPoint(1.0, 1.0, 1.0), EGPoint(0.0, 1.0, 0.0)])
+            @test is_planar(sq)
+            @test area(sq) ≈ sqrt(2.0)
+            @test centroid(sq) ≈ EGPoint(0.5, 0.5, 0.5)
+            @test is_convex(sq)
+            @test centroid(sq) in sq
+            @test !(EGPoint(5.0, 5.0, 5.0) in sq)
+
+            non_planar = EGStraightNgon([EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0), EGPoint(1.0, 1.0, 1.0), EGPoint(0.0, 1.0, 0.0)])
+            @test !is_planar(non_planar)
+
+            # an L-shape (non-convex), embedded flat in 3D
+            lshape = EGStraightNgon([EGPoint(0.0, 0.0, 0.0), EGPoint(2.0, 0.0, 0.0), EGPoint(2.0, 1.0, 0.0),
+                EGPoint(1.0, 1.0, 0.0), EGPoint(1.0, 2.0, 0.0), EGPoint(0.0, 2.0, 0.0)])
+            @test !is_convex(lshape)
+            @test area(lshape) ≈ 3.0
+        end
+
+        @testset "EGSegment{3}/EGRay{3} <-> EGPlane3" begin
+            xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
+
+            s_cross = EGSegment(EGPoint(0.0, 0.0, -1.0), EGPoint(0.0, 0.0, 1.0))
+            @test distance(s_cross, xy) == 0.0
+            @test only(intersection(s_cross, xy)) ≈ EGPoint(0.0, 0.0, 0.0)
+            @test only(intersection(xy, s_cross)) ≈ EGPoint(0.0, 0.0, 0.0)
+
+            s_above = EGSegment(EGPoint(0.0, 0.0, 3.0), EGPoint(0.0, 0.0, 5.0))
+            @test distance(s_above, xy) ≈ 3.0
+            @test distance(xy, s_above) ≈ 3.0
+            @test isempty(intersection(s_above, xy))
+
+            r_toward = EGRay(EGPoint(0.0, 0.0, 5.0), EGPoint(0.0, 0.0, 4.0))
+            @test distance(r_toward, xy) == 0.0
+            @test only(intersection(r_toward, xy)) ≈ EGPoint(0.0, 0.0, 0.0)
+
+            r_away = EGRay(EGPoint(0.0, 0.0, 5.0), EGPoint(0.0, 0.0, 6.0))
+            @test distance(r_away, xy) ≈ 5.0
+            @test isempty(intersection(r_away, xy))
+        end
+
+        @testset "EGSegment{3}/EGRay{3} <-> EGSphere3" begin
+            sph = EGSphere3(EGPoint(0.0, 0.0, 0.0), 5.0)
+
+            s_through = EGSegment(EGPoint(-10.0, 0.0, 0.0), EGPoint(10.0, 0.0, 0.0))
+            pts = intersection(s_through, sph)
+            @test length(pts) == 2
+            @test all(p -> on_sphere(p, sph), pts)
+            @test distance(s_through, sph) == 0.0
+
+            s_outside = EGSegment(EGPoint(10.0, 0.0, 0.0), EGPoint(20.0, 0.0, 0.0))
+            @test isempty(intersection(s_outside, sph))
+            @test isempty(intersection(sph, s_outside))
+            @test distance(s_outside, sph) ≈ 5.0
+            @test distance(s_outside, sph; mode=:boundary) ≈ 5.0
+
+            # entirely INSIDE the sphere: boundary distance is to the FARTHER
+            # endpoint, not the closer one (the bug this test guards against)
+            s_inside = EGSegment(EGPoint(-1.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0))
+            @test distance(s_inside, sph) == 0.0
+            @test distance(s_inside, sph; mode=:boundary) ≈ 4.0
+
+            r_sph = EGRay(EGPoint(0.0, 0.0, 0.0), EGPoint(1.0, 0.0, 0.0))
+            @test only(intersection(r_sph, sph)) ≈ EGPoint(5.0, 0.0, 0.0)
+            @test only(intersection(sph, r_sph)) ≈ EGPoint(5.0, 0.0, 0.0)
+
+            r_missing = EGRay(EGPoint(10.0, 0.0, 0.0), EGPoint(11.0, 0.0, 0.0))
+            @test isempty(intersection(r_missing, sph))
+            @test distance(r_missing, sph) ≈ 5.0
+        end
+
+        @testset "distance(::EGPoint{3}, ::EGCylinder3/::EGCone3; mode)" begin
+            cyl = EGCylinder3(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 10.0), 2.0)
+            @test distance(EGPoint(0.0, 0.0, 5.0), cyl) == 0.0 # on axis, well inside
+            @test distance(EGPoint(0.0, 0.0, 5.0), cyl; mode=:boundary) ≈ 2.0 # to the lateral surface, NOT 0 (the axis isn't a boundary)
+            @test distance(EGPoint(5.0, 0.0, 5.0), cyl) ≈ 3.0 # outside radially: 5-2
+            @test distance(EGPoint(0.0, 0.0, 15.0), cyl) ≈ 5.0 # beyond the top cap, on-axis
+            @test distance(EGPoint(5.0, 0.0, 15.0), cyl) ≈ sqrt(3.0^2 + 5.0^2) # beyond top cap AND outside radially
+            @test (distance(EGPoint(0.0, 0.0, 5.0), cyl) == 0.0) == (EGPoint(0.0, 0.0, 5.0) in cyl)
+
+            cone = EGCone3(EGPoint(0.0, 0.0, 9.0), EGPoint(0.0, 0.0, 0.0), 3.0)
+            @test distance(EGPoint(0.0, 0.0, 3.0), cone) == 0.0
+            @test distance(EGPoint(0.0, 0.0, 0.0), cone; mode=:boundary) == 0.0 # base center lies ON the base disk
+            @test distance(EGPoint(100.0, 0.0, 0.0), cone) ≈ 97.0
+        end
+    end
+
     @testset "Luxor extension" begin
         # `path` has no methods at all until Luxor is loaded too — the
         # extension mechanism is what keeps EuclideanGeometry itself
@@ -5140,6 +5632,5 @@ using Base.MathConstants: golden
             end
         end
     end
-
 
 end

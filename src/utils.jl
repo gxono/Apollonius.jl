@@ -35,6 +35,15 @@ The 2D (scalar) cross product `a[1]*b[2] - a[2]*b[1]`.
 cross2(a, b) = a[1] * b[2] - a[2] * b[1]
 
 """
+    cross3(a, b)
+
+The 3D (vector) cross product of `a` and `b`, as an [`EGVector`](@ref) —
+the 3D counterpart of [`cross2`](@ref). Works on any indexable `a`/`b`
+(`EGPoint{3}` or `EGVector{3}`), same duck-typed convention as `cross2`.
+"""
+cross3(a, b) = EGVector(a[2] * b[3] - a[3] * b[2], a[3] * b[1] - a[1] * b[3], a[1] * b[2] - a[2] * b[1])
+
+"""
     slope_angle(obj)
 
 The angle (radians, from the positive x-axis) of `obj`'s [`direction`](@ref)

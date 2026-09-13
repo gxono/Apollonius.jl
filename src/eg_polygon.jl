@@ -83,6 +83,129 @@ function area(p::EGPolygon)
 end
 
 """
+    area(p::EGPolygon{3})
+
+Area of the (assumed planar) 3D-embedded polygon `p` — [`EGTriangle`](@ref)/
+[`EGQuadrilateral`](@ref)/[`EGStraightNgon`](@ref) built from `EGPoint{3}`
+vertices, as `EGPolyhedron` faces typically are. Via **Newell's method**,
+`(1/2)|Σᵢ vᵢ × vᵢ₊₁|` using the true 3D cross product: the direct
+generalization of the 2D shoelace formula above (which only reads 2 of a
+3D vertex's 3 coordinates, silently projecting onto the xy-plane instead
+of computing the true planar area — a dedicated `Dim`-specific method is
+needed here, not a fallback, for exactly that reason).
+"""
+function area(p::EGPolygon{3})
+    vs = vertices(p)
+    n = length(vs)
+    s = sum(cross3(vs[i], vs[mod1(i + 1, n)]) for i in 1:n)
+    return norm(s) / 2
+end
+
+"""
+    is_planar(pg::EGPolygon{3}; atol=1e-9)
+
+Whether all of `pg`'s vertices lie in a common plane — worth checking
+before trusting `area`/`centroid`/`is_convex`/`point_in_polygon` on a
+hand-built `EGStraightNgon{3}`/`EGQuadrilateral{3}` (all four assume
+planarity; none of them validate it, the same "assumed correct"
+convention as `EGStraightNgon`'s "assumed simple").
+"""
+function is_planar(pg::EGPolygon{3}; atol=1e-9)
+    vs = vertices(pg)
+    length(vs) <= 3 && return true # any 3 points are trivially coplanar
+    for i in 4:length(vs)
+        is_coplanar(vs[1], vs[2], vs[3], vs[i]; atol=atol) || return false
+    end
+    return true
+end
+
+"""
+    centroid(p::EGPolygon{3})
+
+Area-weighted centroid of the (assumed planar) 3D-embedded polygon `p`,
+via the same fan-triangulation (from `p`'s own first vertex, weighted by
+each triangle's signed area relative to `p`'s own Newell normal) that
+[`area(::EGPolygon{3})`](@ref) is built on — the 3D generalization of
+`centroid(::EGPolygon)`'s shoelace-based formula above.
+"""
+function centroid(p::EGPolygon{3})
+    vs = vertices(p)
+    n = length(vs)
+    v1 = vs[1]
+    nrm = sum(cross3(vs[i], vs[mod1(i + 1, n)]) for i in 1:n)
+    nn = norm(nrm)
+    nn <= eps(Float64) && return sum(vs) / n
+    n_hat = nrm / nn
+    T = eltype(v1)
+    A, cx, cy, cz = zero(T), zero(T), zero(T), zero(T)
+    for i in 2:n-1
+        vi, vi1 = vs[i], vs[i+1]
+        tri_area = dot(cross3(vi - v1, vi1 - v1), n_hat) / 2
+        A += tri_area
+        cx += tri_area * (v1[1] + vi[1] + vi1[1]) / 3
+        cy += tri_area * (v1[2] + vi[2] + vi1[2]) / 3
+        cz += tri_area * (v1[3] + vi[3] + vi1[3]) / 3
+    end
+    abs(A) <= sqrt(eps(Float64)) * max(nn, 1.0) && return sum(vs) / n
+    return EGPoint(cx / A, cy / A, cz / A)
+end
+
+"""
+    is_convex(p::EGPolygon{3}; atol=1e-9)
+
+Whether the (assumed planar) 3D-embedded polygon `p` is convex, via the
+same "consistent turning sign" test as `is_convex(::EGPolygon)`, with
+each turn measured relative to `p`'s own Newell normal instead of the 2D
+scalar cross product.
+"""
+function is_convex(p::EGPolygon{3}; atol=1e-9)
+    vs = vertices(p)
+    n = length(vs)
+    n < 3 && return false
+    nrm = sum(cross3(vs[i], vs[mod1(i + 1, n)]) for i in 1:n)
+    nn = norm(nrm)
+    nn <= atol && return false
+    n_hat = nrm / nn
+    got_sign = 0
+    for i in 1:n
+        a, b, c = vs[i], vs[mod1(i + 1, n)], vs[mod1(i + 2, n)]
+        turn = dot(cross3(b - a, c - b), n_hat)
+        abs(turn) <= atol * norm(b - a) * norm(c - b) && continue
+        s = turn > 0 ? 1 : -1
+        if got_sign == 0
+            got_sign = s
+        elseif s != got_sign
+            return false
+        end
+    end
+    return true
+end
+
+"""
+    point_in_polygon(p::EGPoint{3}, pg::EGPolygon{3})
+
+Whether `p` (assumed to lie in `pg`'s own plane) is inside `pg`, via the
+same even-odd ray-casting rule as `point_in_polygon(::EGPoint,
+::EGPolygon)`, applied after projecting `p` and `pg`'s vertices into a 2D
+frame local to `pg`'s own plane (any in-plane orthonormal basis works;
+the ray-casting result doesn't depend on which one is chosen).
+"""
+function point_in_polygon(p::EGPoint{3}, pg::EGPolygon{3})
+    vs = vertices(pg)
+    n = length(vs)
+    nrm = sum(cross3(vs[i], vs[mod1(i + 1, n)]) for i in 1:n)
+    n_hat = nrm / norm(nrm)
+    ref = abs(n_hat[1]) < 0.9 ? EGVector(1.0, 0.0, 0.0) : EGVector(0.0, 1.0, 0.0)
+    u = cross3(n_hat, ref)
+    u = u / norm(u)
+    w = cross3(n_hat, u)
+    v1 = vs[1]
+    to2d(q) = EGPoint(dot(q - v1, u), dot(q - v1, w))
+    pg2 = EGStraightNgon([to2d(v) for v in vs])
+    return point_in_polygon(to2d(p), pg2)
+end
+
+"""
     perimeter(p::EGPolygon)
 """
 perimeter(p::EGPolygon) = sum(_side_length, sides(p))
@@ -224,8 +347,10 @@ Base.isapprox(x::EGTriangle, y::EGTriangle; kwargs...) =
     isapprox(x.a, y.a; kwargs...) && isapprox(x.b, y.b; kwargs...) && isapprox(x.c, y.c; kwargs...)
 Base.show(io::IO, t::EGTriangle) = print(io, "EGTriangle(", t.a, ", ", t.b, ", ", t.c, ")")
 
-rotate(t::EGTriangle, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+rotate(t::EGTriangle{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) =
     EGTriangle(rotate(t.a, angle, center), rotate(t.b, angle, center), rotate(t.c, angle, center))
+rotate(t::EGTriangle{3}, angle::Real, axis::EGLine{3}) =
+    EGTriangle(rotate(t.a, angle, axis), rotate(t.b, angle, axis), rotate(t.c, angle, axis))
 reflection(t::EGTriangle, about) = EGTriangle(reflection(t.a, about), reflection(t.b, about), reflection(t.c, about))
 homothety(t::EGTriangle, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
     EGTriangle(homothety(t.a, k, center), homothety(t.b, k, center), homothety(t.c, k, center))
@@ -310,8 +435,10 @@ area-weighted (that's [`centroid(::EGPolygon)`](@ref), which
 """
 centroid(q::EGQuadrilateral) = (q.a + q.b + q.c + q.d) / 4
 
-rotate(q::EGQuadrilateral, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+rotate(q::EGQuadrilateral{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) =
     EGQuadrilateral(rotate(q.a, angle, center), rotate(q.b, angle, center), rotate(q.c, angle, center), rotate(q.d, angle, center))
+rotate(q::EGQuadrilateral{3}, angle::Real, axis::EGLine{3}) =
+    EGQuadrilateral(rotate(q.a, angle, axis), rotate(q.b, angle, axis), rotate(q.c, angle, axis), rotate(q.d, angle, axis))
 reflection(q::EGQuadrilateral, about) =
     EGQuadrilateral(reflection(q.a, about), reflection(q.b, about), reflection(q.c, about), reflection(q.d, about))
 homothety(q::EGQuadrilateral, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
@@ -347,8 +474,10 @@ Base.isapprox(x::EGStraightNgon, y::EGStraightNgon; kwargs...) =
     length(x) == length(y) && all(isapprox(a, b; kwargs...) for (a, b) in zip(x.vertices, y.vertices))
 Base.show(io::IO, pg::EGStraightNgon) = print(io, "EGStraightNgon(", pg.vertices, ")")
 
-rotate(pg::EGStraightNgon, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+rotate(pg::EGStraightNgon{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) =
     EGStraightNgon([rotate(v, angle, center) for v in pg.vertices])
+rotate(pg::EGStraightNgon{3}, angle::Real, axis::EGLine{3}) =
+    EGStraightNgon([rotate(v, angle, axis) for v in pg.vertices])
 reflection(pg::EGStraightNgon, about) = EGStraightNgon([reflection(v, about) for v in pg.vertices])
 homothety(pg::EGStraightNgon, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
     EGStraightNgon([homothety(v, k, center) for v in pg.vertices])

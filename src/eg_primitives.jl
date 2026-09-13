@@ -7,11 +7,11 @@
 # their own pointwise versions) ---------------------------------------
 
 """
-    rotate(p::EGPoint, angle, center=EGPoint(0.0, 0.0))
+    rotate(p::EGPoint{2}, angle, center=EGPoint(0.0, 0.0))
 
 Rotate `p` by `angle` radians (counterclockwise) around `center`.
 """
-function rotate(p::EGPoint, angle::Real, center::EGPoint=EGPoint(0.0, 0.0))
+function rotate(p::EGPoint{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0))
     v = p - center
     c, s = cos(angle), sin(angle)
     return center + EGPoint(c * v[1] - s * v[2], s * v[1] + c * v[2])
@@ -208,6 +208,23 @@ function reflection(v::EGVector{2}, about::EGLine)
     return 2 * (dot(v, d) / dot(d, d)) * d - v
 end
 
+"""
+    rotate(v::EGVector{3}, angle::Real, axis::EGLine{3})
+
+Rotate the direction `v` by `angle` radians about `axis`'s own
+*direction* (only `direction(axis)` matters -- a free vector has no
+position, so where `axis` sits in space is irrelevant). Same Rodrigues
+formula as `rotate(::EGPoint{3}, ::Real, ::EGLine{3})`, minus the
+anchor-point offset.
+"""
+function rotate(v::EGVector{3}, angle::Real, axis::EGLine{3})
+    k = direction(axis) / norm(direction(axis))
+    v_par = dot(v, k) * k
+    v_perp = v - v_par
+    c, s = cos(angle), sin(angle)
+    return v_par + c * v_perp + s * cross3(k, v_perp)
+end
+
 # `slope_angle` is already defined, untyped, in primitives.jl
 # (`atan(direction(obj)[2], direction(obj)[1])`) — works here for free
 # since it just calls `direction`, already overloaded above.
@@ -243,8 +260,20 @@ onto `l` at once.
 """
 projection(l::EGLine; angle::Real=pi / 2) = p -> projection(p, l; angle=angle)
 
-distance(p::EGPoint, l::EGLine) = abs(cross2(direction(l), p - l.p1)) / norm(direction(l))
-distance(l::EGLine, p::EGPoint) = distance(p, l)
+distance(p::EGPoint{2}, l::EGLine{2}) = abs(cross2(direction(l), p - l.p1)) / norm(direction(l))
+distance(l::EGLine{2}, p::EGPoint{2}) = distance(p, l)
+
+"""
+    distance(p::EGPoint{3}, l::EGLine{3})
+
+Perpendicular distance from `p` to the infinite line `l`, via the 3D
+cross product (`cross2`'s 2D formula above doesn't generalize -- it only
+reads 2 of `p`'s 3 coordinates, which is silently wrong rather than
+merely inapplicable, so this is its own dispatched method rather than a
+fallback).
+"""
+distance(p::EGPoint{3}, l::EGLine{3}) = norm(cross3(direction(l), p - l.p1)) / norm(direction(l))
+distance(l::EGLine{3}, p::EGPoint{3}) = distance(p, l)
 
 """
     distance(p::EGPoint, s::EGSegment)
@@ -351,22 +380,63 @@ function distance(s1::EGSegment, s2::EGSegment; atol=1e-9)
 end
 
 """
-    reflection(p::EGPoint, l::EGLine)
+    reflection(p::EGPoint{2}, l::EGLine{2})
 
-Reflect `p` across the line `l` (axial symmetry).
+Reflect `p` across the line `l` (axial symmetry). **2D only, deliberately**:
+in 3D, "reflecting through the foot of the perpendicular onto a line" is
+actually a 180° rotation *about* that line (orientation-*preserving* --
+`rotate(p, pi, axis)` once 3D `rotate` is loaded), not a mirror
+reflection (orientation-*reversing*) -- a line's orthogonal complement in
+3D is a whole plane, not a single direction, so there is no unique mirror
+to reflect across. The true 3D mirror is
+[`reflection(::EGPoint{3}, ::EGPlane3)`](@ref).
 """
-reflection(p::EGPoint, l::EGLine) = 2 * projection(p, l) - p
+reflection(p::EGPoint{2}, l::EGLine{2}) = 2 * projection(p, l) - p
 
 reflection(s::EGSegment, about) = EGSegment(reflection(s.p1, about), reflection(s.p2, about))
 reflection(l::EGLine, about) = EGLine(reflection(l.p1, about), reflection(l.p2, about))
 reflection(r::EGRay, about) = EGRay(reflection(r.origin, about), reflection(r.through, about))
 
-rotate(s::EGSegment, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+rotate(s::EGSegment{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) =
     EGSegment(rotate(s.p1, angle, center), rotate(s.p2, angle, center))
-rotate(l::EGLine, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+rotate(l::EGLine{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) =
     EGLine(rotate(l.p1, angle, center), rotate(l.p2, angle, center))
-rotate(r::EGRay, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
+rotate(r::EGRay{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) =
     EGRay(rotate(r.origin, angle, center), rotate(r.through, angle, center))
+
+"""
+    rotate(p::EGPoint{3}, angle::Real, axis::EGLine{3})
+
+Rotate `p` by `angle` radians (right-hand rule around `direction(axis)`)
+about `axis` — the 3D analogue of `rotate(p::EGPoint{2}, angle, center)`,
+via the closed-form Rodrigues rotation formula (no quaternions/matrix
+exponential needed): decompose `p - axis.p1` into its component along the
+axis (unchanged) and perpendicular to it (rotated within the plane
+spanned by itself and `k × v_perp`).
+"""
+function rotate(p::EGPoint{3}, angle::Real, axis::EGLine{3})
+    k = direction(axis) / norm(direction(axis))
+    v = p - axis.p1
+    v_par = dot(v, k) * k
+    v_perp = v - v_par
+    c, s = cos(angle), sin(angle)
+    return axis.p1 + v_par + c * v_perp + s * cross3(k, v_perp)
+end
+
+"""
+    rotate(s::EGSegment{3}, angle::Real, axis::EGLine{3})
+    rotate(l::EGLine{3}, angle::Real, axis::EGLine{3})
+    rotate(r::EGRay{3}, angle::Real, axis::EGLine{3})
+
+The 3D analogue of the `center`-based `rotate` above, about an `axis`
+instead of a `center` (see [`rotate(::EGPoint{3}, ::Real, ::EGLine{3})`](@ref)).
+"""
+rotate(s::EGSegment{3}, angle::Real, axis::EGLine{3}) =
+    EGSegment(rotate(s.p1, angle, axis), rotate(s.p2, angle, axis))
+rotate(l::EGLine{3}, angle::Real, axis::EGLine{3}) =
+    EGLine(rotate(l.p1, angle, axis), rotate(l.p2, angle, axis))
+rotate(r::EGRay{3}, angle::Real, axis::EGLine{3}) =
+    EGRay(rotate(r.origin, angle, axis), rotate(r.through, angle, axis))
 
 homothety(s::EGSegment, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
     EGSegment(homothety(s.p1, k, center), homothety(s.p2, k, center))
