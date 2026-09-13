@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="240" viewBox="0 0 500 240">
+
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 1155.867188 -604.695313 L -530.867188 744.695313 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 250 120 L 132.214844 214.230469 "/>
+<path fill-rule="nonzero" fill="rgb(22%, 59.6%, 14.9%)" fill-opacity="1" d="M 134.605469 217.21875 L 125 220 L 129.824219 211.242188 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 250 120 L 237.691406 129.847656 "/>
+<path fill-rule="nonzero" fill="rgb(58.4%, 34.5%, 69.8%)" fill-opacity="1" d="M 240.082031 132.835938 L 230.476563 135.617188 L 235.300781 126.859375 "/>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(79.6%, 23.5%, 20%)" stroke-opacity="1" stroke-miterlimit="10" d="M 378 20 C 378 21.65625 376.65625 23 375 23 C 373.34375 23 372 21.65625 372 20 C 372 18.34375 373.34375 17 375 17 C 376.65625 17 378 18.34375 378 20 Z M 253 120 C 253 121.65625 251.65625 123 250 123 C 248.34375 123 247 121.65625 247 120 C 247 118.34375 248.34375 117 250 117 C 251.65625 117 253 118.34375 253 120 Z M 253 120 "/>
+</svg>
