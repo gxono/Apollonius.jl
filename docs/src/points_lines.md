@@ -53,7 +53,7 @@ collect(Iterators.flatten([l1, l2]))   # the 4 points of tangency, in one Vector
 ```
 
 ```@raw html
-<img src="assets/img/destructuring_tangents.svg" alt="Two circles with their two common external tangent lines, the four tangent points marked" style="width:100%; max-width: 700px;">
+<img src="../assets/img/destructuring_tangents.svg" alt="Two circles with their two common external tangent lines, the four tangent points marked" style="width:100%; max-width: 700px;">
 ```
 
 But every `EGObject`/`EGTransform` (this one included) is always a
@@ -179,7 +179,7 @@ with [`path`](@ref)`(ev; as=:arrow)` (see
 [Drawing with Luxor.jl](@ref)) is what correctly scales/places it:
 
 ```@raw html
-<img src="assets/img/direction_vector.svg" alt="A line, its direction vector d drawn as a green arrow, and the unit vector v = normalize(d) drawn as a purple arrow, both correctly anchored and scaled" style="width:100%; max-width: 700px;">
+<img src="../assets/img/direction_vector.svg" alt="A line, its direction vector d drawn as a green arrow, and the unit vector v = normalize(d) drawn as a purple arrow, both correctly anchored and scaled" style="width:100%; max-width: 700px;">
 ```
 
 ## Polar coordinates
@@ -283,7 +283,7 @@ Cref = reflection(C, foot)   # C mirrored through that foot — i.e. across l
 ```
 
 ```@raw html
-<img src="assets/img/projection_reflection.svg" alt="A line l, a point C, its perpendicular foot on l, and C reflected through that foot to the other side of l, joined by a dashed segment" style="width:100%; max-width: 700px;">
+<img src="../assets/img/projection_reflection.svg" alt="A line l, a point C, its perpendicular foot on l, and C reflected through that foot to the other side of l, joined by a dashed segment" style="width:100%; max-width: 700px;">
 ```
 
 `projection` also takes an `angle` keyword (radians, default `pi/2`,
