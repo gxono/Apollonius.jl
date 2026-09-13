@@ -68,6 +68,21 @@ function EG.path(v::EG.EGVector, from::EG.EGPoint=EG.EGPoint(0.0, 0.0); as::Symb
 end
 
 """
+    path(ev::EGEquipollentVector; as=:plain, action=:path, kwargs...)
+
+Draws the segment `ev.point -> tip(ev)` — the [`EGEquipollentVector`](@ref)
+analogue of `path(::EGVector, ::EGPoint)` above, with the point of
+application already built into the value instead of a separate `from`
+argument (and, unlike a bare `EGVector`, correctly scaled/placed by
+`@to_luxor_picture` beforehand, since this type has a real
+`EGBoundingBox`). `as=:arrow` draws it as an arrow instead.
+"""
+function EG.path(ev::EG.EGEquipollentVector; as::Symbol=:plain, action=:path, kwargs...)
+    as == :arrow && return Luxor.arrow(_lp(ev.point), _lp(EG.tip(ev)); kwargs...)
+    return Luxor.line(_lp(ev.point), _lp(EG.tip(ev)), action)
+end
+
+"""
     path(s::EGSegment; as=:plain, action=:path, kwargs...)
 
 `as=:arrow` draws `s.p1 -> s.p2` as an arrow via Luxor's own `arrow`

@@ -13,6 +13,14 @@ export EGPoint, EGVector
 include("eg_primitives.jl")
 export EGSegment, EGLine, EGRay, EGBoundingBox
 
+# EGEquipollentVector: a free EGVector applied at a point -- unlike a bare
+# EGVector (deliberately positionless), this one has a real
+# EGBoundingBox and transforms fully (including being scaled by
+# homothety), so it's the type to reach for whenever a vector needs to be
+# drawn correctly inside @to_luxor_picture.
+include("eg_equipollent_vector.jl")
+export EGEquipollentVector, tip
+
 # 3D foundation: EGPlane3/EGSphere3 (<: EGSurface), a minimal EGCircle3
 # stub, and every pairwise distance/projection/intersection between
 # EGPoint{3}/EGLine{3}/EGPlane3/EGSphere3. Phase 1 of the 3D geometry
@@ -35,6 +43,12 @@ include("eg_polyhedron.jl")
 export EGTetrahedron3, EGParallelepiped3, EGPyramid3, EGPrism3, EGGeneralPolyhedron3
 export faces, box3, cube3
 
+# Regular tetrahedron/octahedron -- the cube is already `cube3` above;
+# dodecahedron/icosahedron need a 3D convex hull this package doesn't
+# have, so they're deliberately not here yet.
+include("eg_named_polyhedra.jl")
+export regular_tetrahedron3, regular_octahedron3
+
 # EGCylinder3/EGCone3: curved-lateral-surface solids, deliberately NOT
 # EGPolyhedron (see eg_polyhedron.jl's header note) -- own closed-form
 # volume/surface_area/centroid.
@@ -45,6 +59,36 @@ export height, slant_height, caps, base
 include("eg_conic.jl")
 export EGCircle2, EGEllipse2, EGParabola2, EGHyperbola2
 export EGCircularArc2, EGEllipticArc2, EGParabolicArc2, EGHyperbolicArc2
+
+# 3D conics: EGEllipse3/EGParabola3/EGHyperbola3 (planar conics embedded
+# via an explicit supporting plane) + their arc types, plus the fuller
+# EGCircle3 API (Phase 1 left it a minimal stub). Needs eg_conic.jl's
+# local-frame/Newton-solver helpers above (reused verbatim -- they already
+# operate on dimension-agnostic scalar local coordinates).
+include("eg_conic3.jl")
+export EGEllipse3, EGParabola3, EGHyperbola3
+export EGCircularArc3, EGEllipticArc3, EGParabolicArc3, EGHyperbolicArc3
+export point_on_circle3, is_on_circle3
+export point_on_ellipse3, is_on_ellipse3
+export point_on_hyperbola3, is_on_hyperbola3
+export point_on_parabola3, is_on_parabola3
+
+# Quadric surfaces: genuinely 3D-only, no 2D curve to generalize from.
+# Deliberately minimal (constructors, membership, a parametrization,
+# transforms) -- no intersection/distance yet.
+include("eg_quadric.jl")
+export EGEllipsoid3, EGParaboloid3, EGHyperboloid3, EGHyperbolicParaboloid3
+export point_on_ellipsoid3, is_on_ellipsoid3
+export point_on_paraboloid3, is_on_paraboloid3
+export point_on_hyperboloid3, is_on_hyperboloid3
+export point_on_hyperbolic_paraboloid3, is_on_hyperbolic_paraboloid3
+
+# Curved regions embedded in 3D (the sector/segment/annular-sector trio),
+# via projecting into a 2D frame local to the arc's own circle's plane
+# and delegating to the already-verified 2D machinery. The fully general
+# EGCurvilinearTriangle3/Quadrilateral3/Ngon3 aren't here yet.
+include("eg_curved_region3.jl")
+export EGCircularSector3, EGCircularSegment3, EGAnnularSector3
 
 # intersection/polar_line/tangent_points/tangent_lines for
 # EGEllipse2/EGHyperbola2/EGParabola2 — split out from eg_conic.jl since

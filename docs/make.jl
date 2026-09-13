@@ -24,6 +24,12 @@ makedocs(;
         "Unbounded Regions" => "unbounded_sets.md",
         "Affine Maps" => "affine_maps.md",
         "Transforming in Bulk: Macros" => "macros.md",
+        "3D Geometry" => [
+            "Points, Lines & Planes" => "geometry_3d_foundation.md",
+            "Conics & Quadric Surfaces" => "geometry_3d_conics.md",
+            "Polyhedra & Solids" => "geometry_3d_solids.md",
+            "Unbounded Sets" => "geometry_3d_unbounded.md",
+        ],
         "API Reference" => "api.md",
         "Drawing with Luxor.jl" => "drawing.md",
     ],

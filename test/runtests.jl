@@ -39,7 +39,7 @@ using Base.MathConstants: golden
             @test isapprox(EGPoint(1.0, 2.0), EGPoint(1.0 + 1e-12, 2.0))
             @test !isapprox(EGPoint(0.0, 0.0), EGPoint(1e-3, 0.0); atol=1e-9)
             @test sprint(show, EGPoint(1.0, 2.0)) == "[1.0, 2.0]"
-            @test sprint(show, EGVector(1.0, 2.0)) == "<1.0, 2.0>"
+            @test sprint(show, EGVector(1.0, 2.0)) == "⟨1.0, 2.0⟩"
         end
 
         @testset "Point/Point arithmetic stays permissive -> EGPoint" begin
@@ -598,6 +598,15 @@ using Base.MathConstants: golden
             @test area(rotate(sec, pi / 3, EGPoint(1.0, 1.0))) ≈ area(sec) atol = 1e-6
             @test area(homothety(sec, 2.0)) ≈ 4 * area(sec) atol = 1e-6
             @test area(reflection(sec, EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0)))) ≈ area(sec) atol = 1e-6
+
+            # centroid: dedicated closed form (the generic EGPolygon one needs
+            # `vertices`, which this curved-sided type doesn't implement),
+            # verified against a fine-grid numerical centroid in the sanity
+            # pass -- here just check it's on the bisector, inside the
+            # sector, and closer to the center than the radius.
+            cen = centroid(sec)
+            @test cen in sec
+            @test distance(cen, circ.center) < circ.r
         end
 
         @testset "EGCircularSegment2" begin
@@ -608,6 +617,7 @@ using Base.MathConstants: golden
             arc = EGCircularArc2(circ, p1, p2)
             seg = EGCircularSegment2(arc)
             @test area(seg) ≈ 0.5 * 25 * (θ - sin(θ)) atol = 1e-9
+            @test centroid(seg) in seg
         end
 
         @testset "EGAnnularSector2 (new)" begin
@@ -621,6 +631,11 @@ using Base.MathConstants: golden
             @test perimeter(asec) ≈ (5 * θ) + (2 * θ) + 2 * (5.0 - 2.0) atol = 1e-9
             @test_throws ArgumentError EGAnnularSector2(arc, 6.0)
             @test area(rotate(asec, pi / 4, EGPoint(0.0, 0.0))) ≈ area(asec) atol = 1e-6
+
+            # annular sector's centroid is farther from the center than the
+            # full sector's own (removing the inner mass shifts it outward)
+            full_sec = EGCircularSector2(arc)
+            @test distance(centroid(asec), circ.center) > distance(centroid(full_sec), circ.center)
         end
 
         @testset "EGInterstice2" begin
@@ -5401,6 +5416,278 @@ using Base.MathConstants: golden
             @test distance(EGPoint(0.0, 0.0, 0.0), cone; mode=:boundary) == 0.0 # base center lies ON the base disk
             @test distance(EGPoint(100.0, 0.0, 0.0), cone) ≈ 97.0
         end
+    end
+
+    @testset "3D conics (EGEllipse3/EGParabola3/EGHyperbola3 + arcs)" begin
+        @testset "EGCircle3 fuller API" begin
+            c = EGCircle3(EGPoint(0.0, 0.0, 5.0), 3.0, EGVector(0.0, 0.0, 1.0))
+            p0 = point_on_circle3(c, 0.0)
+            @test is_on_circle3(p0, c)
+            @test distance(p0, c.center) ≈ 3.0
+            @test point_on_circle3(c, pi / 2)[3] == 5.0 # stays in the supporting plane
+        end
+
+        @testset "EGEllipse3" begin
+            e = EGEllipse3(EGPoint(1.0, 1.0, 1.0), 5.0, 3.0, EGVector(0.0, 0.0, 1.0), EGVector(1.0, 0.0, 0.0))
+            @test area(e) ≈ pi * 15
+            p_on = point_on_ellipse3(e, 0.7)
+            @test is_on_ellipse3(p_on, e)
+            @test p_on[3] ≈ 1.0 # embedded in its own plane
+            f1, f2 = foci(e)
+            @test distance(p_on, f1) + distance(p_on, f2) ≈ 10.0 # 2a
+            @test distance(e.center, e) ≈ 3.0 # Newton solve; min(a,b) at the center
+
+            # u gets auto-orthogonalized against a non-perpendicular normal
+            e2 = EGEllipse3(EGPoint(0.0, 0.0, 0.0), 4.0, 2.0, EGVector(1.0, 1.0, 1.0), EGVector(1.0, -1.0, 0.0))
+            @test dot(e2.u, e2.normal) ≈ 0.0 atol = 1e-12
+            @test norm(e2.u) ≈ 1.0
+            @test norm(e2.normal) ≈ 1.0
+            p2 = point_on_ellipse3(e2, 1.3)
+            @test is_on_ellipse3(p2, e2)
+            @test on_plane(p2, plane(e2))
+
+            # bifocal-through-point: no extra plane argument needed
+            f1b, f2b = EGPoint(-3.0, 0.0, 0.0), EGPoint(3.0, 0.0, 0.0)
+            pb = EGPoint(0.0, 4.0, 0.0)
+            eb = EGEllipse3(f1b, f2b, pb)
+            @test is_on_ellipse3(pb, eb)
+            @test eb.a ≈ 5.0
+
+            # bifocal + axis: explicit normal required (underdetermined otherwise)
+            ec = EGEllipse3(f1b, f2b, 5.0, EGVector(0.0, 0.0, 1.0))
+            @test ec.b ≈ 4.0
+            @test_throws ArgumentError EGEllipse3(f1b, f2b, 2.0, EGVector(0.0, 0.0, 1.0)) # a <= c
+
+            orth = orthoptic(e)
+            @test orth isa EGCircle3
+            @test orth.r ≈ sqrt(5.0^2 + 3.0^2)
+
+            axis = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            er = rotate(e, pi / 2, axis)
+            @test area(er) ≈ area(e)
+            @test is_on_ellipse3(rotate(p_on, pi / 2, axis), er)
+            @test area(homothety(e, 2.0, EGPoint(0.0, 0.0, 0.0))) ≈ area(e) * 4
+        end
+
+        @testset "EGHyperbola3" begin
+            h = EGHyperbola3(EGPoint(0.0, 0.0, 0.0), 3.0, 4.0, EGVector(0.0, 0.0, 1.0), EGVector(1.0, 0.0, 0.0))
+            ph = point_on_hyperbola3(h, 0.5)
+            @test is_on_hyperbola3(ph, h)
+            f1h, f2h = foci(h)
+            @test distance(f1h, h.center) ≈ sqrt(9.0 + 16.0)
+            asym1, asym2 = asymptotes(h)
+            @test on_line(h.center, asym1)
+            @test on_line(h.center, asym2)
+
+            # bifocal-through-point
+            f1b, f2b = EGPoint(-5.0, 0.0, 0.0), EGPoint(5.0, 0.0, 0.0)
+            pb = EGPoint(3.0, 0.0, 0.0) # on the transverse axis itself, a=3
+            hb = EGHyperbola3(f1b, f2b, pb)
+            @test hb.a ≈ 3.0
+        end
+
+        @testset "EGParabola3" begin
+            focus3 = EGPoint(0.0, 1.0, 0.0)
+            directrix3 = EGLine(EGPoint(-5.0, -1.0, 0.0), EGPoint(5.0, -1.0, 0.0))
+            par3 = EGParabola3(focus3, directrix3)
+            @test focal_parameter(par3) ≈ 2.0
+            pp = point_on_parabola3(par3, 2.0)
+            @test is_on_parabola3(pp, par3)
+            @test orthoptic(par3) == directrix3
+        end
+
+        @testset "Arcs: measure/arc_length/reverse/point_on_arc/Base.in" begin
+            circ = EGCircle3(EGPoint(0.0, 0.0, 0.0), 5.0, EGVector(0.0, 0.0, 1.0))
+            u0 = point_on_circle3(circ, 0.0)
+            u90 = point_on_circle3(circ, pi / 2)
+            arc = EGCircularArc3(circ, u0, u90)
+            @test measure(arc) ≈ pi / 2
+            @test arc_length(arc) ≈ 5 * pi / 2
+            @test midpoint(arc) in arc
+            @test measure(reverse(arc)) ≈ 3pi / 2
+
+            ell = EGEllipse3(EGPoint(0.0, 0.0, 0.0), 5.0, 3.0, EGVector(0.0, 0.0, 1.0), EGVector(1.0, 0.0, 0.0))
+            p1e, p2e = point_on_ellipse3(ell, 0.2), point_on_ellipse3(ell, 2.0)
+            earc = EGEllipticArc3(ell, p1e, p2e)
+            @test point_on_arc(earc, 0.0) ≈ p1e
+            @test point_on_arc(earc, 1.0) ≈ p2e
+            @test arc_length(earc) > distance(p1e, p2e)
+
+            par = EGParabola3(EGPoint(0.0, 1.0, 0.0), EGLine(EGPoint(-5.0, -1.0, 0.0), EGPoint(5.0, -1.0, 0.0)))
+            parc = EGParabolicArc3(par, point_on_parabola3(par, -3.0), point_on_parabola3(par, 3.0))
+            @test arc_length(parc) > distance(parc.p1, parc.p2)
+
+            hyp = EGHyperbola3(EGPoint(0.0, 0.0, 0.0), 3.0, 4.0, EGVector(0.0, 0.0, 1.0), EGVector(1.0, 0.0, 0.0))
+            harc = EGHyperbolicArc3(hyp, point_on_hyperbola3(hyp, -0.5), point_on_hyperbola3(hyp, 0.5))
+            @test harc isa EGHyperbolicArc3
+            @test point_on_arc(harc, 0.0) ≈ harc.p1 atol = 1e-9
+        end
+    end
+
+    @testset "Quadric surfaces" begin
+        @testset "EGEllipsoid3" begin
+            e = EGEllipsoid3(EGPoint(0.0, 0.0, 0.0), 3.0, 4.0, 5.0, EGVector(1.0, 0.0, 0.0), EGVector(0.0, 1.0, 0.0))
+            @test volume(e) ≈ (4 / 3) * pi * 60.0
+            sph_like = EGEllipsoid3(EGPoint(0.0, 0.0, 0.0), 2.0, 2.0, 2.0, EGVector(1.0, 0.0, 0.0), EGVector(0.0, 1.0, 0.0))
+            @test surface_area(sph_like) ≈ 4 * pi * 4.0 # a sphere is the one exact case for Thomsen's approximation
+            p = point_on_ellipsoid3(e, 1.0, 0.5)
+            @test is_on_ellipsoid3(p, e)
+
+            axis = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            er = rotate(e, pi / 3, axis)
+            @test volume(er) ≈ volume(e)
+            @test is_on_ellipsoid3(rotate(p, pi / 3, axis), er)
+        end
+
+        @testset "EGParaboloid3" begin
+            par = EGParaboloid3(EGPoint(0.0, 0.0, 0.0), 2.0, 3.0, EGVector(0.0, 0.0, 1.0), EGVector(1.0, 0.0, 0.0))
+            @test is_on_paraboloid3(par.vertex, par)
+            @test is_on_paraboloid3(point_on_paraboloid3(par, 1.5, 0.8), par)
+        end
+
+        @testset "EGHyperboloid3 (1 and 2 sheets)" begin
+            h1 = EGHyperboloid3(EGPoint(0.0, 0.0, 0.0), 2.0, 3.0, 4.0, EGVector(1.0, 0.0, 0.0), EGVector(0.0, 1.0, 0.0); sheets=1)
+            @test is_on_hyperboloid3(point_on_hyperboloid3(h1, 0.7, 1.2), h1)
+            waist = point_on_hyperboloid3(h1, 0.0, 0.0)
+            w = EuclideanGeometry.cross3(h1.u, h1.v)
+            @test dot(waist - h1.center, w) ≈ 0.0 atol = 1e-12
+
+            h2 = EGHyperboloid3(EGPoint(0.0, 0.0, 0.0), 2.0, 3.0, 4.0, EGVector(1.0, 0.0, 0.0), EGVector(0.0, 1.0, 0.0); sheets=2)
+            pa = point_on_hyperboloid3(h2, 0.5, 0.3; branch=1)
+            pb = point_on_hyperboloid3(h2, 0.5, 0.3; branch=-1)
+            @test is_on_hyperboloid3(pa, h2)
+            @test is_on_hyperboloid3(pb, h2)
+            @test sign(dot(pa - h2.center, w)) != sign(dot(pb - h2.center, w)) # two disjoint sheets, opposite sides
+
+            @test_throws ArgumentError EGHyperboloid3(EGPoint(0.0, 0.0, 0.0), 1.0, 1.0, 1.0, EGVector(1.0, 0.0, 0.0), EGVector(0.0, 1.0, 0.0); sheets=3)
+        end
+
+        @testset "EGHyperbolicParaboloid3 (the saddle)" begin
+            hp = EGHyperbolicParaboloid3(EGPoint(0.0, 0.0, 0.0), 2.0, 3.0, EGVector(0.0, 0.0, 1.0), EGVector(1.0, 0.0, 0.0))
+            @test is_on_hyperbolic_paraboloid3(point_on_hyperbolic_paraboloid3(hp, 1.0, 1.0), hp)
+            along_x = point_on_hyperbolic_paraboloid3(hp, 2.0, 0.0)
+            along_y = point_on_hyperbolic_paraboloid3(hp, 0.0, 2.0)
+            @test dot(along_x - hp.vertex, hp.axis) > 0 # opens up along x
+            @test dot(along_y - hp.vertex, hp.axis) < 0 # opens down along y -- the saddle
+        end
+    end
+
+    @testset "regular_tetrahedron3 / regular_octahedron3" begin
+        t = regular_tetrahedron3(EGPoint(0.0, 0.0, 0.0), 4.0)
+        vs = vertices(t)
+        edges = [distance(vs[i], vs[j]) for i in 1:4 for j in i+1:4]
+        @test all(e -> isapprox(e, 4.0), edges)
+        @test volume(t) ≈ 4.0^3 / (6 * sqrt(2))
+        @test centroid(t) ≈ EGPoint(0.0, 0.0, 0.0)
+
+        o = regular_octahedron3(EGPoint(1.0, 1.0, 1.0), 3.0)
+        fs = collect(faces(o))
+        @test length(fs) == 8
+        areas = area.(fs)
+        @test all(a -> isapprox(a, areas[1]), areas)
+        @test volume(o) ≈ sqrt(2) / 3 * 27.0
+        @test centroid(o) ≈ EGPoint(1.0, 1.0, 1.0)
+        @test surface_area(o) ≈ 8 * areas[1]
+
+        axis = EGLine(EGPoint(1.0, 1.0, 1.0), EGPoint(1.0, 1.0, 2.0))
+        @test volume(rotate(o, pi / 5, axis)) ≈ volume(o)
+        @test volume(homothety(o, 2.0, EGPoint(1.0, 1.0, 1.0))) ≈ volume(o) * 8
+    end
+
+    @testset "3D curved regions (EGCircularSector3/Segment3/AnnularSector3)" begin
+        circ = EGCircle3(EGPoint(1.0, 1.0, 1.0), 5.0, EGVector(1.0, 1.0, 1.0))
+        u0 = point_on_circle3(circ, 0.0)
+        u90 = point_on_circle3(circ, pi / 2)
+
+        sec = EGCircularSector3(circ, u0, u90)
+        @test area(sec) ≈ 5.0^2 * (pi / 2) / 2
+        @test perimeter(sec) ≈ 2 * 5.0 + 5.0 * (pi / 2)
+        @test on_plane(centroid(sec), plane(circ))
+        @test circ.center in sec
+        @test !(EGPoint(1000.0, 1000.0, 1000.0) in sec)
+
+        seg = EGCircularSegment3(circ, u0, u90)
+        @test area(seg) ≈ 5.0^2 * (pi / 2 - sin(pi / 2)) / 2
+
+        asec = EGAnnularSector3(EGCircularArc3(circ, u0, u90), 2.0)
+        @test area(asec) ≈ 5.0^2 * (pi / 2) / 2 - 2.0^2 * (pi / 2) / 2
+        @test_throws ArgumentError EGAnnularSector3(EGCircularArc3(circ, u0, u90), 10.0)
+
+        axis = EGLine(EGPoint(1.0, 1.0, 1.0), EGPoint(2.0, 1.0, 1.0))
+        @test area(rotate(sec, pi / 3, axis)) ≈ area(sec)
+        @test area(homothety(sec, 2.0, EGPoint(1.0, 1.0, 1.0))) ≈ area(sec) * 4
+    end
+
+    @testset "EGEquipollentVector" begin
+        ev = EGEquipollentVector(EGVector(3.0, 4.0), EGPoint(1.0, 2.0))
+        @test tip(ev) ≈ EGPoint(4.0, 6.0)
+        @test direction(ev) == ev.vector
+        @test !isempty(EGBoundingBox(ev)) # unlike a bare EGVector
+        @test EGBoundingBox(ev) == EGBoundingBox(EGPoint(1.0, 2.0), EGPoint(4.0, 6.0))
+        @test EGEquipollentVector(EGVector(3.0, 4.0)).point == EGPoint(0.0, 0.0) # single-arg: applied at the origin
+
+        # linear-algebra functions act on .vector; normalize keeps .point fixed
+        @test norm(ev) ≈ 5.0
+        @test normalize(ev).point == ev.point
+        @test normalize(ev).vector ≈ EGVector(0.6, 0.8)
+        @test dot(ev, EGVector(1.0, 0.0)) ≈ 3.0
+        @test dot(EGVector(1.0, 0.0), ev) ≈ 3.0
+        @test dot(ev, EGEquipollentVector(EGVector(0.0, 1.0), EGPoint(5.0, 5.0))) ≈ 4.0
+
+        # arithmetic: point of application stays fixed, vectors add
+        @test (ev + EGVector(1.0, 1.0)).point == ev.point
+        @test (ev + EGVector(1.0, 1.0)).vector ≈ EGVector(4.0, 5.0)
+        @test EGVector(1.0, 1.0) + ev == ev + EGVector(1.0, 1.0)
+        @test (ev - EGVector(1.0, 1.0)).vector ≈ EGVector(2.0, 3.0)
+
+        # translate: point shifts, vector (a free direction) doesn't
+        evt = translate(ev, EGVector(10.0, 10.0))
+        @test evt.point ≈ EGPoint(11.0, 12.0)
+        @test evt.vector == ev.vector
+
+        # rotate: both point and vector rotate
+        evr = rotate(ev, pi / 2, EGPoint(0.0, 0.0))
+        @test evr.point ≈ EGPoint(-2.0, 1.0)
+        @test evr.vector ≈ EGVector(-4.0, 3.0)
+
+        # homothety: point scales about center, vector scales by literal k
+        # (not abs(k)) -- this is the whole point: unlike a bare EGVector,
+        # this DOES get scaled correctly inside @to_luxor_picture
+        evh = homothety(ev, 2.0, EGPoint(0.0, 0.0))
+        @test evh.point ≈ EGPoint(2.0, 4.0)
+        @test evh.vector ≈ EGVector(6.0, 8.0)
+        evhneg = homothety(ev, -1.0, EGPoint(0.0, 0.0))
+        @test evhneg.point ≈ EGPoint(-1.0, -2.0)
+        @test evhneg.vector ≈ EGVector(-3.0, -4.0) # direction flips too, matching the point reflection
+
+        # reflection
+        refl_pt = reflection(ev, EGPoint(0.0, 0.0))
+        @test refl_pt.point ≈ EGPoint(-1.0, -2.0)
+        @test refl_pt.vector ≈ EGVector(-3.0, -4.0)
+        refl_line = reflection(ev, EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0)))
+        @test refl_line.point ≈ EGPoint(1.0, -2.0)
+        @test refl_line.vector ≈ EGVector(3.0, -4.0)
+
+        # 3D
+        ev3d = EGEquipollentVector(EGVector(1.0, 0.0, 0.0), EGPoint(1.0, 2.0, 3.0))
+        axis = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+        ev3dr = rotate(ev3d, pi / 2, axis)
+        @test ev3dr.point ≈ EGPoint(-2.0, 1.0, 3.0) atol = 1e-12
+        @test ev3dr.vector ≈ EGVector(0.0, 1.0, 0.0) atol = 1e-12
+        ev3dh = homothety(ev3d, 3.0, EGPoint(0.0, 0.0, 0.0))
+        @test ev3dh.point ≈ EGPoint(3.0, 6.0, 9.0)
+        @test ev3dh.vector ≈ EGVector(3.0, 0.0, 0.0)
+
+        # the actual fix: it correctly scales inside @to_luxor_picture,
+        # unlike a bare EGVector (which is exempt from the transform
+        # entirely, since it has no position/bounding box). Only ONE name
+        # is bound inside the block on purpose, so the macro returns the
+        # placed value directly rather than a tuple of every named shape.
+        raw = EGEquipollentVector(direction(EGLine(EGPoint(3.0, 4.0), EGPoint(0.0, 0.0))), EGPoint(0.0, 0.0))
+        sz, ev_placed = @to_luxor_picture width=500 height=240 margin=20 begin
+            evp = raw
+        end
+        @test norm(ev_placed.vector) > norm(raw.vector) # got scaled up to fit the canvas
     end
 
     @testset "Luxor extension" begin

@@ -271,7 +271,7 @@ Base.isapprox(x::AbstractArray{<:EGPointOrVector}, y::AbstractArray{<:EGPointOrV
     length(x) == length(y) && all(isapprox(a, b; kwargs...) for (a, b) in zip(x, y))
 
 Base.show(io::IO, p::EGPoint) = print(io, "[", join(p.coords, ", "), "]")
-Base.show(io::IO, v::EGVector) = print(io, "<", join(v.coords, ", "), ">")
+Base.show(io::IO, v::EGVector) = print(io, "⟨", join(v.coords, ", "), "⟩")
 
 Base.:+(a::EGPoint, b::EGPoint) = EGPoint(a.coords .+ b.coords)
 Base.:-(a::EGPoint, b::EGPoint) = EGPoint(a.coords .- b.coords)

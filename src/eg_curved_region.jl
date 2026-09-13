@@ -106,6 +106,26 @@ function Base.in(p::EGPoint, s::EGCircularSector2)
     return mod(ap - a1, 2π) <= measure(s.arc)
 end
 
+"""
+    centroid(s::EGCircularSector2)
+
+The centroid of `s`, at distance `(4r·sin(θ/2))/(3θ)` from the circle's
+center along the arc's own bisector (`θ = measure(s.arc)`, `r =
+s.arc.circle.r`) — the classical circular-sector centroid formula. Unlike
+`area`/`perimeter` (which reuse the generic `EGPolygon` machinery via
+[`sides`](@ref)), this is a dedicated formula: the generic
+`centroid(::EGPolygon)` needs [`vertices`](@ref), which curved-sided
+regions like this one don't implement.
+"""
+function centroid(s::EGCircularSector2)
+    c = s.arc.circle
+    θ = measure(s.arc)
+    a1 = atan(s.arc.p1[2] - c.center[2], s.arc.p1[1] - c.center[1])
+    ψ = a1 + θ / 2
+    d = (4 * c.r * sin(θ / 2)) / (3θ)
+    return c.center + d * EGPoint(cos(ψ), sin(ψ))
+end
+
 rotate(s::EGCircularSector2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) = EGCircularSector2(rotate(s.arc, angle, center))
 homothety(s::EGCircularSector2, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) = EGCircularSector2(homothety(s.arc, k, center))
 reflection(s::EGCircularSector2, about) = EGCircularSector2(reflection(s.arc, about))
@@ -136,6 +156,24 @@ function Base.in(p::EGPoint, s::EGCircularSegment2)
     chord = EGLine(s.arc.p1, s.arc.p2)
     side_of_chord(q) = sign(cross2(direction(chord), q - chord.p1))
     return side_of_chord(p) == side_of_chord(midpoint(s.arc))
+end
+
+"""
+    centroid(s::EGCircularSegment2)
+
+The centroid of `s`, at distance `(4r·sin³(θ/2))/(3(θ-sinθ))` from the
+circle's center along the arc's own bisector — the classical
+circular-segment centroid formula (see
+[`centroid(::EGCircularSector2)`](@ref) for why this is a dedicated
+formula rather than the generic `EGPolygon` one).
+"""
+function centroid(s::EGCircularSegment2)
+    c = s.arc.circle
+    θ = measure(s.arc)
+    a1 = atan(s.arc.p1[2] - c.center[2], s.arc.p1[1] - c.center[1])
+    ψ = a1 + θ / 2
+    d = (4 * c.r * sin(θ / 2)^3) / (3 * (θ - sin(θ)))
+    return c.center + d * EGPoint(cos(ψ), sin(ψ))
 end
 
 rotate(s::EGCircularSegment2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) = EGCircularSegment2(rotate(s.arc, angle, center))
@@ -188,6 +226,21 @@ end
 function sides(s::EGAnnularSector2)
     inner = _inner_arc(s)
     return [EGSegment(inner.p1, s.outer.p1), s.outer, EGSegment(s.outer.p2, inner.p2), inner]
+end
+
+"""
+    centroid(s::EGAnnularSector2)
+
+The centroid of `s`, as the area-weighted difference of the outer and
+inner sectors' own centroids (`(Aₒcₒ - Aᵢcᵢ)/(Aₒ-Aᵢ)`) — both share the
+same bisector by construction, so this reduces to the same closed form as
+[`centroid(::EGCircularSector2)`](@ref) applied twice.
+"""
+function centroid(s::EGAnnularSector2)
+    outer_sector = EGCircularSector2(s.outer)
+    inner_sector = EGCircularSector2(_inner_arc(s))
+    Ao, Ai = area(outer_sector), area(inner_sector)
+    return (Ao * centroid(outer_sector) - Ai * centroid(inner_sector)) / (Ao - Ai)
 end
 
 rotate(s::EGAnnularSector2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) = EGAnnularSector2(rotate(s.outer, angle, center), s.r_inner)

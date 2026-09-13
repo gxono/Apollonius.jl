@@ -52,6 +52,10 @@ l1, l2 = external_tangent_lines(c1, c2)
 collect(Iterators.flatten([l1, l2]))   # the 4 points of tangency, in one Vector{EGPoint}
 ```
 
+```@raw html
+<img src="assets/img/destructuring_tangents.svg" alt="Two circles with their two common external tangent lines, the four tangent points marked" style="width:100%; max-width: 700px;">
+```
+
 But every `EGObject`/`EGTransform` (this one included) is always a
 *scalar* for **broadcasting** purposes, so `translate.(p, [v1, v2])` or
 `intersection.(l, [c1, c2])` repeats the single shape against each
@@ -136,6 +140,48 @@ normalize(d)   # (0.6, 0.8): unit vector, same direction
 dot(d, EGVector(1.0, 0.0))   # 3.0
 ```
 
+### Giving a vector a position: `EGEquipollentVector`
+
+An `EGVector` is deliberately positionless — that's exactly what makes it
+the right type for `direction(l)`, a normal, or anything else that's
+purely "which way and how far," never "where." But that same
+positionlessness means a bare `EGVector` has no [`EGBoundingBox`](@ref) at
+all (`isempty(EGBoundingBox(::EGVector))` is always `true`), so it's
+entirely exempt from [`@to_luxor_picture`](@ref)'s fit-to-canvas transform
+— drawing one directly inside a picture comes out at the wrong scale and
+anchored at the wrong place, since it never got scaled/shifted/flipped
+along with everything else in the block.
+
+[`EGEquipollentVector`](@ref) (the classical "vector equipolente": a
+representative of a free vector, tied to a point of application) is the
+fix — it wraps a `vector` and the `point` it's applied at, so it has a
+real, non-empty bounding box and transforms fully like any other
+`EGCurve`:
+
+```@example geo
+ev = EGEquipollentVector(d, O)   # d applied at O
+EGBoundingBox(ev)                 # a real box now, unlike EGBoundingBox(d)
+```
+
+`tip(ev)` is `ev.point + ev.vector`, computed on demand. `norm`/
+`normalize`/`dot` all work the same way as on a bare `EGVector` (acting on
+`ev.vector`; `normalize` keeps `ev.point` fixed), and the usual
+`rotate`/`translate`/`homothety`/`reflection` quartet works too —
+`homothety` in particular scales `ev.vector`'s own length right along with
+everything else, which a bare `EGVector` inside a picture never could:
+
+```@example geo
+homothety(ev, 2.0, O)   # both O and the vector scale together
+```
+
+Putting one inside a [`@to_luxor_picture!`](@ref) block and drawing it
+with [`path`](@ref)`(ev; as=:arrow)` (see
+[Drawing with Luxor.jl](@ref)) is what correctly scales/places it:
+
+```@raw html
+<img src="assets/img/direction_vector.svg" alt="A line, its direction vector d drawn as a green arrow, and the unit vector v = normalize(d) drawn as a purple arrow, both correctly anchored and scaled" style="width:100%; max-width: 700px;">
+```
+
 ## Polar coordinates
 
 [`polar_point`](@ref) builds a point from a distance and an angle (radians,
@@ -181,9 +227,35 @@ side_of_line(EGPoint(2.0, -1.0), l_horiz)  # -1 : "below"
 ```
 
 ```@example geo
+l_vert = EGLine(EGPoint(0.0, 0.0), EGPoint(0.0, 4.0))
+is_parallel(l, EGLine(EGPoint(1.0, 0.0), EGPoint(4.0, 4.0))), is_perpendicular(l_horiz, l_vert)
+```
+
+```@example geo
 r = EGRay(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0))
 on_ray(EGPoint(10.0, 0.0), r)    # true: ahead of the origin, same direction
 on_ray(EGPoint(-1.0, 0.0), r)    # false: on the line, but behind the origin
+```
+
+`on_line`/`on_segment`/`on_ray` are also exactly what `Base.in` uses under
+the hood, so the more natural `p in l` reads just as well:
+
+```@example geo
+EGPoint(6.0, 8.0) in l, EGPoint(10.0, 0.0) in r
+```
+
+## Distance to a line, segment or ray
+
+[`distance`](@ref) also works between a point and any of `EGLine`,
+`EGSegment` or `EGRay` — the perpendicular distance to the *infinite* line
+in the first case, but clamped to the finite extent for the other two (so
+a point "past the end" measures to the nearest endpoint, not along the
+infinite extension):
+
+```@example geo
+far_point = EGPoint(10.0, 10.0)
+distance(far_point, l), distance(far_point, s), distance(far_point, r)
+# perpendicular to the infinite line; clamped to the finite segment [O,A]; clamped to the ray
 ```
 
 `on_line`/`on_segment`/`on_ray` each also take just the line/segment/ray
@@ -208,6 +280,10 @@ C = EGPoint(2.0, 6.0)
 
 foot = projection(C, l)      # the perpendicular foot of C on l
 Cref = reflection(C, foot)   # C mirrored through that foot — i.e. across l
+```
+
+```@raw html
+<img src="assets/img/projection_reflection.svg" alt="A line l, a point C, its perpendicular foot on l, and C reflected through that foot to the other side of l, joined by a dashed segment" style="width:100%; max-width: 700px;">
 ```
 
 `projection` also takes an `angle` keyword (radians, default `pi/2`,
@@ -239,22 +315,27 @@ reusable one-argument function, for `map`/`|>`:
 map(projection(l), [C, P, Q])   # project a whole collection onto l at once
 ```
 
-## Rotation and homothety
+## Rotation, homothety and translation
 
 [`rotate`](@ref) turns a point about a center by an angle (radians,
 counter-clockwise); [`homothety`](@ref) scales it by a factor `k` about a
 center (`k = -1` is a point reflection, `0 < k < 1` shrinks towards the
-center). Both default to the origin when no center is given.
+center); [`translate`](@ref) shifts it by an [`EGVector`](@ref) — the
+fourth member of this quartet, and the only one with no `center` (a
+translation has none). `rotate`/`homothety` default to the origin when no
+center is given.
 
 ```@example geo
 rotate(C, pi / 2, P)     # C rotated 90° about P
 homothety(C, 2.0, P)     # C scaled by 2 about P
+translate(C, EGVector(1.0, -1.0))   # C shifted by (1,-1)
 barycenter([P, Q, C], [1.0, 1.0, 2.0])   # weighted average of the three
 ```
 
 ## Parallels, perpendiculars and bisectors
 
 ```@example geo
+midpoint(P, Q)                      # (3.5, 2.0): the plain average of the two
 parallel_through(l, C)             # line through C, parallel to l
 perpendicular_through(l, C)        # line through C, perpendicular to l
 pb = perpendicular_bisector(P, Q)  # perpendicular to [P,Q] through its midpoint
