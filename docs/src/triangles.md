@@ -44,6 +44,11 @@ npc = nine_point_circle(t)
 circumradius(t)   # the radius of circumcircle(t), same as npc.r * 2
 ```
 
+```@raw html
+<img src="../assets/img/triangles/tri_cen.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+
 [`nine_point_circle`](@ref) passes through the three edge midpoints, the
 three altitude feet, and the three midpoints of segment `[vertex, H]` (nine
 points in total, though only the circle itself — not the nine points — is
@@ -69,6 +74,16 @@ whose polar line with respect to the circumcircle is, in turn, the
 orthic_axis(t), brocard_axis(t), lemoine_axis(t)
 ```
 
+```@raw html
+<img src="../assets/img/triangles/obl_axis.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+```@raw html
+<img src="../assets/img/triangles/orthic_axis.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+
+
 ## Excenters and excircles
 
 Where the incircle is tangent to all three sides from *inside* the
@@ -84,6 +99,11 @@ exc = excircles(t)
 er = exradii(t)
 exc.A.r == er.A   # excircles(t).A already has radius exradii(t).A
 ```
+
+```@raw html
+<img src="../assets/img/triangles/excircles.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
 
 ## Barycentric coordinates
 
