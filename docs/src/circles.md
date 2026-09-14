@@ -286,7 +286,7 @@ otherwise there'd be two different arcs (the short way and the long way
 around) that a bare pair of points couldn't tell apart.
 
 ```@example geo
-p1, p2 = EGPoint(5.0, 0.0), EGPoint(0.0, 5.0)
+p1, p2 = EGPoint(8.0, 0.0), EGPoint(0.0, 2.0)
 arc = EGCircularArc2(c, p1, p2)
 
 measure(arc)        # π/2: the swept angle, counterclockwise from p1 to p2
@@ -396,8 +396,12 @@ with a negative ratio, a point reflection through the center, is really just
 a 180° rotation), so `p1`/`p2` transform pointwise with no surprises:
 
 ```@example geo
-rotate(arc, pi / 3)
+rotate(arc, 2pi / 3)
 homothety(arc, -2.0)   # negative k: still no swap needed
+```
+
+```@raw html
+<img src="../assets/img/circles/arc_rot_hom.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 Reflecting about an `EGPoint` is likewise a point reflection — no
@@ -409,6 +413,10 @@ counterclockwise like every other `EGCircularArc2`:
 ```@example geo
 reflection(arc, EGPoint(1.0, 1.0))                     # point reflection: p1/p2 not swapped
 reflection(arc, EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0)))  # line reflection: p1/p2 swapped
+```
+
+```@raw html
+<img src="../assets/img/circles/arc_cen_axi.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 Without that swap, the reflected endpoints alone would trace out the arc's
@@ -428,6 +436,10 @@ u3 = EGCircle2(EGPoint(1.0, sqrt(3)), 1.0)
 
 gap = only(interstices(u1, u2, u3))
 area(gap), perimeter(gap)
+```
+
+```@raw html
+<img src="../assets/img/circles/circle_gap.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 The result is an [`EGInterstice2`](@ref) — a specific 3-arc
@@ -456,16 +468,20 @@ derived from circles:
 | [`EGCurvilinearQuadrilateral2`](@ref) | 4 |
 | [`EGCurvilinearNgon2`](@ref) | any number ≥ 3, given as a vector |
 
-![A curvilinear triangle mixing a circular arc and two straight sides](assets/img/placeholder.png)
 
 ```@example geo
 circ = EGCircle2(EGPoint(0.0, 0.0), 3.0)
-arc = EGCircularArc2(circ, EGPoint(3.0, 0.0), EGPoint(0.0, 3.0))
-chord = EGSegment(EGPoint(0.0, 3.0), EGPoint(0.0, 0.0))
-radius = EGSegment(EGPoint(0.0, 0.0), EGPoint(3.0, 0.0))
+arc = EGCircularArc2(circ, EGPoint(0.0, 3.0), EGPoint(-3.0, 0.0))
+rad1 = EGSegment(EGPoint(0.0, 3.0), EGPoint(0.0, 0.0))
+rad2 = EGSegment(EGPoint(0.0, 0.0), EGPoint(-3.0, 0.0))
 
-ct = EGCurvilinearTriangle2(radius, arc, chord)   # one curved side, two straight
+
+ct = EGCurvilinearTriangle2(rad1, arc, rad2)   # one curved side, two straight
 area(ct), perimeter(ct)
+```
+
+```@raw html
+<img src="../assets/img/circles/cur_pol.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 This is exactly what [`EGCircularSector2`](@ref) computes for the same
@@ -478,8 +494,14 @@ originally circular, see [Affine Maps](@ref) and
 ```@example geo
 eq = EGEllipse2(EGPoint(6.0, 0.0), 2.0, 1.0, 0.0)
 earc = EGEllipticArc2(eq, EGPoint(8.0, 0.0), EGPoint(6.0, 1.0))
-cq = EGCurvilinearQuadrilateral2(radius, arc, EGSegment(EGPoint(0.0, 3.0), EGPoint(6.0, 1.0)), earc)
+s1 = EGSegment(EGPoint(0.0, 3.0), EGPoint(6.0, 1.0))
+s2 = EGSegment(EGPoint(-3.0, 0.0), earc.p1)
+cq = EGCurvilinearQuadrilateral2(earc, s1, arc, s2)
 area(cq) > 0   # a genuine 4-sided mixed straight/circular/elliptic region
+```
+
+```@raw html
+<img src="../assets/img/circles/cur_pol_cua.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 [`EGCurvilinearNgon2`](@ref)`(sides)` is the same idea for any number of
@@ -487,7 +509,7 @@ sides ≥ 3, given as a plain vector instead of one positional argument per
 side — useful when the side count isn't fixed ahead of time:
 
 ```@example geo
-cn = EGCurvilinearNgon2([radius, arc, chord])   # the same 3 sides as ct above
+cn = EGCurvilinearNgon2([rad1, arc, rad2])   # the same 3 sides as ct above
 area(cn) ≈ area(ct), perimeter(cn) ≈ perimeter(ct)   # same sides, same region either way
 ```
 

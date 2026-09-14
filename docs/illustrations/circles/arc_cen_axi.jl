@@ -18,33 +18,46 @@ end
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     c = EGCircle2(EGPoint(0.0, 0.0), 5.0)
-    @unbounded p1 = EGPoint(8.0, 0.0)
-    p2 = EGPoint(0.0, 2.0)
+    p1, p2 = EGPoint(0.0, 1.0), EGPoint(-2.0, 0.0)
     arc = EGCircularArc2(c, p1, p2)
+
+    p = EGPoint(1.0, 1.0)
+    l = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))
+
+    arc_ref_p = reflection(arc, p)
+    arc_ref_l = reflection(arc, l)
 end
- 
-arc |> propertynames
+
+
+
 
 begin
 Drawing(sz.width, sz.height, "docs/src/assets/img/circles/$fmt_name")
 origin()
 
-sethue("gray80")
-setdash(:dash)
-path([EGSegment(arc.circle.center, arc.p1)], action=:stroke)
-path([EGSegment(arc.circle.center, p1)], action=:stroke)
-setdash(:solid)
 
 sethue(julia_blue)
-path(c, action=:stroke)
-
-sethue(julia_purple)
 path(arc, action=:stroke)
 
-path([p1,p2])
+sethue(julia_purple)
+path([arc_ref_p, arc_ref_l], action=:stroke)
+setdash(:dash)
+path(EGSegment(arc.p1, arc_ref_l.p2), action=:stroke)
+path(EGSegment(arc.p2, arc_ref_l.p1), action=:stroke)
+path(EGSegment(arc.p2, arc_ref_p.p2), action=:stroke)
+path(EGSegment(arc.p1, arc_ref_p.p1), action=:stroke)
+setdash(:solid)
+
+
+sethue(julia_green)
+path(l, action=:stroke)
+path(p)
+setpoint(julia_green)
+
+path([arc.p1, arc.p2])
 setpoint(julia_red)
 
-path([arc.p1,arc.p2])
+path([arc_ref_l.p1, arc_ref_l.p2, arc_ref_p.p1, arc_ref_p.p2])
 setpoint(julia_purple)
 
 finish()

@@ -18,34 +18,41 @@ end
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     c = EGCircle2(EGPoint(0.0, 0.0), 5.0)
-    @unbounded p1 = EGPoint(8.0, 0.0)
-    p2 = EGPoint(0.0, 2.0)
+    p1, p2 = EGPoint(0.0, 1.0), EGPoint(-2.0, 0.0)
     arc = EGCircularArc2(c, p1, p2)
+
+    arc_rot = rotate(arc, 2pi/3)
+    arc_hom = homothety(arc, -2.0)
 end
- 
-arc |> propertynames
+
+
+
 
 begin
 Drawing(sz.width, sz.height, "docs/src/assets/img/circles/$fmt_name")
 origin()
 
-sethue("gray80")
+
+sethue(julia_purple)
+path(EGAngle2(arc.circle.center, arc_rot.p1, arc.p1), action=:fill, as=:sector)
 setdash(:dash)
-path([EGSegment(arc.circle.center, arc.p1)], action=:stroke)
-path([EGSegment(arc.circle.center, p1)], action=:stroke)
+path(EGSegment(arc.circle.center, arc_rot.p1), action=:stroke)
+path(EGSegment(arc.circle.center, arc_hom.p1), action=:stroke)
+sethue(julia_red)
+path(EGSegment(arc.circle.center, arc.p1), action=:stroke)
 setdash(:solid)
 
 sethue(julia_blue)
-path(c, action=:stroke)
-
-sethue(julia_purple)
 path(arc, action=:stroke)
 
-path([p1,p2])
-setpoint(julia_red)
+sethue(julia_purple)
+path([arc_rot, arc_hom], action=:stroke)
 
-path([arc.p1,arc.p2])
+path([arc_rot.p1, arc_hom.p1])
 setpoint(julia_purple)
+
+path([arc.circle.center, arc.p1])
+setpoint(julia_red)
 
 finish()
 preview()

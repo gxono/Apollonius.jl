@@ -17,35 +17,29 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    c = EGCircle2(EGPoint(0.0, 0.0), 5.0)
-    @unbounded p1 = EGPoint(8.0, 0.0)
-    p2 = EGPoint(0.0, 2.0)
-    arc = EGCircularArc2(c, p1, p2)
+    u1 = EGCircle2(EGPoint(0.0, 0.0), 1.0)
+    u2 = EGCircle2(EGPoint(2.0, 0.0), 1.0)
+    u3 = EGCircle2(EGPoint(1.0, sqrt(3)), 1.0)
+
+    gap = only(interstices(u1, u2, u3))
 end
- 
-arc |> propertynames
+
+
+
 
 begin
 Drawing(sz.width, sz.height, "docs/src/assets/img/circles/$fmt_name")
 origin()
 
-sethue("gray80")
-setdash(:dash)
-path([EGSegment(arc.circle.center, arc.p1)], action=:stroke)
-path([EGSegment(arc.circle.center, p1)], action=:stroke)
-setdash(:solid)
+sethue(julia_red)
+path(u1, action=:stroke)
+sethue(julia_purple)
+path(u2, action=:stroke)
+sethue(julia_green)
+path(u3, action=:stroke)
 
 sethue(julia_blue)
-path(c, action=:stroke)
-
-sethue(julia_purple)
-path(arc, action=:stroke)
-
-path([p1,p2])
-setpoint(julia_red)
-
-path([arc.p1,arc.p2])
-setpoint(julia_purple)
+path(gap, action=:fill)
 
 finish()
 preview()

@@ -17,35 +17,31 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    c = EGCircle2(EGPoint(0.0, 0.0), 5.0)
-    @unbounded p1 = EGPoint(8.0, 0.0)
-    p2 = EGPoint(0.0, 2.0)
-    arc = EGCircularArc2(c, p1, p2)
+    circ = EGCircle2(EGPoint(0.0, 0.0), 3.0)
+    arc = EGCircularArc2(circ, EGPoint(0.0, 3.0), EGPoint(-3.0, 0.0))
+    rad1 = EGSegment(EGPoint(0.0, 3.0), EGPoint(0.0, 0.0))
+    rad2 = EGSegment(EGPoint(0.0, 0.0), EGPoint(-3.0, 0.0))
+
+    ct = EGCurvilinearTriangle2(rad1, arc, rad2)
 end
- 
-arc |> propertynames
+
+
 
 begin
 Drawing(sz.width, sz.height, "docs/src/assets/img/circles/$fmt_name")
 origin()
 
-sethue("gray80")
-setdash(:dash)
-path([EGSegment(arc.circle.center, arc.p1)], action=:stroke)
-path([EGSegment(arc.circle.center, p1)], action=:stroke)
-setdash(:solid)
-
 sethue(julia_blue)
-path(c, action=:stroke)
+path(circ, action=:stroke)
 
 sethue(julia_purple)
-path(arc, action=:stroke)
+path(ct, action=:fill)
 
-path([p1,p2])
-setpoint(julia_red)
+sethue(julia_green)
+path([arc, rad1, rad2], action=:stroke)
 
-path([arc.p1,arc.p2])
-setpoint(julia_purple)
+path([circ.center, arc.p1, arc.p2])
+setpoint(julia_green)
 
 finish()
 preview()
