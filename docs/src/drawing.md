@@ -26,19 +26,24 @@ using EuclideanGeometry, Luxor
 
 t = EGTriangle(EGPoint(-80.0, 60.0), EGPoint(80.0, 60.0), EGPoint(-20.0, -80.0))
 
-Drawing(400, 400, "triangle.png")
+Drawing(250, 250, "triangle.png")
 origin()
 background("white")
 
-sethue("steelblue")
-path(t; action=:stroke)
-path(circumcircle(t); action=:stroke)
+sethue(Luxor.julia_blue)
+path([t, circumcircle(t)]; action=:stroke)
 
-sethue("orangered")
-path(incenter(t); action=:fill)
+sethue(Luxor.julia_red) 
+path([incenter(t), vertices(t)...], action=:fill)
 
 finish()
+preview()
 ```
+
+```@raw html
+<img src="../assets/img/drawing/ej1.png" alt="" style="width:100%; max-width: 400px;">
+```
+
 
 If you only ever `using EuclideanGeometry` and never load Luxor, `path`
 simply doesn't exist as a callable function (`methods(path)` is empty) —
@@ -208,6 +213,10 @@ l = EGLine(EGPoint(0.0, -60.0), EGPoint(0.0, 60.0))
 path(l; extend=0.0, as=:arrow, arrowheadlength=15)   # extend=0.0: the exact finite segment
 ```
 
+```@raw html
+<img src="../assets/img/drawing/arrows.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
 This is the one case where `path` doesn't just add to the current path:
 Luxor's `arrow` always strokes the shaft and fills the arrowhead
 immediately, with no deferred form, so `action` is ignored when
@@ -228,6 +237,10 @@ path(ang; as=:arc, action=:stroke)       # the conventional small arc (default)
 path(ang; as=:sector, action=:fill)      # closed pie-wedge, for shading
 path(ang; as=:rarc, action=:stroke)      # the parallelogram-law corner marker (open)
 path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
+```
+
+```@raw html
+<img src="../assets/img/drawing/angles.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 `radius` defaults to `0.15` times the shorter of the distances from the
