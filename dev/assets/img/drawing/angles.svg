@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="240" viewBox="0 0 500 240">
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 20 153.542969 L 96.667969 153.542969 L 48.75 86.457031 Z M 20 153.542969 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 115.832031 153.542969 L 192.5 153.542969 L 144.582031 86.457031 Z M 115.832031 153.542969 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 211.667969 153.542969 L 288.332031 153.542969 L 240.417969 86.457031 Z M 211.667969 153.542969 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 307.5 153.542969 L 384.167969 153.542969 L 336.25 86.457031 Z M 307.5 153.542969 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 403.332031 153.542969 L 480 153.542969 L 432.082031 86.457031 Z M 403.332031 153.542969 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 85.167969 153.542969 L 96.667969 153.542969 L 89.984375 144.183594 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 181 153.542969 C 181 149.828125 182.792969 146.34375 185.816406 144.183594 "/>
+<path fill-rule="nonzero" fill="rgb(58.4%, 34.5%, 69.8%)" fill-opacity="1" d="M 288.332031 153.542969 L 276.832031 153.542969 C 276.832031 149.828125 278.625 146.34375 281.648438 144.183594 Z M 288.332031 153.542969 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 372.667969 153.542969 L 365.984375 144.183594 L 377.484375 144.183594 "/>
+<path fill-rule="nonzero" fill="rgb(58.4%, 34.5%, 69.8%)" fill-opacity="1" d="M 480 153.542969 L 468.5 153.542969 L 461.816406 144.183594 L 473.316406 144.183594 Z M 480 153.542969 "/>
+</svg>
