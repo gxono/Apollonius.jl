@@ -1,0 +1,83 @@
+begin
+using EuclideanGeometry
+using Luxor: @drawsvg, @svg,
+    Drawing, finish, preview, origin,
+    background, RGBA,
+    sethue, setdash, setopacity,
+    fillpreserve, strokepath, 
+    julia_blue, julia_green, julia_red, julia_purple,
+    gsave, grestore,
+    label
+import Luxor
+
+setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
+
+end
+
+sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+    P, Q, C = EGPoint(1.0, 1.0), EGPoint(6.0, 3.0), EGPoint(2.0, 6.0)
+    
+    R = rotate(C, pi / 2, P)
+    angTR = EGAngle2(P, C, R)
+    
+    H = homothety(C, 2.0, P)
+
+    vecCT = EGVector(1.0, -1.0)
+    T = translate(C, vecCT)
+
+    trian = EGTriangle(P,Q,C)
+    B = barycenter(vertices(trian), [1.0, 1.0, 2.0])
+    m1, m2, m3 = midpoint.(sides(trian))
+end
+
+
+
+begin
+Drawing(sz.width, sz.height, "docs/src/assets/img/points_lines/rotation_homothety_translation.svg")
+origin()
+sethue("gray80")
+#Barycenter
+
+#median
+path([EGSegment(p,m) for (p,m) in zip([C,P,Q], [m1,m2,m3])], action = :stroke)    
+path(EGTriangle(P, Q, C), action=:stroke)
+
+#Homothety
+sethue(julia_purple)
+path(EGLine(C,P), action=:stroke)
+
+#Rotation
+sethue(julia_red)
+path(EGSegment(P,C), action=:stroke)
+
+sethue(julia_purple)
+path(angTR, action=:fill, as=:rsector)
+path(EGSegment(P,R), action=:stroke)
+
+
+#Traslation
+path(EGEquipollentVector(vecCT, C), action=:stroke, as=:arrow)
+
+path(P)
+setpoint(julia_blue)
+
+path([C,Q])
+setpoint(julia_red)
+
+path([R,H,T,B])
+setpoint(julia_purple)
+
+path([m1,m2,m3])
+setpoint("gray80")
+
+sethue("black")
+label("Q", :E ,Q)
+label("P", :SE ,P)
+label("C", :NW ,C)
+label("R", :W ,R)
+label("H", :SE ,H)
+label("T", :SE ,T)
+label("B", :W ,B)
+finish()
+preview()
+end

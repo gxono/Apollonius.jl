@@ -1,27 +1,34 @@
 # -------------------------------------------------------------------------
 # EGEquipollentVector (<: EGCurve{Dim,T}): a free EGVector applied at a
 # specific EGPoint -- the classical "vector equipolente" (a representative
-# of a free vector, tied to a point of application). Unlike a bare
-# EGVector (deliberately positionless, so EGBoundingBox(::EGVector) is
-# empty and it's exempt from @to_luxor_picture's fit-to-canvas transform
-# entirely -- see its own docstring), this type HAS a position, so it
-# gets a real EGBoundingBox and transforms fully and correctly (including
-# being scaled by homothety) like every other EGCurve.
+# of a free vector, tied to a point of application). A bare EGVector is
+# deliberately positionless, so EGBoundingBox(::EGVector) is empty and it
+# never contributes to @to_luxor_picture's fit-to-canvas *sizing*, and it
+# can't be shifted into position either (nowhere to shift it *to*) -- but
+# it CAN be scaled/flipped to the picture's own scale (see its own
+# `homothety` method and `_place_in_picture`'s comment), which composes
+# correctly with a separately-placed anchor EGPoint. EGEquipollentVector
+# is still the more robust choice for anything meant to be drawn/reasoned
+# about as one piece: it has a real EGBoundingBox of its own (so it
+# contributes to the picture's sizing even if it's the only thing in the
+# block), and transforms fully as a single object via translate/rotate/
+# homothety/reflection, without needing a second, separately-tracked
+# anchor point alongside it.
 # -------------------------------------------------------------------------
 
 """
     EGEquipollentVector(vector::EGVector, point::EGPoint)
 
 `vector`, applied at `point` -- i.e. the directed segment from `point` to
-`point + vector`. Unlike a bare [`EGVector`](@ref) (which has no position
-and is therefore exempt from `@to_luxor_picture`'s fit-to-canvas transform
-entirely), this type has a real [`EGBoundingBox`](@ref) and transforms
-fully like any other `EGCurve` — in particular, `homothety` correctly
-scales its length along with everything else in a picture, which a bare
-`EGVector` cannot. `vector` comes first to match
-[`path(::EGVector, ::EGPoint)`](@ref)'s own `(vector, from)` order, and so
-the single-argument form below reads as "this vector, optionally at a
-point" rather than the other way around.
+`point + vector`. A bare [`EGVector`](@ref) has no position of its own, so
+it never contributes to [`@to_luxor_picture`](@ref)'s fit-to-canvas
+*sizing* and can't be shifted into place the way a positioned shape can
+— this type can, since it has a real [`EGBoundingBox`](@ref) and
+transforms fully as one piece via `translate`/`rotate`/`homothety`/
+`reflection`, without needing a second point tracked alongside it.
+`vector` comes first to match [`path(::EGVector, ::EGPoint)`](@ref)'s own
+`(vector, from)` order, and so the single-argument form below reads as
+"this vector, optionally at a point" rather than the other way around.
 """
 struct EGEquipollentVector{Dim,T<:Real} <: EGCurve{Dim,T}
     vector::EGVector{Dim,T}
@@ -54,6 +61,15 @@ duplicating information already fully determined by `point`/`vector`.
 tip(ev::EGEquipollentVector) = ev.point + ev.vector
 
 direction(ev::EGEquipollentVector) = ev.vector
+
+"""
+    EGVector(ev::EGEquipollentVector)
+
+The bare, positionless [`EGVector`](@ref) `ev` carries (`ev.vector`,
+discarding `ev.point`) — the same "convert back to the simpler type"
+convention as [`EGVector(::EGPoint)`](@ref).
+"""
+EGVector(ev::EGEquipollentVector) = ev.vector
 
 """
     norm(ev::EGEquipollentVector)
@@ -91,7 +107,30 @@ Base.:+(ev::EGEquipollentVector, w::EGVector) = EGEquipollentVector(ev.vector + 
 Base.:+(w::EGVector, ev::EGEquipollentVector) = ev + w
 Base.:-(ev::EGEquipollentVector, w::EGVector) = EGEquipollentVector(ev.vector - w, ev.point)
 
+"""
+    p::EGPoint + ev::EGEquipollentVector
+
+Same as `p + ev.vector` — `ev`'s own point of application is ignored here,
+exactly like `p + v::EGVector` never looks at where `v` "is" (it isn't
+anywhere). Use [`translate`](@ref)`(p, ev)` instead if what's wanted is to
+move `p`; this method exists only so point arithmetic doesn't have to
+unwrap `ev` by hand first.
+"""
+Base.:+(p::EGPoint, ev::EGEquipollentVector) = p + ev.vector
+Base.:+(ev::EGEquipollentVector, p::EGPoint) = p + ev
+
 translate(ev::EGEquipollentVector, w::EGVector) = EGEquipollentVector(ev.vector, translate(ev.point, w))
+
+"""
+    translate(obj::EGObject, ev::EGEquipollentVector)
+
+Translate `obj` by `ev`'s own displacement (`ev.vector`), ignoring
+`ev.point` — translation only cares about direction and magnitude, not
+where `ev` happens to be anchored. Lets any of the package's existing
+`translate(obj, ::EGVector)` methods be driven by an `EGEquipollentVector`
+directly, without unwrapping it by hand first.
+"""
+translate(obj::EGObject, ev::EGEquipollentVector) = translate(obj, ev.vector)
 
 rotate(ev::EGEquipollentVector{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) =
     EGEquipollentVector(rotate(ev.vector, angle), rotate(ev.point, angle, center))

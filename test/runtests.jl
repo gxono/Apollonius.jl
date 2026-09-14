@@ -497,6 +497,19 @@ using Base.MathConstants: golden
             @test point_on_arc(arc, 0.0) ≈ p1
             @test point_on_arc(arc, 1.0) ≈ p2
 
+            # p1/p2 need not lie exactly on circ -- only their angle from
+            # circ.center matters, so the constructor projects each onto
+            # circ (same angle, radius circ.r). Otherwise anything built
+            # directly from the raw arc.p1/arc.p2 (e.g. EGCircularSector2's
+            # own radii) would visibly disagree with the arc curve itself.
+            off_circle_p2 = circ.center + EGPoint(0.0, 3.0)   # angle 90°, but at distance 3, not 5
+            off_arc = EGCircularArc2(circ, p1, off_circle_p2)
+            @test off_arc.p2 ≈ p2   # snapped onto the circle, same angle as p2 above
+            @test distance(circ.center, off_arc.p2) ≈ circ.r
+            off_sec = EGCircularSector2(off_arc)
+            sds = sides(off_sec)
+            @test distance(sds[3].p1, sds[3].p2) ≈ circ.r   # the p2-side radius, now the correct length
+
             about_pt = EGPoint(3.0, -1.0)
             refl_pt = reflection(arc, about_pt)
             @test measure(refl_pt) ≈ measure(arc) atol = 1e-9  # point reflection: no swap
@@ -705,6 +718,17 @@ using Base.MathConstants: golden
             @test normalized_measure(ang) ≈ pi / 2 atol = 1e-9
             @test abs(ang) ≈ pi / 2 atol = 1e-9
             @test is_direct(ang)
+
+            # rotate(obj, ang::EGAngle2, ...) == rotate(obj, measure(ang), ...)
+            # -- lets ang's own measure drive a rotation directly, without
+            # unwrapping it by hand; not to be confused with
+            # rotate(ang::EGAngle2, angle::Real, center), which rotates ang
+            # itself as a shape (tested separately below via `rot`)
+            @test rotate(EGPoint(5.0, 5.0), ang, EGPoint(2.0, 3.0)) ==
+                  rotate(EGPoint(5.0, 5.0), measure(ang), EGPoint(2.0, 3.0))
+            @test rotate(EGPoint(5.0, 5.0), ang) == rotate(EGPoint(5.0, 5.0), measure(ang))   # default center
+            axis = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0))
+            @test rotate(EGPoint(5.0, 5.0, 1.0), ang, axis) == rotate(EGPoint(5.0, 5.0, 1.0), measure(ang), axis)
             @test (vertex + EGPoint(1.0, 1.0)) in ang
             @test !((vertex + EGPoint(-1.0, 0.0)) in ang)
 
@@ -829,43 +853,87 @@ using Base.MathConstants: golden
         @test isapprox(translation_map(vvec)(p), translation_map(v)(p); atol=1e-9)
     end
 
-    # Single-argument ("curried") forms of the transform/predicate functions,
-    # for `|>`/`∘`/`map`/`filter` composition without needing a shape to
-    # already be in hand. rotate/homothety/translate/reflection return a
-    # genuine EGAffineMap (composable, inspectable, reused as a value);
-    # invert/invert_neg return a plain closure instead, since circle
-    # inversion isn't an affine map at all.
+    # Single-argument ("curried") forms, for `|>`/`∘`/`map`/`filter`
+    # composition without needing a shape to already be in hand. Two
+    # deliberately distinct families, same tradeoff explained on
+    # translate(::EGVector)'s own docstring:
+    #   - translate/rotate/homothety/reflection (1-arg): plain functions,
+    #     each just `shape -> translate(shape, v)` etc. -- preserve
+    #     whatever specific type the direct 2-/3-arg call already returns
+    #     (a circle stays a circle), but composing two with `∘` builds
+    #     another plain function (a chain of exact calls), not one
+    #     combined, reusable object.
+    #   - translation_map/rotation_map/homothety_map/reflection_map:
+    #     genuine EGAffineMap values -- composable into ONE combined map
+    #     (computed once, reapplied cheaply), but necessarily generic, so
+    #     e.g. a circle piped through one always comes back as an
+    #     EGEllipse2, never EGCircle2 (nothing in the map's own type says
+    #     it happens to be conformal).
+    # invert/invert_neg return a plain closure too (same family as
+    # translate/rotate/etc. here), since circle inversion isn't an affine
+    # map at all -- there's no EGAffineMap-based alternative for it.
     @testset "curried transform/predicate forms" begin
         t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(0.0, 3.0))
+        O = EGPoint(0.0, 0.0)
+        c = EGCircle2(EGPoint(1.0, 2.0), 5.0)
+
+        # type-preserving 1-arg forms: exact match with the direct call,
+        # and crucially preserve EGCircle2 (unlike the *_map versions below)
+        v = EGVector(3.0, -1.0)
+        @test translate(v)(t) == translate(t, v)
+        @test translate(v)(c) == translate(c, v)
+        @test translate(v)(c) isa EGCircle2
+
+        @test rotate(pi / 2)(t) == rotate(t, pi / 2)
+        @test rotate(pi / 3, EGPoint(1.0, 1.0))(t) == rotate(t, pi / 3, EGPoint(1.0, 1.0))
+        @test rotate(pi / 2)(c) isa EGCircle2
+
+        @test homothety(2.0)(t) == homothety(t, 2.0)
+        @test homothety(2.0, EGPoint(1.0, 1.0))(t) == homothety(t, 2.0, EGPoint(1.0, 1.0))
+        @test homothety(2.0)(c) isa EGCircle2
+
+        about_pt = EGPoint(2.0, 2.0)
+        @test reflection(about_pt)(t) == reflection(t, about_pt)
+        l = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))
+        @test reflection(l)(t) == reflection(t, l)
+        @test reflection(about_pt)(c) isa EGCircle2
+
+        # composing type-preserving forms with ∘ builds a plain Function
+        # (a chain of exact calls), not an EGAffineMap
+        composed = rotate(pi / 2) ∘ translate(v)
+        @test composed isa Function && !(composed isa EGAffineMap)
+        @test composed(t) == rotate(translate(t, v), pi / 2)
+        @test t |> translate(v) |> rotate(pi / 2) == composed(t)
+        @test composed(c) isa EGCircle2   # exact through the whole chain
+        mapped = map(translate(v), [t, t])
+        @test mapped[1] == translate(t, v) && mapped[2] == translate(t, v)
 
         # isapprox, not ==: EGAffineMap application and the direct per-type
         # rotate/homothety/etc. use different (both correct) arithmetic
         # sequences, so results can differ in the last bit or two.
-        @test isapprox(rotate(pi / 2)(t), rotate(t, pi / 2); atol=1e-9)
-        @test rotate(pi / 2) isa EGAffineMap
-        @test isapprox(rotate(pi / 3, EGPoint(1.0, 1.0))(t), rotate(t, pi / 3, EGPoint(1.0, 1.0)); atol=1e-9)
+        @test isapprox(rotation_map(pi / 2, O)(t), rotate(t, pi / 2); atol=1e-9)
+        @test rotation_map(pi / 2, O) isa EGAffineMap
+        @test isapprox(rotation_map(pi / 3, EGPoint(1.0, 1.0))(t), rotate(t, pi / 3, EGPoint(1.0, 1.0)); atol=1e-9)
 
-        @test isapprox(homothety(2.0)(t), homothety(t, 2.0); atol=1e-9)
-        @test homothety(2.0) isa EGAffineMap
-        @test isapprox(homothety(2.0, EGPoint(1.0, 1.0))(t), homothety(t, 2.0, EGPoint(1.0, 1.0)); atol=1e-9)
+        @test isapprox(homothety_map(2.0, O)(t), homothety(t, 2.0); atol=1e-9)
+        @test homothety_map(2.0, O) isa EGAffineMap
+        @test isapprox(homothety_map(2.0, EGPoint(1.0, 1.0))(t), homothety(t, 2.0, EGPoint(1.0, 1.0)); atol=1e-9)
 
-        v = EGVector(3.0, -1.0)
-        @test isapprox(translate(v)(t), translate(t, v); atol=1e-9)
-        @test translate(v) isa EGAffineMap
+        @test isapprox(translation_map(v)(t), translate(t, v); atol=1e-9)
+        @test translation_map(v) isa EGAffineMap
 
-        about_pt = EGPoint(2.0, 2.0)
-        @test isapprox(reflection(about_pt)(t), reflection(t, about_pt); atol=1e-9)
-        @test reflection(about_pt) isa EGAffineMap
-        l = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))
-        @test isapprox(reflection(l)(t), reflection(t, l); atol=1e-9)
+        @test isapprox(reflection_map(about_pt)(t), reflection(t, about_pt); atol=1e-9)
+        @test reflection_map(about_pt) isa EGAffineMap
+        @test isapprox(reflection_map(l)(t), reflection(t, l); atol=1e-9)
 
         # composition: a single combined EGAffineMap, not a chain of closures
-        composed = rotate(pi / 2) ∘ translate(v)
-        @test composed isa EGAffineMap
-        @test isapprox(composed(t), rotate(translate(t, v), pi / 2); atol=1e-9)
-        @test isapprox(t |> translate(v) |> rotate(pi / 2), composed(t); atol=1e-9)
-        mapped = map(rotate(pi / 2), [t, t])
-        @test isapprox(mapped[1], rotate(t, pi / 2); atol=1e-9) && isapprox(mapped[2], rotate(t, pi / 2); atol=1e-9)
+        composed_map = rotation_map(pi / 2, O) ∘ translation_map(v)
+        @test composed_map isa EGAffineMap
+        @test isapprox(composed_map(t), rotate(translate(t, v), pi / 2); atol=1e-9)
+        @test isapprox(t |> translation_map(v) |> rotation_map(pi / 2, O), composed_map(t); atol=1e-9)
+        @test translation_map(v)(c) isa EGEllipse2   # the generic-map tradeoff, unlike translate(v)(c) above
+        mapped_map = map(rotation_map(pi / 2, O), [t, t])
+        @test isapprox(mapped_map[1], rotate(t, pi / 2); atol=1e-9) && isapprox(mapped_map[2], rotate(t, pi / 2); atol=1e-9)
 
         center = EGPoint(0.0, 0.0)
         l_offset = EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0))  # doesn't pass through center
@@ -1324,6 +1392,13 @@ using Base.MathConstants: golden
         @test homothety(EGPoint(1.0, 1.0), 2.0) == EGPoint(2.0, 2.0)
 
         @test barycenter([p1, p2], [1.0, 1.0]) == EGPoint(2.0, 0.0)
+
+        # barycenter also accepts Tuples, not just Vectors -- needed since
+        # vertices(::EGTriangle)/vertices(::EGQuadrilateral) return a Tuple
+        # rather than a Vector (unlike vertices(::EGStraightNgon))
+        tri_bary = EGTriangle(EGPoint(1.0, 1.0), EGPoint(6.0, 3.0), EGPoint(2.0, 6.0))
+        @test barycenter(vertices(tri_bary), [1.0, 1.0, 2.0]) ≈ EGPoint(2.75, 4.0)
+        @test barycenter([p1, p2], (1.0, 1.0)) == EGPoint(2.0, 0.0)   # Tuple weights too
 
         pb = perpendicular_bisector(p1, p2)
         @test on_line(EGPoint(2.0, 7.0), pb)
@@ -2074,6 +2149,14 @@ using Base.MathConstants: golden
         same_center_img = invert(EGCircle2(center, 4.0), center; k=2.0)
         @test same_center_img.center == center
         @test same_center_img.r ≈ 2.0^2 / 4.0
+
+        # invert(p::EGPoint, center; k, atol) -- same (shape, center; k, atol)
+        # convention as every other invert method, bridging to `inversion`.
+        # Without this method, invert(p, center; k=...) would silently match
+        # invert(center::EGPoint; k, atol)'s 1-arg curried form instead
+        # (built for p |> invert(center)) and return a function, not a point.
+        @test invert(EGPoint(4.0, 0.0), EGPoint(0.0, 0.0); k=2.0) ≈ inversion(EGPoint(4.0, 0.0), EGCircle2(EGPoint(0.0, 0.0), 2.0))
+        @test_throws ArgumentError invert(EGPoint(1.0, 2.0), EGPoint(1.0, 2.0))   # coincides with center
     end
 
     @testset "invert(EGSegment/EGTriangle/EGStraightNgon), EGCurvilinearNgon2" begin
@@ -3961,6 +4044,67 @@ using Base.MathConstants: golden
             @test centro == EGPoint(0.0, 0.0)                    # circle's own center -> origin
             @test circle == EGCircle2(EGPoint(0.0, 0.0), 150.0)  # bbox 10x10 -> s = 30
 
+            # @unbounded: excluded from sizing, but still bound/transformed
+            # normally. Without it, a huge auxiliary circle dominates the
+            # bbox union and everything else shrinks to a speck by comparison:
+            A_dom, B_dom = EGPoint(1.0, 1.0), EGPoint(3.0, 3.0)
+            @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+                A_dom
+                B_dom
+                huge_dom = EGCircle2(EGPoint(0.0, 0.0), 1000.0)   # NOT unbounded: dominates sizing
+            end
+            @test norm(direction(EGLine(A_dom, B_dom))) < 1.0   # A_dom/B_dom barely moved at all
+
+            # with @unbounded (RHS-only form), huge_ub is excluded from
+            # sizing -- A_ub/B_ub get a real, non-tiny scale -- but huge_ub
+            # itself is still scaled up too, just not counted for sizing
+            A_ub, B_ub = EGPoint(1.0, 1.0), EGPoint(3.0, 3.0)
+            huge_ub = EGCircle2(EGPoint(0.0, 0.0), 1000.0)
+            @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+                A_ub
+                B_ub
+                huge_ub = @unbounded EGCircle2(EGPoint(0.0, 0.0), 1000.0)
+            end
+            @test norm(direction(EGLine(A_ub, B_ub))) > 1.0   # sized by A_ub/B_ub, not by huge_ub's r=1000
+            @test huge_ub.r > 1.0   # huge_ub is still transformed (scaled up), just not sized-by
+
+            # whole-line form (@unbounded wrapping the entire assignment)
+            # gives the exact same result as the RHS-only form above
+            A_ub2, B_ub2 = EGPoint(1.0, 1.0), EGPoint(3.0, 3.0)
+            @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+                A_ub2
+                B_ub2
+                @unbounded huge_ub2 = EGCircle2(EGPoint(0.0, 0.0), 1000.0)
+            end
+            @test A_ub2 ≈ A_ub && B_ub2 ≈ B_ub && huge_ub2.r ≈ huge_ub.r
+
+            # outside a picture block, @unbounded is a harmless passthrough
+            @test (@unbounded 5.0 + 3.0) == 8.0
+
+            # if EVERY shape ends up @unbounded, there's nothing left to size by
+            @test_throws ArgumentError @to_luxor_picture begin
+                z = @unbounded EGCircle2(EGPoint(0.0, 0.0), 5.0)
+            end
+
+            # a bare EGVector still has no bounding box of its own (doesn't
+            # contribute to sizing, unlike centro/circle above) -- but
+            # unlike a plain number, it DOES get scaled/flipped to the
+            # picture's own scale (see EGVector's own `homothety` method
+            # and `_place_in_picture`'s comment), so it still composes
+            # correctly with a separately-placed anchor point:
+            # place(from) + place(v) == place(from + v)
+            from0 = EGPoint(2.0, 3.0)
+            v0 = EGVector(1.0, -1.0)
+            tip0 = from0 + v0
+            (_, (from_, v_, tip_)) = @to_luxor_picture width = 500.0 height = 240.0 begin
+                from0
+                v0
+                tip0
+            end
+            @test v_ isa EGVector
+            @test norm(v_) > norm(v0)      # got scaled up along with everything else
+            @test from_ + v_ ≈ tip_        # composes exactly like the already-placed tip
+
             # a block with nothing but non-positional values has no finite
             # content to size a canvas around
             @test_throws ArgumentError @to_luxor_picture begin
@@ -4592,6 +4736,14 @@ using Base.MathConstants: golden
             @test reflection(vv, EGPoint(5.0, 5.0)) == -vv
             l = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))
             @test isapprox(reflection(EGVector(1.0, 0.0), l), EGVector(0.0, 1.0); atol=1e-9)
+
+            # homothety on a bare EGVector: just k*v, center is irrelevant
+            # (there's no position for it to act on) -- this is what lets
+            # @to_luxor_picture scale a positionless vector consistently
+            # with everything else, even though it has no bounding box.
+            @test homothety(EGVector(3.0, 4.0), 2.0) == EGVector(6.0, 8.0)
+            @test homothety(EGVector(3.0, 4.0), 2.0, EGPoint(100.0, -50.0)) == EGVector(6.0, 8.0)
+            @test homothety(EGVector(1.0, 2.0, 3.0), -1.0, EGPoint(0.0, 0.0, 0.0)) == EGVector(-1.0, -2.0, -3.0)
         end
 
         @testset "translate: curves and conics move every defining point by v" begin
@@ -5130,25 +5282,37 @@ using Base.MathConstants: golden
 
             rm = rotation_map(pi / 2, axis)
             @test rm(p) ≈ rotate(p, pi / 2, axis) atol = 1e-12
-            @test rotate(pi / 2, axis)(p) ≈ rm(p) atol = 1e-12 # curried single-arg form
             @test rm(EGVector(1.0, 0.0, 0.0)) ≈ EGVector(0.0, 1.0, 0.0) atol = 1e-12 # linear part only, no translation
 
             hm = homothety_map(2.0, EGPoint(1.0, 1.0, 1.0))
             @test hm(EGPoint(3.0, 1.0, 1.0)) ≈ EGPoint(5.0, 1.0, 1.0)
-            @test homothety(2.0, EGPoint(1.0, 1.0, 1.0))(p) ≈ hm(p)
+            @test hm(p) ≈ homothety(p, 2.0, EGPoint(1.0, 1.0, 1.0))
 
             xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
             refm = reflection_map(xy)
             @test refm(EGPoint(1.0, 2.0, 3.0)) ≈ EGPoint(1.0, 2.0, -3.0)
-            @test reflection(xy)(EGPoint(1.0, 2.0, 3.0)) ≈ refm(EGPoint(1.0, 2.0, 3.0))
+            @test refm(EGPoint(1.0, 2.0, 3.0)) ≈ reflection(EGPoint(1.0, 2.0, 3.0), xy)
 
             ptrefm = reflection_map(EGPoint(1.0, 1.0, 1.0))
             @test ptrefm(EGPoint(2.0, 1.0, 1.0)) ≈ EGPoint(0.0, 1.0, 1.0)
-            @test reflection(EGPoint(1.0, 1.0, 1.0))(p) ≈ ptrefm(p)
+            @test ptrefm(p) ≈ reflection(p, EGPoint(1.0, 1.0, 1.0))
 
             tm = translation_map(EGVector(1.0, 2.0, 3.0))
             @test tm(EGPoint(0.0, 0.0, 0.0)) ≈ EGPoint(1.0, 2.0, 3.0)
-            @test translate(EGVector(1.0, 2.0, 3.0))(p) ≈ tm(p)
+            @test tm(p) ≈ translate(p, EGVector(1.0, 2.0, 3.0))
+
+            # type-preserving 1-arg forms (plain functions, not EGAffineMap3)
+            # -- same tradeoff as 2D: exact per-type call, not a combined map
+            sph = EGSphere3(EGPoint(1.0, 1.0, 1.0), 2.0)
+            @test rotate(pi / 2, axis)(sph) isa EGSphere3
+            @test rotate(pi / 2, axis)(sph) == rotate(sph, pi / 2, axis)
+            @test homothety(2.0, EGPoint(1.0, 1.0, 1.0))(sph) isa EGSphere3
+            @test translate(EGVector(1.0, 2.0, 3.0))(sph) isa EGSphere3
+            @test reflection(xy)(sph) isa EGSphere3
+            @test reflection(EGPoint(1.0, 1.0, 1.0))(sph) isa EGSphere3
+            chain = rotate(pi / 2, axis) ∘ translate(EGVector(1.0, 2.0, 3.0))
+            @test chain isa Function && !(chain isa EGAffineMap3)
+            @test chain(sph) isa EGSphere3
 
             # composition, right-to-left like ordinary functions
             composed = rm ∘ tm
@@ -5640,10 +5804,33 @@ using Base.MathConstants: golden
         @test EGVector(1.0, 1.0) + ev == ev + EGVector(1.0, 1.0)
         @test (ev - EGVector(1.0, 1.0)).vector ≈ EGVector(2.0, 3.0)
 
+        # EGPoint + EGEquipollentVector: same as EGPoint + ev.vector, ev.point ignored
+        q = EGPoint(10.0, 20.0)
+        @test q + ev == q + ev.vector
+        @test ev + q == q + ev
+        @test q + ev ≈ EGPoint(13.0, 24.0)
+
         # translate: point shifts, vector (a free direction) doesn't
         evt = translate(ev, EGVector(10.0, 10.0))
         @test evt.point ≈ EGPoint(11.0, 12.0)
         @test evt.vector == ev.vector
+
+        # EGVector(ev): unwraps back to the bare, positionless vector
+        @test EGVector(ev) == ev.vector
+        @test EGVector(ev) === ev.vector
+
+        # translate(obj, ev): any object can be translated by an
+        # EGEquipollentVector's own displacement, ignoring its point
+        w = EGEquipollentVector(EGVector(3.0, 4.0), EGPoint(100.0, 100.0))
+        p = EGPoint(1.0, 2.0)
+        @test translate(p, w) ≈ EGPoint(4.0, 6.0)
+        s = EGSegment(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0))
+        @test translate(s, w) == EGSegment(EGPoint(3.0, 4.0), EGPoint(4.0, 4.0))
+        # translating one EGEquipollentVector by another still goes through
+        # the more specific translate(::EGEquipollentVector, ::EGVector)
+        evw = translate(ev, w)
+        @test evw.point ≈ EGPoint(4.0, 6.0)
+        @test evw.vector == ev.vector
 
         # rotate: both point and vector rotate
         evr = rotate(ev, pi / 2, EGPoint(0.0, 0.0))
@@ -5651,8 +5838,9 @@ using Base.MathConstants: golden
         @test evr.vector ≈ EGVector(-4.0, 3.0)
 
         # homothety: point scales about center, vector scales by literal k
-        # (not abs(k)) -- this is the whole point: unlike a bare EGVector,
-        # this DOES get scaled correctly inside @to_luxor_picture
+        # (not abs(k)) -- a bare EGVector also scales correctly on its own
+        # now (see its own homothety method), but only EGEquipollentVector
+        # additionally moves the point of application as ONE unit alongside it
         evh = homothety(ev, 2.0, EGPoint(0.0, 0.0))
         @test evh.point ≈ EGPoint(2.0, 4.0)
         @test evh.vector ≈ EGVector(6.0, 8.0)
@@ -5678,11 +5866,14 @@ using Base.MathConstants: golden
         @test ev3dh.point ≈ EGPoint(3.0, 6.0, 9.0)
         @test ev3dh.vector ≈ EGVector(3.0, 0.0, 0.0)
 
-        # the actual fix: it correctly scales inside @to_luxor_picture,
-        # unlike a bare EGVector (which is exempt from the transform
-        # entirely, since it has no position/bounding box). Only ONE name
-        # is bound inside the block on purpose, so the macro returns the
-        # placed value directly rather than a tuple of every named shape.
+        # it correctly scales inside @to_luxor_picture as ONE self-contained
+        # unit, with a real bounding box of its own to size the canvas by --
+        # a bare EGVector still contributes nothing to that sizing (see the
+        # "bare EGVector" test in the @to_luxor_picture testset for what it
+        # *does* get: scaled/flipped, just not sized-by or shifted). Only
+        # ONE name is bound inside the block here on purpose, so the macro
+        # returns the placed value directly rather than a tuple of every
+        # named shape.
         raw = EGEquipollentVector(direction(EGLine(EGPoint(3.0, 4.0), EGPoint(0.0, 0.0))), EGPoint(0.0, 0.0))
         sz, ev_placed = @to_luxor_picture width=500 height=240 margin=20 begin
             evp = raw
@@ -5799,8 +5990,41 @@ using Base.MathConstants: golden
             path(intersection(EGLine(EGPoint(-50.0, 0.0), EGPoint(50.0, 0.0)), circumcircle(t)); action=:fill)
             path(EGPoint{2,Float64}[]; action=:fill)   # empty vector: no-op, no error
 
+            # path() also accepts any AbstractArray shape, not just a Vector
+            # -- a Tuple (e.g. vertices(::EGTriangle), which isn't a Vector)
+            path(vertices(t); action=:fill)
+            # ...and a Matrix (e.g. hcat-ing two tangent-line pairs together,
+            # which previously had no path() method at all)
+            c_ta, c_tb = EGCircle2(EGPoint(0.0, 0.0), 20.0), EGCircle2(EGPoint(90.0, 0.0), 30.0)
+            ext_ta = external_tangent_lines(c_ta, c_tb)
+            int_ta = internal_tangent_lines(c_ta, c_tb)
+            path([ext_ta int_ta]; action=:stroke)
+
             Luxor.finish()
             @test isfile(joinpath(dir, "test.png"))
+        end
+
+        @testset "as=:arrow inherits the active setline() width" begin
+            # Luxor's own `arrow` ignores setline() entirely and defaults
+            # to linewidth=1.0 (documented behavior of Luxor.arrow) -- our
+            # `_arrow` helper instead inherits the currently active width,
+            # so `as=:plain`/`action=:stroke` and `as=:arrow` come out the
+            # same thickness by default, and an explicit `linewidth=`
+            # still overrides it exactly as passing it to Luxor.arrow would.
+            mktempdir() do dir
+                fn = joinpath(dir, "arrow_linewidth.svg")
+                Luxor.Drawing(100, 100, fn)
+                Luxor.origin()
+                setline(6)
+                path(EGSegment(EGPoint(0.0, 0.0), EGPoint(10.0, 0.0)); action=:stroke)
+                path(EGSegment(EGPoint(0.0, 20.0), EGPoint(10.0, 20.0)); as=:arrow)
+                path(EGSegment(EGPoint(0.0, 40.0), EGPoint(10.0, 40.0)); as=:arrow, linewidth=2)
+                Luxor.finish()
+                svg = read(fn, String)
+                widths = [parse(Float64, m.captures[1]) for m in eachmatch(r"stroke-width=\"([0-9.]+)\"", svg)]
+                @test count(==(6.0), widths) == 2   # plain stroke + default arrow, both at setline(6)
+                @test count(==(2.0), widths) == 1   # explicit override
+            end
         end
 
         @testset "path(::Vector) batches into one path without a stray connecting line" begin

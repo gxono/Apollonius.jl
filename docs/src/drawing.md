@@ -384,6 +384,36 @@ path(circ2; action=:stroke)
 finish()
 ```
 
+### Excluding a shape from sizing: `@unbounded`
+
+Every shape named in a `@to_luxor_picture` block counts toward the
+canvas's size and scale — including a large auxiliary shape you built only
+to construct something else, and never meant to set the picture's own
+scale. [`@unbounded`](@ref) marks one line as exempt from that sizing,
+without changing anything else about it: it still binds/translates/scales
+along with everything else, only its own `EGBoundingBox` is left out of
+the union that decides how far to zoom out:
+
+```julia
+A = EGPoint(1.0, 1.0)
+locus = @unbounded EGCircle2(EGPoint(0.0, 0.0), 1000.0)   # huge, but not the picture's scale
+B = intersection(locus, EGLine(A, EGPoint(2.0, 2.0)))[1]
+
+(w, h), (A2, locus2, B2) = @to_luxor_picture width=500.0 height=240.0 margin=20.0 begin
+    A
+    locus
+    B
+end
+# sized by A/B alone (locus's radius-1000 bounding box never counts) --
+# without @unbounded here, A/B would shrink to a speck next to it instead
+```
+
+Wrap either the whole line (`@unbounded locus = EGCircle2(...)`) or just
+the right-hand side (`locus = @unbounded EGCircle2(...)`) — both read the
+same way. Outside a picture block, `@unbounded expr` is simply `expr`, a
+harmless no-op, so it's always safe to leave in place regardless of
+context.
+
 ### `current_path_bbox`
 
 [`current_path_bbox`](@ref) is the Luxor-side complement: the

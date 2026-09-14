@@ -77,6 +77,19 @@ ray `vertex -> a` to ray `vertex -> b`) — see [`angle_between`](@ref).
 measure(ang::EGAngle2) = angle_between(ang.a - ang.vertex, ang.b - ang.vertex)
 
 """
+    rotate(obj::EGObject, ang::EGAngle2, args...; kwargs...)
+
+Same as `rotate(obj, measure(ang), args...; kwargs...)` — lets any
+existing `rotate(obj, angle::Real, ...)` method (2D with a `center`, 3D
+with an `axis`) be driven by an `EGAngle2`'s own measure directly, without
+unwrapping it by hand first. Not to be confused with
+`rotate(ang::EGAngle2, angle::Real, center)`, which rotates `ang` itself
+*as a shape* — here `ang` supplies the rotation amount for some other
+`obj`, via its `measure`.
+"""
+rotate(obj::EGObject, ang::EGAngle2, args...; kwargs...) = rotate(obj, measure(ang), args...; kwargs...)
+
+"""
     normalized_measure(ang::EGAngle2)
 
 The measure of `ang`, in `[0, 2π)` instead of `(-π, π]`.

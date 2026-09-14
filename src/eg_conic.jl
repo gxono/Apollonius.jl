@@ -683,15 +683,43 @@ distance(par::EGParabola2, p::EGPoint) = distance(p, par)
 
 # --- EGCircularArc2 -----------------------------------------------------------
 
+# p, snapped onto circle (same angle from circle.center, radius circle.r).
+function _project_onto_circle2(circle::EGCircle2, p::EGPoint)
+    v = p - circle.center
+    d2 = dot(v, v)
+    d2 <= 0 && throw(ArgumentError("EGCircularArc2: p1/p2 must not coincide with the circle's own center"))
+    return circle.center + (circle.r / sqrt(d2)) * v
+end
+
 """
     EGCircularArc2(circle::EGCircle2, p1::EGPoint, p2::EGPoint)
 
-The arc of `circle` traversed counterclockwise from `p1` to `p2`.
+The arc of `circle` traversed counterclockwise from `p1` to `p2`. `p1`/
+`p2` need not lie exactly on `circle` -- only their *angle* from
+`circle.center` matters, so the constructor projects each onto `circle`
+(same angle, radius `circle.r`) before storing it. This keeps `arc.p1`/
+`arc.p2` always genuinely on the circle, matching what
+[`point_on_arc`](@ref)/[`midpoint`](@ref) already compute from the angle
+alone -- without it, anything built directly from the raw `arc.p1`/
+`arc.p2` (e.g. [`EGCircularSector2`](@ref)'s own radii,
+`EGSegment(circle.center, arc.p1)`) would end at the wrong point whenever
+the caller passed an off-circle `p1`/`p2`, visibly disagreeing with the
+arc curve itself.
 """
 struct EGCircularArc2{T<:Real} <: EGConicArc2{T}
     circle::EGCircle2{T}
     p1::EGPoint{2,T}
     p2::EGPoint{2,T}
+    # An explicit inner constructor, projecting onto the circle here, is
+    # required for the projection to actually apply universally -- without
+    # one, Julia's own auto-generated default inner constructor for this
+    # exact-type signature would still exist alongside it and, being more
+    # specific than the promoting outer constructor below, would win (and
+    # skip the projection) for any call already passing matching EGPoint{2,T}
+    # arguments -- silently the common case, not a rare corner one.
+    function EGCircularArc2{T}(circle::EGCircle2, p1::EGPoint{2}, p2::EGPoint{2}) where {T<:Real}
+        return new{T}(circle, _project_onto_circle2(circle, p1), _project_onto_circle2(circle, p2))
+    end
 end
 function EGCircularArc2(circle::EGCircle2, p1::EGPointLike, p2::EGPointLike)
     p1, p2 = _topoint(p1), _topoint(p2)

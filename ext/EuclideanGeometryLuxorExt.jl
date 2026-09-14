@@ -36,6 +36,16 @@ const EG = EuclideanGeometry
 _lp(p::EG.EGPoint) = Luxor.Point(Float64(p[1]), Float64(p[2]))
 _lp(pts::AbstractVector{<:EG.EGPoint}) = _lp.(pts)
 
+# Luxor's own `arrow` deliberately ignores the current `setline()` width
+# and defaults to 1.0 unless `linewidth` is given explicitly (see its own
+# docstring) -- so switching a `path(...)` call from `as=:plain` to
+# `as=:arrow` silently changes the line's thickness unless the caller
+# remembers to repeat `linewidth=...` by hand. Inheriting the active
+# line width here instead keeps the two visually consistent by default;
+# passing `linewidth=...` explicitly still overrides it exactly as before.
+_arrow(p1, p2; kwargs...) =
+    haskey(kwargs, :linewidth) ? Luxor.arrow(p1, p2; kwargs...) : Luxor.arrow(p1, p2; linewidth=Luxor.getline(), kwargs...)
+
 """
     label(txt::AbstractString, alignment::Symbol, p::EGPoint; kwargs...)
     label(txt::AbstractString, direction::Real, p::EGPoint; kwargs...)
@@ -63,7 +73,7 @@ as an arrow instead — see [`path(::EGSegment)`](@ref) for what that
 changes.
 """
 function EG.path(v::EG.EGVector, from::EG.EGPoint=EG.EGPoint(0.0, 0.0); as::Symbol=:plain, action=:path, kwargs...)
-    as == :arrow && return Luxor.arrow(_lp(from), _lp(from + v); kwargs...)
+    as == :arrow && return _arrow(_lp(from), _lp(from + v); kwargs...)
     return Luxor.line(_lp(from), _lp(from + v), action)
 end
 
@@ -78,7 +88,7 @@ argument (and, unlike a bare `EGVector`, correctly scaled/placed by
 `EGBoundingBox`). `as=:arrow` draws it as an arrow instead.
 """
 function EG.path(ev::EG.EGEquipollentVector; as::Symbol=:plain, action=:path, kwargs...)
-    as == :arrow && return Luxor.arrow(_lp(ev.point), _lp(EG.tip(ev)); kwargs...)
+    as == :arrow && return _arrow(_lp(ev.point), _lp(EG.tip(ev)); kwargs...)
     return Luxor.line(_lp(ev.point), _lp(EG.tip(ev)), action)
 end
 
@@ -91,10 +101,15 @@ special case draws immediately (stroke plus an arrowhead fill) rather
 than just adding to the current path — Luxor's `arrow` has no deferred
 form, so `action` is ignored when `as=:arrow`. `kwargs`
 (`arrowheadlength`, `arrowheadangle`, `linewidth`, ...) are forwarded
-straight to `Luxor.arrow` in that case.
+straight to `Luxor.arrow` in that case; unlike calling `Luxor.arrow`
+directly, `linewidth` here defaults to the currently active `setline()`
+width (Luxor's own default is a flat `1.0`, ignoring `setline()`
+entirely — see `Luxor.arrow`'s own docstring), so switching a shape from
+`as=:plain` to `as=:arrow` doesn't silently thin its line. Pass
+`linewidth=...` explicitly to override that.
 """
 function EG.path(s::EG.EGSegment; as::Symbol=:plain, action=:path, kwargs...)
-    as == :arrow && return Luxor.arrow(_lp(s.p1), _lp(s.p2); kwargs...)
+    as == :arrow && return _arrow(_lp(s.p1), _lp(s.p2); kwargs...)
     return Luxor.line(_lp(s.p1), _lp(s.p2), action)
 end
 
@@ -118,7 +133,7 @@ function EG.path(l::EG.EGLine; extend::Union{Real,Tuple{Real,Real}}=1000.0, as::
     past_p1, past_p2 = extend isa Tuple ? extend : (extend, extend)
     u = EG.direction(l) / EG.norm(EG.direction(l))
     p1, p2 = l.p1 - past_p1 * u, l.p2 + past_p2 * u
-    as == :arrow && return Luxor.arrow(_lp(p1), _lp(p2); kwargs...)
+    as == :arrow && return _arrow(_lp(p1), _lp(p2); kwargs...)
     return Luxor.line(_lp(p1), _lp(p2), action)
 end
 
@@ -133,7 +148,7 @@ instead — see [`path(::EGSegment)`](@ref) for what that changes.
 function EG.path(r::EG.EGRay; extend=1000.0, as::Symbol=:plain, action=:path, kwargs...)
     u = EG.direction(r) / EG.norm(EG.direction(r))
     p2 = r.through + extend * u
-    as == :arrow && return Luxor.arrow(_lp(r.origin), _lp(p2); kwargs...)
+    as == :arrow && return _arrow(_lp(r.origin), _lp(p2); kwargs...)
     return Luxor.line(_lp(r.origin), _lp(p2), action)
 end
 
@@ -352,13 +367,18 @@ function EG.path(pg::EG.EGPolygon; n=60, action=:path)
 end
 
 """
-    path(v::AbstractVector{<:EGObject}; kwargs...)
+    path(v::AbstractArray{<:EGObject}; kwargs...)
+    path(v::Tuple{Vararg{<:EGObject}}; kwargs...)
 
 `path` for each element of `v` in turn, with the same `kwargs` every time.
 This is what lets a plain `Vector` -- what `intersection`/`tangent_points`
 return, since they can give 0, 1 or 2 points depending on the geometry --
 get drawn directly as a single argument, without unwrapping it by hand
-first.
+first. Any shape works, not just a `Vector`: a `Tuple` (e.g.
+`vertices(::EGTriangle)`, which isn't a `Vector`) or a `Matrix` (e.g.
+`[ext_lines int_lines]`, hcat-ing two tangent-line pairs together) are
+both just iterated over in the order Julia already iterates them in --
+reshape/flatten it yourself first if a specific order matters.
 
 It also calls `Luxor.newsubpath()` before each element, so `path(v)` is
 the safe way to batch several elements into *one* combined path with the
@@ -377,7 +397,7 @@ on its own regardless -- but for the default `action=:path`, only `path(v)`
 batches safely; `path.(v)` (or a hand-written loop without `newsubpath()`)
 reproduces the stray-line bug this method exists to avoid.
 """
-function EG.path(v::AbstractVector{<:EG.EGObject}; kwargs...)
+function EG.path(v::Union{AbstractArray{<:EG.EGObject},NTuple{N,<:EG.EGObject} where N}; kwargs...)
     for x in v
         Luxor.newsubpath()
         EG.path(x; kwargs...)

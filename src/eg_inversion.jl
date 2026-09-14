@@ -16,6 +16,22 @@ function inversion(p::EGPoint, c::EGCircle2)
 end
 
 """
+    invert(p::EGPoint, center::EGPoint; k::Real=1.0, atol=1e-9)
+
+The image of `p` under inversion with respect to the circle centered at
+`center` with radius `k` -- i.e. `inversion(p, EGCircle2(center, k))`,
+spelled with the same `(shape, center; k, atol)` convention every other
+`invert` method here uses (`atol` is accepted only for that symmetry;
+there's no degenerate configuration for a bare point to guard against
+beyond what `inversion` itself already throws for). Without this method,
+`invert(p, center; k=...)` would silently match
+[`invert(center::EGPoint; k, atol)`](@ref)'s one-argument curried form
+instead (built for `p |> invert(center)`), returning a *function* rather
+than the inverted point.
+"""
+invert(p::EGPoint, center::EGPoint; k::Real=1.0, atol=1e-9) = inversion(p, EGCircle2(center, k))
+
+"""
     invert(l::EGLine, center::EGPoint; k::Real=1.0, atol=1e-9)
 
 The image of `l` under inversion with respect to the circle centered at

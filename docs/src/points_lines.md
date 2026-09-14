@@ -53,7 +53,7 @@ collect(Iterators.flatten([l1, l2]))   # the 4 points of tangency, in one Vector
 ```
 
 ```@raw html
-<img src="../assets/img/destructuring_tangents.svg" alt="Two circles with their two common external tangent lines, the four tangent points marked" style="width:100%; max-width: 700px;">
+<img src="../assets/img/points_lines/destructuring_tangents.svg" alt="Two circles with their two common external tangent lines, the four tangent points marked" style="width:100%; max-width: 700px;">
 ```
 
 But every `EGObject`/`EGTransform` (this one included) is always a
@@ -144,19 +144,25 @@ dot(d, EGVector(1.0, 0.0))   # 3.0
 
 An `EGVector` is deliberately positionless — that's exactly what makes it
 the right type for `direction(l)`, a normal, or anything else that's
-purely "which way and how far," never "where." But that same
-positionlessness means a bare `EGVector` has no [`EGBoundingBox`](@ref) at
-all (`isempty(EGBoundingBox(::EGVector))` is always `true`), so it's
-entirely exempt from [`@to_luxor_picture`](@ref)'s fit-to-canvas transform
-— drawing one directly inside a picture comes out at the wrong scale and
-anchored at the wrong place, since it never got scaled/shifted/flipped
-along with everything else in the block.
+purely "which way and how far," never "where." That positionlessness
+means a bare `EGVector` has no [`EGBoundingBox`](@ref) at all
+(`isempty(EGBoundingBox(::EGVector))` is always `true`), so it never
+contributes to [`@to_luxor_picture`](@ref)'s fit-to-canvas *sizing*, and
+it can't be shifted into place the way a positioned shape can (there's
+nowhere to shift it *to*) — but it still gets scaled and flipped to the
+picture's own scale, so `path(v, from=anchor)` (with `v` and `anchor`
+both built inside the same block) comes out at the right length and
+orientation, anchored wherever `anchor` itself lands.
 
+What a bare vector still can't do is stand as *one positioned thing*: it
+has no bounding box of its own to size a picture by, can't be
+`translate`d anywhere, and can't be transformed as a single unit together
+with a point that's tracked separately alongside it.
 [`EGEquipollentVector`](@ref) (the classical "vector equipolente": a
 representative of a free vector, tied to a point of application) is the
-fix — it wraps a `vector` and the `point` it's applied at, so it has a
-real, non-empty bounding box and transforms fully like any other
-`EGCurve`:
+fix for that — it wraps a `vector` and the `point` it's applied at as one
+object, with a real, non-empty bounding box, and transforms fully like
+any other `EGCurve`:
 
 ```@example geo
 ev = EGEquipollentVector(d, O)   # d applied at O
@@ -167,11 +173,32 @@ EGBoundingBox(ev)                 # a real box now, unlike EGBoundingBox(d)
 `normalize`/`dot` all work the same way as on a bare `EGVector` (acting on
 `ev.vector`; `normalize` keeps `ev.point` fixed), and the usual
 `rotate`/`translate`/`homothety`/`reflection` quartet works too —
-`homothety` in particular scales `ev.vector`'s own length right along with
-everything else, which a bare `EGVector` inside a picture never could:
+`translate` in particular moves `ev.point`, something a bare `EGVector`
+(having no position to begin with) can never do:
+
+```@example geo
+translate(ev, EGVector(1.0, 1.0))   # ev.point moves; ev.vector itself doesn't
+```
+
+`homothety` scales `ev.point` about a center *and* `ev.vector`'s own
+length together, matching how the whole configuration grows or shrinks
+as one piece:
 
 ```@example geo
 homothety(ev, 2.0, O)   # both O and the vector scale together
+```
+
+[`EGVector`](@ref)`(ev)` unwraps back to the bare, positionless vector
+(mirroring `EGVector(::EGPoint)`), and — more usefully — every
+[`translate`](@ref) method that already accepts a bare `EGVector` accepts
+an `EGEquipollentVector` in its place too, driven by `ev.vector` and
+ignoring wherever `ev` itself happens to be anchored; `p + ev` (point
+arithmetic, not a call to `translate`) is the same shorthand for a plain
+`EGPoint`:
+
+```@example geo
+EGVector(ev)         # unwraps back to the bare vector -- same as d
+translate(A, ev)     # same as translate(A, d): ev's own point is ignored
 ```
 
 Putting one inside a [`@to_luxor_picture!`](@ref) block and drawing it
@@ -179,7 +206,7 @@ with [`path`](@ref)`(ev; as=:arrow)` (see
 [Drawing with Luxor.jl](@ref)) is what correctly scales/places it:
 
 ```@raw html
-<img src="../assets/img/direction_vector.svg" alt="A line, its direction vector d drawn as a green arrow, and the unit vector v = normalize(d) drawn as a purple arrow, both correctly anchored and scaled" style="width:100%; max-width: 700px;">
+<img src="../assets/img/points_lines/direction_vector.svg" alt="A line, its direction vector d drawn as a green arrow, and the unit vector v = normalize(d) drawn as a purple arrow, both correctly anchored and scaled" style="width:100%; max-width: 700px;">
 ```
 
 ## Polar coordinates
@@ -283,7 +310,7 @@ Cref = reflection(C, foot)   # C mirrored through that foot — i.e. across l
 ```
 
 ```@raw html
-<img src="../assets/img/projection_reflection.svg" alt="A line l, a point C, its perpendicular foot on l, and C reflected through that foot to the other side of l, joined by a dashed segment" style="width:100%; max-width: 700px;">
+<img src="../assets/img/points_lines/projection_reflection.svg" alt="A line l, a point C, its perpendicular foot on l, and C reflected through that foot to the other side of l, joined by a dashed segment" style="width:100%; max-width: 700px;">
 ```
 
 `projection` also takes an `angle` keyword (radians, default `pi/2`,
@@ -332,6 +359,11 @@ translate(C, EGVector(1.0, -1.0))   # C shifted by (1,-1)
 barycenter([P, Q, C], [1.0, 1.0, 2.0])   # weighted average of the three
 ```
 
+```@raw html
+<img src="../assets/img/points_lines/rotation_homothety_translation.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+
 ## Parallels, perpendiculars and bisectors
 
 ```@example geo
@@ -341,6 +373,11 @@ perpendicular_through(l, C)        # line through C, perpendicular to l
 pb = perpendicular_bisector(P, Q)  # perpendicular to [P,Q] through its midpoint
 ```
 
+```@raw html
+<img src="../assets/img/points_lines/par_per_bis.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+
 [`angle_bisectors`](@ref) is the analogous construction for two intersecting
 lines: it returns *both* bisectors (they are always perpendicular to each
 other), as a 2-element vector.
@@ -349,6 +386,10 @@ other), as a 2-element vector.
 xaxis = EGLine(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0))
 yaxis = EGLine(EGPoint(0.0, 0.0), EGPoint(0.0, 4.0))
 angle_bisectors(xaxis, yaxis)   # the two diagonals y = x and y = -x
+```
+
+```@raw html
+<img src="../assets/img/points_lines/ang_bis.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 ## Angles
@@ -441,6 +482,17 @@ measure(reflection(ang, EGPoint(1.0, 1.0))) ≈ measure(ang)         # point ref
 measure(reflection(ang, EGLine(O, EGPoint(1.0, 1.0)))) ≈ measure(ang)  # line reflection too
 ```
 
+Conversely, `rotate(obj, ang::EGAngle2, ...)` goes the other way: it
+rotates some *other* object by `measure(ang)`, driven directly by an
+`EGAngle2`'s own measure instead of a bare number — a stand-in for
+`rotate(obj, measure(ang), ...)`, useful once you already have the angle
+as an `EGAngle2` (say, from `angle_between`'s caller building one to
+measure/display it) and don't want to unwrap it by hand first:
+
+```@example geo
+rotate(P1, ang, O) == rotate(P1, measure(ang), O)   # true: same rotation, just driven by ang directly
+```
+
 ## Harmonic conjugate and the golden ratio point
 
 Given `A`, `B` on a line and a third point `P` on that same line,
@@ -473,6 +525,11 @@ ap = apollonius_circle(A, B, 2.0)     # every point on it is twice as far from B
 Ptest = polar_point_deg(ap.r, 50.0, ap.center)   # an arbitrary point on ap
 distance(Ptest, A) / distance(Ptest, B)          # ≈ 2.0, regardless of the angle chosen
 ```
+
+```@raw html
+<img src="../assets/img/points_lines/ap_circ.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
 
 ```@example geo
 try

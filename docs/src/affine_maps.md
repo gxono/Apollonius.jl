@@ -74,39 +74,57 @@ itself can be stored, composed and reused, rather than re-specifying
 
 ## `rotate`/`homothety`/`translate`/`reflection`, called with one argument
 
-`rotate`, `homothety`, `translate` and `reflection` themselves have a
-single-argument form that builds exactly this: `rotate(angle, center)` is
-`rotation_map(angle, center)`, `homothety(k, center)` is
-`homothety_map(k, center)`, `translate(v)` is `translation_map(v)`, and
-`reflection(about)` is `reflection_map(about)` — same `EGAffineMap` values,
-under the more familiar names, and with the same origin-defaulting
-`center` that the point-based `rotate`/`homothety` already have:
+`rotate`, `homothety`, `translate` and `reflection` also have a
+single-argument form — `rotate(angle, center)`, `homothety(k, center)`,
+`translate(v)`, `reflection(about)` — for `|>`/`∘`/`map`/`filter`
+composition without a shape already in hand. Unlike
+`rotation_map`/`homothety_map`/`translation_map`/`reflection_map` above,
+these are **plain functions**, not `EGAffineMap`s: each is just
+`shape -> rotate(shape, angle, center)` (and likewise for the other
+three), so they *preserve* whatever specific type the direct call already
+returns — a circle piped through stays an `EGCircle2`, not an
+`EGEllipse2`:
 
 ```@example geo
 t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
 
-rotate(pi / 2)(t)                 # rotation_map(pi/2, origin)(t)
-t |> translate(EGVector(2.0, 0.0)) |> rotate(pi / 2)  # pipe several in a row
+rotate(pi / 2)(t)                              # rotate(t, pi/2, origin)
+t |> translate(EGVector(2.0, 0.0)) |> rotate(pi / 2)  # pipe several in a row -- each step exact
 
-# the circle comes back as an EGEllipse2 here, same as applying any other
-# EGAffineMap would (see "Conics: type is preserved, but never a circle"
-# above) -- unlike homothety(circumcircle(t), 2.0), which keeps it a circle
+# circumcircle(t) stays an EGCircle2 all the way through -- contrast with
+# map(homothety_map(2.0, EGPoint(0.0,0.0)), ...) below, which widens it
 map(homothety(2.0), [t, circumcircle(t)])
 ```
 
-Since the result is a genuine `EGAffineMap`, composing two of these builds
-one combined map (computed once, applied as cheaply as any other single
-map), exactly like composing `rotation_map`/`translation_map`/etc.
-directly:
+The cost of that exactness: composing two of these with `∘` builds
+*another plain function* — a chain of type-preserving calls applied one
+after another each time — not a single, reusable, inspectable object the
+way composing two `EGAffineMap`s does:
 
 ```@example geo
-(rotate(pi / 2) ∘ translate(EGVector(2.0, 0.0))) isa EGAffineMap
+chain = rotate(pi / 2) ∘ translate(EGVector(2.0, 0.0))
+chain isa EGAffineMap   # false -- just a Function
+chain(circumcircle(t))  # still an EGCircle2, computed via 2 exact calls in sequence
 ```
 
+So the choice between the two families is a genuine tradeoff, not a
+strict upgrade either way:
+
+| | `rotate(angle)` etc. | `rotation_map(angle, center)` etc. |
+|:--|:--|:--|
+| Result type | preserved exactly (`EGCircle2` stays `EGCircle2`) | always generic (a circle → `EGEllipse2`) |
+| `∘`/pipe result | a plain `Function` (chain of exact calls) | one combined, reusable `EGAffineMap` |
+| Reapplying many times | re-walks the chain every time | cheap: one precomputed matrix |
+
+Reach for the plain-function form by default (most shapes here have a
+type worth keeping exact); reach for the `*_map` form when the map itself
+needs to be stored, inspected (`m.a11`, etc.), or reapplied many times as
+one precomputed object, and the generic-conic tradeoff is acceptable.
+
 [`invert`](@ref)/[`invert_neg`](@ref) have the same single-argument
-convenience (`invert(center; k=1.0)`, see [Circles](@ref)) — but circle
-inversion isn't an affine transformation at all, so those build a plain
-closure instead of an `EGAffineMap`.
+convenience (`invert(center; k=1.0)`, see [Circles](@ref)), also a plain
+closure — circle inversion isn't an affine transformation at all, so
+there's no `EGAffineMap`-based alternative for it in the first place.
 
 ## Applying and composing
 

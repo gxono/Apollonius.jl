@@ -87,21 +87,16 @@ end
     translation_map(v::EGVector{3})
     translation_map(v::EGPoint{3})
 
-The affine map `p -> p + v` — the 3D sibling of `translation_map(::EGPointOrVector{2})`.
+The affine map `p -> p + v` — the 3D sibling of
+`translation_map(::EGPointOrVector{2})`, and likewise a deliberately
+separate name from [`translate`](@ref) rather than an overload of it (see
+that 2D docstring for why).
 """
 translation_map(v::EGPointOrVector{3}) = EGAffineMap3(
     one(v[1]), zero(v[1]), zero(v[1]),
     zero(v[1]), one(v[1]), zero(v[1]),
     zero(v[1]), zero(v[1]), one(v[1]),
     v[1], v[2], v[3])
-
-"""
-    translate(v::EGVector{3})
-
-The affine map `p -> p + v`, composable via `∘` — the 3D sibling of
-`translate(::EGVector{2})`.
-"""
-translate(v::EGVector{3}) = translation_map(v)
 
 """
     rotation_map(angle::Real, axis::EGLine{3})
@@ -131,14 +126,6 @@ function rotation_map(angle::Real, axis::EGLine{3})
 end
 
 """
-    rotate(angle::Real, axis::EGLine{3})
-
-The affine map rotating by `angle` radians about `axis`, composable via
-`∘` — the 3D sibling of `rotate(::Real, ::EGPoint{2})`.
-"""
-rotate(angle::Real, axis::EGLine{3}) = rotation_map(angle, axis)
-
-"""
     homothety_map(k::Real, center::EGPoint{3})
 
 The affine map scaling by ratio `k` about `center` — the 3D sibling of
@@ -149,14 +136,6 @@ function homothety_map(k::Real, center::EGPoint{3})
     tx, ty, tz = center[1] * (1 - k), center[2] * (1 - k), center[3] * (1 - k)
     return EGAffineMap3(k, z, z, z, k, z, z, z, k, tx, ty, tz)
 end
-
-"""
-    homothety(k::Real, center::EGPoint{3})
-
-The affine map scaling by ratio `k` about `center`, composable via `∘` —
-the 3D sibling of `homothety(::Real, ::EGPoint{2})`.
-"""
-homothety(k::Real, center::EGPoint{3}) = homothety_map(k, center)
 
 """
     reflection_map(pl::EGPlane3)
@@ -192,17 +171,46 @@ reflection_map(about::EGPoint{3}) = EGAffineMap3(
     2about[1], 2about[2], 2about[3])
 
 """
+    translate(v::EGVector{3})
+
+A reusable, one-argument function, `shape -> translate(shape, v)` — the
+3D sibling of `translate(::EGVector{2})`; see that 2D docstring for the
+full tradeoff against [`translation_map`](@ref).
+"""
+translate(v::EGVector{3}) = shape -> translate(shape, v)
+
+"""
+    rotate(angle::Real, axis::EGLine{3})
+
+A reusable, one-argument function, `shape -> rotate(shape, angle, axis)`
+— the 3D sibling of `rotate(::Real, ::EGPoint{2})`; see that 2D docstring
+for the full tradeoff against [`rotation_map`](@ref).
+"""
+rotate(angle::Real, axis::EGLine{3}) = shape -> rotate(shape, angle, axis)
+
+"""
+    homothety(k::Real, center::EGPoint{3})
+
+A reusable, one-argument function, `shape -> homothety(shape, k, center)`
+— the 3D sibling of `homothety(::Real, ::EGPoint{2})`; see that 2D
+docstring for the full tradeoff against [`homothety_map`](@ref).
+"""
+homothety(k::Real, center::EGPoint{3}) = shape -> homothety(shape, k, center)
+
+"""
     reflection(about::EGPoint{3})
     reflection(about::EGPlane3)
 
-The affine map reflecting through the point `about`, or across the plane
-`about`, composable via `∘` — the 3D sibling of `reflection(::EGPoint{2})`/
-`reflection(::EGLine{2})`. There is deliberately no `reflection(::EGLine{3})`
--- see [`reflection(::EGPoint{2}, ::EGLine{2})`](@ref) for why "reflecting
+A reusable, one-argument function, `shape -> reflection(shape, about)` —
+the 3D sibling of `reflection(::EGPoint{2})`/`reflection(::EGLine{2})`;
+see that 2D docstring for the full tradeoff against
+[`reflection_map`](@ref). There is deliberately no
+`reflection(::EGLine{3})` — see
+[`reflection(::EGPoint{2}, ::EGLine{2})`](@ref) for why "reflecting
 across a line" isn't a well-defined 3D isometry.
 """
-reflection(about::EGPoint{3}) = reflection_map(about)
-reflection(about::EGPlane3) = reflection_map(about)
+reflection(about::EGPoint{3}) = shape -> reflection(shape, about)
+reflection(about::EGPlane3) = shape -> reflection(shape, about)
 
 """
     affine_map(src::NTuple{4,EGPoint{3}}, dst::NTuple{4,EGPoint{3}})

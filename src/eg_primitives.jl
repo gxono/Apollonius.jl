@@ -190,6 +190,19 @@ function rotate(v::EGVector{2}, angle::Real)
 end
 
 """
+    homothety(v::EGVector, k::Real, center::EGPoint=EGPoint(0.0, 0.0))
+
+`k * v` — for a free vector, `center` has nothing to act on (there's no
+position), so it's accepted purely for signature symmetry with every
+other `homothety` method (points, curves, [`EGEquipollentVector`](@ref)).
+Having this defined for a bare `EGVector` is what lets
+[`@to_luxor_picture`](@ref) scale one to the picture's own scale factor
+even though it has no [`EGBoundingBox`](@ref) to shift into position —
+see `_place_in_picture`'s own comment for the reasoning.
+"""
+homothety(v::EGVector{Dim,T}, k::Real, center::EGPoint{Dim}=EGPoint(ntuple(_ -> zero(T), Dim))) where {Dim,T} = k * v
+
+"""
     reflection(v::EGVector, about::EGPoint)
 
 Point-reflect the direction `v` — simply `-v`, since a free vector has no
@@ -673,6 +686,23 @@ function _block_stmt_names(stmt)
     return (Symbol[], false)
 end
 
+# Used only by _picture_body: recognizes a statement wrapped in @unbounded
+# -- either the whole statement (`@unbounded aux = EGCircle2(...)`) or just
+# its right-hand side (`aux = @unbounded EGCircle2(...)`) -- and strips the
+# wrapper off, returning the plain statement underneath plus whether it was
+# marked. `_block_stmt_names` never needs to know @unbounded exists: by the
+# time it sees the statement, the wrapper is already gone.
+function _strip_unbounded(stmt)
+    if stmt isa Expr && stmt.head === :macrocall && stmt.args[1] === Symbol("@unbounded")
+        return (stmt.args[end], true)
+    end
+    if stmt isa Expr && stmt.head === :(=) && stmt.args[2] isa Expr &&
+       stmt.args[2].head === :macrocall && stmt.args[2].args[1] === Symbol("@unbounded")
+        return (Expr(:(=), stmt.args[1], stmt.args[2].args[end]), true)
+    end
+    return (stmt, false)
+end
+
 """
     @boundingbox begin
         c = EGCircle2(...)
@@ -807,12 +837,20 @@ end
 # coordinates already).
 #
 # A `shape` with no position of its own -- a plain number, an EGVector --
-# is left untouched instead of being run through translate/homothety,
-# which don't have a method for either (there's nothing to move; for a
-# number especially, it isn't even the kind of value they know how to
-# transform). These typically reach here as construction helpers named
-# earlier in the block (e.g. `radio = 5` before `EGCircle2(centro,
-# radio)`), not shapes meant to be drawn/sized themselves.
+# can't be shifted (`translate` has no method for either: there's nothing
+# to move; for a number especially, it isn't even the kind of value it
+# knows how to transform). These typically reach here as construction
+# helpers named earlier in the block (e.g. `radio = 5` before
+# `EGCircle2(centro, radio)`), not shapes meant to be drawn/sized
+# themselves -- except a bare EGVector, which very much IS meant to be
+# drawn, just without a position of its own to place. Scale and flip are
+# both *linear* (unlike shift, they don't need a position to act relative
+# to), so a shape that can't be shifted can still be scaled/flipped if it
+# supports `homothety` -- this is exactly what lets a free direction
+# come out at the picture's own scale, matching whatever anchor point
+# it's drawn from (itself placed normally, since it's an EGPoint) --
+# see EGVector's own `homothety` method. Anything that supports neither
+# (a plain number) is left completely untouched.
 #
 # This is deliberately NOT the same test as "does this have a finite
 # EGBoundingBox" -- an unbounded shape (EGLine, EGRay, EGAngle2,
@@ -827,13 +865,19 @@ end
 # positioned) -- if a shape claims a real bbox but doesn't support
 # translate, that's a bug in its own definition and should still surface
 # as a MethodError, not be silently swallowed here.
-function _place_in_picture(shape, bb::EGBoundingBox, s::Real, flip::Bool)
-    center = EGVector((bb.min[1] + bb.max[1]) / 2, (bb.min[2] + bb.max[2]) / 2)
-    !applicable(translate, shape, center) && isempty(EGBoundingBox(shape)) && return shape
-    shifted = translate(shape, -center)
-    scaled = homothety(shifted, s, EGPoint(0.0, 0.0))
+function _scale_and_flip(shape, s::Real, flip::Bool)
+    scaled = homothety(shape, s, EGPoint(0.0, 0.0))
     flip || return scaled
     return reflection(scaled, EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0)))
+end
+
+function _place_in_picture(shape, bb::EGBoundingBox, s::Real, flip::Bool)
+    center = EGVector((bb.min[1] + bb.max[1]) / 2, (bb.min[2] + bb.max[2]) / 2)
+    if !applicable(translate, shape, center)
+        applicable(homothety, shape, s, EGPoint(0.0, 0.0)) || return shape
+        return _scale_and_flip(shape, s, flip)
+    end
+    return _scale_and_flip(translate(shape, -center), s, flip)
 end
 
 const _PICTURE_KWNAMES = (:width, :height, :scale, :margin, :flip)
@@ -862,19 +906,22 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
     macroname = mutating ? "@to_luxor_picture!" : "@to_luxor_picture"
 
     shapes = gensym(:picture_shapes)
+    sizing_shapes = gensym(:picture_sizing_shapes)
     slots = Union{Symbol,Nothing}[]   # nothing = anonymous result slot; Symbol = rebind target (mutating only)
-    body = Expr(:block, :($shapes = Any[]))
+    body = Expr(:block, :($shapes = Any[]), :($sizing_shapes = Any[]))
     for stmt in block.args
         if stmt isa LineNumberNode
             push!(body.args, stmt)
             continue
         end
+        stmt, unbounded_here = _strip_unbounded(stmt)
         names, run_first = _block_stmt_names(stmt)
         if isempty(names)
             if mutating
                 push!(body.args, :(throw(ArgumentError($macroname * ": cannot mutate an unnamed expression — assign it to a variable first"))))
             else
                 push!(body.args, :(push!($shapes, $stmt)))
+                unbounded_here || push!(body.args, :(push!($sizing_shapes, $shapes[end])))
                 push!(slots, nothing)
             end
             continue
@@ -882,6 +929,7 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
         run_first && push!(body.args, stmt)
         for name in names
             push!(body.args, :(push!($shapes, $name)))
+            unbounded_here || push!(body.args, :(push!($sizing_shapes, $name)))
             push!(slots, mutating ? name : nothing)
         end
     end
@@ -895,8 +943,8 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
     H = gensym(:H)
     push!(body.args, quote
         isempty($shapes) && throw(ArgumentError($macroname * ": the block has no shapes"))
-        $bb = reduce(bbox_union, EGBoundingBox.($shapes))
-        isempty($bb) && throw(ArgumentError($macroname * ": none of the shapes in the block have a finite bounding box (only numbers/vectors/unbounded shapes?)"))
+        $bb = reduce(bbox_union, EGBoundingBox.($sizing_shapes); init=EGBoundingBox())
+        isempty($bb) && throw(ArgumentError($macroname * ": none of the shapes in the block have a finite bounding box (only numbers/vectors/unbounded shapes, or everything marked @unbounded?)"))
         $s, $W, $H = $picture_layout(bbox_width($bb), bbox_height($bb), $width, $height, $scale, $margin)
     end)
 
@@ -919,6 +967,41 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
         push!(body.args, :(($size_expr, $shapes_expr)))
     end
     return esc(body)
+end
+
+"""
+    @unbounded expr
+
+Inside a [`@to_luxor_picture`](@ref)/[`@to_luxor_picture!`](@ref) block,
+marks `expr` as excluded from that picture's fit-to-canvas *sizing* — its
+own [`EGBoundingBox`](@ref) is left out of the union that determines the
+canvas size and scale factor — while still binding/transforming it
+normally, exactly like every other line in the block. Wrap either the
+whole line (`@unbounded aux = EGCircle2(...)`) or just the right-hand
+side (`aux = @unbounded EGCircle2(...)`); both read the same way.
+
+Outside a picture block, `@unbounded expr` is simply `expr` — a plain,
+harmless passthrough, so it's always safe to write regardless of context.
+
+Useful for an auxiliary construction shape that has a real, large extent
+but isn't meant to set the picture's own scale — e.g. a big locus circle
+used only to build an intersection point:
+
+```julia
+sz = @to_luxor_picture! width=500 height=240 begin
+    A = EGPoint(1.0, 1.0)
+    locus = @unbounded EGCircle2(EGPoint(0.0, 0.0), 1000.0)   # huge, but shouldn't zoom the picture out
+    B = intersection(locus, EGLine(A, EGPoint(2.0, 2.0)))[1]
+end
+```
+
+If *every* shape in the block ends up marked `@unbounded` (or the block
+otherwise has nothing with a finite bounding box), the same
+`ArgumentError` [`@to_luxor_picture`](@ref) already throws for an empty
+bounding box applies — there's nothing left to size the canvas by.
+"""
+macro unbounded(expr)
+    return esc(expr)
 end
 
 """
@@ -1006,6 +1089,13 @@ Each line in the block is read exactly like [`@boundingbox`](@ref)'s (an
 assignment binds `name` in the enclosing scope as usual, or a bare
 expression contributes without binding anything); a bare, unnamed
 expression works here too since nothing needs to be rebound.
+
+Wrap a line in [`@unbounded`](@ref) (`aux = @unbounded EGCircle2(...)`, or
+`@unbounded aux = EGCircle2(...)`) to still bind/transform it normally
+*without* its own `EGBoundingBox` counting toward the canvas's sizing —
+e.g. a large auxiliary construction circle used only to build an
+intersection point, that you don't want forcing the picture to zoom out
+to fit.
 """
 macro to_luxor_picture(args...)
     isempty(args) && error("@to_luxor_picture: missing the shapes block")

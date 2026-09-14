@@ -174,7 +174,7 @@ export power_of_point, radical_axis, radical_center, radical_circle
 export vertices, is_convex, point_in_polygon, convex_hull, is_planar
 export bbox_width, bbox_height, bbox_center, bbox_diagonal, bbox_aspect_ratio,
        bboxes_intersect, bbox_intersection, bbox_union, @boundingbox
-export @to_luxor_picture, @to_luxor_picture!
+export @to_luxor_picture, @to_luxor_picture!, @unbounded
 export @translate, @translate!, @rotate, @rotate!, @homothety, @homothety!, @reflection, @reflection!
 export @invert, @invert!, @invert_neg, @invert_neg!, @affinemap, @affinemap!
 export inversion, invert, inversion_neg, invert_neg, polar_line, pole

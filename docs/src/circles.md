@@ -19,6 +19,11 @@ using EuclideanGeometry
 EGCircle2(EGPoint(0.0, 0.0), EGPoint(3.0, 4.0))   # radius 5, same as EGCircle2(EGPoint(0.0, 0.0), 5.0)
 ```
 
+```@raw html
+<img src="../assets/img/circles/circle_cp.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+
 Three points on the circumference work too — `EGCircle2(p1, p2, p3)` is
 their circumcircle, computed directly (the same formula
 [`circumcenter`](@ref) uses on an [`EGTriangle`](@ref), without needing to
@@ -27,6 +32,11 @@ build one first):
 ```@example geo
 EGCircle2(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(0.0, 3.0))
 ```
+
+```@raw html
+<img src="../assets/img/circles/circle_3p.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
 
 It throws an `ArgumentError` if the three points are (or are too close
 to) collinear, same as [`affine_map`](@ref) does for its three source
@@ -50,6 +60,10 @@ p = EGPoint(13.0, 0.0)
 power_of_point(p, c)     # 144.0 = 13² - 5²
 tangent_length(c, p)     # 12.0  = sqrt(144)
 pts = tangent_points(c, p)
+```
+
+```@raw html
+<img src="../assets/img/circles/circle_tanp.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 This is the classic *tangent from an external point* construction: `pts[1]`
@@ -82,6 +96,10 @@ c3 = EGCircle2(EGPoint(3.0, 6.0), 4.0)
 ra = radical_axis(c1, c2)
 rc = radical_center(c1, c2, c3)
 rcirc = radical_circle(c1, c2, c3)
+```
+
+```@raw html
+<img src="../assets/img/circles/circle_radical.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 ## Inversion, polar lines and poles
@@ -120,6 +138,11 @@ inv5(EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0))) isa EGCircle2
 map(inv5, [EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0)), EGLine(EGPoint(-3.0, 0.0), EGPoint(-3.0, 1.0))])
 ```
 
+
+```@raw html
+<img src="../assets/img/circles/inversion_line.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
 ## Inverting a segment, triangle or polygon
 
 A straight side doesn't generally stay straight under inversion: it only
@@ -132,8 +155,12 @@ of the line's own point at infinity, which a finite segment never reaches.
 applies, as a `Union{EGSegment,EGCircularArc2}`:
 
 ```@example geo
-invert(EGSegment(EGPoint(5.0, 2.0), EGPoint(8.0, 6.0)), EGPoint(0.0, 0.0))   # an EGCircularArc2
-invert(EGSegment(EGPoint(3.0, 0.0), EGPoint(8.0, 0.0)), EGPoint(0.0, 0.0))   # an EGSegment: this line passes through (0,0)
+invert(EGSegment(EGPoint(1.0, 0.5), EGPoint(2.0, 1.0)), EGPoint(0.0, 0.0))   # an EGCircularArc2
+invert(EGSegment(EGPoint(0.5, -1.5), EGPoint(1.5, -1.0)), EGPoint(0.0, 0.0))   # an EGSegment: this line passes through (0,0)
+```
+
+```@raw html
+<img src="../assets/img/circles/inversion_segment.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 Since an `EGTriangle`'s or `EGStraightNgon`'s sides invert independently
@@ -146,10 +173,30 @@ not representable as another `EGTriangle`/`EGStraightNgon`.
 reconnected in order.
 
 ```@example geo
-t2 = EGTriangle(EGPoint(5.0, 2.0), EGPoint(9.0, 3.0), EGPoint(6.0, 8.0))
+t2 = EGTriangle(EGPoint(1.5, 1.5), EGPoint(3.0, 0.5), EGPoint(1.0, -1.0))
 cp = invert(t2, EGPoint(0.0, 0.0))
 area(cp), perimeter(cp)
 ```
+
+```@raw html
+<img src="../assets/img/circles/inversion_triangle.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+The first example shows the typical case, where none of the triangle's sides passes through the inversion center. Consequently, all three sides become circular arcs. If one of the sides lies on a line through the center, however, that side remains straight under inversion, while the other sides are still transformed into circular arcs.
+
+
+```@raw html
+<img src="../assets/img/circles/inversion_triangle2.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+This behavior is not specific to triangles. For a general straight-sided polygon, each side is transformed independently according to whether its supporting line passes through the inversion center. The resulting image can therefore combine straight segments and circular arcs, as illustrated by the polygon below.
+
+
+
+```@raw html
+<img src="../assets/img/circles/inversion_ngon.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
 
 `area`/`perimeter` are the same generic, sides-based [`EGPolygon`](@ref)
 formulas every closed shape in the package shares (a straight side's own
@@ -186,6 +233,10 @@ int = internal_tangent_lines(c1, c2)
 distance(ext[1].p1, c1.center), distance(ext[1].p2, c2.center)   # (c1.r, c2.r)
 ```
 
+```@raw html
+<img src="../assets/img/circles/similitude_center.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
 The external center is far from both circles here because `c1` and `c2`
 have fairly close radii — the closer two radii are, the further out the
 external center sits, reaching infinity (parallel tangents) when the radii
@@ -198,12 +249,14 @@ Apollonius/tangent-circle constructions — see
 given circles is related to them by a homothety centered at one of these
 two points.
 
-[`tangent_parallel`](@ref) gives the two tangent lines to a circle parallel
-to a given line — the tangents at the two ends of the diameter
-perpendicular to it:
+[`tangent_parallel`](@ref) gives the two tangent lines to a circle parallel to a given line — the tangents at the two ends of the diameter perpendicular to it. In each returned line, the first point is the point of tangency:
 
 ```@example geo
-t1, t2 = tangent_parallel(c, EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0)))
+t1, t2 = tangent_parallel(c, EGLine(EGPoint(0.0, 3.0), EGPoint(1.0, 4.0)))
+```
+
+```@raw html
+<img src="../assets/img/circles/tangent_parallel.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 ## How two circles (or a line and a circle) relate
@@ -243,6 +296,10 @@ arc_length(arc)      # c.r * measure(arc)
 ```@example geo
 point_on_arc(arc, 0.0) ≈ p1   # t=0 is p1, t=1 is p2
 midpoint(arc)                   # point_on_arc(arc, 0.5)
+```
+
+```@raw html
+<img src="../assets/img/circles/arc.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 Swapping `p1` and `p2` gives the *complementary* arc (the other `3/4` of
@@ -309,6 +366,10 @@ perimeter(seg)    # the arc length plus the chord [p1, p2]
 ```@example geo
 asec = EGAnnularSector2(arc, 2.0)   # inner radius 2.0
 area(asec)        # outer sector area minus inner sector area
+```
+
+```@raw html
+<img src="../assets/img/circles/sec_ann.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 None of these three formulas is hand-derived per type — every one comes

@@ -26,11 +26,16 @@ polar_point_deg(r::Real, angle::Real, center::EGPoint{2}) =
     polar_point(r, deg2rad(angle), center)
 
 """
-    barycenter(points::AbstractVector{<:EGPoint}, weights::AbstractVector{<:Real})
+    barycenter(points, weights)
 
-The weighted barycenter (center of mass) of `points` with the given `weights`.
+The weighted barycenter (center of mass) of `points` with the given
+`weights` — `points` an `AbstractVector`/`Tuple` of `EGPoint`, `weights`
+an `AbstractVector`/`Tuple` of `Real` (e.g. `barycenter(vertices(t),
+[1.0, 1.0, 2.0])` works directly, even though `vertices(::EGTriangle)`
+returns a `Tuple` rather than a `Vector`).
 """
-function barycenter(points::AbstractVector{<:EGPoint}, weights::AbstractVector{<:Real})
+function barycenter(points::Union{AbstractVector{<:EGPoint},NTuple{N,<:EGPoint} where N},
+    weights::Union{AbstractVector{<:Real},NTuple{N,<:Real} where N})
     length(points) == length(weights) ||
         throw(ArgumentError("points and weights must have the same length"))
     W = sum(weights)
