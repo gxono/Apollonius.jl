@@ -285,13 +285,16 @@ c2 = EGCircle2(EGPoint(90.0, 0.0), 50.0)   # tangent to c1: distance 90 == 40 + 
 c3_center = intersection(EGCircle2(c1.center, c1.r + 35.0), EGCircle2(c2.center, c2.r + 35.0))[1]
 c3 = EGCircle2(c3_center, 35.0)            # tangent to both c1 and c2
 
-for gap in interstices(c1, c2, c3)
-    sethue("red"); setopacity(0.5)
-    path(gap; action=:fill)
-end
 
-sethue("purple"); setopacity(0.5)
-path(invert(EGTriangle(EGPoint(50.0, 20.0), EGPoint(90.0, 30.0), EGPoint(60.0, 80.0)), EGPoint(0.0, 0.0)); action=:fill)
+sethue("red"); setopacity(0.5)
+path(interstices(c1, c2, c3); action=:fill)
+
+sethue("purple")
+path(invert(EGTriangle(EGPoint(50.0, 20.0), EGPoint(90.0, 30.0), EGPoint(60.0, 80.0)), EGPoint(0.0, 0.0), k=100.0); action=:fill)
+```
+
+```@raw html
+<img src="../assets/img/drawing/curves.svg" alt="" style="width:100%;">
 ```
 
 Every curved side here is built from Luxor's own `arc2r`/`carc2r` (Cairo's
@@ -313,6 +316,11 @@ earc = EGEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
 path(earc; action=:stroke)
 ```
 
+```@raw html
+<img src="../assets/img/drawing/earcs.svg" alt="" style="width:100%;">
+```
+
+
 They can also turn up as a *side* of a curvilinear region — not from
 building one directly (there's no `EGEllipticSector2`), but as the result
 of an [`EGAffineMap`](@ref) applied to a circular-arc region, since a
@@ -322,6 +330,10 @@ non-conformal map turns a circular arc elliptic:
 sec = EGCircularSector2(EGCircularArc2(EGCircle2(EGPoint(0.0, 0.0), 30.0), EGPoint(30.0, 0.0), EGPoint(0.0, 30.0)))
 skew = EGAffineMap(1.3, 0.4, -0.2, 0.9, 0.0, 0.0)
 path(skew(sec); action=:stroke)   # an EGCurvilinearTriangle2 with one elliptic-arc side
+```
+
+```@raw html
+<img src="../assets/img/drawing/affine_skew.svg" alt="" style="width:100%;">
 ```
 
 `path(::EGPolygon)` handles this transparently — a side is drawn with
@@ -361,6 +373,11 @@ end
 end w h
 ```
 
+```@raw html
+<img src="../assets/img/drawing/to_luxor1.svg" alt="" style="width:100%;">
+```
+
+
 Building the `Drawing` by hand instead needs its own `origin()` call
 first, since `Drawing` itself doesn't move `(0, 0)`:
 
@@ -397,6 +414,41 @@ path(circ2; action=:stroke)
 finish()
 ```
 
+As an additional comment, this is what a standard template for creating the illustrations in the documentation looks like:
+
+```julia
+begin
+using EuclideanGeometry
+using Luxor: Drawing, finish, preview, origin,
+    sethue, setdash, setopacity, setline,
+    fillpreserve, strokepath, 
+    julia_blue, julia_green, julia_red, julia_purple,
+    gsave, grestore,
+    label
+import Luxor
+
+setpoint(color) = begin 
+    sethue("white"); fillpreserve()
+    sethue(color); strokepath() 
+end
+
+fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
+end
+
+sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+    #to build obj.
+end
+
+begin
+Drawing(sz.width, sz.height, "docs/src/assets/img/drawing/$fmt_name")
+origin()
+    #to plot obj.
+finish()
+preview()
+end
+```
+
+
 ### Excluding a shape from sizing: `@unbounded`
 
 Every shape named in a `@to_luxor_picture` block counts toward the
@@ -426,6 +478,33 @@ the right-hand side (`locus = @unbounded EGCircle2(...)`) — both read the
 same way. Outside a picture block, `@unbounded expr` is simply `expr`, a
 harmless no-op, so it's always safe to leave in place regardless of
 context.
+
+Note here how `@unbounded` allows me to ignore the circumcenter when computing the bounding box of the entire figure.
+
+```julia
+sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+    A, B, C = EGPoint(0.0,0), EGPoint(10,0), EGPoint(7,5)
+    triangle =  EGTriangle(A, B, C)
+    G = centroid(triangle)
+    O = circumcenter(triangle)
+    I = incenter(triangle)
+    H = orthocenter(triangle)
+    l = euler_line(triangle)
+    tsides = EGLine.(sides(triangle))
+    @unbounded cc = circumcircle(triangle) #<---
+    ic = incircle(triangle)
+    iv = projection.(I, tsides)
+    npc = nine_point_circle(triangle)
+    npc_c = nine_point_center(triangle)
+    ep = collect(euler_points(triangle))
+    ips = reduce(vcat, intersection.(npc, tsides))
+end
+```
+
+```@raw html
+<img src="../assets/img/triangles/tri_cen.svg" alt="" style="width:100%;">
+```
+
 
 ### `current_path_bbox`
 

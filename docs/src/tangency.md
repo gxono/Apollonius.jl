@@ -48,6 +48,10 @@ sols = tangent_circles_through_points(a, b, l)
 length(sols)   # exactly 1, in this symmetric case
 ```
 
+```@raw html
+<img src="../assets/img/triangles/ppl.svg" alt="" style="width:100%;">
+```
+
 The circle's center lies on the perpendicular bisector of `[a,b]` and it
 touches the line from above. A less symmetric choice of `a`, `b` and `l`
 generally gives two such circles — often of very different sizes, since
@@ -65,6 +69,10 @@ sols_c = tangent_circles_through_points(a2, b2, given_c)
 length(sols_c)   # 2 here: one tangent externally, one internally
 ```
 
+```@raw html
+<img src="../assets/img/triangles/ppc.svg" alt="" style="width:100%;">
+```
+
 ## Tangent to two or three circles/lines
 
 `tangent_circles` covers every "no points, ≥2 circles/lines" combination —
@@ -80,6 +88,11 @@ sols_cll = tangent_circles(l1, l2, c_cll)
 length(sols_cll)   # 4
 ```
 
+```@raw html
+<img src="../assets/img/triangles/llc.svg" alt="" style="width:100%;">
+```
+
+
 ```@example geo
 c1_ccl = EGCircle2(EGPoint(0.0, 0.0), 2.0)
 c2_ccl = EGCircle2(EGPoint(6.0, 0.0), 2.0)
@@ -87,6 +100,10 @@ l_ccl = EGLine(EGPoint(0.0, -3.0), EGPoint(1.0, -3.0))
 
 sols_ccl = tangent_circles(c1_ccl, c2_ccl, l_ccl)
 length(sols_ccl)   # 6
+```
+
+```@raw html
+<img src="../assets/img/triangles/ccl.svg" alt="" style="width:100%;">
 ```
 
 ## Tangent to three circles
@@ -104,6 +121,10 @@ sols3 = tangent_circles(given[1], given[2], given[3])
 length(sols3)   # 8 solutions
 ```
 
+```@raw html
+<img src="../assets/img/triangles/ccc.svg" alt="" style="width:100%;">
+```
+
 Two of those eight happen to be concentric with the given configuration by
 symmetry here — a small one nested between the three circles, and a large
 one enclosing all of them:
@@ -111,6 +132,10 @@ one enclosing all of them:
 ```@example geo
 small = sols3[argmin(s.r for s in sols3)]
 big = sols3[argmax(s.r for s in sols3)]
+```
+
+```@raw html
+<img src="../assets/img/triangles/ccc_bs.svg" alt="" style="width:100%;">
 ```
 
 ## Interstices: the gap between three tangent circles
@@ -130,6 +155,10 @@ c3 = EGCircle2(c3_center, 35.0)            # tangent to both c1 and c2
 
 gaps = interstices(c1, c2, c3)
 length(gaps)   # 1: an externally tangent "chain" of 3 has exactly one gap
+```
+
+```@raw html
+<img src="../assets/img/triangles/ccc_gap.svg" alt="" style="width:100%;">
 ```
 
 It's built by reusing `tangent_circles(c1, c2, c3)` above: every genuine
@@ -152,6 +181,10 @@ B_center = intersection(EGCircle2(big.center, R - 45.0), EGCircle2(A.center, A.r
 B = EGCircle2(B_center, 45.0)                                       # inside big, tangent to it and to A
 
 length(interstices(big, A, B))   # 2
+```
+
+```@raw html
+<img src="../assets/img/triangles/ccc_gap2.svg" alt="" style="width:100%;">
 ```
 
 [`interstices`](@ref) figures out which of these two cases applies (and in
@@ -190,6 +223,10 @@ sols_p = tangent_circles_through_point(c1, c2, p)
 length(sols_p)
 ```
 
+```@raw html
+<img src="../assets/img/triangles/ccp.svg" alt="" style="width:100%;">
+```
+
 ## Fixing the radius in advance
 
 [`tangent_circles_with_radius`](@ref)`(obj1, obj2, r)` is a different kind
@@ -199,10 +236,14 @@ asks for circles of exactly that radius tangent to two lines, a line and a
 circle, or two circles:
 
 ```@example geo
-l1 = EGLine(EGPoint(0.0, 0.0), EGPoint(0.0, 1.0))   # the y-axis
+l1 = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))   # the y-axis
 l2 = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0))   # the x-axis
 sols_r = tangent_circles_with_radius(l1, l2, 3.0)   # radius 3, tangent to both axes
 length(sols_r), all(s -> s.r == 3.0, sols_r)   # 4 solutions, one per quadrant
+```
+
+```@raw html
+<img src="../assets/img/triangles/llr.svg" alt="" style="width:100%;">
 ```
 
 (`l1`/`l2` need to actually meet somewhere for this to have solutions —

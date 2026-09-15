@@ -3,7 +3,7 @@ using EuclideanGeometry
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin, newsubpath,
     background, RGBA,
-    sethue, setdash, setopacity,
+    sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, 
     julia_blue, julia_green, julia_red, julia_purple,
     gsave, grestore,
@@ -24,18 +24,14 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     I = incenter(triangle)
     H = orthocenter(triangle)
     l = euler_line(triangle)
-    l1, l2, l3 = EGLine(B, C), EGLine(C, A), EGLine(A, B)
+    lados = EGLine.(sides(triangle))
     @unbounded cc = circumcircle(triangle)
     ic = incircle(triangle)
-    i1 = projection(I, l1)
-    i2 = projection(I, l2)
-    i3 = projection(I, l3)
+    iv = projection.(I, lados)
     npc = nine_point_circle(triangle)
     npc_c = nine_point_center(triangle)
-    ep = euler_points(triangle) |> collect
-    ips = [intersection(npc, l1)
-    intersection(npc, l2)
-    intersection(npc, l3)]
+    ep = collect(euler_points(triangle))
+    ips = reduce(vcat, intersection.(npc, lados))
 end
 
 
@@ -50,7 +46,7 @@ setline(1)
 setdash(:dash)
 path([cc, ic], action=:stroke)
 path(EGSegment(O, A), action=:stroke)
-path(EGSegment(I, i1), action=:stroke)
+path(EGSegment(I, iv[2]), action=:stroke)
 grestore()
 
 sethue(julia_purple)
@@ -64,7 +60,7 @@ path(triangle, action=:stroke)
 path([A,B,C])
 setpoint(julia_red)
 
-path([i1 i2 i3])
+path(iv)
 path(ips)
 newsubpath()
 path(npc_c)
