@@ -49,7 +49,7 @@ length(sols)   # exactly 1, in this symmetric case
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/ppl.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ppl.svg" alt="" style="width:100%;">
 ```
 
 The circle's center lies on the perpendicular bisector of `[a,b]` and it
@@ -70,7 +70,7 @@ length(sols_c)   # 2 here: one tangent externally, one internally
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/ppc.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ppc.svg" alt="" style="width:100%;">
 ```
 
 ## Tangent to two or three circles/lines
@@ -89,7 +89,7 @@ length(sols_cll)   # 4
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/llc.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/llc.svg" alt="" style="width:100%;">
 ```
 
 
@@ -103,7 +103,7 @@ length(sols_ccl)   # 6
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/ccl.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccl.svg" alt="" style="width:100%;">
 ```
 
 ## Tangent to three circles
@@ -122,7 +122,7 @@ length(sols3)   # 8 solutions
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/ccc.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccc.svg" alt="" style="width:100%;">
 ```
 
 Two of those eight happen to be concentric with the given configuration by
@@ -135,7 +135,7 @@ big = sols3[argmax(s.r for s in sols3)]
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/ccc_bs.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccc_bs.svg" alt="" style="width:100%;">
 ```
 
 ## Interstices: the gap between three tangent circles
@@ -158,7 +158,7 @@ length(gaps)   # 1: an externally tangent "chain" of 3 has exactly one gap
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/ccc_gap.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccc_gap.svg" alt="" style="width:100%;">
 ```
 
 It's built by reusing `tangent_circles(c1, c2, c3)` above: every genuine
@@ -184,7 +184,7 @@ length(interstices(big, A, B))   # 2
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/ccc_gap2.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccc_gap2.svg" alt="" style="width:100%;">
 ```
 
 [`interstices`](@ref) figures out which of these two cases applies (and in
@@ -224,7 +224,7 @@ length(sols_p)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/ccp.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccp.svg" alt="" style="width:100%;">
 ```
 
 ## Fixing the radius in advance
@@ -243,7 +243,7 @@ length(sols_r), all(s -> s.r == 3.0, sols_r)   # 4 solutions, one per quadrant
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/llr.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/llr.svg" alt="" style="width:100%;">
 ```
 
 (`l1`/`l2` need to actually meet somewhere for this to have solutions —
