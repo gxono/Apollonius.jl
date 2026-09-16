@@ -56,6 +56,7 @@ Whether point `p` lies on the infinite line `l`.
 """
 on_line(p::EGPoint, l::EGLine; atol=1e-9) =
     distance(p, l) <= sqrt(atol) * max(norm(p), norm(l.p1), norm(l.p2), 1.0)
+#NO USAR is_collinear(p, l.p1, l.p2; atol=atol)
 
 """
     on_line(l::EGLine; atol=1e-9)
