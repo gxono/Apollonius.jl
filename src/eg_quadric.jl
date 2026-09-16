@@ -37,8 +37,7 @@ struct EGEllipsoid3{T<:Real} <: EGSurface{3,T}
         return new{T}(center, a, b, c, un, vp / norm(vp))
     end
 end
-function EGEllipsoid3(center::EGPointLike, a::Real, b::Real, c::Real, u::EGVector{3}, v::EGVector{3})
-    ctr = _topoint(center)
+function EGEllipsoid3(ctr::EGPoint, a::Real, b::Real, c::Real, u::EGVector{3}, v::EGVector{3})
     T = promote_type(eltype(ctr), typeof(a), typeof(b), typeof(c), eltype(u), eltype(v))
     return EGEllipsoid3{T}(convert(EGPoint{3,T}, ctr), T(a), T(b), T(c), convert(EGVector{3,T}, u), convert(EGVector{3,T}, v))
 end
@@ -125,8 +124,7 @@ struct EGParaboloid3{T<:Real} <: EGSurface{3,T}
         return new{T}(vertex, a, b, axn, up / norm(up))
     end
 end
-function EGParaboloid3(vertex::EGPointLike, a::Real, b::Real, axis::EGVector{3}, u::EGVector{3})
-    v = _topoint(vertex)
+function EGParaboloid3(v::EGPoint, a::Real, b::Real, axis::EGVector{3}, u::EGVector{3})
     T = promote_type(eltype(v), typeof(a), typeof(b), eltype(axis), eltype(u))
     return EGParaboloid3{T}(convert(EGPoint{3,T}, v), T(a), T(b), convert(EGVector{3,T}, axis), convert(EGVector{3,T}, u))
 end
@@ -193,8 +191,7 @@ struct EGHyperboloid3{T<:Real} <: EGSurface{3,T}
         return new{T}(center, a, b, c, un, vp / norm(vp), sheets)
     end
 end
-function EGHyperboloid3(center::EGPointLike, a::Real, b::Real, c::Real, u::EGVector{3}, v::EGVector{3}; sheets::Int=1)
-    ctr = _topoint(center)
+function EGHyperboloid3(ctr::EGPoint, a::Real, b::Real, c::Real, u::EGVector{3}, v::EGVector{3}; sheets::Int=1)
     T = promote_type(eltype(ctr), typeof(a), typeof(b), typeof(c), eltype(u), eltype(v))
     return EGHyperboloid3{T}(convert(EGPoint{3,T}, ctr), T(a), T(b), T(c), convert(EGVector{3,T}, u), convert(EGVector{3,T}, v), sheets)
 end
@@ -266,8 +263,7 @@ struct EGHyperbolicParaboloid3{T<:Real} <: EGSurface{3,T}
         return new{T}(vertex, a, b, axn, up / norm(up))
     end
 end
-function EGHyperbolicParaboloid3(vertex::EGPointLike, a::Real, b::Real, axis::EGVector{3}, u::EGVector{3})
-    v = _topoint(vertex)
+function EGHyperbolicParaboloid3(v::EGPoint, a::Real, b::Real, axis::EGVector{3}, u::EGVector{3})
     T = promote_type(eltype(v), typeof(a), typeof(b), eltype(axis), eltype(u))
     return EGHyperbolicParaboloid3{T}(convert(EGPoint{3,T}, v), T(a), T(b), convert(EGVector{3,T}, axis), convert(EGVector{3,T}, u))
 end

@@ -42,13 +42,11 @@ struct EGPlane3{T<:Real} <: EGSurface{3,T}
         return new{T}(point, normal / norm(normal))
     end
 end
-function EGPlane3(point::EGPointLike, normal::EGVector{3})
-    p = _topoint(point)
+function EGPlane3(p::EGPoint, normal::EGVector{3})
     T = promote_type(eltype(p), eltype(normal))
     return EGPlane3{T}(convert(EGPoint{3,T}, p), convert(EGVector{3,T}, normal))
 end
-function EGPlane3(p1::EGPointLike, p2::EGPointLike, p3::EGPointLike; atol=1e-9)
-    p1, p2, p3 = _topoint(p1), _topoint(p2), _topoint(p3)
+function EGPlane3(p1::EGPoint, p2::EGPoint, p3::EGPoint; atol=1e-9)
     u, v = p2 - p1, p3 - p1
     n = cross3(u, v)
     norm(n) <= atol * max(norm(u) * norm(v), 1.0) &&
@@ -152,8 +150,7 @@ struct EGSphere3{T<:Real} <: EGSurface{3,T}
     center::EGPoint{3,T}
     r::T
 end
-function EGSphere3(center::EGPointLike, r::Real)
-    c = _topoint(center)
+function EGSphere3(c::EGPoint, r::Real)
     T = promote_type(eltype(c), typeof(r))
     return EGSphere3{T}(convert(EGPoint{3,T}, c), T(r))
 end
@@ -245,8 +242,7 @@ struct EGCircle3{T<:Real} <: EGCurve{3,T}
         return new{T}(center, r, normal / norm(normal))
     end
 end
-function EGCircle3(center::EGPointLike, r::Real, normal::EGVector{3})
-    c = _topoint(center)
+function EGCircle3(c::EGPoint, r::Real, normal::EGVector{3})
     T = promote_type(eltype(c), typeof(r), eltype(normal))
     return EGCircle3{T}(convert(EGPoint{3,T}, c), T(r), convert(EGVector{3,T}, normal))
 end

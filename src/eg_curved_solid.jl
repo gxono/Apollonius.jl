@@ -26,8 +26,7 @@ struct EGCylinder3{T<:Real} <: EGRegion{3,T}
     p2::EGPoint{3,T}
     r::T
 end
-function EGCylinder3(p1::EGPointLike, p2::EGPointLike, r::Real)
-    p1, p2 = _topoint(p1), _topoint(p2)
+function EGCylinder3(p1::EGPoint, p2::EGPoint, r::Real)
     T = promote_type(eltype(p1), eltype(p2), typeof(r))
     return EGCylinder3{T}(convert(EGPoint{3,T}, p1), convert(EGPoint{3,T}, p2), T(r))
 end
@@ -124,8 +123,7 @@ struct EGCone3{T<:Real} <: EGRegion{3,T}
     base_center::EGPoint{3,T}
     r::T
 end
-function EGCone3(apex::EGPointLike, base_center::EGPointLike, r::Real)
-    apex, base_center = _topoint(apex), _topoint(base_center)
+function EGCone3(apex::EGPoint, base_center::EGPoint, r::Real)
     T = promote_type(eltype(apex), eltype(base_center), typeof(r))
     return EGCone3{T}(convert(EGPoint{3,T}, apex), convert(EGPoint{3,T}, base_center), T(r))
 end

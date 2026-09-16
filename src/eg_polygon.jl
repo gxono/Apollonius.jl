@@ -327,8 +327,7 @@ struct EGTriangle{Dim,T<:Real} <: EGPolygon{Dim,T}
     b::EGPoint{Dim,T}
     c::EGPoint{Dim,T}
 end
-function EGTriangle(a::EGPointLike, b::EGPointLike, c::EGPointLike)
-    a, b, c = _topoint(a), _topoint(b), _topoint(c)
+function EGTriangle(a::EGPoint, b::EGPoint, c::EGPoint)
     return EGTriangle{length(a),promote_type(eltype(a), eltype(b), eltype(c))}(a, b, c)
 end
 
@@ -370,8 +369,7 @@ struct EGQuadrilateral{Dim,T<:Real} <: EGPolygon{Dim,T}
     c::EGPoint{Dim,T}
     d::EGPoint{Dim,T}
 end
-function EGQuadrilateral(a::EGPointLike, b::EGPointLike, c::EGPointLike, d::EGPointLike)
-    a, b, c, d = _topoint(a), _topoint(b), _topoint(c), _topoint(d)
+function EGQuadrilateral(a::EGPoint, b::EGPoint, c::EGPoint, d::EGPoint)
     return EGQuadrilateral{length(a),promote_type(eltype(a), eltype(b), eltype(c), eltype(d))}(a, b, c, d)
 end
 
@@ -472,7 +470,7 @@ function EGStraightNgon(vs::AbstractVector{<:EGPoint{Dim}}) where {Dim}
     T = promote_type(eltype.(vs)...)
     return EGStraightNgon(EGPoint{Dim,T}[convert(EGPoint{Dim,T}, v) for v in vs])
 end
-EGStraightNgon(vs::AbstractVector) = EGStraightNgon([_topoint(v) for v in vs])
+EGStraightNgon(vs::AbstractVector) = EGStraightNgon([v for v in vs])
 
 function EGStraightNgon(bb::EGBoundingBox)
     return EGStraightNgon([

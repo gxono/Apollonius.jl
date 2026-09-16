@@ -34,8 +34,7 @@ struct EGEquipollentVector{Dim,T<:Real} <: EGCurve{Dim,T}
     vector::EGVector{Dim,T}
     point::EGPoint{Dim,T}
 end
-function EGEquipollentVector(vector::EGVector, point::EGPointLike)
-    p = _topoint(point)
+function EGEquipollentVector(vector::EGVector, p::EGPoint)
     T = promote_type(eltype(p), eltype(vector))
     return EGEquipollentVector{length(p),T}(convert(EGVector{length(p),T}, vector), convert(EGPoint{length(p),T}, p))
 end

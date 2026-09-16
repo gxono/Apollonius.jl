@@ -37,8 +37,7 @@ struct EGAngle2{T<:Real} <: EGSet{2,T}
     a::EGPoint{2,T}
     b::EGPoint{2,T}
 end
-function EGAngle2(vertex::EGPointLike, a::EGPointLike, b::EGPointLike)
-    vertex, a, b = _topoint(vertex), _topoint(a), _topoint(b)
+function EGAngle2(vertex::EGPoint, a::EGPoint, b::EGPoint)
     T = promote_type(eltype(vertex), eltype(a), eltype(b))
     return EGAngle2{T}(vertex, a, b)
 end
@@ -207,7 +206,6 @@ function EGHalfPlane2(boundary::EGLine{2}, p::EGPoint{2})
     s == 0 && throw(ArgumentError("EGHalfPlane2: interior_point must not lie on boundary"))
     return EGHalfPlane2(boundary, s)
 end
-EGHalfPlane2(boundary::EGLine{2}, p::Tuple) = EGHalfPlane2(boundary, _topoint(p))
 
 Base.:(==)(x::EGHalfPlane2, y::EGHalfPlane2) = x.boundary == y.boundary && x.side == y.side
 Base.isapprox(x::EGHalfPlane2, y::EGHalfPlane2; kwargs...) =

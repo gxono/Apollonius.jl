@@ -19,8 +19,7 @@ The regular tetrahedron centered at `center` with the given `edge`
 length, inscribed in a cube (the classic construction: alternating
 corners of a cube are the vertices of a regular tetrahedron).
 """
-function regular_tetrahedron3(center::EGPointLike, edge::Real)
-    c = _topoint(center)
+function regular_tetrahedron3(c::EGPoint, edge::Real)
     s = edge / (2 * sqrt(2))
     a = c + EGVector(s, s, s)
     b = c + EGVector(s, -s, -s)
@@ -36,8 +35,7 @@ The regular octahedron centered at `center` with the given `edge` length
 -- 6 vertices at `±s` along each axis from `center` (`s = edge/√2`), 8
 triangular faces (one per octant).
 """
-function regular_octahedron3(center::EGPointLike, edge::Real)
-    c = _topoint(center)
+function regular_octahedron3(c::EGPoint, edge::Real)
     s = edge / sqrt(2)
     verts = [c + EGVector(sx * s, 0.0, 0.0) for sx in (1, -1)]
     append!(verts, [c + EGVector(0.0, sy * s, 0.0) for sy in (1, -1)])

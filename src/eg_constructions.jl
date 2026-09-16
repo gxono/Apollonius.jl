@@ -16,6 +16,7 @@ default would collide with it): pass `center` explicitly.
 """
 polar_point(r::Real, angle::Real, center::EGPoint{2}) =
     center + EGPoint(r * cos(angle), r * sin(angle))
+polar_point(r::Real, angle::Real) = polar_point(r, angle, EGPoint(0.0,0.0))
 
 """
     polar_point_deg(r, angle, center::EGPoint)
@@ -24,6 +25,7 @@ Like [`polar_point`](@ref), but `angle` is given in degrees.
 """
 polar_point_deg(r::Real, angle::Real, center::EGPoint{2}) =
     polar_point(r, deg2rad(angle), center)
+polar_point_deg(r::Real, angle::Real) = polar_point_deg(r, angle, EGPoint(0.0,0.0))
 
 """
     barycenter(points, weights)

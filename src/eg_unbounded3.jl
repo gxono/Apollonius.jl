@@ -1,4 +1,4 @@
-# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------ike
 # EGHalfSpace3, EGSlab3, EGDihedralAngle3, EGPolyhedralAngle3 (<: EGSet{3,T}
 # directly, unbounded) -- the 3D peers of EGHalfPlane2/EGStrip2/EGAngle2
 # from eg_unbounded.jl. EGDihedralAngle3 is the edge+2-halfplanes angle
@@ -155,8 +155,7 @@ struct EGDihedralAngle3{T<:Real} <: EGSet{3,T}
     a::EGPoint{3,T}
     b::EGPoint{3,T}
 end
-function EGDihedralAngle3(edge::EGLine{3,T1}, a::EGPointLike, b::EGPointLike) where {T1}
-    a, b = _topoint(a), _topoint(b)
+function EGDihedralAngle3(edge::EGLine{3,T1}, a::EGPoint, b::EGPoint) where {T1}
     T = promote_type(T1, eltype(a), eltype(b))
     return EGDihedralAngle3{T}(convert(EGLine{3,T}, edge), convert(EGPoint{3,T}, a), convert(EGPoint{3,T}, b))
 end
@@ -255,9 +254,7 @@ struct EGPolyhedralAngle3{T<:Real} <: EGSet{3,T}
         return new{T}(vertex, rays)
     end
 end
-function EGPolyhedralAngle3(vertex::EGPointLike, rays::AbstractVector)
-    v = _topoint(vertex)
-    rs = [_topoint(r) for r in rays]
+function EGPolyhedralAngle3(v::EGPoint, rs::AbstractVector)
     T = promote_type(eltype(v), (eltype(r) for r in rs)...)
     return EGPolyhedralAngle3{T}(convert(EGPoint{3,T}, v), EGPoint{3,T}[convert(EGPoint{3,T}, r) for r in rs])
 end

@@ -118,8 +118,7 @@ struct EGTetrahedron3{T<:Real} <: EGPolyhedron{3,T}
     c::EGPoint{3,T}
     d::EGPoint{3,T}
 end
-function EGTetrahedron3(a::EGPointLike, b::EGPointLike, c::EGPointLike, d::EGPointLike)
-    a, b, c, d = _topoint(a), _topoint(b), _topoint(c), _topoint(d)
+function EGTetrahedron3(a::EGPoint, b::EGPoint, c::EGPoint, d::EGPoint)
     T = promote_type(eltype(a), eltype(b), eltype(c), eltype(d))
     return EGTetrahedron3{T}(convert(EGPoint{3,T}, a), convert(EGPoint{3,T}, b), convert(EGPoint{3,T}, c), convert(EGPoint{3,T}, d))
 end
@@ -161,8 +160,7 @@ struct EGParallelepiped3{T<:Real} <: EGPolyhedron{3,T}
     v::EGVector{3,T}
     w::EGVector{3,T}
 end
-function EGParallelepiped3(origin::EGPointLike, u::EGVector{3}, v::EGVector{3}, w::EGVector{3})
-    o = _topoint(origin)
+function EGParallelepiped3(o::EGPoint, u::EGVector{3}, v::EGVector{3}, w::EGVector{3})
     T = promote_type(eltype(o), eltype(u), eltype(v), eltype(w))
     return EGParallelepiped3{T}(convert(EGPoint{3,T}, o), convert(EGVector{3,T}, u), convert(EGVector{3,T}, v), convert(EGVector{3,T}, w))
 end
@@ -204,7 +202,7 @@ case of [`EGParallelepiped3`](@ref) with 3 mutually perpendicular edges,
 the same way [`rectangle_on_segment`](@ref) is a named special case of
 [`EGQuadrilateral`](@ref).
 """
-box3(origin::EGPointLike, dx::Real, dy::Real, dz::Real) =
+box3(origin::EGPoint, dx::Real, dy::Real, dz::Real) =
     EGParallelepiped3(origin, EGVector(dx, 0.0, 0.0), EGVector(0.0, dy, 0.0), EGVector(0.0, 0.0, dz))
 
 """
@@ -213,7 +211,7 @@ box3(origin::EGPointLike, dx::Real, dy::Real, dz::Real) =
 The axis-aligned cube with one corner at `origin` and the given `side`
 length -- the further special case of [`box3`](@ref) with equal sides.
 """
-cube3(origin::EGPointLike, side::Real) = box3(origin, side, side, side)
+cube3(origin::EGPoint, side::Real) = box3(origin, side, side, side)
 
 # --- EGPyramid3 -----------------------------------------------------------------
 
@@ -229,8 +227,7 @@ struct EGPyramid3{T<:Real} <: EGPolyhedron{3,T}
     apex::EGPoint{3,T}
     base::EGStraightNgon{3,T}
 end
-function EGPyramid3(apex::EGPointLike, base::EGStraightNgon{3})
-    a = _topoint(apex)
+function EGPyramid3(a::EGPoint, base::EGStraightNgon{3})
     T = promote_type(eltype(a), eltype(base.vertices[1]))
     return EGPyramid3{T}(convert(EGPoint{3,T}, a), EGStraightNgon(EGPoint{3,T}[convert(EGPoint{3,T}, v) for v in base.vertices]))
 end

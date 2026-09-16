@@ -87,20 +87,17 @@ struct EGEllipse3{T<:Real} <: EGCurve{3,T}
         return new{T}(center, a, b, n, up / norm(up))
     end
 end
-function EGEllipse3(center::EGPointLike, a::Real, b::Real, normal::EGVector{3}, u::EGVector{3})
-    c = _topoint(center)
+function EGEllipse3(c::EGPoint, a::Real, b::Real, normal::EGVector{3}, u::EGVector{3})
     T = promote_type(eltype(c), typeof(a), typeof(b), eltype(normal), eltype(u))
     return EGEllipse3{T}(convert(EGPoint{3,T}, c), T(a), T(b), convert(EGVector{3,T}, normal), convert(EGVector{3,T}, u))
 end
-function EGEllipse3(f1::EGPointLike, f2::EGPointLike, a::Real, normal::EGVector{3})
-    f1, f2 = _topoint(f1), _topoint(f2)
+function EGEllipse3(f1::EGPoint, f2::EGPoint, a::Real, normal::EGVector{3})
     c = distance(f1, f2) / 2
     a <= c && throw(ArgumentError("EGEllipse3: a must be greater than half the distance between the foci"))
     d = f2 - f1
     return EGEllipse3(midpoint(f1, f2), a, sqrt(a^2 - c^2), normal, EGVector(d[1], d[2], d[3]))
 end
-function EGEllipse3(f1::EGPointLike, f2::EGPointLike, p::EGPointLike)
-    f1, f2, p = _topoint(f1), _topoint(f2), _topoint(p)
+function EGEllipse3(f1::EGPoint, f2::EGPoint, p::EGPoint)
     n = cross3(f2 - f1, p - f1)
     a = (distance(p, f1) + distance(p, f2)) / 2
     return EGEllipse3(f1, f2, a, n)
@@ -215,20 +212,17 @@ struct EGHyperbola3{T<:Real} <: EGCurve{3,T}
         return new{T}(center, a, b, n, up / norm(up))
     end
 end
-function EGHyperbola3(center::EGPointLike, a::Real, b::Real, normal::EGVector{3}, u::EGVector{3})
-    c = _topoint(center)
+function EGHyperbola3(c::EGPoint, a::Real, b::Real, normal::EGVector{3}, u::EGVector{3})
     T = promote_type(eltype(c), typeof(a), typeof(b), eltype(normal), eltype(u))
     return EGHyperbola3{T}(convert(EGPoint{3,T}, c), T(a), T(b), convert(EGVector{3,T}, normal), convert(EGVector{3,T}, u))
 end
-function EGHyperbola3(f1::EGPointLike, f2::EGPointLike, a::Real, normal::EGVector{3})
-    f1, f2 = _topoint(f1), _topoint(f2)
+function EGHyperbola3(f1::EGPoint, f2::EGPoint, a::Real, normal::EGVector{3})
     c = distance(f1, f2) / 2
     a >= c && throw(ArgumentError("EGHyperbola3: a must be less than half the distance between the foci"))
     d = f2 - f1
     return EGHyperbola3(midpoint(f1, f2), a, sqrt(c^2 - a^2), normal, EGVector(d[1], d[2], d[3]))
 end
-function EGHyperbola3(f1::EGPointLike, f2::EGPointLike, p::EGPointLike)
-    f1, f2, p = _topoint(f1), _topoint(f2), _topoint(p)
+function EGHyperbola3(f1::EGPoint, f2::EGPoint, p::EGPoint)
     n = cross3(f2 - f1, p - f1)
     a = abs(distance(p, f1) - distance(p, f2)) / 2
     return EGHyperbola3(f1, f2, a, n)
@@ -316,8 +310,7 @@ struct EGParabola3{T<:Real} <: EGCurve{3,T}
     focus::EGPoint{3,T}
     directrix::EGLine{3,T}
 end
-function EGParabola3(focus::EGPointLike, directrix::EGLine{3})
-    f = _topoint(focus)
+function EGParabola3(f::EGPoint, directrix::EGLine{3})
     T = promote_type(eltype(f), eltype(directrix.p1))
     return EGParabola3{T}(convert(EGPoint{3,T}, f), convert(EGLine{3,T}, directrix))
 end
@@ -405,8 +398,7 @@ struct EGCircularArc3{T<:Real} <: EGCurve{3,T}
     p1::EGPoint{3,T}
     p2::EGPoint{3,T}
 end
-function EGCircularArc3(circle::EGCircle3, p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
+function EGCircularArc3(circle::EGCircle3, p1::EGPoint, p2::EGPoint)
     T = promote_type(eltype(circle.center), eltype(p1), eltype(p2))
     return EGCircularArc3{T}(convert(EGCircle3{T}, circle), convert(EGPoint{3,T}, p1), convert(EGPoint{3,T}, p2))
 end
@@ -495,8 +487,7 @@ struct EGEllipticArc3{T<:Real} <: EGCurve{3,T}
     p1::EGPoint{3,T}
     p2::EGPoint{3,T}
 end
-function EGEllipticArc3(ellipse::EGEllipse3, p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
+function EGEllipticArc3(ellipse::EGEllipse3, p1::EGPoint, p2::EGPoint)
     T = promote_type(eltype(ellipse.center), eltype(p1), eltype(p2))
     return EGEllipticArc3{T}(convert(EGEllipse3{T}, ellipse), convert(EGPoint{3,T}, p1), convert(EGPoint{3,T}, p2))
 end
@@ -561,8 +552,7 @@ struct EGParabolicArc3{T<:Real} <: EGCurve{3,T}
     p1::EGPoint{3,T}
     p2::EGPoint{3,T}
 end
-function EGParabolicArc3(parabola::EGParabola3, p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
+function EGParabolicArc3(parabola::EGParabola3, p1::EGPoint, p2::EGPoint)
     T = promote_type(eltype(parabola.focus), eltype(p1), eltype(p2))
     return EGParabolicArc3{T}(convert(EGParabola3{T}, parabola), convert(EGPoint{3,T}, p1), convert(EGPoint{3,T}, p2))
 end
@@ -626,8 +616,7 @@ struct EGHyperbolicArc3{T<:Real} <: EGCurve{3,T}
     p1::EGPoint{3,T}
     p2::EGPoint{3,T}
 end
-function EGHyperbolicArc3(hyperbola::EGHyperbola3, p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
+function EGHyperbolicArc3(hyperbola::EGHyperbola3, p1::EGPoint, p2::EGPoint)
     T = promote_type(eltype(hyperbola.center), eltype(p1), eltype(p2))
     return EGHyperbolicArc3{T}(convert(EGHyperbola3{T}, hyperbola), convert(EGPoint{3,T}, p1), convert(EGPoint{3,T}, p2))
 end

@@ -420,14 +420,11 @@ using Base.MathConstants: golden
             # center + a point on the circumference, as an alternative to center + r
             c2 = EGCircle2(EGPoint(1.0, 2.0), EGPoint(4.0, 6.0))
             @test c2 == EGCircle2(EGPoint(1.0, 2.0), 5.0)
-            @test EGCircle2((1.0, 2.0), (4.0, 6.0)) == c2         # tuples work too
-            @test EGCircle2(EGPoint(1.0, 2.0), (4.0, 6.0)) == c2  # and mixed
 
             # the circle through 3 points -- same as circumcircle(EGTriangle(...))
             p1, p2, p3 = EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(0.0, 3.0)
             c3 = EGCircle2(p1, p2, p3)
             @test c3 ≈ circumcircle(EGTriangle(p1, p2, p3))
-            @test EGCircle2((0.0, 0.0), (4.0, 0.0), (0.0, 3.0)) ≈ c3  # tuples work too
             @test_throws ArgumentError EGCircle2(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(2.0, 0.0))  # collinear
         end
 
@@ -3637,7 +3634,6 @@ using Base.MathConstants: golden
     # (not tuples) — that combination is what actually triggered the bug;
     # plain tuple support alone did not.
     @testset "tuple construction, incl. the mixed-EGPoint-type regression" begin
-        @test EGCircle2((0, 0), 2) == EGCircle2(EGPoint(0, 0), 2)
         @test EGSegment(EGPoint(0, 0), EGPoint(1.5, 2.0)) isa EGSegment
         @test EGLine(EGPoint(0, 0), EGPoint(1.5, 2.0)) isa EGLine
         @test EGRay(EGPoint(0, 0), EGPoint(1.5, 2.0)) isa EGRay
@@ -3662,20 +3658,6 @@ using Base.MathConstants: golden
         # original feature request
         @test EGPoint((5, 10)) isa EGPoint{2,Int}
         @test EGPoint((5, 10.0)) == EGPoint(5.0, 10.0)
-        @test EGCircle2((0, 0), 2) isa EGCircle2
-        @test EGSegment((0, 0), (1, 1)) == EGSegment(EGPoint(0, 0), EGPoint(1, 1))
-        @test EGSegment((0, 0), EGPoint(1, 1)) == EGSegment(EGPoint(0, 0), EGPoint(1, 1)) # mixed tuple/EGPoint
-        @test EGLine((0, 0), (1, 1)) == EGLine(EGPoint(0, 0), EGPoint(1, 1))
-        @test EGRay((0, 0), (1, 1)) == EGRay(EGPoint(0, 0), EGPoint(1, 1))
-        @test EGBoundingBox((0, 0), (1, 1)) == EGBoundingBox(EGPoint(0, 0), EGPoint(1, 1))
-        @test EGBoundingBox([(0, 0), (1, 1), (2, -1)]) == EGBoundingBox([EGPoint(0, 0), EGPoint(1, 1), EGPoint(2, -1)])
-        @test EGTriangle((0, 0), (4, 0), (0, 3)) == EGTriangle(EGPoint(0, 0), EGPoint(4, 0), EGPoint(0, 3))
-        @test EGQuadrilateral((0, 0), (4, 0), (4, 4), (0, 4)) == EGQuadrilateral(EGPoint(0, 0), EGPoint(4, 0), EGPoint(4, 4), EGPoint(0, 4))
-        @test EGStraightNgon([(0, 0), (1, 0), (0, 1)]) == EGStraightNgon([EGPoint(0, 0), EGPoint(1, 0), EGPoint(0, 1)])
-        @test EGAngle2((0, 0), (1, 0), (0, 1)) == EGAngle2(EGPoint(0, 0), EGPoint(1, 0), EGPoint(0, 1))
-        @test EGCircularArc2(EGCircle2((0, 0), 5), (5, 0), (0, 5)) == EGCircularArc2(EGCircle2(EGPoint(0, 0), 5), EGPoint(5, 0), EGPoint(0, 5))
-        @test EGHalfPlane2(EGLine((0.0, 0.0), (0.0, 1.0)), (1.0, 0.0)) isa EGHalfPlane2
-        @test EGEllipse2((0.0, 0.0), (4.0, 0.0), 5.0) == EGEllipse2(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), 5.0)
     end
 
     @testset "vectors" begin

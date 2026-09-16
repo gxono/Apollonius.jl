@@ -262,6 +262,8 @@ The point with barycentric coordinates `(wA, wB, wC)` relative to `t`
 barycentric_point(t::EGTriangle, wA::Real, wB::Real, wC::Real) =
     (wA * t[1] + wB * t[2] + wC * t[3]) / (wA + wB + wC)
 
+barycentric_point(t::EGTriangle) = barycentric_point(t, 1.0, 1.0, 1.0)
+
 """
     barycentric_coordinates(t::EGTriangle, p::EGPoint)
 

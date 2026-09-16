@@ -73,7 +73,6 @@ struct EGCircle2{T<:Real} <: EGConic2{T}
     r::T
 end
 EGCircle2(center::EGPoint{2,T1}, r::T2) where {T1,T2<:Real} = EGCircle2{promote_type(T1, T2)}(center, promote_type(T1, T2)(r))
-EGCircle2(center::Tuple, r::Real) = EGCircle2(_topoint(center), r)
 
 """
     EGCircle2(center::EGPoint, through::EGPoint)
@@ -82,8 +81,8 @@ The circle centered at `center` passing through `through` — same as
 `EGCircle2(center, distance(center, through))`, for when a point on the
 circle is more natural to give than the radius itself.
 """
-EGCircle2(center::EGPointLike, through::EGPointLike) =
-    EGCircle2(_topoint(center), distance(_topoint(center), _topoint(through)))
+EGCircle2(center::EGPoint, through::EGPoint) =
+    EGCircle2(center, distance(center, through))
 
 """
     EGCircle2(p1::EGPoint, p2::EGPoint, p3::EGPoint; atol=1e-9)
@@ -94,8 +93,7 @@ without needing to build one first). Throws an `ArgumentError` if `p1`,
 `p2`, `p3` are (or are too close to) collinear, since then no finite
 circle passes through all three.
 """
-function EGCircle2(p1::EGPointLike, p2::EGPointLike, p3::EGPointLike; atol=1e-9)
-    p1, p2, p3 = _topoint(p1), _topoint(p2), _topoint(p3)
+function EGCircle2(p1::EGPoint, p2::EGPoint, p3::EGPoint; atol=1e-9)
     is_collinear(p1, p2, p3; atol=atol) &&
         throw(ArgumentError("EGCircle2: p1, p2, p3 must not be collinear (no finite circle through them)"))
     x1, y1 = p1[1], p1[2]
@@ -173,16 +171,13 @@ function EGEllipse2(center::EGPoint{2}, a::Real, b::Real, angle::Real=0.0)
     T = promote_type(eltype(center), typeof(float(a)), typeof(float(b)), typeof(float(angle)))
     return EGEllipse2{T}(EGPoint{2,T}(center.coords), T(a), T(b), T(angle))
 end
-EGEllipse2(center::Tuple, a::Real, b::Real, angle::Real=0.0) = EGEllipse2(_topoint(center), a, b, angle)
-function EGEllipse2(f1::EGPointLike, f2::EGPointLike, a::Real)
-    f1, f2 = _topoint(f1), _topoint(f2)
+function EGEllipse2(f1::EGPoint, f2::EGPoint, a::Real)
     c = distance(f1, f2) / 2
     a <= c && throw(ArgumentError("EGEllipse2: a must be greater than half the distance between the foci"))
     d = f2 - f1
     return EGEllipse2(midpoint(f1, f2), a, sqrt(a^2 - c^2), atan(d[2], d[1]))
 end
-function EGEllipse2(f1::EGPointLike, f2::EGPointLike, p::EGPointLike)
-    f1, f2, p = _topoint(f1), _topoint(f2), _topoint(p)
+function EGEllipse2(f1::EGPoint, f2::EGPoint, p::EGPoint)
     return EGEllipse2(f1, f2, (distance(p, f1) + distance(p, f2)) / 2)
 end
 
@@ -365,16 +360,13 @@ function EGHyperbola2(center::EGPoint{2}, a::Real, b::Real, angle::Real=0.0)
     T = promote_type(eltype(center), typeof(float(a)), typeof(float(b)), typeof(float(angle)))
     return EGHyperbola2{T}(EGPoint{2,T}(center.coords), T(a), T(b), T(angle))
 end
-EGHyperbola2(center::Tuple, a::Real, b::Real, angle::Real=0.0) = EGHyperbola2(_topoint(center), a, b, angle)
-function EGHyperbola2(f1::EGPointLike, f2::EGPointLike, a::Real)
-    f1, f2 = _topoint(f1), _topoint(f2)
+function EGHyperbola2(f1::EGPoint, f2::EGPoint, a::Real)
     c = distance(f1, f2) / 2
     a >= c && throw(ArgumentError("EGHyperbola2: a must be less than half the distance between the foci"))
     d = f2 - f1
     return EGHyperbola2(midpoint(f1, f2), a, sqrt(c^2 - a^2), atan(d[2], d[1]))
 end
-function EGHyperbola2(f1::EGPointLike, f2::EGPointLike, p::EGPointLike)
-    f1, f2, p = _topoint(f1), _topoint(f2), _topoint(p)
+function EGHyperbola2(f1::EGPoint, f2::EGPoint, p::EGPoint)
     return EGHyperbola2(f1, f2, abs(distance(p, f1) - distance(p, f2)) / 2)
 end
 
@@ -546,7 +538,6 @@ function EGParabola2(focus::EGPoint{2,T1}, directrix::EGLine{2,T2}) where {T1,T2
     T = promote_type(T1, T2)
     return EGParabola2{T}(EGPoint{2,T}(focus.coords), EGLine{2,T}(directrix.p1, directrix.p2))
 end
-EGParabola2(focus::Tuple, directrix::EGLine) = EGParabola2(_topoint(focus), directrix)
 
 Base.:(==)(x::EGParabola2, y::EGParabola2) = x.focus == y.focus && x.directrix == y.directrix
 Base.convert(::Type{EGParabola2{T}}, p::EGParabola2) where {T} = EGParabola2{T}(p.focus, p.directrix)
@@ -721,8 +712,7 @@ struct EGCircularArc2{T<:Real} <: EGConicArc2{T}
         return new{T}(circle, _project_onto_circle2(circle, p1), _project_onto_circle2(circle, p2))
     end
 end
-function EGCircularArc2(circle::EGCircle2, p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
+function EGCircularArc2(circle::EGCircle2, p1::EGPoint, p2::EGPoint)
     T = promote_type(eltype(circle.center), eltype(p1), eltype(p2))
     return EGCircularArc2{T}(EGCircle2{T}(EGPoint{2,T}(circle.center.coords), T(circle.r)), EGPoint{2,T}(p1.coords), EGPoint{2,T}(p2.coords))
 end
@@ -867,8 +857,7 @@ struct EGEllipticArc2{T<:Real} <: EGConicArc2{T}
     p1::EGPoint{2,T}
     p2::EGPoint{2,T}
 end
-function EGEllipticArc2(ellipse::EGEllipse2, p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
+function EGEllipticArc2(ellipse::EGEllipse2, p1::EGPoint, p2::EGPoint)
     T = promote_type(eltype(ellipse.center), eltype(p1), eltype(p2))
     return EGEllipticArc2{T}(convert(EGEllipse2{T}, ellipse), convert(EGPoint{2,T}, p1), convert(EGPoint{2,T}, p2))
 end
@@ -1017,8 +1006,7 @@ struct EGParabolicArc2{T<:Real} <: EGConicArc2{T}
     p1::EGPoint{2,T}
     p2::EGPoint{2,T}
 end
-function EGParabolicArc2(parabola::EGParabola2, p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
+function EGParabolicArc2(parabola::EGParabola2, p1::EGPoint, p2::EGPoint)
     T = promote_type(eltype(parabola.focus), eltype(p1), eltype(p2))
     return EGParabolicArc2{T}(convert(EGParabola2{T}, parabola), convert(EGPoint{2,T}, p1), convert(EGPoint{2,T}, p2))
 end
@@ -1158,8 +1146,7 @@ struct EGHyperbolicArc2{T<:Real} <: EGConicArc2{T}
     p1::EGPoint{2,T}
     p2::EGPoint{2,T}
 end
-function EGHyperbolicArc2(hyperbola::EGHyperbola2, p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
+function EGHyperbolicArc2(hyperbola::EGHyperbola2, p1::EGPoint, p2::EGPoint)
     T = promote_type(eltype(hyperbola.center), eltype(p1), eltype(p2))
     return EGHyperbolicArc2{T}(convert(EGHyperbola2{T}, hyperbola), convert(EGPoint{2,T}, p1), convert(EGPoint{2,T}, p2))
 end

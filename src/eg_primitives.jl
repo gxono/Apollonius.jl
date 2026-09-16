@@ -73,10 +73,7 @@ struct EGSegment{Dim,T<:Real} <: EGCurve{Dim,T}
     p1::EGPoint{Dim,T}
     p2::EGPoint{Dim,T}
 end
-function EGSegment(p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
-    return EGSegment{length(p1),promote_type(eltype(p1), eltype(p2))}(p1, p2)
-end
+
 
 """
     EGLine(p1::EGPoint, p2::EGPoint)
@@ -88,10 +85,7 @@ struct EGLine{Dim,T<:Real} <: EGCurve{Dim,T}
     p1::EGPoint{Dim,T}
     p2::EGPoint{Dim,T}
 end
-function EGLine(p1::EGPointLike, p2::EGPointLike)
-    p1, p2 = _topoint(p1), _topoint(p2)
-    return EGLine{length(p1),promote_type(eltype(p1), eltype(p2))}(p1, p2)
-end
+
 EGLine(s::EGSegment) = EGLine(s.p1, s.p2)
 
 """
@@ -103,10 +97,6 @@ The half-line starting at `origin` and passing through `through`.
 struct EGRay{Dim,T<:Real} <: EGCurve{Dim,T}
     origin::EGPoint{Dim,T}
     through::EGPoint{Dim,T}
-end
-function EGRay(o::EGPointLike, t::EGPointLike)
-    o, t = _topoint(o), _topoint(t)
-    return EGRay{length(o),promote_type(eltype(o), eltype(t))}(o, t)
 end
 
 Base.getindex(s::EGSegment, i::Integer) = i == 1 ? s.p1 : s.p2
@@ -479,17 +469,17 @@ struct EGBoundingBox{Dim,T<:Real} <: EGObject{Dim,T}
     min::EGPoint{Dim,T}
     max::EGPoint{Dim,T}
 end
-function EGBoundingBox(min::EGPointLike, max::EGPointLike)
-    min, max = _topoint(min), _topoint(max)
-    return EGBoundingBox{length(min),promote_type(eltype(min), eltype(max))}(min, max)
-end
 
 EGBoundingBox(bb::EGBoundingBox) = bb
 
 function homothety(bb::EGBoundingBox, k::Real, center::EGPoint=EGPoint(0.0, 0.0))
-    return EGBoundingBox(
-            homothety(bb.min, k, center), 
-            homothety(bb.max, k, center))
+    p1 = homothety(bb.min, k, center)
+    p2 = homothety(bb.max, k, center)
+
+    if k < 0
+        p1, p2 = p2, p1
+    end
+    return EGBoundingBox(p1, p2)
 end
 
 
@@ -500,7 +490,7 @@ function EGBoundingBox(points::AbstractVector{<:EGPoint{Dim}}) where {Dim}
     hi = EGPoint(ntuple(i -> maximum(p[i] for p in points), Dim))
     return EGBoundingBox(lo, hi)
 end
-EGBoundingBox(points::AbstractVector{<:Tuple}) = EGBoundingBox([_topoint(p) for p in points])
+EGBoundingBox(points::AbstractVector{<:Tuple}) = EGBoundingBox([p for p in points])
 
 EGBoundingBox(s::EGSegment) = EGBoundingBox([s.p1, s.p2])
 

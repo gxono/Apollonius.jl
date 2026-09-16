@@ -176,22 +176,6 @@ without this method, but this makes both cases behave identically).
 """
 EGPoint(t::Tuple{Vararg{Real}}) = EGPoint(t...)
 
-# Lets every other constructor that takes a point (EGCircle2, EGLine,
-# EGTriangle, ...) also accept a bare tuple like `(5, 10)` in its place.
-# `EGPointLike` is the declared parameter type for those point argument(s);
-# `_topoint` converts through to a plain EGPoint. Each such constructor has
-# exactly ONE method per argument list (typed `::EGPointLike`, not left
-# untyped) — two competing methods here (one tied to a shared `EGPoint{Dim,T}`
-# type parameter, one with independent `Union` types) previously caused
-# either explicit dispatch ambiguity or, worse, infinite recursion for
-# mixed-element-type EGPoint arguments (Julia's method-specificity check
-# isn't complete once 2+ positions vary against a shared type parameter on
-# one side and an unconstrained Union on the other — a known "diagonal
-# dispatch" limitation). Keeping a single, explicitly-typed method avoids
-# that class of bug entirely while still documenting exactly what's accepted.
-const EGPointLike = Union{EGPoint,Tuple{Vararg{Real}}}
-_topoint(p::EGPoint) = p
-_topoint(t::Tuple{Vararg{Real}}) = EGPoint(t...)
 
 """
     EGVector(x, y)
