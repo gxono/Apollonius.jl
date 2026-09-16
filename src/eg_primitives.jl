@@ -147,8 +147,14 @@ Base.convert(::Type{EGSegment{Dim,T}}, s::EGSegment{Dim}) where {Dim,T} = EGSegm
 Base.convert(::Type{EGLine{Dim,T}}, l::EGLine{Dim}) where {Dim,T} = EGLine{Dim,T}(l.p1, l.p2)
 Base.convert(::Type{EGRay{Dim,T}}, r::EGRay{Dim}) where {Dim,T} = EGRay{Dim,T}(r.origin, r.through)
 Base.isapprox(a::EGSegment, b::EGSegment; kwargs...) = isapprox(a.p1, b.p1; kwargs...) && isapprox(a.p2, b.p2; kwargs...)
-Base.isapprox(a::EGLine, b::EGLine; kwargs...) = isapprox(a.p1, b.p1; kwargs...) && isapprox(a.p2, b.p2; kwargs...)
-Base.isapprox(a::EGRay, b::EGRay; kwargs...) = isapprox(a.origin, b.origin; kwargs...) && isapprox(a.through, b.through; kwargs...)
+function Base.isapprox(a::EGLine{2}, b::EGLine{2}; atol=1e-9, kwargs...)
+    is_parallel(a, b; atol=atol) &&
+        on_line(a.p1, b; atol=atol)
+end
+function Base.isapprox(a::EGRay, b::EGRay; atol=1e-9, kwargs...)
+    isapprox(a.origin, b.origin; atol=atol, kwargs...) &&
+    same_direction(direction(a), direction(b); atol=atol)
+end
 Base.show(io::IO, s::EGSegment) = print(io, "EGSegment(", s.p1, " -> ", s.p2, ")")
 Base.show(io::IO, l::EGLine) = print(io, "EGLine(", l.p1, " -> ", l.p2, ")")
 Base.show(io::IO, r::EGRay) = print(io, "EGRay(", r.origin, " -> ", r.through, ")")
@@ -158,6 +164,7 @@ Base.show(io::IO, r::EGRay) = print(io, "EGRay(", r.origin, " -> ", r.through, "
 
 The direction of a `EGLine`, `EGRay` or `EGSegment`, as an [`EGVector`](@ref).
 """
+direction(v::EGVector) = v / norm(v)
 direction(l::EGLine) = EGVector(l.p2 - l.p1)
 direction(r::EGRay) = EGVector(r.through - r.origin)
 direction(s::EGSegment) = EGVector(s.p2 - s.p1)
@@ -476,6 +483,16 @@ function EGBoundingBox(min::EGPointLike, max::EGPointLike)
     min, max = _topoint(min), _topoint(max)
     return EGBoundingBox{length(min),promote_type(eltype(min), eltype(max))}(min, max)
 end
+
+EGBoundingBox(bb::EGBoundingBox) = bb
+
+function homothety(bb::EGBoundingBox, k::Real, center::EGPoint=EGPoint(0.0, 0.0))
+    return EGBoundingBox(
+            homothety(bb.min, k, center), 
+            homothety(bb.max, k, center))
+end
+
+
 
 function EGBoundingBox(points::AbstractVector{<:EGPoint{Dim}}) where {Dim}
     isempty(points) && throw(ArgumentError("EGBoundingBox requires at least one point"))

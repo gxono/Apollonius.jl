@@ -108,12 +108,8 @@ end
 """
 on_ray(r::EGRay; atol=1e-9) = p -> on_ray(p, r; atol=atol)
 
-# `Base.in` for the three straight curves: without these, `p in s`/`p in
-# l`/`p in r` fall through to Julia's own generic, iteration-based
-# `Base.in` (since EGSegment defines `iterate`/`getindex` for `s[1]`/
-# `s[2]`) or error outright (EGLine/EGRay, which don't) -- neither is the
-# geometric "is p on this curve" test a reader would expect from `in`, so
-# these route to the named predicates that already do it correctly.
+
+
 Base.in(p::EGPoint, s::EGSegment) = on_segment(p, s)
 Base.in(p::EGPoint, l::EGLine) = on_line(p, l)
 Base.in(p::EGPoint, r::EGRay) = on_ray(p, r)

@@ -28,6 +28,11 @@ perimeter(pg)  # sum of edge lengths
 centroid(pg)   # area-weighted centroid — not the plain vertex average
 ```
 
+```@raw html
+<img src="../assets/img/polygons/pol1.svg" alt="" style="width:100%;">
+```
+
+
 [`centroid`](@ref) weights by area rather than just averaging the vertices
 (a polygon with vertices clustered on one side but a large flat area on the
 other still gets the geometrically correct center of mass). For a
@@ -40,6 +45,10 @@ transforming every vertex:
 ```@example geo
 rotate(pg, pi / 4, centroid(pg))
 homothety(pg, 2.0)
+```
+
+```@raw html
+<img src="../assets/img/polygons/pol_rothom.svg" alt="" style="width:100%;">
 ```
 
 ## Distance to a polygon
@@ -80,6 +89,10 @@ hull = convex_hull(pts)
 vertices(hull)
 ```
 
+```@raw html
+<img src="../assets/img/polygons/pol_hull.svg" alt="" style="width:100%;">
+```
+
 [`convex_hull`](@ref) is Andrew's monotone chain algorithm (`O(n log n)`,
 sorts the points then builds the lower and upper chains in one pass each),
 returning an [`EGStraightNgon`](@ref). Points strictly inside the hull —
@@ -106,6 +119,10 @@ bbox_diagonal(bb)                 # 5.0
 bbox_aspect_ratio(bb)             # width / height
 ```
 
+```@raw html
+<img src="../assets/img/polygons/pol_bb.svg" alt="" style="width:100%;">
+```
+
 Translating (`+`/`-` an `EGPoint`) and scaling (`*` a real number) an
 `EGBoundingBox` both return a new, still-valid `EGBoundingBox` — scaling by
 a negative factor still produces `min <= max` correctly, by re-sorting the
@@ -127,6 +144,10 @@ bboxes_intersect(bb, bb2)     # true: they overlap
 bbox_intersection(bb, bb2)    # the overlapping region itself
 ```
 
+```@raw html
+<img src="../assets/img/polygons/bb_int.svg" alt="" style="width:100%;">
+```
+
 [`distance`](@ref)`(p, bb)` has the same `mode = :region`/`:boundary` pair
 as `distance(p, pg::EGPolygon)` above — `0.0` from inside with the default
 `:region`, or always the distance to the box's edge with `:boundary`:
@@ -146,6 +167,10 @@ overlap):
 
 ```@example geo
 bbox_union(bb, bb2)
+```
+
+```@raw html
+<img src="../assets/img/polygons/bb_uni.svg" alt="" style="width:100%;">
 ```
 
 Not everything has a *finite* box to report. [`EGPoint`](@ref) gets a real

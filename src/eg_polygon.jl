@@ -375,6 +375,15 @@ function EGQuadrilateral(a::EGPointLike, b::EGPointLike, c::EGPointLike, d::EGPo
     return EGQuadrilateral{length(a),promote_type(eltype(a), eltype(b), eltype(c), eltype(d))}(a, b, c, d)
 end
 
+
+function EGQuadrilateral(bb::EGBoundingBox)
+    return EGQuadrilateral(
+        bb.min, EGPoint(bb.max[1],bb.min[2]),
+        bb.max, EGPoint(bb.min[1],bb.max[2])
+    )
+end
+
+
 vertices(q::EGQuadrilateral) = (q.a, q.b, q.c, q.d)
 Base.getindex(q::EGQuadrilateral, i::Integer) = vertices(q)[i]
 Base.length(::EGQuadrilateral) = 4
@@ -464,6 +473,14 @@ function EGStraightNgon(vs::AbstractVector{<:EGPoint{Dim}}) where {Dim}
     return EGStraightNgon(EGPoint{Dim,T}[convert(EGPoint{Dim,T}, v) for v in vs])
 end
 EGStraightNgon(vs::AbstractVector) = EGStraightNgon([_topoint(v) for v in vs])
+
+function EGStraightNgon(bb::EGBoundingBox)
+    return EGStraightNgon([
+        bb.min, EGPoint(bb.max[1],bb.min[2]),
+        bb.max, EGPoint(bb.min[1],bb.max[2])
+    ])
+end
+
 
 vertices(pg::EGStraightNgon) = pg.vertices
 Base.getindex(pg::EGStraightNgon, i::Integer) = pg.vertices[i]
