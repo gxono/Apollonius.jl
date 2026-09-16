@@ -57,16 +57,10 @@ distance(p1::EGPoint, p2::EGPoint) = norm(p2 - p1)
 """
 orthogonal(v::EGVector{2}) = EGVector(-v[2], v[1])
 
-# Also needed on EGPoint: since EGPoint arithmetic stays permissive
-# (Point - Point -> Point, not Vector, per the session's explicit design
-# choice), a "direction" computed as a difference of two points is itself
-# an EGPoint, and several ported formulas (e.g. `intersection(::EGCircle2,
-# ::EGCircle2)`) call `orthogonal` on exactly that.
+#Ver si queda o no... Se usa en muchos lugares. La aritmetica es muy permisiva.
 orthogonal(p::EGPoint{2}) = EGVector(-p[2], p[1])
 
-# `cross2` is already defined, untyped, in primitives.jl (`a[1]*b[2] -
-# a[2]*b[1]`) — it works on EGPoint/EGVector for free via indexing, no
-# new method needed here.
+
 
 # --- EGSegment, EGLine, EGRay ------------------------------------------
 

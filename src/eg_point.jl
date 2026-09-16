@@ -2,15 +2,14 @@
 # EGPoint / EGVector, and the abstract skeleton of the whole EG-prefixed
 # type hierarchy.
 #
-# Built from scratch (no GeometryBasics, no StaticArrays), supporting the
-# arithmetic/indexing interface the rest of the package relies on: `p[i]`
-# indexing, `+`/`-`/unary `-`, scalar `*`/`/`, `dot`/`norm`/`normalize`,
+# Supporting the arithmetic/indexing interface the rest of the package relies 
+# on: `p[i]` indexing, `+`/`-`/unary `-`, scalar `*`/`/`, `dot`/`norm`/`normalize`,
 # and destructuring iteration (`x, y = p`).
 #
 # EGPoint and EGVector are kept as distinct types purely for clarity in
 # signatures (a direction vs. a location), not for type-safety: arithmetic
 # stays deliberately permissive — EGPoint +/- EGPoint, k*EGPoint, etc. all
-# still return EGPoint. No CGAL-style strict affine-space rules.
+# still return EGPoint. No CGAL-style strict affine-space rules (yet 🤔).
 # -------------------------------------------------------------------------
 
 """
@@ -132,30 +131,11 @@ why `EGTransform` sits outside the [`EGObject`](@ref) tree entirely.
 """
 abstract type EGTransform{T<:Real} end
 
-# Every EGObject/EGTransform is a scalar for broadcasting purposes -- e.g.
-# `intersection.(line, [c1, c2])` or `translate.(point, [v1, v2])` should
-# repeat the single shape against each element of the other argument.
-# Without this, Julia's default `Broadcast.broadcastable` fallback
-# (`collect(x)`) kicks in for any type it doesn't specifically recognize,
-# which is actively wrong for the several concrete types here that define
-# `iterate`/`length` purely for destructuring convenience (`p1, p2 =
-# segment`, `a, b, c = triangle`, ...) -- those would otherwise silently
-# broadcast over their own *components* instead of acting as one shape,
-# and every other type here (with no `iterate` at all) would instead
-# throw a confusing `MethodError: no method matching length(::T)` from
-# deep inside `collect`. Declaring the whole hierarchy as broadcast
-# scalars up front avoids both failure modes for every current and future
-# concrete type in one place.
+#Evita broadcasting sobre cada campo del struct
 Base.Broadcast.broadcastable(x::EGObject) = Ref(x)
 Base.Broadcast.broadcastable(x::EGTransform) = Ref(x)
 
-# `translate`/`rotate`/`homothety`/`reflection` on a `Vector` of shapes:
-# transform each element, via ordinary broadcasting. This is what lets a
-# plain `Vector` returned by something like `intersection`/`tangent_points`
-# (0/1/2 points, depending on the geometry) be transformed directly as a
-# single "item" -- e.g. inside a `@translate`/`@to_luxor_picture` block --
-# without unwrapping it by hand first. `invert`/`invert_neg` get the same
-# treatment in eg_inversion.jl, next to their own definitions.
+#Necesario para @translate o @to_luxor_picture
 translate(v::AbstractVector{<:EGObject}, args...; kwargs...) = translate.(v, args...; kwargs...)
 rotate(v::AbstractVector{<:EGObject}, args...; kwargs...) = rotate.(v, args...; kwargs...)
 homothety(v::AbstractVector{<:EGObject}, args...; kwargs...) = homothety.(v, args...; kwargs...)

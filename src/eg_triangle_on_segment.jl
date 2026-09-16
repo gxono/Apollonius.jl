@@ -2,6 +2,8 @@
 # Classical named triangles built on a base segment: equilateral,
 # isosceles, 30-60-90, golden, etc.
 # -------------------------------------------------------------------------
+#[🆗] 
+#   -> posible cambio en un metodo.
 
 """
     equilateral_triangle_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
@@ -14,6 +16,13 @@ function equilateral_triangle_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
 end
 
 """
+    equilateral_triangle_on_segment(s::EGSegment; ccw::Bool=true)
+"""
+function equilateral_triangle_on_segment(s::EGSegment; ccw::Bool=true)
+    return equilateral_triangle_on_segment(s.p1, s.p2; ccw=ccw)
+end
+
+"""
     isosceles_triangle_on_segment(a::EGPoint, b::EGPoint, leg::Real; ccw::Bool=true)
 
 The isosceles triangle with base `[a, b]` and the given equal leg length
@@ -22,12 +31,20 @@ The isosceles triangle with base `[a, b]` and the given equal leg length
 `ArgumentError` if `leg` is too short to reach across the base.
 """
 function isosceles_triangle_on_segment(a::EGPoint, b::EGPoint, leg::Real; ccw::Bool=true)
+    #quiza validar con distancias antes que con intersecciones sea mas barato. 
     pts = intersection(EGCircle2(a, leg), EGCircle2(b, leg))
-    length(pts) != 2 &&
+    length(pts) != 2 && #<-- distance(a,b) >= 2leg
         throw(ArgumentError("isosceles_triangle_on_segment: leg is too short to reach across [a, b]"))
     p1, p2 = pts
     on_ccw_side = cross2(b - a, p1 - a) > 0
     return EGTriangle(a, b, on_ccw_side == ccw ? p1 : p2)
+end
+
+"""
+    isosceles_triangle_on_segment(s::EGSegment, leg::Real; ccw::Bool=true)
+"""
+function isosceles_triangle_on_segment(s::EGSegment, leg::Real; ccw::Bool=true)
+    return isosceles_triangle_on_segment(s.p1, s.p2, leg; ccw=ccw)
 end
 
 """
@@ -45,6 +62,13 @@ function triangle_30_60_90_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
 end
 
 """
+    triangle_30_60_90_on_segment(s::EGSegment; ccw::Bool=true)
+"""
+function triangle_30_60_90_on_segment(s::EGSegment; ccw::Bool=true)
+    return triangle_30_60_90_on_segment(s.p1, s.p2; ccw=ccw)
+end
+
+"""
     isosceles_right_triangle_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
 
 The isosceles right triangle with hypotenuse `[a, b]`, built via Thales'
@@ -53,7 +77,14 @@ counterclockwise from `a` to `b` (`ccw=false` builds it on the other side).
 """
 function isosceles_right_triangle_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
     x = midpoint(a, b)
-    return EGTriangle(a, b, rotate(b, ccw ? -pi / 2 : pi / 2, x))
+    return EGTriangle(a, b, rotate(b, ccw ? pi / 2 : -pi / 2, x))
+end
+
+"""
+    isosceles_right_triangle_on_segment(s::EGSegment; ccw::Bool=true)
+"""
+function isosceles_right_triangle_on_segment(s::EGSegment; ccw::Bool=true)
+    return isosceles_right_triangle_on_segment(s.p1, s.p2; ccw=ccw)
 end
 
 """
@@ -71,6 +102,14 @@ function golden_triangle_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
 end
 
 """
+    golden_triangle_on_segment(s::EGSegment; ccw::Bool=true)
+"""
+function golden_triangle_on_segment(s::EGSegment; ccw::Bool=true)
+    return golden_triangle_on_segment(s.p1, s.p2; ccw=ccw)
+end
+
+
+"""
     golden_gnomon_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
 
 The golden gnomon with base `[a, b]`: isosceles with base angles `36°` and
@@ -82,6 +121,13 @@ function golden_gnomon_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
     ray_a = EGLine(a, rotate(b, s * pi / 5, a))
     ray_b = EGLine(b, rotate(a, -s * pi / 5, b))
     return EGTriangle(a, b, only(intersection(ray_a, ray_b)))
+end
+
+"""
+    golden_gnomon_on_segment(s::EGSegment; ccw::Bool=true)
+"""
+function golden_gnomon_on_segment(s::EGSegment; ccw::Bool=true)
+    return golden_gnomon_on_segment(s.p1, s.p2; ccw=ccw)
 end
 
 """
@@ -98,4 +144,11 @@ function egyptian_triangle_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
     n = rotate(a, -s * pi / 2, b)
     dir = (n - b) / norm(n - b)
     return EGTriangle(a, b, b + dir * 0.75 * distance(a, b))
+end
+
+"""
+    egyptian_triangle_on_segment(s::EGSegment; ccw::Bool=true)
+"""
+function egyptian_triangle_on_segment(s::EGSegment; ccw::Bool=true)
+    return egyptian_triangle_on_segment(s.p1, s.p2; ccw=ccw)
 end

@@ -45,7 +45,7 @@ circumradius(t)   # the radius of circumcircle(t), same as npc.r * 2
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/tri_cen.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/triangles/tri_cen.svg" alt="" style="width:100%;">
 ```
 
 
@@ -119,6 +119,10 @@ barycentric_point(t, 1.0, 1.0, 1.0)     # (1:1:1) is always the centroid
 barycentric_coordinates(t, centroid(t)) # (1/3, 1/3, 1/3)
 ```
 
+```@raw html
+<img src="../assets/img/triangles/barycenter.svg" alt="" style="width:100%;">
+```
+
 Most of the named centers below have simple, well-known barycentric
 coordinates (the incenter is `(a:b:c)` in the side lengths, for instance) —
 `barycentric_point` is the easiest way to construct a center directly from
@@ -142,6 +146,10 @@ x, y, z, inradius(t)   # x == y == z == inradius(t): (1:1:1) is always the incen
 
 ```@example geo
 trilinear_point(t, 1.0, 1.0, 1.0) ≈ incenter(t)
+```
+
+```@raw html
+<img src="../assets/img/triangles/trilinear.svg" alt="" style="width:100%;">
 ```
 
 Many named centers found in a reference like the *Encyclopedia of Triangle
@@ -171,6 +179,36 @@ altitude(t, 1), median(t, 1), bisector(t, 1)
 ```
 
 ```@example geo
+altitude.(t, 1:3)
+```
+
+```@raw html
+<img src="../assets/img/triangles/altitude.svg" alt="" style="width:100%;">
+```
+
+
+```@example geo
+bisector.(t, 1:3)
+```
+
+```@raw html
+<img src="../assets/img/triangles/median.svg" alt="" style="width:100%;">
+```
+
+
+
+
+```@example geo
+median.(t, 1:3)
+```
+
+```@raw html
+<img src="../assets/img/triangles/median.svg" alt="" style="width:100%;">
+```
+
+
+
+```@example geo
 on_line(orthocenter(t), altitude(t, 1)), on_line(centroid(t), median(t, 1)), on_line(incenter(t), bisector(t, 1))
 ```
 
@@ -187,10 +225,35 @@ is_perpendicular(bisector(t, 1), bisector_ext(t, 1))
 on_line(circumcenter(t), mediator(t, 1)), on_line(circumcenter(t), mediator(t, 2)), on_line(circumcenter(t), mediator(t, 3))
 ```
 
+```@example geo
+bisector_ext.(t, 1:3)
+```
+
+```@raw html
+<img src="../assets/img/triangles/bisector_ext.svg" alt="" style="width:100%;">
+```
+
+```@example geo
+mediator.(t, 1:3)
+```
+
+```@raw html
+<img src="../assets/img/triangles/mediator.svg" alt="" style="width:100%;">
+```
+
+
 The free function [`angle_trisectors`](@ref)`(vertex, p1, p2)` (see
 [Angles](@ref) on the previous page) is what `trisector(t, i)` is built
 from; use it directly when the two rays don't come from a triangle's own
 vertices.
+
+```@example geo
+trisector.(t, 1:3)
+```
+
+```@raw html
+<img src="../assets/img/triangles/trisector.svg" alt="" style="width:100%;">
+```
 
 ## Further named centers
 
@@ -472,6 +535,12 @@ circumell = steiner_circumellipse(t)
 inell.center ≈ circumell.center ≈ centroid(t)
 ```
 
+
+```@raw html
+<img src="../assets/img/triangles/steiner.svg" alt="" style="width:100%;">
+```
+
+
 The circumellipse is always exactly the image of the inellipse under a
 homothety of ratio `-2` about the centroid — the same ratio that relates a
 triangle to its own [`medial_triangle`](@ref):
@@ -618,18 +687,33 @@ keyword picking which side of `[a, b]` the third vertex falls on.
 | [`golden_gnomon_on_segment`](@ref) | isosceles `36°-36°-108°` (the golden gnomon), base `[a, b]` |
 | [`egyptian_triangle_on_segment`](@ref) | `3-4-5` right triangle, `[a, b]` the "4" side, right angle at `b` |
 
+
+
 ```@example geo
 p1, p2 = EGPoint(0.0, 0.0), EGPoint(6.0, 0.0)
 golden_triangle_on_segment(p1, p2)   # apex angle 36°, both base angles 72°
+```
+
+```@raw html
+<img src="../assets/img/triangles/tronseg_gold.svg" alt="" style="width:100%;">
 ```
 
 ```@example geo
 egyptian_triangle_on_segment(p1, p2)   # legs 4:3 (here 6:4.5), hypotenuse 5 (here 7.5)
 ```
 
+```@raw html
+<img src="../assets/img/triangles/tronseg_egy.svg" alt="" style="width:100%;">
+```
+
+
 ```@example geo
 eq = equilateral_triangle_on_segment(p1, p2)
 distance(eq[1], eq[2]), distance(eq[2], eq[3]), distance(eq[3], eq[1])   # all 3 equal
+```
+
+```@raw html
+<img src="../assets/img/triangles/tronseg_eq.svg" alt="" style="width:100%;">
 ```
 
 ```@example geo
@@ -637,9 +721,18 @@ gnomon = golden_gnomon_on_segment(p1, p2)   # base angles 36°, apex angle 108°
 rad2deg(angle_at(gnomon[1], gnomon[3], gnomon[2])), rad2deg(angle_at(gnomon[3], gnomon[1], gnomon[2]))
 ```
 
+```@raw html
+<img src="../assets/img/triangles/tronseg_goldgnom.svg" alt="" style="width:100%;">
+```
+
+
 ```@example geo
 iso = isosceles_triangle_on_segment(p1, p2, 5.0)   # base [p1,p2], legs of length 5
 distance(iso[1], iso[3]) ≈ 5.0, distance(iso[2], iso[3]) ≈ 5.0
+```
+
+```@raw html
+<img src="../assets/img/triangles/tronseg_iso.svg" alt="" style="width:100%;">
 ```
 
 ```@example geo
@@ -647,7 +740,15 @@ r306090 = triangle_30_60_90_on_segment(p1, p2)   # hypotenuse [p1,p2]
 rad2deg(angle_at(r306090[1], r306090[2], r306090[3])), rad2deg(angle_at(r306090[2], r306090[1], r306090[3]))
 ```
 
+```@raw html
+<img src="../assets/img/triangles/tronseg_306090.svg" alt="" style="width:100%;">
+```
+
 ```@example geo
 isr = isosceles_right_triangle_on_segment(p1, p2)   # hypotenuse [p1,p2], via Thales
 rad2deg(angle_at(isr[3], isr[1], isr[2]))   # 90°: the right angle sits opposite the hypotenuse
+```
+
+```@raw html
+<img src="../assets/img/triangles/tronseg_isor.svg" alt="" style="width:100%;">
 ```
