@@ -700,6 +700,77 @@ using Base.MathConstants: golden
             @test length(sides(ngon)) == 3
             @test area(ngon) > 0
         end
+
+        @testset "EGPolyline2" begin
+            p0, p1, p2 = EGPoint(0.0, 0.0), EGPoint(3.0, 0.0), EGPoint(3.0, 4.0)
+            pl = EGPolyline2(p0, p1, p2)
+            @test pl == EGPolyline2([p0, p1, p2])
+            @test vertices(pl) == [p0, p1, p2]
+            @test length(pl) == 3
+            @test collect(pl) == [p0, p1, p2]
+            @test_throws ArgumentError EGPolyline2([p0])   # needs >= 2 vertices
+
+            s = sides(pl)
+            @test length(s) == 2   # n-1 sides, no closing side
+            @test s[1] == EGSegment(p0, p1) && s[2] == EGSegment(p1, p2)
+            @test arc_length(pl) ≈ 3.0 + 4.0
+
+            bb = EGBoundingBox(pl)
+            @test bb.min == EGPoint(0.0, 0.0) && bb.max == EGPoint(3.0, 4.0)
+
+            @test reverse(pl) == EGPolyline2([p2, p1, p0])
+            @test reverse(reverse(pl)) == pl
+
+            rot = rotate(pl, pi / 2, EGPoint(0.0, 0.0))
+            @test isapprox(rot[1], EGPoint(0.0, 0.0); atol=1e-9)
+            @test isapprox(rot[2], EGPoint(0.0, 3.0); atol=1e-9)
+            @test area(EGTriangle(p0, p1, p2)) ≈ area(EGTriangle(rotate.([p0, p1, p2], pi / 2, EGPoint(0.0, 0.0))...))   # sanity: rotate preserves shape
+            hom = homothety(pl, 2.0, EGPoint(0.0, 0.0))
+            @test hom[3] == EGPoint(6.0, 8.0)
+            refl = reflection(pl, EGPoint(0.0, 0.0))
+            @test refl[3] == EGPoint(-3.0, -4.0)
+            tr = translate(pl, EGVector(1.0, 1.0))
+            @test tr[1] == EGPoint(1.0, 1.0)
+
+            @test EGPoint(1.5, 0.0) in pl   # midpoint of the first side
+            @test EGPoint(3.0, 2.0) in pl   # midpoint of the second side
+            @test !(EGPoint(10.0, 10.0) in pl)
+            @test distance(EGPoint(0.0, 4.0), pl) ≈ 3.0   # nearest to side 2 (x=3), not side 1
+            @test distance(p0, pl) == 0.0
+            @test distance(pl, EGPoint(-1.0, 0.0)) ≈ 1.0
+        end
+
+        @testset "EGCurvilinearPolyline2" begin
+            circ = EGCircle2(EGPoint(0.0, 0.0), 5.0)
+            p1 = circ.center + EGVector(5.0, 0.0)
+            p2 = circ.center + EGVector(0.0, 5.0)
+            arc = EGCircularArc2(circ, p1, p2)
+            p3 = EGPoint(-5.0, 5.0)
+            seg = EGSegment(p2, p3)
+            cpl = EGCurvilinearPolyline2([arc, seg])
+            @test cpl == EGCurvilinearPolyline2([arc, seg])
+            @test length(cpl) == 2
+            @test collect(cpl) == [arc, seg]
+            @test_throws ArgumentError EGCurvilinearPolyline2(EGCurve[])   # needs >= 1 side
+            @test_throws ArgumentError EGCurvilinearPolyline2([EGSegment(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0)), EGSegment(EGPoint(5.0, 5.0), EGPoint(6.0, 6.0))])   # sides must connect
+
+            @test arc_length(cpl) ≈ arc_length(arc) + distance(p2, p3)
+
+            bb = EGBoundingBox(cpl)
+            @test bb.min ≈ EGPoint(-5.0, 0.0) atol = 1e-9
+            @test bb.max ≈ EGPoint(5.0, 5.0) atol = 1e-9
+
+            rcpl = reverse(cpl)
+            @test rcpl[1] == reverse(seg) && rcpl[2] == reverse(arc)
+            @test reverse(rcpl) == cpl
+
+            tr = translate(cpl, EGVector(1.0, 1.0))
+            @test tr[1] == translate(arc, EGVector(1.0, 1.0))
+
+            @test midpoint(arc) in cpl
+            @test !(EGPoint(100.0, 100.0) in cpl)
+            @test distance(midpoint(seg), cpl) == 0.0
+        end
     end
 
     @testset "EGSet unbounded regions" begin

@@ -158,6 +158,13 @@ function Base.isapprox(a::EGRay, b::EGRay; atol=1e-9, kwargs...)
     same_direction(direction(a), direction(b); atol=atol)
 end
 Base.show(io::IO, s::EGSegment) = print(io, "EGSegment(", s.p1, " -> ", s.p2, ")")
+
+"""
+    reverse(s::EGSegment)
+
+`s`, traversed from `s.p2` to `s.p1`.
+"""
+Base.reverse(s::EGSegment) = EGSegment(s.p2, s.p1)
 Base.show(io::IO, l::EGLine) = print(io, "EGLine(", l.p1, " -> ", l.p2, ")")
 Base.show(io::IO, r::EGRay) = print(io, "EGRay(", r.origin, " -> ", r.through, ")")
 

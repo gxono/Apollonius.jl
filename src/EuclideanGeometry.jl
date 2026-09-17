@@ -84,6 +84,9 @@ include("eg_curved_region.jl")
 export EGCircularSector2, EGCircularSegment2, EGAnnularSector2, EGInterstice2
 export EGCurvilinearTriangle2, EGCurvilinearQuadrilateral2, EGCurvilinearNgon2
 
+include("eg_polyline.jl")
+export EGPolyline2, EGCurvilinearPolyline2
+
 include("eg_unbounded.jl")
 export EGAngle2, EGHalfPlane2, EGStrip2, strip_width
 
