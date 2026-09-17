@@ -218,6 +218,10 @@ rectangle_on_segment(a, b, 2.0) # same, with an explicit height instead of |a-b|
 regular_polygon(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), 6)  # a regular hexagon
 ```
 
+```@raw html
+<img src="../assets/img/polygons/pol_nam.svg" alt="" style="width:100%;">
+```
+
 `square_on_segment` and `rectangle_on_segment` both take a `ccw` keyword
 (default `true`) to build on the other side of `[a,b]` instead — useful
 when the side you're extending from is itself part of a larger polygon and

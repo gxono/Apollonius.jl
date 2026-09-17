@@ -5065,6 +5065,12 @@ using Base.MathConstants: golden
     # extension" testset above: that testset's `using Luxor` brings in
     # Luxor's own exported `distance`, which would otherwise make every
     # unqualified `distance(...)` call below ambiguous.
+    # 3D geometry is paused (see scratch/ notes) -- its source files are
+    # untracked/commented out of EuclideanGeometry.jl's includes, so every
+    # 3D type below is undefined. `if false` disables this whole block
+    # without deleting it (re-enable by removing the `if false`/`end` once
+    # 3D work resumes) -- the code still needs to *parse*, which it does.
+    if false
     @testset "3D geometry (Phase 1: plane/sphere foundation)" begin
         @testset "EGPlane3 construction, distance, projection, reflection" begin
             xy = EGPlane3(EGPoint(0.0, 0.0, 0.0), EGVector(0.0, 0.0, 1.0))
@@ -5763,6 +5769,7 @@ using Base.MathConstants: golden
         @test area(rotate(sec, pi / 3, axis)) ≈ area(sec)
         @test area(homothety(sec, 2.0, EGPoint(1.0, 1.0, 1.0))) ≈ area(sec) * 4
     end
+    end # if false (3D geometry, paused)
 
     @testset "EGEquipollentVector" begin
         ev = EGEquipollentVector(EGVector(3.0, 4.0), EGPoint(1.0, 2.0))

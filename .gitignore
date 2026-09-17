@@ -1,5 +1,17 @@
 Manifest*.toml
 /docs/build/
-/COMANDOS.md
-/TODO.md
-/PLAN DE TRABAJO.md
+/scratch/
+
+# 2D-only focus for now (see scratch/ notes) -- 3D paused and untracked
+/src/eg_plane.jl
+/src/eg_unbounded3.jl
+/src/eg_polyhedron.jl
+/src/eg_named_polyhedra.jl
+/src/eg_curved_solid.jl
+/src/eg_conic3.jl
+/src/eg_quadric.jl
+/src/eg_curved_region3.jl
+/src/eg_transform3.jl
+# the docs/src/geometry_3d_*.md pages moved to scratch/geometry_3d_docs_paused/
+# (already covered by /scratch/ above) since Documenter builds every .md
+# under docs/src/ regardless of whether it's listed in make.jl's `pages`

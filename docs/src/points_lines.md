@@ -86,34 +86,6 @@ makes sense for an `EGSegment`, [`slope_angle`](@ref) treats `EGLine` and
 `EGRay` as pointing one way and an `EGSegment` as pointing from its first
 point to its second).
 
-### Plain tuples instead of `EGPoint`
-
-Spelling out `EGPoint(...)` for every point gets repetitive once several
-constructors are chained together, so every constructor that takes a
-point also accepts a plain tuple `(x, y)` in its place — anywhere you see
-`::EGPoint` in a signature throughout this package, a bare tuple works too:
-
-```@example geo
-EGSegment((0.0, 0.0), (3.0, 4.0)) == EGSegment(EGPoint(0.0, 0.0), EGPoint(3.0, 4.0))
-```
-
-```@example geo
-EGCircle2((1.0, 2.0), 5.0)    # same as EGCircle2(EGPoint(1.0, 2.0), 5.0)
-```
-
-Tuples and `EGPoint`s mix freely in the same call, and a mixed-element
-tuple like `(5, 10.0)` promotes exactly like `EGPoint(5, 10.0)` does:
-
-```@example geo
-EGSegment(EGPoint(0, 0), (3, 4.0))    # one EGPoint arg, one tuple arg — both fine together
-```
-
-This is purely notational — `EGPoint(t::Tuple)` (or `_topoint` internally,
-for every other constructor) converts the tuple up front, so there is no
-separate "tuple mode" to reason about afterward: the object you get back
-is a perfectly ordinary `EGPoint`/`EGSegment`/`EGCircle2`/etc., identical
-to what you'd get by spelling out `EGPoint(...)` yourself.
-
 ## Points vs. vectors
 
 A point minus a point is *still a point*, not a vector — `A - O` above

@@ -21,74 +21,59 @@ export EGSegment, EGLine, EGRay, EGBoundingBox
 include("eg_equipollent_vector.jl")
 export EGEquipollentVector, tip
 
-# 3D foundation: EGPlane3/EGSphere3 (<: EGSurface), a minimal EGCircle3
-# stub, and every pairwise distance/projection/intersection between
-# EGPoint{3}/EGLine{3}/EGPlane3/EGSphere3. Phase 1 of the 3D geometry
-# rollout -- see the design plan for the full phased roadmap.
-include("eg_plane.jl")
-export EGPlane3, EGSphere3, EGCircle3
-export on_plane, on_sphere, side_of_plane, volume, surface_area, plane
-
-include("eg_unbounded3.jl")
-export EGHalfSpace3, EGSlab3, EGDihedralAngle3, EGPolyhedralAngle3
-export slab_width, solid_angle
+# 3D geometry (EGPlane3/EGSphere3, 3D unbounded sets, EGPolyhedron and its
+# concrete solids, 3D conics, quadric surfaces, 3D curved regions,
+# EGAffineMap3) is PAUSED -- see PLAN/ARCHITECTURE.md. The focus for now
+# is 2D only; the files themselves are untracked (see .gitignore) rather
+# than deleted, so this whole block is commented out instead of removed.
+# Re-enable by uncommenting once 3D work resumes.
+# include("eg_plane.jl")
+# export EGPlane3, EGSphere3, EGCircle3
+# export on_plane, on_sphere, side_of_plane, volume, surface_area, plane
+#
+# include("eg_unbounded3.jl")
+# export EGHalfSpace3, EGSlab3, EGDihedralAngle3, EGPolyhedralAngle3
+# export slab_width, solid_angle
 
 include("eg_polygon.jl")
 export EGTriangle, EGQuadrilateral, EGStraightNgon
 
 # EGPolyhedron: the flat-faced-solid sibling of EGPolygon, one dimension
 # up -- needs EGTriangle/EGQuadrilateral/EGStraightNgon above (its
-# concrete faces) already defined.
-include("eg_polyhedron.jl")
-export EGTetrahedron3, EGParallelepiped3, EGPyramid3, EGPrism3, EGGeneralPolyhedron3
-export faces, box3, cube3
-
-# Regular tetrahedron/octahedron -- the cube is already `cube3` above;
-# dodecahedron/icosahedron need a 3D convex hull this package doesn't
-# have, so they're deliberately not here yet.
-include("eg_named_polyhedra.jl")
-export regular_tetrahedron3, regular_octahedron3
-
-# EGCylinder3/EGCone3: curved-lateral-surface solids, deliberately NOT
-# EGPolyhedron (see eg_polyhedron.jl's header note) -- own closed-form
-# volume/surface_area/centroid.
-include("eg_curved_solid.jl")
-export EGCylinder3, EGCone3
-export height, slant_height, caps, base
+# concrete faces) already defined. Paused along with the rest of 3D.
+# include("eg_polyhedron.jl")
+# export EGTetrahedron3, EGParallelepiped3, EGPyramid3, EGPrism3, EGGeneralPolyhedron3
+# export faces, box3, cube3
+#
+# include("eg_named_polyhedra.jl")
+# export regular_tetrahedron3, regular_octahedron3
+#
+# include("eg_curved_solid.jl")
+# export EGCylinder3, EGCone3
+# export height, slant_height, caps, base
 
 include("eg_conic.jl")
 export EGCircle2, EGEllipse2, EGParabola2, EGHyperbola2
 export EGCircularArc2, EGEllipticArc2, EGParabolicArc2, EGHyperbolicArc2
 
-# 3D conics: EGEllipse3/EGParabola3/EGHyperbola3 (planar conics embedded
-# via an explicit supporting plane) + their arc types, plus the fuller
-# EGCircle3 API (Phase 1 left it a minimal stub). Needs eg_conic.jl's
-# local-frame/Newton-solver helpers above (reused verbatim -- they already
-# operate on dimension-agnostic scalar local coordinates).
-include("eg_conic3.jl")
-export EGEllipse3, EGParabola3, EGHyperbola3
-export EGCircularArc3, EGEllipticArc3, EGParabolicArc3, EGHyperbolicArc3
-export point_on_circle3, is_on_circle3
-export point_on_ellipse3, is_on_ellipse3
-export point_on_hyperbola3, is_on_hyperbola3
-export point_on_parabola3, is_on_parabola3
-
-# Quadric surfaces: genuinely 3D-only, no 2D curve to generalize from.
-# Deliberately minimal (constructors, membership, a parametrization,
-# transforms) -- no intersection/distance yet.
-include("eg_quadric.jl")
-export EGEllipsoid3, EGParaboloid3, EGHyperboloid3, EGHyperbolicParaboloid3
-export point_on_ellipsoid3, is_on_ellipsoid3
-export point_on_paraboloid3, is_on_paraboloid3
-export point_on_hyperboloid3, is_on_hyperboloid3
-export point_on_hyperbolic_paraboloid3, is_on_hyperbolic_paraboloid3
-
-# Curved regions embedded in 3D (the sector/segment/annular-sector trio),
-# via projecting into a 2D frame local to the arc's own circle's plane
-# and delegating to the already-verified 2D machinery. The fully general
-# EGCurvilinearTriangle3/Quadrilateral3/Ngon3 aren't here yet.
-include("eg_curved_region3.jl")
-export EGCircularSector3, EGCircularSegment3, EGAnnularSector3
+# 3D conics/quadrics/curved regions -- paused along with the rest of 3D.
+# include("eg_conic3.jl")
+# export EGEllipse3, EGParabola3, EGHyperbola3
+# export EGCircularArc3, EGEllipticArc3, EGParabolicArc3, EGHyperbolicArc3
+# export point_on_circle3, is_on_circle3
+# export point_on_ellipse3, is_on_ellipse3
+# export point_on_hyperbola3, is_on_hyperbola3
+# export point_on_parabola3, is_on_parabola3
+#
+# include("eg_quadric.jl")
+# export EGEllipsoid3, EGParaboloid3, EGHyperboloid3, EGHyperbolicParaboloid3
+# export point_on_ellipsoid3, is_on_ellipsoid3
+# export point_on_paraboloid3, is_on_paraboloid3
+# export point_on_hyperboloid3, is_on_hyperboloid3
+# export point_on_hyperbolic_paraboloid3, is_on_hyperbolic_paraboloid3
+#
+# include("eg_curved_region3.jl")
+# export EGCircularSector3, EGCircularSegment3, EGAnnularSector3
 
 # intersection/polar_line/tangent_points/tangent_lines for
 # EGEllipse2/EGHyperbola2/EGParabola2 — split out from eg_conic.jl since
@@ -105,8 +90,9 @@ export EGAngle2, EGHalfPlane2, EGStrip2, strip_width
 include("eg_transform.jl")
 export EGAffineMap
 
-include("eg_transform3.jl")
-export EGAffineMap3
+# EGAffineMap3 -- paused along with the rest of 3D.
+# include("eg_transform3.jl")
+# export EGAffineMap3
 
 include("eg_predicates.jl")
 include("eg_intersections.jl")

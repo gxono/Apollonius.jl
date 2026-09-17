@@ -56,8 +56,9 @@ abstract type EGCurve{Dim,T} <: EGLocus{Dim,T} end
 A codimension-1 locus that is **not** one-dimensional — meaningless for
 `Dim == 2` (where codimension-1 already means "curve", i.e.
 [`EGCurve`](@ref)), and only populated starting at `Dim == 3`:
-[`EGPlane3`](@ref) (flat, no enclosed volume) and [`EGSphere3`](@ref)
-(curved, encloses a volume) are its first members. `EGSurface` is to
+`EGPlane3` (flat, no enclosed volume) and `EGSphere3`
+(curved, encloses a volume) are its first members (3D geometry is
+currently paused — see the repo's own working notes). `EGSurface` is to
 `EGCurve` what a plane is to a line: the same "boundary-type locus with no
 interior of its own" role, one dimension up. Like `EGCurve`, a concrete
 `EGSurface` may still carry `area`/`volume`-style measures for whatever it
@@ -113,12 +114,13 @@ abstract type EGPolygon{Dim,T} <: EGRegion{Dim,T} end
     EGPolyhedron{Dim,T} <: EGRegion{Dim,T}
 
 A closed 3D solid bounded by an unordered list of planar polygon
-[`faces`](@ref) (each an [`EGPolygon`](@ref)`{3,T}`) — the `EGPolyhedron`
+`faces` (each an [`EGPolygon`](@ref)`{3,T}`) — the `EGPolyhedron`
 analogue of `EGPolygon`'s `sides`, exactly one dimension up:
 `volume`/`surface_area`/`centroid` are defined *once*, generically, via a
 divergence-theorem tetrahedral decomposition over `faces(p)`, the same
 way `area`/`perimeter`/`centroid` are defined once on `EGPolygon` via a
-Green's-theorem walk over `sides(p)`.
+Green's-theorem walk over `sides(p)`. (3D geometry, and so every concrete
+`EGPolyhedron`, is currently paused.)
 """
 abstract type EGPolyhedron{Dim,T} <: EGRegion{Dim,T} end
 

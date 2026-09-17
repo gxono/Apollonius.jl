@@ -154,7 +154,6 @@ Base.show(io::IO, r::EGRay) = print(io, "EGRay(", r.origin, " -> ", r.through, "
 
 The direction of a `EGLine`, `EGRay` or `EGSegment`, as an [`EGVector`](@ref).
 """
-direction(v::EGVector) = v / norm(v)
 direction(l::EGLine) = EGVector(l.p2 - l.p1)
 direction(r::EGRay) = EGVector(r.through - r.origin)
 direction(s::EGSegment) = EGVector(s.p2 - s.p1)
@@ -392,8 +391,8 @@ actually a 180° rotation *about* that line (orientation-*preserving* --
 `rotate(p, pi, axis)` once 3D `rotate` is loaded), not a mirror
 reflection (orientation-*reversing*) -- a line's orthogonal complement in
 3D is a whole plane, not a single direction, so there is no unique mirror
-to reflect across. The true 3D mirror is
-[`reflection(::EGPoint{3}, ::EGPlane3)`](@ref).
+to reflect across. The true 3D mirror would be `reflection(::EGPoint{3},
+::EGPlane3)` (3D geometry is currently paused).
 """
 reflection(p::EGPoint{2}, l::EGLine{2}) = 2 * projection(p, l) - p
 
