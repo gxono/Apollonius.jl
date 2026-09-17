@@ -112,7 +112,7 @@ Center of the circle inscribed in `t`.
 function incenter(t::EGTriangle)
     a, b, c = t[1], t[2], t[3]
     la, lb, lc = distance(b, c), distance(a, c), distance(a, b)
-    return (la * a + lb * b + lc * c) / (la + lb + lc)
+    return a + (lb * (b - a) + lc * (c - a)) / (la + lb + lc)
 end
 
 """
@@ -135,7 +135,7 @@ incircle(t::EGTriangle) = EGCircle2(incenter(t), inradius(t))
 Intersection point of the three altitudes of `t`, obtained from the Euler
 line relation `H = 3G - 2O`.
 """
-orthocenter(t::EGTriangle) = 3 * centroid(t) - 2 * circumcenter(t)
+orthocenter(t::EGTriangle) = circumcenter(t) + 3 * (centroid(t) - circumcenter(t))
 
 """
     excenters(t::EGTriangle)
@@ -146,9 +146,9 @@ The three excenters of `t`, as a `(A=..., B=..., C=...)` named tuple where
 function excenters(t::EGTriangle)
     A, B, C = t[1], t[2], t[3]
     a, b, c = _side_lengths(t)
-    return (A=(-a * A + b * B + c * C) / (-a + b + c),
-        B=(a * A - b * B + c * C) / (a - b + c),
-        C=(a * A + b * B - c * C) / (a + b - c))
+    return (A=A + (b * (B - A) + c * (C - A)) / (-a + b + c),
+        B=B + (a * (A - B) + c * (C - B)) / (a - b + c),
+        C=C + (a * (A - C) + b * (B - C)) / (a + b - c))
 end
 
 """
@@ -260,7 +260,7 @@ The point with barycentric coordinates `(wA, wB, wC)` relative to `t`
 (the weights need not be normalized).
 """
 barycentric_point(t::EGTriangle, wA::Real, wB::Real, wC::Real) =
-    (wA * t[1] + wB * t[2] + wC * t[3]) / (wA + wB + wC)
+    t[1] + (wB * (t[2] - t[1]) + wC * (t[3] - t[1])) / (wA + wB + wC)
 
 barycentric_point(t::EGTriangle) = barycentric_point(t, 1.0, 1.0, 1.0)
 
@@ -402,7 +402,7 @@ end
 The de Longchamps point of `t`: the reflection of the orthocenter across
 the circumcenter (it lies on the Euler line).
 """
-de_longchamps_point(t::EGTriangle) = 2 * circumcenter(t) - orthocenter(t)
+de_longchamps_point(t::EGTriangle) = circumcenter(t) + (circumcenter(t) - orthocenter(t))
 
 """
     bevan_point(t::EGTriangle)
@@ -506,7 +506,7 @@ function napoleon_triangle(t::EGTriangle; outward::Bool=true)
     A, B, C = t[1], t[2], t[3]
     rot = outward ? _rotate_away : _rotate_toward
     Aapex, Bapex, Capex = rot(C, B, pi / 3, A), rot(A, C, pi / 3, B), rot(B, A, pi / 3, C)
-    return EGTriangle((B + C + Aapex) / 3, (C + A + Bapex) / 3, (A + B + Capex) / 3)
+    return EGTriangle(B + ((C - B) + (Aapex - B)) / 3, C + ((A - C) + (Bapex - C)) / 3, A + ((B - A) + (Capex - A)) / 3)
 end
 
 """
@@ -647,7 +647,7 @@ The anticomplementary (antimedial) triangle of `t`: vertices `B+C-A`,
 medial triangle of this one). Each vertex is the [`anticomplement`](@ref)
 of the opposite one.
 """
-anticomplementary_triangle(t::EGTriangle) = EGTriangle(t[2] + t[3] - t[1], t[3] + t[1] - t[2], t[1] + t[2] - t[3])
+anticomplementary_triangle(t::EGTriangle) = EGTriangle(t[2] + (t[3] - t[1]), t[3] + (t[1] - t[2]), t[1] + (t[2] - t[3]))
 
 """
     reflection_triangle(t::EGTriangle)

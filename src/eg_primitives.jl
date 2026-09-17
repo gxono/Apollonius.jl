@@ -14,7 +14,7 @@ Rotate `p` by `angle` radians (counterclockwise) around `center`.
 function rotate(p::EGPoint{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0))
     v = p - center
     c, s = cos(angle), sin(angle)
-    return center + EGPoint(c * v[1] - s * v[2], s * v[1] + c * v[2])
+    return center + EGVector(c * v[1] - s * v[2], s * v[1] + c * v[2])
 end
 
 """
@@ -29,7 +29,7 @@ homothety(p::EGPoint, k::Real, center::EGPoint=EGPoint(0.0, 0.0)) = center + k *
 
 Reflect `p` through the point `about` (point symmetry).
 """
-reflection(p::EGPoint, about::EGPoint) = 2 * about - p
+reflection(p::EGPoint, about::EGPoint) = about + (about - p)
 
 """
     translate(p::EGPoint, v::EGVector)
@@ -43,7 +43,7 @@ translate(p::EGPoint, v::EGVector) = p + v
 """
     midpoint(p1::EGPoint, p2::EGPoint)
 """
-midpoint(p1::EGPoint, p2::EGPoint) = (p1 + p2) / 2
+midpoint(p1::EGPoint, p2::EGPoint) = p1 + (p2 - p1) / 2
 
 """
     distance(p1::EGPoint, p2::EGPoint)
@@ -166,9 +166,9 @@ Base.show(io::IO, r::EGRay) = print(io, "EGRay(", r.origin, " -> ", r.through, "
 
 The direction of a `EGLine`, `EGRay` or `EGSegment`, as an [`EGVector`](@ref).
 """
-direction(l::EGLine) = EGVector(l.p2 - l.p1)
-direction(r::EGRay) = EGVector(r.through - r.origin)
-direction(s::EGSegment) = EGVector(s.p2 - s.p1)
+direction(l::EGLine) = l.p2 - l.p1
+direction(r::EGRay) = r.through - r.origin
+direction(s::EGSegment) = s.p2 - s.p1
 
 # --- EGVector transforms --------------------------------------------------
 #
@@ -406,7 +406,7 @@ reflection (orientation-*reversing*) -- a line's orthogonal complement in
 to reflect across. The true 3D mirror would be `reflection(::EGPoint{3},
 ::EGPlane3)` (3D geometry is currently paused).
 """
-reflection(p::EGPoint{2}, l::EGLine{2}) = 2 * projection(p, l) - p
+reflection(p::EGPoint{2}, l::EGLine{2}) = (foot = projection(p, l); foot + (foot - p))
 
 reflection(s::EGSegment, about) = EGSegment(reflection(s.p1, about), reflection(s.p2, about))
 reflection(l::EGLine, about) = EGLine(reflection(l.p1, about), reflection(l.p2, about))
@@ -565,8 +565,8 @@ Base.isempty(bb::EGBoundingBox) = bb.min[1] > bb.max[1]
 Base.:(==)(a::EGBoundingBox, b::EGBoundingBox) = a.min == b.min && a.max == b.max
 Base.isapprox(a::EGBoundingBox, b::EGBoundingBox; kwargs...) =
     isapprox(a.min, b.min; kwargs...) && isapprox(a.max, b.max; kwargs...)
-Base.:+(bb::EGBoundingBox, p::EGPoint) = EGBoundingBox(bb.min + p, bb.max + p)
-Base.:-(bb::EGBoundingBox, p::EGPoint) = EGBoundingBox(bb.min - p, bb.max - p)
+Base.:+(bb::EGBoundingBox, v::EGVector) = EGBoundingBox(bb.min + v, bb.max + v)
+Base.:-(bb::EGBoundingBox, v::EGVector) = EGBoundingBox(bb.min - v, bb.max - v)
 translate(bb::EGBoundingBox, v::EGVector) = EGBoundingBox(bb.min + v, bb.max + v)
 function Base.:*(bb::EGBoundingBox{Dim}, k::Real) where {Dim}
     p1, p2 = bb.min * k, bb.max * k

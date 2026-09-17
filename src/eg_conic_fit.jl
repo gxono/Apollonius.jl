@@ -13,7 +13,7 @@ isn't representable by this function.
 """
 function conic_through_points(p1::EGPoint, p2::EGPoint, p3::EGPoint, p4::EGPoint, p5::EGPoint; atol=1e-9)
     pts = (p1, p2, p3, p4, p5)
-    centroid = sum(pts) / 5
+    centroid = p1 + sum(p - p1 for p in pts) / 5
     scale = max(sum(distance(p, centroid) for p in pts) / 5, 1.0)
 
     M = zeros(Float64, 5, 6)
@@ -31,7 +31,7 @@ function conic_through_points(p1::EGPoint, p2::EGPoint, p3::EGPoint, p4::EGPoint
         "conic_through_points: the points lie on (or near) a parabola, which this function can't return"))
 
     x0, y0 = [2A B; B 2C] \ [-D, -E]
-    center = centroid + scale * EGPoint(x0, y0)
+    center = centroid + scale * EGVector(x0, y0)
     F0 = A * x0^2 + B * x0 * y0 + C * y0^2 + D * x0 + E * y0 + F
 
     lam1 = (A + C + sqrt((A - C)^2 + B^2)) / 2

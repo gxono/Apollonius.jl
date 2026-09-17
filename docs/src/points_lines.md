@@ -394,7 +394,7 @@ ang = EGAngle2(O, P1, P2)
 rad2deg(measure(ang))    # 90.0 — signed, counterclockwise from a to b
 abs(ang)                 # 1.5707... — the unsigned angle, in [0, π]
 is_direct(ang)           # true: measure(ang) > 0
-(O + EGPoint(1.0, 1.0)) in ang   # true: inside the wedge
+(O + EGVector(1.0, 1.0)) in ang   # true: inside the wedge
 ```
 
 [`normalized_measure`](@ref) is [`measure`](@ref) shifted into `[0, 2π)`

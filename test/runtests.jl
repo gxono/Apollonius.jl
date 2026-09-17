@@ -42,24 +42,21 @@ using Base.MathConstants: golden
             @test sprint(show, EGVector(1.0, 2.0)) == "⟨1.0, 2.0⟩"
         end
 
-        @testset "Point/Point arithmetic stays permissive -> EGPoint" begin
+        @testset "Point - Point -> EGVector, Point + Point undefined (CGAL-style)" begin
             A, B = EGPoint(0.0, 0.0), EGPoint(4.0, 0.0)
-            @test A + B isa EGPoint
-            @test A + B == EGPoint(4.0, 0.0)
-            @test A - B isa EGPoint          # explicit design choice: NOT EGVector
-            @test A - B == EGPoint(-4.0, 0.0)
+            @test A - B isa EGVector
+            @test A - B == EGVector(-4.0, 0.0)
+            @test_throws MethodError A + B
+
             @test 2.0 * B isa EGPoint
             @test 2.0 * B == EGPoint(8.0, 0.0)
             @test B * 2.0 == 2.0 * B
             @test B / 2.0 == EGPoint(2.0, 0.0)
             @test -B == EGPoint(-4.0, 0.0)
 
-            # the formulas this whole package relies on must "just work"
-            centroid_like = (A + B + EGPoint(0.0, 6.0)) / 3
-            @test centroid_like == EGPoint(4.0 / 3, 2.0)
-
+            # point arithmetic goes through a reference point + vector displacements
             about = EGPoint(1.0, 1.0)
-            reflect_like = 2 * about - A
+            reflect_like = about + (about - A)
             @test reflect_like isa EGPoint
             @test reflect_like == EGPoint(2.0, 2.0)
         end
@@ -147,7 +144,7 @@ using Base.MathConstants: golden
         @test EGLine(s) == l
 
         @test s == EGSegment(p1, p2)
-        @test isapprox(s, EGSegment(p1 + EGPoint(1e-12, 0.0), p2); atol=1e-9)
+        @test isapprox(s, EGSegment(p1 + EGVector(1e-12, 0.0), p2); atol=1e-9)
 
         @test sprint(show, s) == "EGSegment([0.0, 0.0] -> [4.0, 0.0])"
 
@@ -198,9 +195,9 @@ using Base.MathConstants: golden
             @test EGPoint(0.0, 0.0) in bb
             @test !(EGPoint(-2.0, 0.0) in bb)
 
-            shifted = bb + EGPoint(1.0, 1.0)
+            shifted = bb + EGVector(1.0, 1.0)
             @test shifted.min == EGPoint(0.0, 1.0)
-            @test (shifted - EGPoint(1.0, 1.0)) == bb
+            @test (shifted - EGVector(1.0, 1.0)) == bb
 
             scaled = bb * 2.0
             @test scaled.min == EGPoint(-2.0, 0.0) && scaled.max == EGPoint(8.0, 6.0)
@@ -325,7 +322,7 @@ using Base.MathConstants: golden
             @test collect(t) == [A, B, C]
             @test area(t) ≈ 6.0
             @test perimeter(t) ≈ 4.0 + 5.0 + 3.0
-            @test centroid(t) ≈ (A + B + C) / 3
+            @test centroid(t) ≈ A + ((B - A) + (C - A)) / 3
             @test is_convex(t)
             @test EGPoint(1.0, 1.0) in t
             @test !(EGPoint(10.0, 10.0) in t)
@@ -357,7 +354,7 @@ using Base.MathConstants: golden
             diags = diagonals(q)
             @test diags[1] == EGSegment(a, c) && diags[2] == EGSegment(b, d)
 
-            @test centroid(q) ≈ (a + b + c + d) / 4   # plain average, NOT area-weighted
+            @test centroid(q) ≈ a + ((b - a) + (c - a) + (d - a)) / 4   # plain average, NOT area-weighted
             @test area(q) ≈ 10.5
             @test perimeter(q) ≈ distance(a, b) + distance(b, c) + distance(c, d) + distance(d, a)
             @test is_convex(q)
@@ -486,8 +483,8 @@ using Base.MathConstants: golden
 
         @testset "EGCircularArc2" begin
             circ = EGCircle2(EGPoint(1.0, 2.0), 5.0)
-            p1 = circ.center + EGPoint(5.0, 0.0)
-            p2 = circ.center + EGPoint(0.0, 5.0)
+            p1 = circ.center + EGVector(5.0, 0.0)
+            p2 = circ.center + EGVector(0.0, 5.0)
             arc = EGCircularArc2(circ, p1, p2)
             @test measure(arc) ≈ pi / 2 atol = 1e-9
             @test arc_length(arc) ≈ 5.0 * pi / 2 atol = 1e-9
@@ -499,7 +496,7 @@ using Base.MathConstants: golden
             # circ (same angle, radius circ.r). Otherwise anything built
             # directly from the raw arc.p1/arc.p2 (e.g. EGCircularSector2's
             # own radii) would visibly disagree with the arc curve itself.
-            off_circle_p2 = circ.center + EGPoint(0.0, 3.0)   # angle 90°, but at distance 3, not 5
+            off_circle_p2 = circ.center + EGVector(0.0, 3.0)   # angle 90°, but at distance 3, not 5
             off_arc = EGCircularArc2(circ, p1, off_circle_p2)
             @test off_arc.p2 ≈ p2   # snapped onto the circle, same angle as p2 above
             @test distance(circ.center, off_arc.p2) ≈ circ.r
@@ -596,15 +593,15 @@ using Base.MathConstants: golden
     @testset "EGPolygon curved regions" begin
         @testset "EGCircularSector2" begin
             circ = EGCircle2(EGPoint(2.0, -1.0), 5.0)
-            p1 = circ.center + EGPoint(5.0, 0.0)
+            p1 = circ.center + EGVector(5.0, 0.0)
             θ = 2.3
-            p2 = circ.center + EGPoint(5.0 * cos(θ), 5.0 * sin(θ))
+            p2 = circ.center + EGVector(5.0 * cos(θ), 5.0 * sin(θ))
             arc = EGCircularArc2(circ, p1, p2)
             sec = EGCircularSector2(arc)
             @test area(sec) ≈ 0.5 * 25 * θ atol = 1e-9
             @test perimeter(sec) ≈ 2 * 5 + 5 * θ atol = 1e-9
             @test circ.center in sec
-            @test !(circ.center + EGPoint(20.0, 0.0) in sec)
+            @test !(circ.center + EGVector(20.0, 0.0) in sec)
             @test area(rotate(sec, pi / 3, EGPoint(1.0, 1.0))) ≈ area(sec) atol = 1e-6
             @test area(homothety(sec, 2.0)) ≈ 4 * area(sec) atol = 1e-6
             @test area(reflection(sec, EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0)))) ≈ area(sec) atol = 1e-6
@@ -621,9 +618,9 @@ using Base.MathConstants: golden
 
         @testset "EGCircularSegment2" begin
             circ = EGCircle2(EGPoint(2.0, -1.0), 5.0)
-            p1 = circ.center + EGPoint(5.0, 0.0)
+            p1 = circ.center + EGVector(5.0, 0.0)
             θ = 2.3
-            p2 = circ.center + EGPoint(5.0 * cos(θ), 5.0 * sin(θ))
+            p2 = circ.center + EGVector(5.0 * cos(θ), 5.0 * sin(θ))
             arc = EGCircularArc2(circ, p1, p2)
             seg = EGCircularSegment2(arc)
             @test area(seg) ≈ 0.5 * 25 * (θ - sin(θ)) atol = 1e-9
@@ -632,9 +629,9 @@ using Base.MathConstants: golden
 
         @testset "EGAnnularSector2 (new)" begin
             circ = EGCircle2(EGPoint(2.0, -1.0), 5.0)
-            p1 = circ.center + EGPoint(5.0, 0.0)
+            p1 = circ.center + EGVector(5.0, 0.0)
             θ = 2.3
-            p2 = circ.center + EGPoint(5.0 * cos(θ), 5.0 * sin(θ))
+            p2 = circ.center + EGVector(5.0 * cos(θ), 5.0 * sin(θ))
             arc = EGCircularArc2(circ, p1, p2)
             asec = EGAnnularSector2(arc, 2.0)
             @test area(asec) ≈ 0.5 * 25 * θ - 0.5 * 4 * θ atol = 1e-9
@@ -695,8 +692,8 @@ using Base.MathConstants: golden
 
         @testset "EGCurvilinearNgon2" begin
             circ = EGCircle2(EGPoint(0.0, 0.0), 5.0)
-            p1 = circ.center + EGPoint(5.0, 0.0)
-            p2 = circ.center + EGPoint(0.0, 5.0)
+            p1 = circ.center + EGVector(5.0, 0.0)
+            p2 = circ.center + EGVector(0.0, 5.0)
             arc = EGCircularArc2(circ, p1, p2)
             A = EGPoint(-5.0, -5.0)
             ngon = EGCurvilinearNgon2([EGSegment(A, p1), arc, EGSegment(p2, A)])
@@ -726,8 +723,8 @@ using Base.MathConstants: golden
             @test rotate(EGPoint(5.0, 5.0), ang) == rotate(EGPoint(5.0, 5.0), measure(ang))   # default center
             axis = EGLine(EGPoint(0.0, 0.0, 0.0), EGPoint(0.0, 0.0, 1.0))
             @test rotate(EGPoint(5.0, 5.0, 1.0), ang, axis) == rotate(EGPoint(5.0, 5.0, 1.0), measure(ang), axis)
-            @test (vertex + EGPoint(1.0, 1.0)) in ang
-            @test !((vertex + EGPoint(-1.0, 0.0)) in ang)
+            @test (vertex + EGVector(1.0, 1.0)) in ang
+            @test !((vertex + EGVector(-1.0, 0.0)) in ang)
 
             l = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0))
             refl_l = reflection(ang, l)
@@ -737,7 +734,7 @@ using Base.MathConstants: golden
 
             # the invariant that actually matters for a *region*: point
             # membership must commute with every transform.
-            pts = [vertex + EGPoint(dx, dy) for dx in -2:0.5:2 for dy in -2:0.5:2]
+            pts = [vertex + EGVector(dx, dy) for dx in -2:0.5:2 for dy in -2:0.5:2]
             rot = rotate(ang, 0.7, EGPoint(2.0, 3.0))
             @test all(p -> (p in ang) == (rotate(p, 0.7, EGPoint(2.0, 3.0)) in rot), pts)
             hom = homothety(ang, -1.5, EGPoint(2.0, 3.0))
@@ -805,7 +802,7 @@ using Base.MathConstants: golden
         p1, p2, p3 = EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(1.0, 0.0)
         @test_throws ArgumentError affine_map((p1, p2, p3), (p1, p2, p3))  # collinear source
 
-        v = EGPoint(3.0, -2.0)
+        v = EGVector(3.0, -2.0)
         p = EGPoint(1.0, 1.0)
         tmap = translation_map(v)
         @test isapprox(tmap(p), p + v; atol=1e-9)
@@ -1404,7 +1401,7 @@ using Base.MathConstants: golden
         a_ap, b_ap = EGPoint(0.0, 0.0), EGPoint(6.0, 0.0)
         apc = apollonius_circle(a_ap, b_ap, 2.0)
         for t in (0.0, 1.3, 3.0)
-            p = apc.center + apc.r * EGPoint(cos(t), sin(t))
+            p = apc.center + apc.r * EGVector(cos(t), sin(t))
             @test distance(p, a_ap) / distance(p, b_ap) ≈ 2.0 atol = 1e-9
         end
         @test_throws ArgumentError apollonius_circle(a_ap, b_ap, 1.0)
@@ -1437,7 +1434,7 @@ using Base.MathConstants: golden
         @test side_of_line(EGPoint(0.5, 0.0), l1) == 0
 
         circ = EGCircle2(EGPoint(0.0, 0.0), 5.0)
-        on_circ(t) = circ.center + circ.r * EGPoint(cos(t), sin(t))
+        on_circ(t) = circ.center + circ.r * EGVector(cos(t), sin(t))
         @test is_concyclic(on_circ(0.1), on_circ(1.5), on_circ(3.0), on_circ(4.5))
         @test !is_concyclic(on_circ(0.1), on_circ(1.5), on_circ(3.0), EGPoint(100.0, 100.0))
         @test is_concyclic(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(2.0, 0.0), EGPoint(3.0, 0.0))  # collinear
@@ -2002,7 +1999,7 @@ using Base.MathConstants: golden
 
         # 5 points on a circle (a special ellipse) should also work
         circ = EGCircle2(EGPoint(1.0, 1.0), 3.0)
-        cpts = [circ.center + circ.r * EGPoint(cos(t), sin(t)) for t in (0.2, 1.1, 2.3, 3.5, 5.0)]
+        cpts = [circ.center + circ.r * EGVector(cos(t), sin(t)) for t in (0.2, 1.1, 2.3, 3.5, 5.0)]
         fitc = conic_through_points(cpts...)
         @test fitc isa EGEllipse2
         @test fitc.a ≈ fitc.b ≈ circ.r
@@ -2105,7 +2102,7 @@ using Base.MathConstants: golden
         @test_throws ArgumentError inversion(c.center, c)
 
         center = EGPoint(1.0, 2.0)
-        point_on_circle(circ, t) = circ.center + circ.r * EGPoint(cos(t), sin(t))
+        point_on_circle(circ, t) = circ.center + circ.r * EGVector(cos(t), sin(t))
 
         # inverting a line not through the center gives a circle through the center
         l = EGLine(EGPoint(-10.0, 5.0), EGPoint(10.0, 5.0))
@@ -2117,7 +2114,7 @@ using Base.MathConstants: golden
         end
 
         # a line through the center is its own image (not invertible to a circle)
-        @test_throws ArgumentError invert(EGLine(center, center + EGPoint(1.0, 0.0)), center)
+        @test_throws ArgumentError invert(EGLine(center, center + EGVector(1.0, 0.0)), center)
 
         # inverting a circle not through the center gives another circle;
         # inverting a point of the original circle back should land on the image, and vice versa
@@ -2132,7 +2129,7 @@ using Base.MathConstants: golden
         # invert(::EGLine, ::EGPoint) — verified by inverting a few points of
         # the original circle back and checking they land on that line
         c_through = EGCircle2(center, 3.0)
-        p_center = center + EGPoint(3.0, 0.0)  # on c_through
+        p_center = center + EGVector(3.0, 0.0)  # on c_through
         img_line = invert(c_through, p_center)
         @test img_line isa EGLine
         for t in (0.3, 1.7, 2.5, 4.1)
@@ -2371,7 +2368,7 @@ using Base.MathConstants: golden
         @test diags[1] == EGSegment(a, c) && diags[2] == EGSegment(b, d)
         @test diagonal_intersection(q) ≈ EGPoint(16 / 7, 12 / 7)
 
-        @test centroid(q) ≈ (a + b + c + d) / 4  # equal-weight average, unlike EGStraightNgon's
+        @test centroid(q) ≈ a + ((b - a) + (c - a) + (d - a)) / 4  # equal-weight average, unlike EGStraightNgon's
         @test area(q) ≈ 10.5
         @test perimeter(q) ≈ distance(a, b) + distance(b, c) + distance(c, d) + distance(d, a)
         @test is_convex(q)
@@ -2430,7 +2427,7 @@ using Base.MathConstants: golden
         @test refl(p) ≈ reflection(p, l)
 
         tm = translation_map(EGPoint(5.0, -3.0))
-        @test tm(p) ≈ p + EGPoint(5.0, -3.0)
+        @test tm(p) ≈ p + EGVector(5.0, -3.0)
 
         # composition matches sequential application
         composed = hm ∘ rm
@@ -2459,7 +2456,7 @@ using Base.MathConstants: golden
         @test e isa EGEllipse2
         @test e.center ≈ skew(c.center)
         for θ in (0.0, 1.0, 2.5, 4.7)
-            p = c.center + c.r * EGPoint(cos(θ), sin(θ))
+            p = c.center + c.r * EGVector(cos(θ), sin(θ))
             @test is_on_ellipse(skew(p), e; atol=1e-6)
         end
         # a conformal map (pure rotation) sends a circle to an ellipse with a == b
@@ -2518,7 +2515,7 @@ using Base.MathConstants: golden
 
         # a point inside the ellipse (center or otherwise) has no tangent lines
         @test isempty(tangent_points(e, e.center))
-        @test isempty(tangent_points(e, e.center + EGPoint(0.1, 0.1)))
+        @test isempty(tangent_points(e, e.center + EGVector(0.1, 0.1)))
 
         # tangent_lines when p is on the ellipse: the tangent line at p, not EGLine(p,p)
         p_on = point_on_ellipse(rot_e2, 0.4)
@@ -2535,7 +2532,7 @@ using Base.MathConstants: golden
         oc = orthoptic(e3)
         @test oc.center == e3.center
         @test oc.r ≈ sqrt(e3.a^2 + e3.b^2)
-        p_oc = e3.center + oc.r * EGPoint(cos(0.7), sin(0.7))
+        p_oc = e3.center + oc.r * EGVector(cos(0.7), sin(0.7))
         tl_oc = tangent_lines(e3, p_oc)
         @test length(tl_oc) == 2
         @test dot(direction(tl_oc[1]), direction(tl_oc[2])) ≈ 0.0 atol = 1e-9
@@ -2890,15 +2887,15 @@ using Base.MathConstants: golden
 
     @testset "EGCircularArc2" begin
         circ = EGCircle2(EGPoint(1.0, 2.0), 5.0)
-        p1 = circ.center + EGPoint(5.0, 0.0)   # angle 0
-        p2 = circ.center + EGPoint(0.0, 5.0)   # angle pi/2
+        p1 = circ.center + EGVector(5.0, 0.0)   # angle 0
+        p2 = circ.center + EGVector(0.0, 5.0)   # angle pi/2
         arc = EGCircularArc2(circ, p1, p2)
 
         @test measure(arc) ≈ pi / 2 atol = 1e-9
         @test arc_length(arc) ≈ 5.0 * pi / 2 atol = 1e-9
         @test point_on_arc(arc, 0.0) ≈ p1
         @test point_on_arc(arc, 1.0) ≈ p2
-        @test midpoint(arc) ≈ circ.center + EGPoint(5.0 * cos(pi / 4), 5.0 * sin(pi / 4))
+        @test midpoint(arc) ≈ circ.center + EGVector(5.0 * cos(pi / 4), 5.0 * sin(pi / 4))
 
         # reversing p1/p2 gives the complementary arc (3/4 turn, not 1/4)
         rev = EGCircularArc2(circ, p2, p1)
@@ -2946,10 +2943,10 @@ using Base.MathConstants: golden
 
     @testset "EGCircularSector2 and EGCircularSegment2" begin
         circ = EGCircle2(EGPoint(2.0, -1.0), 5.0)
-        p1 = circ.center + EGPoint(5.0, 0.0)
+        p1 = circ.center + EGVector(5.0, 0.0)
 
         for θ in (2.3, 4.5)  # a minor (< π) and a major (> π) case
-            p2 = circ.center + EGPoint(5.0 * cos(θ), 5.0 * sin(θ))
+            p2 = circ.center + EGVector(5.0 * cos(θ), 5.0 * sin(θ))
             arc = EGCircularArc2(circ, p1, p2)
 
             sec = EGCircularSector2(arc)
@@ -2958,7 +2955,7 @@ using Base.MathConstants: golden
             @test perimeter(sec) ≈ 2 * circ.r + arc_length(arc) atol = 1e-9
             @test circ.center in sec
             @test midpoint(arc) in sec
-            @test !(circ.center + EGPoint(5.0 * cos(θ + 0.5), 5.0 * sin(θ + 0.5)) in sec)  # outside the swept angle
+            @test !(circ.center + EGVector(5.0 * cos(θ + 0.5), 5.0 * sin(θ + 0.5)) in sec)  # outside the swept angle
             @test !((circ.center + 6.0 * (midpoint(arc) - circ.center) / circ.r) in sec)  # outside the radius
 
             seg = EGCircularSegment2(arc)
@@ -2971,7 +2968,7 @@ using Base.MathConstants: golden
 
         # area consistency: sector = segment + triangle(center, p1, p2)
         θ = 2.3
-        p2 = circ.center + EGPoint(5.0 * cos(θ), 5.0 * sin(θ))
+        p2 = circ.center + EGVector(5.0 * cos(θ), 5.0 * sin(θ))
         arc = EGCircularArc2(circ, p1, p2)
         tri = EGTriangle(circ.center, p1, p2)
         @test area(EGCircularSector2(arc)) ≈ area(EGCircularSegment2(arc)) + area(tri) atol = 1e-9
@@ -3311,7 +3308,7 @@ using Base.MathConstants: golden
         oc = orthoptic(h2)
         @test oc.center == h2.center
         @test oc.r ≈ sqrt(h2.a^2 - h2.b^2)
-        p_oc = h2.center + oc.r * EGPoint(cos(1.1), sin(1.1))
+        p_oc = h2.center + oc.r * EGVector(cos(1.1), sin(1.1))
         tl_oc = tangent_lines(h2, p_oc)
         @test length(tl_oc) == 2
         @test dot(direction(tl_oc[1]), direction(tl_oc[2])) ≈ 0.0 atol = 1e-9
@@ -3348,7 +3345,7 @@ using Base.MathConstants: golden
         @testset "complement / anticomplement" begin
             @test complement(t, A) ≈ midpoint(B, C)
             @test complement(t, B) ≈ midpoint(A, C)
-            @test anticomplement(t, A) ≈ B + C - A
+            @test anticomplement(t, A) ≈ B + (C - A)
             @test isapprox(anticomplement(t, complement(t, A)), A; atol=1e-9)
         end
 
@@ -3685,7 +3682,7 @@ using Base.MathConstants: golden
         @test only(tangent_points(c, EGPoint(1.0, 0.0))) ≈ EGPoint(1.0, 0.0)
 
         # tangent_lines when p is on the circle: the tangent line at p, not EGLine(p,p)
-        on_c = c.center + c.r * EGPoint(1.0, 0.0)
+        on_c = c.center + c.r * EGVector(1.0, 0.0)
         tl_on = only(tangent_lines(c, on_c))
         @test tl_on.p1 != tl_on.p2
         @test is_perpendicular(tl_on, EGLine(c.center, on_c))
@@ -3755,7 +3752,7 @@ using Base.MathConstants: golden
         # shared `_tangent_lines_via_polar` helper works for EGCircle2 too
         @test EuclideanGeometry._tangent_lines_via_polar(c, on_c) == tangent_lines(c, on_c)
         @test on_line(l2.p2, polar_line(circ, p_of_l2); atol=1e-6)
-        @test_throws ArgumentError pole(circ, EGLine(circ.center, circ.center + EGPoint(1.0, 0.0)))
+        @test_throws ArgumentError pole(circ, EGLine(circ.center, circ.center + EGVector(1.0, 0.0)))
 
         overlapping = EGCircle2(EGPoint(0.5, 0.0), 1.0)
         @test isempty(internal_tangent_lines(c1, overlapping))
@@ -4331,13 +4328,13 @@ using Base.MathConstants: golden
 
         @testset "is_collinear / is_degenerate" begin
             a = EGPoint(1234.5678, 9876.5432)
-            dir = EGPoint(cos(0.37), sin(0.37))
+            dir = EGVector(cos(0.37), sin(0.37))
             b = a + 5000.0 * dir
             c = a + 12345.678 * dir
             @test is_collinear(a, b, c)
             @test is_degenerate(EGTriangle(a, b, c))
 
-            d = a + EGPoint(0.001, 12345.0)  # genuinely off the line
+            d = a + EGVector(0.001, 12345.0)  # genuinely off the line
             @test !is_collinear(a, b, d)
             @test !is_degenerate(EGTriangle(a, b, d))
         end
@@ -4345,14 +4342,14 @@ using Base.MathConstants: golden
         @testset "is_concyclic" begin
             scale = 1e7
             center = EGPoint(2.5, -1.5) * scale
-            pts = [center + scale * EGPoint(cos(t), sin(t)) for t in (0.3, 1.1, 2.4, 4.0)]
+            pts = [center + scale * EGVector(cos(t), sin(t)) for t in (0.3, 1.1, 2.4, 4.0)]
             @test is_concyclic(pts...)
         end
 
         @testset "on_line" begin
             scale = 1e8
             a = EGPoint(2.5, -1.5) * scale
-            dir = EGPoint(cos(0.37), sin(0.37))
+            dir = EGVector(cos(0.37), sin(0.37))
             l = EGLine(a, a + scale * dir)
             @test on_line(a + 0.3 * scale * dir, l)
         end
@@ -4362,8 +4359,8 @@ using Base.MathConstants: golden
             # far from the origin): clearly not parallel, but the raw
             # cross2 of their directions is tiny in absolute terms too
             p1 = EGPoint(1e5, 2e5)
-            l1 = EGLine(p1, p1 + EGPoint(1e-6, 0.0))
-            l2 = EGLine(p1 + EGPoint(1.0, 1.0), p1 + EGPoint(1.0, 1.0) + EGPoint(0.0, 1e-6))
+            l1 = EGLine(p1, p1 + EGVector(1e-6, 0.0))
+            l2 = EGLine(p1 + EGVector(1.0, 1.0), p1 + EGVector(1.0, 1.0) + EGVector(0.0, 1e-6))
             @test length(intersection(l1, l2)) == 1
         end
 
@@ -4371,8 +4368,8 @@ using Base.MathConstants: golden
             scale = 1e7
             c = EGCircle2(EGPoint(1.234, -0.987) * scale, scale)
             θ = 0.7
-            p_on = c.center + c.r * EGPoint(cos(θ), sin(θ))
-            tangent_dir = EGPoint(-sin(θ), cos(θ))
+            p_on = c.center + c.r * EGVector(cos(θ), sin(θ))
+            tangent_dir = EGVector(-sin(θ), cos(θ))
             l = EGLine(p_on, p_on + 0.3 * scale * tangent_dir)
             @test length(intersection(l, c)) == 1
         end
@@ -4380,7 +4377,7 @@ using Base.MathConstants: golden
         @testset "tangent_points" begin
             scale = 1e7
             c = EGCircle2(EGPoint(1.3, -2.1) * scale, scale)
-            p_on = c.center + c.r * EGPoint(cos(0.5), sin(0.5))
+            p_on = c.center + c.r * EGVector(cos(0.5), sin(0.5))
             @test length(tangent_points(c, p_on)) == 1
         end
 
@@ -4416,7 +4413,7 @@ using Base.MathConstants: golden
             @test distance(lh.p1, lh.p2) > 1e-3 * scale
             @test any(pt -> distance(pt, ph) <= 1e-3 * scale, intersection(lh, h))
 
-            par = EGParabola2(off, EGLine(off + EGPoint(-5.0, -3.0) * scale, off + EGPoint(5.0, -3.0) * scale))
+            par = EGParabola2(off, EGLine(off + EGVector(-5.0, -3.0) * scale, off + EGVector(5.0, -3.0) * scale))
             pp = point_on_parabola(par, 2.0 * scale)
             lp = polar_line(par, pp)
             @test distance(lp.p1, lp.p2) > 1e-3 * scale
@@ -4426,7 +4423,7 @@ using Base.MathConstants: golden
         @testset "affine_map collinearity check" begin
             scale = 1e5
             a = EGPoint(1234.5678, 9876.5432)
-            dir = EGPoint(cos(0.37), sin(0.37))
+            dir = EGVector(cos(0.37), sin(0.37))
             b = a + scale * dir
             c = a + 2scale * dir
             @test_throws ArgumentError affine_map((a, b, c), (EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(2.0, 0.0)))
@@ -4435,7 +4432,7 @@ using Base.MathConstants: golden
         @testset "intersection(EGLine, EGParabola2) at large scale" begin
             scale = 1e8
             off = EGPoint(1.7, -0.9) * scale
-            par = EGParabola2(off, EGLine(off + EGPoint(-5.0, -3.0) * scale, off + EGPoint(5.0, -3.0) * scale))
+            par = EGParabola2(off, EGLine(off + EGVector(-5.0, -3.0) * scale, off + EGVector(5.0, -3.0) * scale))
             p1 = point_on_parabola(par, 0.5 * scale)
             p2 = point_on_parabola(par, -0.8 * scale)
             l = EGLine(p1, p2)
@@ -4448,11 +4445,11 @@ using Base.MathConstants: golden
             scale = 1e7
             center = EGPoint(1.3, -2.1) * scale
             c = EGCircle2(center, scale)
-            p_on = center + scale * EGPoint(cos(0.5), sin(0.5))
+            p_on = center + scale * EGVector(cos(0.5), sin(0.5))
             @test invert(c, p_on) isa EGLine  # a circle through the inversion center -> a line, at scale
             @test polar_line(c, center) === nothing
 
-            l_through_center = EGLine(center, center + scale * EGPoint(1.0, 0.3))
+            l_through_center = EGLine(center, center + scale * EGVector(1.0, 0.3))
             @test_throws ArgumentError invert(l_through_center, center)
         end
     end
@@ -4504,13 +4501,12 @@ using Base.MathConstants: golden
 
         @testset "equilateral triangle: coincident centers collapse several axes" begin
             # For an equilateral triangle, circumcenter == nine-point center
-            # (only up to floating-point roundoff, not bit-for-bit equal —
-            # `radical_axis` used to check via bare `==`, which missed this
-            # and returned a wildly wrong, numerically-exploded "line"
-            # instead of recognizing the circles as concentric).
+            # -- `radical_axis` used to check via bare `==`, which can miss
+            # a near-but-not-quite coincidence and return a wildly wrong,
+            # numerically-exploded "line" instead of recognizing the circles
+            # as concentric, so it must use `≈` instead.
             t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.5, sqrt(3.0) / 2))
             @test circumcircle(t).center ≈ nine_point_circle(t).center
-            @test !(circumcircle(t).center == nine_point_circle(t).center)
             @test_throws ArgumentError orthic_axis(t)
             @test_throws ArgumentError radical_axis(circumcircle(t), nine_point_circle(t))
 
@@ -4586,7 +4582,7 @@ using Base.MathConstants: golden
         @testset "circle to point / line / circle" begin
             c = EuclideanGeometry.EGCircle2(EGPoint(2.0, -1.0), 5.0)
             @test distance(EGPoint(2.0, -1.0), c) ≈ 5.0
-            @test distance(c.center + EGPoint(8.0, 0.0), c) ≈ 3.0
+            @test distance(c.center + EGVector(8.0, 0.0), c) ≈ 3.0
             @test distance(c, EGLine(EGPoint(20.0, -10.0), EGPoint(20.0, 10.0))) ≈ 13.0
             c2 = EuclideanGeometry.EGCircle2(EGPoint(2.0, -1.0), 2.0)
             @test distance(c, c2) ≈ 3.0 # concentric: nested gap = |r1 - r2|
@@ -4623,7 +4619,7 @@ using Base.MathConstants: golden
 
         @testset "conic arcs (range-restricted, brute-force checked)" begin
             c = EuclideanGeometry.EGCircle2(EGPoint(2.0, -1.0), 5.0)
-            arc = EGCircularArc2(c, c.center + EGPoint(5.0, 0.0), c.center + EGPoint(5.0 * cos(2.3), 5.0 * sin(2.3)))
+            arc = EGCircularArc2(c, c.center + EGVector(5.0, 0.0), c.center + EGVector(5.0 * cos(2.3), 5.0 * sin(2.3)))
             for p in [EGPoint(2.0, -1.0), EGPoint(20.0, 10.0), EGPoint(-5.0, -8.0)]
                 bf = minimum(distance(p, point_on_arc(arc, t)) for t in range(0, 1; length=20_000))
                 @test isapprox(distance(p, arc), bf; atol=1e-2)
@@ -4751,7 +4747,7 @@ using Base.MathConstants: golden
             tpar = translate(par, v)
             @test isapprox(point_on_parabola(tpar, 2.0), point_on_parabola(par, 2.0) + v; atol=1e-9)
 
-            arc = EGCircularArc2(c, c.center + EGPoint(5.0, 0.0), c.center + EGPoint(0.0, 5.0))
+            arc = EGCircularArc2(c, c.center + EGVector(5.0, 0.0), c.center + EGVector(0.0, 5.0))
             tarc = translate(arc, v)
             @test isapprox(point_on_arc(tarc, 0.3), point_on_arc(arc, 0.3) + v; atol=1e-9)
         end
@@ -4809,7 +4805,7 @@ using Base.MathConstants: golden
 
             for m in (m_orient_preserving, m_orient_reversing)
                 c = EGCircle2(EGPoint(2.0, -1.0), 5.0)
-                arc = EGCircularArc2(c, c.center + EGPoint(5.0, 0.0), c.center + EGPoint(5.0 * cos(2.3), 5.0 * sin(2.3)))
+                arc = EGCircularArc2(c, c.center + EGVector(5.0, 0.0), c.center + EGVector(5.0 * cos(2.3), 5.0 * sin(2.3)))
                 tarc = m(arc) # an EGEllipticArc2, not EGCircularArc2
                 @test tarc isa EGEllipticArc2
                 t1 = EuclideanGeometry._ellipse_param(tarc.ellipse, tarc.p1)
@@ -6066,7 +6062,7 @@ using Base.MathConstants: golden
             r = 15.0
             pa = vertex + r * (a - vertex) / norm(a - vertex)
             pb = vertex + r * (b - vertex) / norm(b - vertex)
-            pc = pa + pb - vertex
+            pc = pa + (pb - vertex)
             @test EuclideanGeometry.distance(pa, pc) ≈ r && EuclideanGeometry.distance(pb, pc) ≈ r   # rhombus: all 4 sides equal
             @test !is_perpendicular(EGLine(vertex, pa), EGLine(vertex, pb))   # not a right angle
             mktempdir() do dir

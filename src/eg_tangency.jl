@@ -73,7 +73,7 @@ finite center).
 function external_similitude_center(c1::EGCircle2, c2::EGCircle2; atol=1e-9)
     abs(c1.r - c2.r) <= atol * max(c1.r, c2.r, 1.0) &&
         throw(ArgumentError("external_similitude_center: c1 and c2 have equal radii (no finite external center)"))
-    return (c2.r * c1.center - c1.r * c2.center) / (c2.r - c1.r)
+    return c1.center - (c1.r / (c2.r - c1.r)) * (c2.center - c1.center)
 end
 
 """
@@ -86,7 +86,7 @@ segment of centers *internally* in ratio `c1.r : c2.r`. Throws an
 function internal_similitude_center(c1::EGCircle2, c2::EGCircle2; atol=1e-9)
     s = c1.r + c2.r
     s <= atol && throw(ArgumentError("internal_similitude_center: c1 and c2 have zero total radius"))
-    return (c2.r * c1.center + c1.r * c2.center) / s
+    return c1.center + (c1.r / s) * (c2.center - c1.center)
 end
 
 """

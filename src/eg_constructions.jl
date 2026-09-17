@@ -15,7 +15,7 @@ default-elided fallback — see [`rotation_map`](@ref) for why an EG-typed
 default would collide with it): pass `center` explicitly.
 """
 polar_point(r::Real, angle::Real, center::EGPoint{2}) =
-    center + EGPoint(r * cos(angle), r * sin(angle))
+    center + EGVector(r * cos(angle), r * sin(angle))
 polar_point(r::Real, angle::Real) = polar_point(r, angle, EGPoint(0.0,0.0))
 
 """
@@ -41,7 +41,8 @@ function barycenter(points::Union{AbstractVector{<:EGPoint},NTuple{N,<:EGPoint} 
     length(points) == length(weights) ||
         throw(ArgumentError("points and weights must have the same length"))
     W = sum(weights)
-    return sum(w * p for (w, p) in zip(weights, points)) / W
+    p0 = first(points)
+    return p0 + sum(w * (p - p0) for (w, p) in zip(weights, points)) / W
 end
 
 """
@@ -141,7 +142,7 @@ function apollonius_circle(a::EGPoint, b::EGPoint, k::Real; atol=1e-9)
     k <= 0 && throw(ArgumentError("apollonius_circle: k must be positive (it's a ratio of distances)"))
     abs(k - 1) <= atol && throw(ArgumentError(
         "apollonius_circle: k ≈ 1; the locus is the perpendicular bisector of [a,b], not a circle"))
-    p_int = (a + k * b) / (1 + k)
-    p_ext = (k * b - a) / (k - 1)
+    p_int = a + k * (b - a) / (1 + k)
+    p_ext = a + k * (b - a) / (k - 1)
     return EGCircle2(midpoint(p_int, p_ext), distance(p_int, p_ext) / 2)
 end

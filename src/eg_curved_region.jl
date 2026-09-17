@@ -123,7 +123,7 @@ function centroid(s::EGCircularSector2)
     a1 = atan(s.arc.p1[2] - c.center[2], s.arc.p1[1] - c.center[1])
     ψ = a1 + θ / 2
     d = (4 * c.r * sin(θ / 2)) / (3θ)
-    return c.center + d * EGPoint(cos(ψ), sin(ψ))
+    return c.center + d * EGVector(cos(ψ), sin(ψ))
 end
 
 rotate(s::EGCircularSector2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) = EGCircularSector2(rotate(s.arc, angle, center))
@@ -173,7 +173,7 @@ function centroid(s::EGCircularSegment2)
     a1 = atan(s.arc.p1[2] - c.center[2], s.arc.p1[1] - c.center[1])
     ψ = a1 + θ / 2
     d = (4 * c.r * sin(θ / 2)^3) / (3 * (θ - sin(θ)))
-    return c.center + d * EGPoint(cos(ψ), sin(ψ))
+    return c.center + d * EGVector(cos(ψ), sin(ψ))
 end
 
 rotate(s::EGCircularSegment2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) = EGCircularSegment2(rotate(s.arc, angle, center))
@@ -240,7 +240,8 @@ function centroid(s::EGAnnularSector2)
     outer_sector = EGCircularSector2(s.outer)
     inner_sector = EGCircularSector2(_inner_arc(s))
     Ao, Ai = area(outer_sector), area(inner_sector)
-    return (Ao * centroid(outer_sector) - Ai * centroid(inner_sector)) / (Ao - Ai)
+    c_outer, c_inner = centroid(outer_sector), centroid(inner_sector)
+    return c_outer - Ai * (c_inner - c_outer) / (Ao - Ai)
 end
 
 rotate(s::EGAnnularSector2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) = EGAnnularSector2(rotate(s.outer, angle, center), s.r_inner)

@@ -266,10 +266,10 @@ function EG.path(ang::EG.EGAngle2; as::Symbol=:arc, radius=nothing, action=:path
     pa = vertex + r * (a - vertex) / EG.norm(a - vertex)
     pb = vertex + r * (b - vertex) / EG.norm(b - vertex)
     if as == :rarc
-        pc = pa + pb - vertex
+        pc = pa + (pb - vertex)
         return Luxor.poly(_lp([pa, pc, pb]), action; close=false)
     elseif as == :rsector
-        pc = pa + pb - vertex
+        pc = pa + (pb - vertex)
         return Luxor.poly(_lp([vertex, pa, pc, pb]), action; close=true)
     end
     arc = EG.EGCircularArc2(EG.EGCircle2(vertex, r), pa, pb)

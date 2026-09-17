@@ -152,7 +152,7 @@ function distance(c1::EGCircle2, c2::EGCircle2)
     return max(d - c1.r - c2.r, abs(c1.r - c2.r) - d, 0.0)
 end
 
-EGBoundingBox(c::EGCircle2) = EGBoundingBox(c.center - EGPoint(c.r, c.r), c.center + EGPoint(c.r, c.r))
+EGBoundingBox(c::EGCircle2) = EGBoundingBox(c.center - EGVector(c.r, c.r), c.center + EGVector(c.r, c.r))
 
 # --- EGEllipse2 --------------------------------------------------------------
 
@@ -247,7 +247,7 @@ function EGBoundingBox(e::EGEllipse2)
     c, s = cos(e.angle), sin(e.angle)
     dx = sqrt((e.a * c)^2 + (e.b * s)^2)
     dy = sqrt((e.a * s)^2 + (e.b * c)^2)
-    return EGBoundingBox(e.center - EGPoint(dx, dy), e.center + EGPoint(dx, dy))
+    return EGBoundingBox(e.center - EGVector(dx, dy), e.center + EGVector(dx, dy))
 end
 
 rotate(e::EGEllipse2, angle::Real, center::EGPoint=EGPoint(0.0, 0.0)) =
@@ -760,7 +760,7 @@ gives `arc.p2`) — defined for [`EGCircularArc2`](@ref), `EGEllipticArc2`,
 """
 function point_on_arc(arc::EGCircularArc2, t::Real)
     a = _arc_angle(arc, arc.p1) + t * measure(arc)
-    return arc.circle.center + arc.circle.r * EGPoint(cos(a), sin(a))
+    return arc.circle.center + arc.circle.r * EGVector(cos(a), sin(a))
 end
 midpoint(arc::EGCircularArc2) = point_on_arc(arc, 0.5)
 

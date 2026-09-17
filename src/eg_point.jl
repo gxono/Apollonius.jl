@@ -197,7 +197,9 @@ end
 
 EGVector(xs::Real...) = EGVector(promote(xs...))
 EGVector(p::EGPoint) = EGVector(p.coords)
+EGVector(v::EGVector) = v
 EGPoint(v::EGVector) = EGPoint(v.coords)
+EGPoint(p::EGPoint) = p
 
 const EGPointOrVector{Dim,T} = Union{EGPoint{Dim,T},EGVector{Dim,T}}
 
@@ -239,8 +241,7 @@ Base.isapprox(x::AbstractArray{<:EGPointOrVector}, y::AbstractArray{<:EGPointOrV
 Base.show(io::IO, p::EGPoint) = print(io, "[", join(p.coords, ", "), "]")
 Base.show(io::IO, v::EGVector) = print(io, "⟨", join(v.coords, ", "), "⟩")
 
-Base.:+(a::EGPoint, b::EGPoint) = EGPoint(a.coords .+ b.coords)
-Base.:-(a::EGPoint, b::EGPoint) = EGPoint(a.coords .- b.coords)
+Base.:-(a::EGPoint, b::EGPoint) = EGVector(a.coords .- b.coords)
 Base.:-(a::EGPoint) = EGPoint((-).(a.coords))
 Base.:*(k::Real, a::EGPoint) = EGPoint(k .* a.coords)
 Base.:*(a::EGPoint, k::Real) = k * a

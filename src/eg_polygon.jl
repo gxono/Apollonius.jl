@@ -134,7 +134,7 @@ function centroid(p::EGPolygon{3})
     v1 = vs[1]
     nrm = sum(cross3(vs[i], vs[mod1(i + 1, n)]) for i in 1:n)
     nn = norm(nrm)
-    nn <= eps(Float64) && return sum(vs) / n
+    nn <= eps(Float64) && return v1 + sum(vi - v1 for vi in vs) / n
     n_hat = nrm / nn
     T = eltype(v1)
     A, cx, cy, cz = zero(T), zero(T), zero(T), zero(T)
@@ -146,7 +146,7 @@ function centroid(p::EGPolygon{3})
         cy += tri_area * (v1[2] + vi[2] + vi1[2]) / 3
         cz += tri_area * (v1[3] + vi[3] + vi1[3]) / 3
     end
-    abs(A) <= sqrt(eps(Float64)) * max(nn, 1.0) && return sum(vs) / n
+    abs(A) <= sqrt(eps(Float64)) * max(nn, 1.0) && return v1 + sum(vi - v1 for vi in vs) / n
     return EGPoint(cx / A, cy / A, cz / A)
 end
 
@@ -233,7 +233,7 @@ function centroid(p::EGPolygon)
         cy += (v[i][2] + v[j][2]) * cr
     end
     A /= 2
-    abs(A) <= 1e-12 && return sum(v) / n
+    abs(A) <= 1e-12 && return v[1] + sum(vi - v[1] for vi in v) / n
     return EGPoint(cx / (6A), cy / (6A))
 end
 
@@ -440,7 +440,7 @@ The plain (equal-weight) average of the four vertices — *not*
 area-weighted (that's [`centroid(::EGPolygon)`](@ref), which
 `EGStraightNgon`/`EGTriangle` use instead).
 """
-centroid(q::EGQuadrilateral) = (q.a + q.b + q.c + q.d) / 4
+centroid(q::EGQuadrilateral) = q.a + ((q.b - q.a) + (q.c - q.a) + (q.d - q.a)) / 4
 
 rotate(q::EGQuadrilateral{2}, angle::Real, center::EGPoint{2}=EGPoint(0.0, 0.0)) =
     EGQuadrilateral(rotate(q.a, angle, center), rotate(q.b, angle, center), rotate(q.c, angle, center), rotate(q.d, angle, center))

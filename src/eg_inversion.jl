@@ -59,7 +59,7 @@ other circle inverts to another `EGCircle2` — so this returns a
 function invert(c::EGCircle2, center::EGPoint; k::Real=1.0, atol=1e-9)
     center == c.center && return EGCircle2(center, k^2 / c.r)
     if abs(distance(center, c.center) - c.r) <= sqrt(atol) * max(c.r, norm(center), norm(c.center), 1.0)
-        antipode = 2 * c.center - center  # the point of c diametrically opposite center
+        antipode = c.center + (c.center - center)  # the point of c diametrically opposite center
         antipode_inv = inversion(antipode, EGCircle2(center, k))
         return perpendicular_through(EGLine(center, c.center), antipode_inv)
     end
