@@ -94,10 +94,38 @@ end
 The two rays from `vertex` that trisect the angle `∠(p1, vertex, p2)` into
 three equal parts (the oriented angle from `vertex -> p1` to
 `vertex -> p2`, i.e. going counterclockwise when that angle is positive).
+Always exactly 2 rays, so returned as a `Tuple` (unlike
+[`angle_bisectors`](@ref)`(l1, l2)`, whose count genuinely varies with the
+input and so must be a `Vector`).
 """
 function angle_trisectors(vertex::APPoint, p1::APPoint, p2::APPoint)
     θ = angle_between(p1 - vertex, p2 - vertex)
-    return [APRay(vertex, rotate(p1, θ / 3, vertex)), APRay(vertex, rotate(p1, 2θ / 3, vertex))]
+    return (APRay(vertex, rotate(p1, θ / 3, vertex)), APRay(vertex, rotate(p1, 2θ / 3, vertex)))
+end
+
+"""
+    angle_bisectors(ang::APAngle2)
+
+`ang` split into its two equal halves by its bisector, each as its own
+`APAngle2`: `(APAngle2(vertex, a, bis), APAngle2(vertex, bis, b))`.
+"""
+function angle_bisectors(ang::APAngle2)
+    bis = rotate(ang.a, measure(ang) / 2, ang.vertex)
+    return (APAngle2(ang.vertex, ang.a, bis), APAngle2(ang.vertex, bis, ang.b))
+end
+
+"""
+    angle_trisectors(ang::APAngle2)
+
+`ang` split into its three equal thirds by its two trisectors, each as its
+own `APAngle2`: `(APAngle2(vertex, a, r1), APAngle2(vertex, r1, r2),
+APAngle2(vertex, r2, b))`.
+"""
+function angle_trisectors(ang::APAngle2)
+    θ = measure(ang)
+    r1 = rotate(ang.a, θ / 3, ang.vertex)
+    r2 = rotate(ang.a, 2θ / 3, ang.vertex)
+    return (APAngle2(ang.vertex, ang.a, r1), APAngle2(ang.vertex, r1, r2), APAngle2(ang.vertex, r2, ang.b))
 end
 
 """

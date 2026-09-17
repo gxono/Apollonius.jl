@@ -496,7 +496,7 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     iv = projection.(I, tsides)
     npc = nine_point_circle(triangle)
     npc_c = nine_point_center(triangle)
-    ep = collect(euler_points(triangle))
+    ep = euler_points(triangle)   # a Tuple of 3 points -- no `collect` needed
     ips = reduce(vcat, intersection.(npc, tsides))
 end
 ```
@@ -505,6 +505,23 @@ end
 <img src="../assets/img/triangles/tri_cen.svg" alt="" style="width:100%;">
 ```
 
+
+### Applying the same transform outside the block: `sz.fct`
+
+Both macros' returned size `NamedTuple` also carries `fct`: the exact same
+translate + homothety + (if `flip`) reflection pipeline applied to every
+shape in the block, as a plain function — so it can be applied to
+something that was never one of the block's own shapes and still land in
+the same transformed coordinate space (a label position computed after
+the fact, a point from unrelated data, ...):
+
+```julia
+sz, (t2, circ2) = @to_luxor_picture width=300.0 margin=10.0 begin
+    t
+    circ
+end
+sz.fct(centroid(t))   # matches where `centroid(t2)` would land -- t was never re-transformed itself
+```
 
 ### `current_path_bbox`
 

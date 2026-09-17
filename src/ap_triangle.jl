@@ -262,6 +262,11 @@ The point with barycentric coordinates `(wA, wB, wC)` relative to `t`
 barycentric_point(t::APTriangle, wA::Real, wB::Real, wC::Real) =
     t[1] + (wB * (t[2] - t[1]) + wC * (t[3] - t[1])) / (wA + wB + wC)
 
+"""
+    barycentric_point(t::APTriangle)
+
+[`barycentric_point`](@ref) with equal weights `(1, 1, 1)` — the centroid.
+"""
 barycentric_point(t::APTriangle) = barycentric_point(t, 1.0, 1.0, 1.0)
 
 """

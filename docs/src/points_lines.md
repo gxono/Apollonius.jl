@@ -427,6 +427,16 @@ reverse(ang) == ang2, reverse(reverse(ang)) == ang
 rays = angle_trisectors(O, P1, P2)   # 2 rays, each 30° apart (a 90° angle, /3)
 ```
 
+Both also have an `APAngle2` form, splitting `ang` itself into equal-sized
+`APAngle2` pieces (instead of just the intersecting rays/lines) — handy
+when you want to keep working with wedges rather than unwrap them into
+points again:
+
+```@example geo
+angle_bisectors(ang)     # (APAngle2(O,P1,bisector), APAngle2(O,bisector,P2))
+angle_trisectors(ang)    # the 3 equal thirds of ang, each its own APAngle2
+```
+
 [`distance`](@ref)`(p, ang)` follows the same `mode = :region`/`:boundary`
 convention as the other [`APSet`](@ref) types (see
 [Unbounded Regions: Half-Planes, Strips & Angles](@ref)): `0.0` from inside the

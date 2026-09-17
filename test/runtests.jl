@@ -1182,6 +1182,21 @@ using Base.MathConstants: golden
         tris = angle_trisectors(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
         @test length(tris) == 2
 
+        @testset "angle_bisectors/angle_trisectors(::APAngle2)" begin
+            ang = APAngle2(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
+            h1, h2 = angle_bisectors(ang)
+            @test h1.vertex == ang.vertex && h1.a == ang.a && h2.b == ang.b
+            @test h1.b == h2.a  # the two halves share the bisector ray
+            @test isapprox(measure(h1), measure(h2); atol=1e-9)
+            @test isapprox(measure(h1) + measure(h2), measure(ang); atol=1e-9)
+
+            t1, t2, t3 = angle_trisectors(ang)
+            @test t1.a == ang.a && t3.b == ang.b
+            @test t1.b == t2.a && t2.b == t3.a  # each third shares an edge with the next
+            @test isapprox(measure(t1), measure(t2); atol=1e-9) && isapprox(measure(t2), measure(t3); atol=1e-9)
+            @test isapprox(measure(t1) + measure(t2) + measure(t3), measure(ang); atol=1e-9)
+        end
+
         gr = golden_ratio_point(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
         @test gr[1] ≈ 1 / Base.MathConstants.golden atol = 1e-9
         @test golden_ratio_point(APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))) == gr
@@ -4003,7 +4018,7 @@ using Base.MathConstants: golden
                 c
                 s
             end
-            @test sz isa NamedTuple{(:width, :height)}
+            @test sz isa NamedTuple{(:width, :height, :fct)}
             @test sz.width == 10.0 && sz.height == 10.0
 
             # ...same for the mutating form, which returns just the size
@@ -4012,8 +4027,25 @@ using Base.MathConstants: golden
                 c
                 s
             end
-            @test sz2 isa NamedTuple{(:width, :height)}
+            @test sz2 isa NamedTuple{(:width, :height, :fct)}
             @test sz2.width == 50.0 && sz2.height == 50.0
+
+            # sz.fct: the same translate+scale+flip pipeline applied to every
+            # shape in the block, exposed so it can be applied to something
+            # OUTSIDE the block too, consistently with what happened inside it
+            c, s = fresh()
+            sz3, c2 = @to_luxor_picture begin
+                c
+            end
+            @test sz3.fct(c) == c2   # applying fct by hand matches what the macro already did to `c`
+
+            c, s = fresh()
+            original_center = c.center
+            sz4 = @to_luxor_picture! begin
+                c   # rebound in place to its transformed image
+                s
+            end
+            @test sz4.fct(original_center) == c.center
 
             # flip (default true): reflects across the x-axis, since this
             # package's own geometry is y-up but Luxor draws y-down --

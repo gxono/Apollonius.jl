@@ -982,11 +982,13 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
     s = gensym(:s)
     W = gensym(:W)
     H = gensym(:H)
+    fct = gensym(:picture_fct)
     push!(body.args, quote
         isempty($shapes) && throw(ArgumentError($macroname * ": the block has no shapes"))
         $bb = reduce(bbox_union, APBoundingBox.($sizing_shapes); init=APBoundingBox())
         isempty($bb) && throw(ArgumentError($macroname * ": none of the shapes in the block have a finite bounding box (only numbers/vectors/unbounded shapes, or everything marked @unbounded?)"))
         $s, $W, $H = $picture_layout(bbox_width($bb), bbox_height($bb), $width, $height, $scale, $margin)
+        $fct = shape -> $place_in_picture(shape, $bb, $s, $flip)
     end)
 
     results = gensym(:picture_results)
@@ -1000,7 +1002,7 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
         end
     end
 
-    size_expr = :((width=$W, height=$H))
+    size_expr = :((width=$W, height=$H, fct=$fct))
     if mutating
         push!(body.args, size_expr)
     else
@@ -1063,9 +1065,13 @@ Prepares every shape named in the block for drawing at a known, exact
 canvas size: translate/scale them so their combined [`APBoundingBox`](@ref)
 fits centered on the *origin*, always preserving aspect ratio (the scale
 factor is always the same in `x` and `y` — a circle always stays a
-circle). Returns `((width=w, height=h), shapes)` — a `NamedTuple` with the
-exact canvas size to pass to `Drawing` (`w, h = ...` still works
-positionally, same as a plain tuple, alongside `sz.width`/`sz.height`),
+circle). Returns `((width=w, height=h, fct=fct), shapes)` — a `NamedTuple`
+with the exact canvas size to pass to `Drawing` (`w, h = ...` still works
+positionally, same as a plain tuple, alongside `sz.width`/`sz.height`) and
+`fct`, the exact same translate/scale/flip function applied to every shape
+in the block, so it can be applied *outside* the block too, to something
+that isn't itself part of the picture (e.g. a label position computed
+after the fact) and still land in the same transformed coordinate space —
 and `shapes` are the translated/scaled copies (`c`/`s`/`t` themselves are
 untouched — see [`@to_luxor_picture!`](@ref) for the mutating form), in
 the same order as the block, as a tuple (or bare, for a single shape).
@@ -1083,13 +1089,14 @@ coordinates instead (e.g. if you're already deliberately working in
 screen/y-down coordinates).
 
 ```julia
-(w, h), (c2, s2) = @to_luxor_picture width=400 begin
+(w, h, fct), (c2, s2) = @to_luxor_picture width=400 begin
     c = APCircle2(APPoint(3.0, -1.0), 5.0)
     s = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 end
 @png begin
     path(c2; action=:stroke)
     path(s2; action=:stroke)
+    label("center", :N, fct(c.center))   # a point that was never one of the block's shapes
 end w h
 ```
 
@@ -1151,11 +1158,11 @@ end
 The mutating counterpart of [`@to_luxor_picture`](@ref): rebinds each
 *named* shape (an assignment, or a bare reference to a shape defined
 earlier) to its own translated/scaled image, instead of returning copies.
-Returns just `(width=w, height=h)` — a `NamedTuple` (see
-[`@to_luxor_picture`](@ref) for what that gives you beyond a plain tuple)
-— the shapes are already accessible under their own names. A bare,
-unnamed expression has nothing to rebind, so this form rejects it (same
-as [`@translate!`](@ref) and the rest of that family).
+Returns just `(width=w, height=h, fct=fct)` — a `NamedTuple` (see
+[`@to_luxor_picture`](@ref) for what `fct` gives you beyond `width`/
+`height`) — the shapes are already accessible under their own names. A
+bare, unnamed expression has nothing to rebind, so this form rejects it
+(same as [`@translate!`](@ref) and the rest of that family).
 """
 macro to_luxor_picture!(args...)
     isempty(args) && error("@to_luxor_picture!: missing the shapes block")
