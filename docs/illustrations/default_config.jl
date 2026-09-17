@@ -1,10 +1,10 @@
 begin
 using Apollonius
 using Luxor: @drawsvg, @svg,
-    Drawing, finish, preview, origin,
+    Drawing, finish, preview, origin, newsubpath,
     background, RGBA,
-    sethue, setdash, setopacity,
-    fillpreserve, strokepath, 
+    sethue, setdash, setopacity, setline,
+    fillpreserve, strokepath,
     julia_blue, julia_green, julia_red, julia_purple,
     gsave, grestore,
     label
@@ -15,11 +15,14 @@ setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepa
 end
 
 
-macro svg_doc(sz, path, content)
+macro svg_doc(sz, file, content)
     return quote
-        Drawing($(esc(sz)).width, $(esc(sz)).height, $(esc(path)))
+        local _subfolder = basename(dirname($(esc(file))))
+        local _svg_name = replace(basename($(esc(file))), ".jl" => ".svg")
+        Drawing($(esc(sz)).width, $(esc(sz)).height, joinpath("docs", "src", "assets", "img", _subfolder, _svg_name))
         origin()
         $(esc(content))
         finish()
+        preview()
     end
 end

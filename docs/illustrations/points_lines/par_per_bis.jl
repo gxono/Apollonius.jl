@@ -1,18 +1,5 @@
-begin
-using Apollonius
-using Luxor: @drawsvg, @svg,
-    Drawing, finish, preview, origin,
-    background, RGBA,
-    sethue, setdash, setopacity,
-    fillpreserve, strokepath, 
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore,
-    label
-import Luxor
+include("../default_config.jl")
 
-setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
-
-end
 
 
 
@@ -28,9 +15,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     lpb = perpendicular_bisector(s)
 end
 
-begin
-Drawing(sz.width, sz.height, "docs/src/assets/img/points_lines/par_per_bis.svg")
-origin()
+
+@svg_doc(sz, @__FILE__, begin
 sethue(julia_blue)
     path(l, action=:stroke)
 
@@ -44,6 +30,4 @@ sethue(julia_blue)
     label("Q", :NW ,Q)
     label("P", :NW ,P)
     label("C", :SW ,C)
-finish()
-preview()
-end
+end)

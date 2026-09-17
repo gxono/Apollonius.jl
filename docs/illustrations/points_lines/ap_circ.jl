@@ -1,18 +1,5 @@
-begin
-using Apollonius
-using Luxor: @drawsvg, @svg,
-    Drawing, finish, preview, origin,
-    background, RGBA,
-    sethue, setdash, setopacity,
-    fillpreserve, strokepath, 
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore,
-    label
-import Luxor
+include("../default_config.jl")
 
-setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
-
-end
 
 
 
@@ -29,9 +16,8 @@ end
 
 
 
-begin
-Drawing(sz.width, sz.height, "docs/src/assets/img/points_lines/ap_circ.svg")
-origin()
+
+@svg_doc(sz, @__FILE__, begin
 sethue(julia_purple)
     path(ap, action=:stroke)
 
@@ -52,6 +38,4 @@ sethue(julia_purple)
     label("B", :NW, B)
     label("Ptest1", :NE, Ptest1)
     label("Ptest2", :SW, Ptest2)
-finish()
-preview()
-end
+end)

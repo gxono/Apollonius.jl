@@ -1,19 +1,5 @@
-begin
-using Apollonius
-using Luxor: @drawsvg, @svg,
-    Drawing, finish, preview, origin, 
-    background, RGBA,
-    sethue, setdash, setopacity, setline,
-    fillpreserve, strokepath, 
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore,
-    label
-import Luxor
+include("../default_config.jl")
 
-setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
-
-fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
-end
 
 
 sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
@@ -26,9 +12,8 @@ end
 
 
 
-begin
-Drawing(sz.width, sz.height, "docs/src/assets/img/drawing/$fmt_name")
-origin()
+
+@svg_doc(sz, @__FILE__, begin
 sethue(julia_blue)
 
 path(tv, action=:stroke)
@@ -41,7 +26,4 @@ path(angv[3]; as=:sector, action=:fill)
 path(angv[4]; as=:rarc, action=:stroke)
 path(angv[5]; as=:rsector, action=:fill) 
 
-finish()
-preview()
-end
-
+end)

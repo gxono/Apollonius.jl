@@ -414,39 +414,31 @@ path(circ2; action=:stroke)
 finish()
 ```
 
-As an additional comment, this is what a standard template for creating the illustrations in the documentation looks like:
+As an additional comment, every illustration under `docs/illustrations/`
+shares the same Luxor imports and `setpoint`/`Drawing`/`finish`/`preview`
+boilerplate, factored out once into `docs/illustrations/default_config.jl`
+(a shared `include`) and its `@svg_doc` macro. `docs/illustrations/template.jl`
+is the copy-paste starting point for a new one — copy it into the right
+subfolder (`triangles/`, `circles/`, ...) and fill in the two blanks:
 
 ```julia
-begin
-using Apollonius
-using Luxor: Drawing, finish, preview, origin,
-    sethue, setdash, setopacity, setline,
-    fillpreserve, strokepath, 
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore,
-    label
-import Luxor
-
-setpoint(color) = begin 
-    sethue("white"); fillpreserve()
-    sethue(color); strokepath() 
-end
-
-fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
-end
+include("../default_config.jl")
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     #to build obj.
 end
 
-begin
-Drawing(sz.width, sz.height, "docs/src/assets/img/drawing/$fmt_name")
-origin()
+
+@svg_doc(sz, @__FILE__, begin
     #to plot obj.
-finish()
-preview()
-end
+end)
 ```
+
+`@svg_doc` derives both the output filename and its subfolder under
+`docs/src/assets/img/` from `@__FILE__` — which is why it has to be passed
+in literally at the call site (a macro can never recover *its caller's*
+file on its own, only its own defining file), rather than typed as a
+`fmt_name`/path computation in every single illustration file by hand.
 
 
 ### Excluding a shape from sizing: `@unbounded`

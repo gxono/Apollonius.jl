@@ -1,20 +1,4 @@
-begin
-using Apollonius
-using Luxor: @drawsvg, @svg,
-    Drawing, finish, preview, origin, newsubpath,
-    background, RGBA,
-    sethue, setdash, setopacity, setline,
-    fillpreserve, strokepath, 
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore,
-    label
-import Luxor
-
-setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
-
-fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
-end
-
+include("../default_config.jl")
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
@@ -35,10 +19,7 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
 end
 
 
-
-begin
-Drawing(sz.width, sz.height, "docs/src/assets/img/triangles/$fmt_name")
-origin()
+@svg_doc(sz, @__FILE__, begin
 
 sethue("gray80")
 gsave()
@@ -68,6 +49,4 @@ setpoint("gray80")
 path(ep)
 setpoint(julia_purple)
 
-finish()
-preview()
-end
+end)

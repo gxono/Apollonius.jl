@@ -1,19 +1,5 @@
-begin
-using Apollonius
-using Luxor: @drawsvg, @svg,
-    Drawing, finish, preview, origin,
-    background, RGBA,
-    sethue, setdash, setopacity,
-    fillpreserve, strokepath, 
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore,
-    label
-import Luxor
+include("../default_config.jl")
 
-setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
-
-fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
-end
 
 
 
@@ -31,9 +17,8 @@ end
 
 
 
-begin
-Drawing(sz.width, sz.height, "docs/src/assets/img/circles/$fmt_name")
-origin()
+
+@svg_doc(sz, @__FILE__, begin
 
 sethue(julia_purple)
 path([ext..., int...], action=:stroke)
@@ -47,6 +32,4 @@ setpoint(julia_red)
 path([ec, ic])
 setpoint(julia_purple)
 
-finish()
-preview()
-end
+end)

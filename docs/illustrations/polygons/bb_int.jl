@@ -1,20 +1,5 @@
-begin
-using Apollonius
-using Luxor: Drawing, finish, preview, origin,
-    sethue, setdash, setopacity, setline,
-    fillpreserve, strokepath, 
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore,
-    label
-import Luxor
+include("../default_config.jl")
 
-setpoint(color) = begin 
-    sethue("white"); fillpreserve()
-    sethue(color); strokepath() 
-end
-
-fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
-end
 
 
 
@@ -28,9 +13,8 @@ bb = APBoundingBox(pg)
 bb2 = APBoundingBox([p1, p2])
 bi = bbox_intersection(bb, bb2)
 
-begin
-Drawing(sz.width, sz.height, "docs/src/assets/img/polygons/$fmt_name")
-origin()
+
+@svg_doc(sz, @__FILE__, begin
 
 sethue(julia_blue)
 path([bb, bb2], action=:stroke)
@@ -44,6 +28,4 @@ setpoint(julia_red)
 path([bi.min, bi.max])
 setpoint(julia_purple)
 
-finish()
-preview()
-end
+end)

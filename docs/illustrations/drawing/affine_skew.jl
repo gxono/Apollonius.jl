@@ -1,19 +1,5 @@
-begin
-using Apollonius
-using Luxor: @drawsvg, @svg,
-    Drawing, finish, preview, origin, 
-    background, RGBA,
-    sethue, setdash, setopacity, setline,
-    fillpreserve, strokepath, 
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore,
-    label
-import Luxor
+include("../default_config.jl")
 
-setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
-
-fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
-end
 
 
 sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
@@ -23,9 +9,8 @@ end
 skew = APAffineMap(1.3, 0.4, -0.2, 0.9, 0.0, 0.0)
 
 
-begin
-Drawing(sz.width, sz.height, "docs/src/assets/img/drawing/$fmt_name")
-origin()
+
+@svg_doc(sz, @__FILE__, begin
 
 sethue(julia_blue)
 path(sec, action=:stroke)
@@ -33,6 +18,4 @@ path(sec, action=:stroke)
 sethue(julia_green)
 path(skew(sec), action=:stroke)
 
-finish()
-preview()
-end
+end)
