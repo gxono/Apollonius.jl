@@ -523,6 +523,52 @@ end
 sz.fct(centroid(t))   # matches where `centroid(t2)` would land -- t was never re-transformed itself
 ```
 
+### Known limitation: plain numbers never scale
+
+A bare number gets a well-defined empty [`APBoundingBox`](@ref) (it
+contributes nothing to a picture's sizing, on purpose — see
+[`APBoundingBox`](@ref)`()`), but a `Vector`/`Tuple` of numbers as a
+single named binding has *no* `APBoundingBox` method at all (it isn't a
+`Vector{<:APPoint}` or `Vector{<:APObject}`), so it errors unless wrapped
+in [`@unbounded`](@ref) — after which it passes through completely
+unchanged, regardless of the picture's own scale factor:
+
+```julia
+sz, (t2, ns2) = @to_luxor_picture width=400.0 begin
+    t = APTriangle(A, B, C)
+    ns = @unbounded [1.2, 3.2, 5.3]   # e.g. hand-typed side lengths
+end
+ns2 == ns   # true -- untouched, regardless of the picture's scale factor
+```
+
+This is a fundamental limitation, not a bug that could be fixed by making
+`@to_luxor_picture` smarter: there is no way to tell, from a bare
+`Vector{Float64}`, whether its numbers are *lengths* (which should scale
+with the picture) or something purely combinatorial like vertex counts or
+indices (which must not). Both are indistinguishable `Float64`s by the
+time they reach the macro — `@unbounded` only silences the sizing error,
+it can't retroactively make the numbers scale correctly.
+
+**The alternative** is to never scale a number directly — instead,
+compute it *from already-transformed shapes*, after the block has done
+its scaling. A distance between two already-scaled points is correctly
+scaled by construction, with no separate "scale this number" step needed
+at all:
+
+```julia
+sz, t2 = @to_luxor_picture width=400.0 begin
+    t = APTriangle(A, B, C)
+end
+side_len_on_canvas = distance(t2[1], t2[2])   # correct: t2 is already in canvas space
+```
+
+or, for a point that was never one of the block's own shapes, `sz.fct`
+(see above) applied to each point before measuring between them:
+
+```julia
+distance(sz.fct(A), sz.fct(B))
+```
+
 ### `current_path_bbox`
 
 [`current_path_bbox`](@ref) is the Luxor-side complement: the
