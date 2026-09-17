@@ -73,6 +73,10 @@ struct EGSegment{Dim,T<:Real} <: EGCurve{Dim,T}
     p1::EGPoint{Dim,T}
     p2::EGPoint{Dim,T}
 end
+function EGSegment(p1::EGPoint{Dim}, p2::EGPoint{Dim}) where {Dim}
+    T = promote_type(eltype(p1), eltype(p2))
+    return EGSegment(convert(EGPoint{Dim,T}, p1), convert(EGPoint{Dim,T}, p2))
+end
 
 
 """
@@ -84,6 +88,10 @@ access the two defining points.
 struct EGLine{Dim,T<:Real} <: EGCurve{Dim,T}
     p1::EGPoint{Dim,T}
     p2::EGPoint{Dim,T}
+end
+function EGLine(p1::EGPoint{Dim}, p2::EGPoint{Dim}) where {Dim}
+    T = promote_type(eltype(p1), eltype(p2))
+    return EGLine(convert(EGPoint{Dim,T}, p1), convert(EGPoint{Dim,T}, p2))
 end
 
 EGLine(s::EGSegment) = EGLine(s.p1, s.p2)
@@ -97,6 +105,10 @@ The half-line starting at `origin` and passing through `through`.
 struct EGRay{Dim,T<:Real} <: EGCurve{Dim,T}
     origin::EGPoint{Dim,T}
     through::EGPoint{Dim,T}
+end
+function EGRay(origin::EGPoint{Dim}, through::EGPoint{Dim}) where {Dim}
+    T = promote_type(eltype(origin), eltype(through))
+    return EGRay(convert(EGPoint{Dim,T}, origin), convert(EGPoint{Dim,T}, through))
 end
 
 Base.getindex(s::EGSegment, i::Integer) = i == 1 ? s.p1 : s.p2
@@ -467,6 +479,10 @@ supported.
 struct EGBoundingBox{Dim,T<:Real} <: EGObject{Dim,T}
     min::EGPoint{Dim,T}
     max::EGPoint{Dim,T}
+end
+function EGBoundingBox(min::EGPoint{Dim}, max::EGPoint{Dim}) where {Dim}
+    T = promote_type(eltype(min), eltype(max))
+    return EGBoundingBox(convert(EGPoint{Dim,T}, min), convert(EGPoint{Dim,T}, max))
 end
 
 EGBoundingBox(bb::EGBoundingBox) = bb
