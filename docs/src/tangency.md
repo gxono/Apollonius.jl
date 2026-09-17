@@ -16,16 +16,16 @@ involve at least one circle or line (PPP is just
 The functions are named by what role the *points* among the three objects
 play:
 
-* [`tangent_circles_through_points`](@ref) — two of the three objects are
+* [`tangent_circles_through_points`](@ref): two of the three objects are
   points the circle must pass *through*; the third is a line or a circle
   it must be tangent to.
-* [`tangent_circles_through_point`](@ref) — one point to pass through, and
+* [`tangent_circles_through_point`](@ref): one point to pass through, and
   two lines/circles to be tangent to.
-* [`tangent_circles`](@ref) — no points at all: two or three lines/circles,
+* [`tangent_circles`](@ref), no points at all: two or three lines/circles,
   all to be tangent to.
 
 Every one of these can return **multiple** solutions (up to 8, for three
-circles), so they all return a `Vector{APCircle2}` — never a single `APCircle2`.
+circles), so they all return a `Vector{APCircle2}`, never a single `APCircle2`.
 The given circles themselves are always excluded from the result, even
 when the configuration is symmetric enough that one of them would
 otherwise satisfy the tangency equations too (a circle is degenerately
@@ -33,7 +33,7 @@ otherwise satisfy the tangency equations too (a circle is degenerately
 
 ## Through two points, tangent to a line
 
-In general there are up to two such circles — but whenever `a` and `b` are
+In general there are up to two such circles, but whenever `a` and `b` are
 placed symmetrically about the perpendicular from their midpoint to `l`
 (as here), one of the two degenerates to infinite radius (a straight line),
 leaving exactly one genuine circle:
@@ -54,7 +54,7 @@ length(sols)   # exactly 1, in this symmetric case
 
 The circle's center lies on the perpendicular bisector of `[a,b]` and it
 touches the line from above. A less symmetric choice of `a`, `b` and `l`
-generally gives two such circles — often of very different sizes, since
+generally gives two such circles, often of very different sizes, since
 one tends to hug the line closely while the other bulges around to reach
 it from the far side.
 
@@ -75,7 +75,7 @@ length(sols_c)   # 2 here: one tangent externally, one internally
 
 ## Tangent to two or three circles/lines
 
-`tangent_circles` covers every "no points, ≥2 circles/lines" combination —
+`tangent_circles` covers every "no points, ≥2 circles/lines" combination:
 two lines and a circle (`CLL`), two circles and a line (`CCL`), or three
 circles (`CCC`, Apollonius' original problem, below):
 
@@ -109,7 +109,7 @@ length(sols_ccl)   # 6
 ## Tangent to three circles
 
 With three circles and no points at all, this is Apollonius' original
-problem — up to 8 solutions, since each of the three tangencies can
+problem: up to 8 solutions, since each of the three tangencies can
 independently be internal or external.
 
 ```@example geo
@@ -126,7 +126,7 @@ length(sols3)   # 8 solutions
 ```
 
 Two of those eight happen to be concentric with the given configuration by
-symmetry here — a small one nested between the three circles, and a large
+symmetry here: a small one nested between the three circles, and a large
 one enclosing all of them:
 
 ```@example geo
@@ -141,10 +141,10 @@ big = sols3[argmax(s.r for s in sols3)]
 ## Interstices: the gap between three tangent circles
 
 Three *mutually* tangent circles (each pair, not just each with a third
-common circle) leave a curvilinear-triangle-shaped gap between them —
+common circle) leave a curvilinear-triangle-shaped gap between them,
 called an **interstice** in this context (the same term used for the gaps
 of an [Apollonian gasket](https://en.wikipedia.org/wiki/Apollonian_gasket)).
-[`interstices`](@ref) returns it (or them — see below) as a `Vector{APInterstice2}`,
+[`interstices`](@ref) returns it (or them, see below) as a `Vector{APInterstice2}`,
 each one bounded by three [`APCircularArc2`](@ref)s, one per circle:
 
 ```@example geo
@@ -163,7 +163,7 @@ length(gaps)   # 1: an externally tangent "chain" of 3 has exactly one gap
 
 It's built by reusing `tangent_circles(c1, c2, c3)` above: every genuine
 interstice has an inscribed circle tangent to all three (one of the `CCC`
-solutions) that never *encloses* any of them — unlike the "big" solution
+solutions) that never *encloses* any of them. Unlike the "big" solution
 of a chain like this one, which contains all three and isn't a curvilinear
 triangle of these three circles at all (see [`soddy_circles`](@ref) for
 that pairing, inner and outer, given a name).
@@ -188,13 +188,13 @@ length(interstices(big, A, B))   # 2
 ```
 
 [`interstices`](@ref) figures out which of these two cases applies (and in
-the second case, correctly splits the gap in two) on its own — the order
+the second case, correctly splits the gap in two) on its own. The order
 `c1`, `c2`, `c3` are given in never matters. It throws an `ArgumentError`
 if the three circles aren't all pairwise tangent to begin with.
 
 An `APInterstice2`'s [`area`](@ref) is computed via a Green's-theorem line
 integral around its three arcs rather than a "straight triangle plus or
-minus circular segments" formula — the latter needs an extra inside/outside
+minus circular segments" formula: the latter needs an extra inside/outside
 decision per arc that breaks down for very unequal arc sizes (as in the
 nested case above), while the line integral doesn't:
 
@@ -203,7 +203,7 @@ area(gaps[1])
 perimeter(gaps[1])   # the three arcs' arc_length, summed
 ```
 
-`rotate`, `reflection` and `homothety` all work on an `APInterstice2` too —
+`rotate`, `reflection` and `homothety` all work on an `APInterstice2` too:
 each of the three arcs transforms on its own, and (since each does so
 correctly regardless of orientation, see [`reflection(::APCircularArc2, _)`](@ref)
 above) they still connect end to end afterward into the transformed gap.
@@ -246,14 +246,14 @@ length(sols_r), all(s -> s.r == 3.0, sols_r)   # 4 solutions, one per quadrant
 <img src="../assets/img/tangency/llr.svg" alt="" style="width:100%;">
 ```
 
-(`l1`/`l2` need to actually meet somewhere for this to have solutions —
+(`l1`/`l2` need to actually meet somewhere for this to have solutions:
 two *parallel* lines always return an empty vector, since then either no
 radius works or, at the one radius that does, a whole line of centers
 would qualify rather than finitely many circles, a degenerate case this
 function doesn't handle.)
 
 It's built internally via [`offset_line`](@ref)`(l, d)`, which shifts a
-line by a signed distance along its own normal — turning "tangent to `l` at
+line by a signed distance along its own normal, turning "tangent to `l` at
 distance `r`" into "passes through `l` shifted by `±r`", then intersecting
 those shifted lines/circles directly:
 
@@ -266,8 +266,8 @@ offset_line(l1, 3.0) == APLine(APPoint(-3.0, 0.0), APPoint(-3.0, 1.0))   # shift
 * [`external_similitude_center`](@ref) / [`internal_similitude_center`](@ref)
   and the common tangent lines from [Circles](@ref) are the two-circle
   building blocks these constructions are built from.
-* The triangle-specific tangent-circle configurations — [`mixtilinear_incircle`](@ref),
+* The triangle-specific tangent-circle configurations ([`mixtilinear_incircle`](@ref),
   [`soddy_circles`](@ref), [`three_tangent_circles`](@ref) and
-  [`thebault_circles`](@ref) — are covered in
+  [`thebault_circles`](@ref)) are covered in
   [Triangles & Triangle Centers](@ref), since they are defined in terms of
   a triangle's sides and angles rather than arbitrary circles.

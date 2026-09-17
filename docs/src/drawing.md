@@ -7,10 +7,17 @@ CurrentModule = Apollonius
 !!! warning "Optional add-on, not core functionality"
     Everything on this page comes from a **package extension**, not from
     `Apollonius.jl` itself. The package never depends on
-    [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl) — `path` has *no
+    [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl); `path` has *no
     methods at all* until your own code also loads Luxor. Everything
     described on the rest of this site (points, lines, circles, triangles,
     conics, tangency, affine maps...) is unaffected either way.
+
+This page is not a Luxor tutorial. For `Drawing`, `sethue`, colors, fonts
+and everything else that belongs to Luxor itself, read
+[Luxor's own documentation](https://juliagraphics.github.io/Luxor.jl/stable/).
+What follows is just what this package adds on top: the `path` function
+and the `@to_luxor_picture` macro. Read the next three sections in order
+to get going; the rest of the page is reference material for later.
 
 ## Activating it
 
@@ -103,242 +110,6 @@ needed:
 Luxor.label("I", :N, incenter(t))
 Luxor.label("O", :N, circumcenter(t))
 ```
-
-## What each type builds
-
-`path(obj; action=:path, kwargs...)` dispatches on the type of `obj`.
-Besides `action`, every method also accepts whatever *structural* (not
-styling) keywords that curve needs — how far to extend an infinite line,
-how finely to sample a curve Luxor has no native primitive for, and so on:
-
-| Type | Adds to the path as | Type-specific keywords |
-|:-----|:---------------------|:------------------------|
-| `APPoint` | a small circle | `radius=3` |
-| `APSegment` | a straight line between its two points, or — pass `as=:arrow` — an arrow (see [Arrows](@ref) below) | `as=:plain` (default) |
-| `APLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point — or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow` |
-| `APRay` | likewise, extended only past `through` (not past `origin`); `extend=0.0` draws the exact finite segment from `origin` to `through` | `extend=1000.0`; `as=:plain`/`:arrow` |
-| `APCircle2` | Luxor's native circle | — |
-| any [`APPolygon`](@ref) | every side, chained end to end into one closed path — a straight line for an `APSegment` side, a true arc for an `APCircularArc2` side, an `n`-point sampled polyline for any other conic-arc side (see below); covers `APTriangle`, `APQuadrilateral`, `APStraightNgon`, `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2` and `APCurvilinearNgon2` — **one** method for the whole family | `n=60` (only matters if some side needs sampling) |
-| `APBoundingBox` | an axis-aligned box | — |
-| `APEllipse2` | a smooth, Bézier-curve ellipse (Luxor's own axis-aligned `ellipse(center, w, h)`, `w = 2a`, `h = 2b`) inside a rotated/translated frame matching `e.center`/`e.angle`, so the path stays a true curve at any zoom level | — |
-| `APParabola2` | Luxor has no native parabola primitive: sampled at `n` points via [`point_on_parabola`](@ref) over the parameter range `srange`, added as an open polyline | `srange=(-100.0, 100.0)`, `n=60` |
-| `APHyperbola2` | likewise (no native primitive), sampled via [`point_on_hyperbola`](@ref) on one branch at a time | `trange=(-2.0, 2.0)`, `n=60`, `branch=1` (pass `branch=-1` and call again for the other branch) |
-| `APCircularArc2` | a true circular arc from `p1` to `p2`, via Luxor's own `arc2r` (Cairo's native arc primitive — not a polygonal approximation) | — |
-| `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on_arc`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
-| `APAngle2` | see below — it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
-| `APVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=APPoint(0.0, 0.0)`, `as=:plain`/`:arrow` |
-| `APHalfPlane2` | unbounded, so this draws its boundary line only (see `APLine` above) | `extend=1000.0` |
-| `APStrip2` | likewise unbounded: both boundary lines, one call each | `extend=1000.0` |
-| `AbstractVector{<:APObject}` | each element in turn, with the same `kwargs` every time (see below) | whatever that element's own type takes |
-
-The last row is what lets a plain `Vector` — what [`intersection`](@ref)/
-[`tangent_points`](@ref) return, since they can give 0, 1 or 2 points
-depending on the geometry — get drawn directly, without unwrapping it by
-hand first:
-
-```julia
-pts = intersection(l, c)   # a Vector{APPoint}, however many points there are
-path(pts; action=:fill)    # each point drawn as its own small circle
-```
-
-It also calls `Luxor.newsubpath()` before each element, so this is the
-safe way to batch several shapes into *one* combined path with the
-default `action=:path` — e.g. to fill them one color and outline them
-another with a single `fillpreserve()`/`strokepath()` pair, rather than
-drawing each one twice:
-
-```julia
-path(pts; action=:path)   # builds all the circles into one path
-sethue("white"); fillpreserve()
-sethue("blue"); strokepath()
-```
-
-Without the `newsubpath()`, Cairo's own circle/arc primitives connect to
-wherever the current path left off with a straight line the moment a
-second one starts — a well-known Cairo gotcha, not something specific to
-this package, but one `path(::AbstractVector)` takes care of for you.
-
-!!! warning "`path(v)` is not the same as `path.(v)`"
-    Broadcasting (`path.(pts; action=:path)`, with the dot) calls the
-    scalar `path` method on each point directly — it never reaches
-    `path(::AbstractVector)` at all, so none of the `newsubpath()`
-    handling above applies. For an immediately-rendering action
-    (`:stroke`, `:fill`, `:fillstroke`) the two look identical, since each
-    element renders and clears on its own regardless of how it got there.
-    But for the default `action=:path`, only the no-dot form `path(pts)`
-    batches safely; `path.(pts)` (or a hand-written loop without its own
-    `newsubpath()` calls) reproduces the stray-line bug this method exists
-    to avoid.
-
-Most types default effectively to an outline when you pass `action=:stroke`
-(`APPoint` would need `action=:fill` to actually show up, since an
-unfilled single-pixel-radius circle is invisible — but that choice is now
-yours to make, same as with any other type).
-
-The single `path(pg::APPolygon)` method is the direct payoff of building
-a real [`APPolygon`](@ref) hierarchy: it walks `sides(pg)` via the same
-`_polygon_walk` [`area`](@ref)/[`perimeter`](@ref) already use, so one
-method — not seven, one per concrete type — covers every straight-sided
-*and* curved-region shape in the package. The one behavior difference
-from a hand-rolled per-vertex path: it always produces a *closed* path (no
-`close=false` open-polyline option), since a walked side sequence is
-inherently a loop.
-
-**A subtlety worth knowing, inherited from Luxor itself rather than
-anything this package adds**: with a non-`:path` action, most of Luxor's
-own shape-building functions (`circle`, `poly`, and so the types built on
-them here — `APCircle2`, every `APPolygon`, `APEllipse2`) clear the current
-path first, so calling one always draws *only* that shape. A few of
-Luxor's own primitives don't — `line` (hence `APSegment`/`APLine`/`APRay`
-here) and `box` (hence `APBoundingBox`) add to whatever path is already
-there instead. In practice this rarely matters: a prior call with a real
-action (`:stroke`, `:fill`, ...) already emptied the path as a side effect
-of drawing it, regardless of which behavior the next call has. It only
-shows up if you deliberately chain several `path(...; action=:path)` calls
-to build one compound shape across multiple types and finish with a single
-action on the last call — in that case, a final
-`APSegment`/`APLine`/`APRay`/`APBoundingBox` call correctly includes
-everything built so far, while a final `APCircle2`/`APPolygon`/etc. call
-would silently discard it first.
-
-### Arrows
-
-`APSegment`/`APLine`/`APRay` take `as=:arrow` to draw as an arrow instead
-of a plain line, via Luxor's own `arrow`:
-
-```julia
-path(APSegment(APPoint(-80.0, 0.0), APPoint(80.0, 0.0)); as=:arrow)
-
-l = APLine(APPoint(0.0, -60.0), APPoint(0.0, 60.0))
-path(l; extend=0.0, as=:arrow, arrowheadlength=15)   # extend=0.0: the exact finite segment
-```
-
-```@raw html
-<img src="../assets/img/drawing/arrows.svg" alt="" style="width:100%; max-width: 700px;">
-```
-
-This is the one case where `path` doesn't just add to the current path:
-Luxor's `arrow` always strokes the shaft and fills the arrowhead
-immediately, with no deferred form, so `action` is ignored when
-`as=:arrow`. Keyword arguments other than `as`/`extend` (`arrowheadlength`,
-`arrowheadangle`, `linewidth`, ...) are forwarded straight to `Luxor.arrow`.
-
-### `APAngle2`: rays, arc, sector, or the parallelogram-law marker
-
-An `APAngle2` is genuinely just the space between two rays — but it's
-conventionally *drawn* as a small arc, a filled wedge, or (especially for
-a right angle) a small square in the corner. `as` picks which:
-
-```julia
-ang = APAngle2(t[2], t[1], t[3])   # the angle at vertex t[2]
-
-path(ang; as=:rays, action=:stroke)      # the literal two half-lines, a-vertex-b
-path(ang; as=:arc, action=:stroke)       # the conventional small arc (default)
-path(ang; as=:sector, action=:fill)      # closed pie-wedge, for shading
-path(ang; as=:rarc, action=:stroke)      # the parallelogram-law corner marker (open)
-path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
-```
-
-```@raw html
-<img src="../assets/img/drawing/angles.svg" alt="" style="width:100%; max-width: 700px;">
-```
-
-`radius` defaults to `0.15` times the shorter of the distances from the
-vertex to `ang.a` and `ang.b`, so it looks reasonable at the figure's own
-scale without having to think about it — pass it explicitly to override.
-`as=:arc` and `as=:sector` are, in fact, nothing more than
-`path(APCircularArc2(...))` and `path(APCircularSector2(...))` under the
-hood (see below) — `APAngle2` just works out the right circle and
-endpoints first.
-
-`as=:rarc`/`:rsector` generalize the little square textbooks use to mark
-a *right* angle to any angle, via the parallelogram law: `pa`/`pb` are the
-points at distance `radius` along each ray, and `pc = pa + pb - vertex`
-completes the parallelogram `vertex, pa, pc, pb`. At exactly 90° that
-parallelogram is the familiar square corner marker (`pa`/`pb` are
-perpendicular and equal in length); at any other angle it's still a
-rhombus (`pa`/`pb` are always exactly `radius` from the vertex), tracing
-the same idea. `:rarc` draws just the two "far" sides, `pa -> pc -> pb`
-(open, so it doesn't retrace the rays themselves); `:rsector` closes the
-whole parallelogram, for filling.
-
-## Circular arcs, sectors, segments, interstices and curvilinear polygons
-
-[`APCircularArc2`](@ref), [`APCircularSector2`](@ref),
-[`APCircularSegment2`](@ref), [`APAnnularSector2`](@ref) and
-[`APInterstice2`](@ref) (see [Circles](@ref),
-[Tangency & Apollonius Problems](@ref)) draw exactly like everything else
-— all through the same generic `path(pg::APPolygon)` method described
-above:
-
-```julia
-circ = APCircle2(APPoint(0.0, 0.0), 30.0)
-arc = APCircularArc2(circ, APPoint(30.0, 0.0), APPoint(0.0, 30.0))
-path(arc; action=:stroke)
-
-sethue("steelblue"); setopacity(0.4)
-path(APCircularSector2(arc); action=:fill)   # the pie slice
-path(APCircularSegment2(arc); action=:fill)  # the cap cut off by the chord
-
-c1 = APCircle2(APPoint(0.0, 0.0), 40.0)
-c2 = APCircle2(APPoint(90.0, 0.0), 50.0)   # tangent to c1: distance 90 == 40 + 50
-c3_center = intersection(APCircle2(c1.center, c1.r + 35.0), APCircle2(c2.center, c2.r + 35.0))[1]
-c3 = APCircle2(c3_center, 35.0)            # tangent to both c1 and c2
-
-
-sethue("red"); setopacity(0.5)
-path(interstices(c1, c2, c3); action=:fill)
-
-sethue("purple")
-path(invert(APTriangle(APPoint(50.0, 20.0), APPoint(90.0, 30.0), APPoint(60.0, 80.0)), APPoint(0.0, 0.0), k=100.0); action=:fill)
-```
-
-```@raw html
-<img src="../assets/img/drawing/curves.svg" alt="" style="width:100%;">
-```
-
-Every curved side here is built from Luxor's own `arc2r`/`carc2r` (Cairo's
-native circular-arc path primitive, driven by a center and the two
-endpoints) — never a sampled polyline standing in for the arc, the way
-`APParabola2`/`APHyperbola2` above have to (Luxor has no native primitive
-for *those* curves, so sampling is the only option there).
-
-## Elliptic, parabolic and hyperbolic arcs
-
-[`APEllipticArc2`](@ref), `APParabolicArc2`, `APHyperbolicArc2` (see
-[Conics: Ellipse, Parabola & Hyperbola](@ref)) draw the same way as
-`APCircularArc2`, just sampled rather than a native Cairo primitive (like
-`APParabola2`/`APHyperbola2` themselves):
-
-```julia
-e = APEllipse2(APPoint(0.0, 0.0), 40.0, 20.0, pi / 6)
-earc = APEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
-path(earc; action=:stroke)
-```
-
-```@raw html
-<img src="../assets/img/drawing/earcs.svg" alt="" style="width:100%;">
-```
-
-
-They can also turn up as a *side* of a curvilinear region — not from
-building one directly (there's no `APEllipticSector2`), but as the result
-of an [`APAffineMap`](@ref) applied to a circular-arc region, since a
-non-conformal map turns a circular arc elliptic:
-
-```julia
-sec = APCircularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 30.0), APPoint(30.0, 0.0), APPoint(0.0, 30.0)))
-skew = APAffineMap(1.3, 0.4, -0.2, 0.9, 0.0, 0.0)
-path(skew(sec); action=:stroke)   # an APCurvilinearTriangle2 with one elliptic-arc side
-```
-
-```@raw html
-<img src="../assets/img/drawing/affine_skew.svg" alt="" style="width:100%;">
-```
-
-`path(::APPolygon)` handles this transparently — a side is drawn with
-`arc2r` if it's an `APCircularArc2`, or sampled at `n` points (the same
-`n` `path` itself takes) if it's any of the other three arc types.
 
 ## Sizing a canvas automatically
 
@@ -594,6 +365,242 @@ above. For a shape whose `path` method samples points rather than using a
 native Cairo primitive (`APParabola2`, `APHyperbola2`, the non-circular
 conic arcs), `current_path_bbox()` only approximates the true extent, to
 the same accuracy as that sampling.
+
+## What each type builds
+
+`path(obj; action=:path, kwargs...)` dispatches on the type of `obj`.
+Besides `action`, every method also accepts whatever *structural* (not
+styling) keywords that curve needs — how far to extend an infinite line,
+how finely to sample a curve Luxor has no native primitive for, and so on:
+
+| Type | Adds to the path as | Type-specific keywords |
+|:-----|:---------------------|:------------------------|
+| `APPoint` | a small circle | `radius=3` |
+| `APSegment` | a straight line between its two points, or — pass `as=:arrow` — an arrow (see [Arrows](@ref) below) | `as=:plain` (default) |
+| `APLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point — or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow` |
+| `APRay` | likewise, extended only past `through` (not past `origin`); `extend=0.0` draws the exact finite segment from `origin` to `through` | `extend=1000.0`; `as=:plain`/`:arrow` |
+| `APCircle2` | Luxor's native circle | — |
+| any [`APPolygon`](@ref) | every side, chained end to end into one closed path — a straight line for an `APSegment` side, a true arc for an `APCircularArc2` side, an `n`-point sampled polyline for any other conic-arc side (see below); covers `APTriangle`, `APQuadrilateral`, `APStraightNgon`, `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2` and `APCurvilinearNgon2` — **one** method for the whole family | `n=60` (only matters if some side needs sampling) |
+| `APBoundingBox` | an axis-aligned box | — |
+| `APEllipse2` | a smooth, Bézier-curve ellipse (Luxor's own axis-aligned `ellipse(center, w, h)`, `w = 2a`, `h = 2b`) inside a rotated/translated frame matching `e.center`/`e.angle`, so the path stays a true curve at any zoom level | — |
+| `APParabola2` | Luxor has no native parabola primitive: sampled at `n` points via [`point_on_parabola`](@ref) over the parameter range `srange`, added as an open polyline | `srange=(-100.0, 100.0)`, `n=60` |
+| `APHyperbola2` | likewise (no native primitive), sampled via [`point_on_hyperbola`](@ref) on one branch at a time | `trange=(-2.0, 2.0)`, `n=60`, `branch=1` (pass `branch=-1` and call again for the other branch) |
+| `APCircularArc2` | a true circular arc from `p1` to `p2`, via Luxor's own `arc2r` (Cairo's native arc primitive — not a polygonal approximation) | — |
+| `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on_arc`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
+| `APAngle2` | see below — it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
+| `APVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=APPoint(0.0, 0.0)`, `as=:plain`/`:arrow` |
+| `APHalfPlane2` | unbounded, so this draws its boundary line only (see `APLine` above) | `extend=1000.0` |
+| `APStrip2` | likewise unbounded: both boundary lines, one call each | `extend=1000.0` |
+| `AbstractVector{<:APObject}` | each element in turn, with the same `kwargs` every time (see below) | whatever that element's own type takes |
+
+The last row is what lets a plain `Vector` — what [`intersection`](@ref)/
+[`tangent_points`](@ref) return, since they can give 0, 1 or 2 points
+depending on the geometry — get drawn directly, without unwrapping it by
+hand first:
+
+```julia
+pts = intersection(l, c)   # a Vector{APPoint}, however many points there are
+path(pts; action=:fill)    # each point drawn as its own small circle
+```
+
+It also calls `Luxor.newsubpath()` before each element, so this is the
+safe way to batch several shapes into *one* combined path with the
+default `action=:path` — e.g. to fill them one color and outline them
+another with a single `fillpreserve()`/`strokepath()` pair, rather than
+drawing each one twice:
+
+```julia
+path(pts; action=:path)   # builds all the circles into one path
+sethue("white"); fillpreserve()
+sethue("blue"); strokepath()
+```
+
+Without the `newsubpath()`, Cairo's own circle/arc primitives connect to
+wherever the current path left off with a straight line the moment a
+second one starts — a well-known Cairo gotcha, not something specific to
+this package, but one `path(::AbstractVector)` takes care of for you.
+
+!!! warning "`path(v)` is not the same as `path.(v)`"
+    Broadcasting (`path.(pts; action=:path)`, with the dot) calls the
+    scalar `path` method on each point directly — it never reaches
+    `path(::AbstractVector)` at all, so none of the `newsubpath()`
+    handling above applies. For an immediately-rendering action
+    (`:stroke`, `:fill`, `:fillstroke`) the two look identical, since each
+    element renders and clears on its own regardless of how it got there.
+    But for the default `action=:path`, only the no-dot form `path(pts)`
+    batches safely; `path.(pts)` (or a hand-written loop without its own
+    `newsubpath()` calls) reproduces the stray-line bug this method exists
+    to avoid.
+
+Most types default effectively to an outline when you pass `action=:stroke`
+(`APPoint` would need `action=:fill` to actually show up, since an
+unfilled single-pixel-radius circle is invisible — but that choice is now
+yours to make, same as with any other type).
+
+The single `path(pg::APPolygon)` method is the direct payoff of building
+a real [`APPolygon`](@ref) hierarchy: it walks `sides(pg)` via the same
+`_polygon_walk` [`area`](@ref)/[`perimeter`](@ref) already use, so one
+method — not seven, one per concrete type — covers every straight-sided
+*and* curved-region shape in the package. The one behavior difference
+from a hand-rolled per-vertex path: it always produces a *closed* path (no
+`close=false` open-polyline option), since a walked side sequence is
+inherently a loop.
+
+**A subtlety worth knowing, inherited from Luxor itself rather than
+anything this package adds**: with a non-`:path` action, most of Luxor's
+own shape-building functions (`circle`, `poly`, and so the types built on
+them here — `APCircle2`, every `APPolygon`, `APEllipse2`) clear the current
+path first, so calling one always draws *only* that shape. A few of
+Luxor's own primitives don't — `line` (hence `APSegment`/`APLine`/`APRay`
+here) and `box` (hence `APBoundingBox`) add to whatever path is already
+there instead. In practice this rarely matters: a prior call with a real
+action (`:stroke`, `:fill`, ...) already emptied the path as a side effect
+of drawing it, regardless of which behavior the next call has. It only
+shows up if you deliberately chain several `path(...; action=:path)` calls
+to build one compound shape across multiple types and finish with a single
+action on the last call — in that case, a final
+`APSegment`/`APLine`/`APRay`/`APBoundingBox` call correctly includes
+everything built so far, while a final `APCircle2`/`APPolygon`/etc. call
+would silently discard it first.
+
+### Arrows
+
+`APSegment`/`APLine`/`APRay` take `as=:arrow` to draw as an arrow instead
+of a plain line, via Luxor's own `arrow`:
+
+```julia
+path(APSegment(APPoint(-80.0, 0.0), APPoint(80.0, 0.0)); as=:arrow)
+
+l = APLine(APPoint(0.0, -60.0), APPoint(0.0, 60.0))
+path(l; extend=0.0, as=:arrow, arrowheadlength=15)   # extend=0.0: the exact finite segment
+```
+
+```@raw html
+<img src="../assets/img/drawing/arrows.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+This is the one case where `path` doesn't just add to the current path:
+Luxor's `arrow` always strokes the shaft and fills the arrowhead
+immediately, with no deferred form, so `action` is ignored when
+`as=:arrow`. Keyword arguments other than `as`/`extend` (`arrowheadlength`,
+`arrowheadangle`, `linewidth`, ...) are forwarded straight to `Luxor.arrow`.
+
+### `APAngle2`: rays, arc, sector, or the parallelogram-law marker
+
+An `APAngle2` is genuinely just the space between two rays — but it's
+conventionally *drawn* as a small arc, a filled wedge, or (especially for
+a right angle) a small square in the corner. `as` picks which:
+
+```julia
+ang = APAngle2(t[2], t[1], t[3])   # the angle at vertex t[2]
+
+path(ang; as=:rays, action=:stroke)      # the literal two half-lines, a-vertex-b
+path(ang; as=:arc, action=:stroke)       # the conventional small arc (default)
+path(ang; as=:sector, action=:fill)      # closed pie-wedge, for shading
+path(ang; as=:rarc, action=:stroke)      # the parallelogram-law corner marker (open)
+path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
+```
+
+```@raw html
+<img src="../assets/img/drawing/angles.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
+`radius` defaults to `0.15` times the shorter of the distances from the
+vertex to `ang.a` and `ang.b`, so it looks reasonable at the figure's own
+scale without having to think about it — pass it explicitly to override.
+`as=:arc` and `as=:sector` are, in fact, nothing more than
+`path(APCircularArc2(...))` and `path(APCircularSector2(...))` under the
+hood (see below) — `APAngle2` just works out the right circle and
+endpoints first.
+
+`as=:rarc`/`:rsector` generalize the little square textbooks use to mark
+a *right* angle to any angle, via the parallelogram law: `pa`/`pb` are the
+points at distance `radius` along each ray, and `pc = pa + pb - vertex`
+completes the parallelogram `vertex, pa, pc, pb`. At exactly 90° that
+parallelogram is the familiar square corner marker (`pa`/`pb` are
+perpendicular and equal in length); at any other angle it's still a
+rhombus (`pa`/`pb` are always exactly `radius` from the vertex), tracing
+the same idea. `:rarc` draws just the two "far" sides, `pa -> pc -> pb`
+(open, so it doesn't retrace the rays themselves); `:rsector` closes the
+whole parallelogram, for filling.
+
+## Circular arcs, sectors, segments, interstices and curvilinear polygons
+
+[`APCircularArc2`](@ref), [`APCircularSector2`](@ref),
+[`APCircularSegment2`](@ref), [`APAnnularSector2`](@ref) and
+[`APInterstice2`](@ref) (see [Circles](@ref),
+[Tangency & Apollonius Problems](@ref)) draw exactly like everything else
+— all through the same generic `path(pg::APPolygon)` method described
+above:
+
+```julia
+circ = APCircle2(APPoint(0.0, 0.0), 30.0)
+arc = APCircularArc2(circ, APPoint(30.0, 0.0), APPoint(0.0, 30.0))
+path(arc; action=:stroke)
+
+sethue("steelblue"); setopacity(0.4)
+path(APCircularSector2(arc); action=:fill)   # the pie slice
+path(APCircularSegment2(arc); action=:fill)  # the cap cut off by the chord
+
+c1 = APCircle2(APPoint(0.0, 0.0), 40.0)
+c2 = APCircle2(APPoint(90.0, 0.0), 50.0)   # tangent to c1: distance 90 == 40 + 50
+c3_center = intersection(APCircle2(c1.center, c1.r + 35.0), APCircle2(c2.center, c2.r + 35.0))[1]
+c3 = APCircle2(c3_center, 35.0)            # tangent to both c1 and c2
+
+
+sethue("red"); setopacity(0.5)
+path(interstices(c1, c2, c3); action=:fill)
+
+sethue("purple")
+path(invert(APTriangle(APPoint(50.0, 20.0), APPoint(90.0, 30.0), APPoint(60.0, 80.0)), APPoint(0.0, 0.0), k=100.0); action=:fill)
+```
+
+```@raw html
+<img src="../assets/img/drawing/curves.svg" alt="" style="width:100%;">
+```
+
+Every curved side here is built from Luxor's own `arc2r`/`carc2r` (Cairo's
+native circular-arc path primitive, driven by a center and the two
+endpoints) — never a sampled polyline standing in for the arc, the way
+`APParabola2`/`APHyperbola2` above have to (Luxor has no native primitive
+for *those* curves, so sampling is the only option there).
+
+## Elliptic, parabolic and hyperbolic arcs
+
+[`APEllipticArc2`](@ref), `APParabolicArc2`, `APHyperbolicArc2` (see
+[Conics: Ellipse, Parabola & Hyperbola](@ref)) draw the same way as
+`APCircularArc2`, just sampled rather than a native Cairo primitive (like
+`APParabola2`/`APHyperbola2` themselves):
+
+```julia
+e = APEllipse2(APPoint(0.0, 0.0), 40.0, 20.0, pi / 6)
+earc = APEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
+path(earc; action=:stroke)
+```
+
+```@raw html
+<img src="../assets/img/drawing/earcs.svg" alt="" style="width:100%;">
+```
+
+
+They can also turn up as a *side* of a curvilinear region — not from
+building one directly (there's no `APEllipticSector2`), but as the result
+of an [`APAffineMap`](@ref) applied to a circular-arc region, since a
+non-conformal map turns a circular arc elliptic:
+
+```julia
+sec = APCircularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 30.0), APPoint(30.0, 0.0), APPoint(0.0, 30.0)))
+skew = APAffineMap(1.3, 0.4, -0.2, 0.9, 0.0, 0.0)
+path(skew(sec); action=:stroke)   # an APCurvilinearTriangle2 with one elliptic-arc side
+```
+
+```@raw html
+<img src="../assets/img/drawing/affine_skew.svg" alt="" style="width:100%;">
+```
+
+`path(::APPolygon)` handles this transparently — a side is drawn with
+`arc2r` if it's an `APCircularArc2`, or sampled at `n` points (the same
+`n` `path` itself takes) if it's any of the other three arc types.
 
 ## Worked example: the package logo
 

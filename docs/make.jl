@@ -15,6 +15,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Drawing with Luxor.jl" => "drawing.md",
         "Points, Lines & Rays" => "points_lines.md",
         "Circles" => "circles.md",
         "Triangles & Triangle Centers" => "triangles.md",
@@ -33,7 +34,6 @@ makedocs(;
         #     "Unbounded Sets" => "geometry_3d_unbounded.md",
         # ],
         "API Reference" => "api.md",
-        "Drawing with Luxor.jl" => "drawing.md",
     ],
 )
 

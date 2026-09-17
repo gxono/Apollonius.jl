@@ -5,12 +5,12 @@ CurrentModule = Apollonius
 # Circles
 
 [`APCircle2`](@ref) is a center and a radius, `c.center` and `c.r`. Some of
-what follows is a method *on* a circle (`area`, `rotate`, ...); the rest —
-tangency, power of a point, radical axes, inversion — is a function *of*
+what follows is a method *on* a circle (`area`, `rotate`, ...); the rest
+(tangency, power of a point, radical axes, inversion) is a function *of*
 one or more circles.
 
 A point on the circumference works instead of the radius, when that's the
-more natural thing on hand — `APCircle2(center, through)` is exactly
+more natural thing on hand: `APCircle2(center, through)` is exactly
 `APCircle2(center, distance(center, through))`:
 
 ```@example geo
@@ -24,7 +24,7 @@ APCircle2(APPoint(0.0, 0.0), APPoint(3.0, 4.0))   # radius 5, same as APCircle2(
 ```
 
 
-Three points on the circumference work too — `APCircle2(p1, p2, p3)` is
+Three points on the circumference work too: `APCircle2(p1, p2, p3)` is
 their circumcircle, computed directly (the same formula
 [`circumcenter`](@ref) uses on an [`APTriangle`](@ref), without needing to
 build one first):
@@ -40,14 +40,14 @@ APCircle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0))
 
 It throws an `ArgumentError` if the three points are (or are too close
 to) collinear, same as [`affine_map`](@ref) does for its three source
-points — there's no finite circle through them in that case.
+points. There's no finite circle through them in that case.
 
 ## Power of a point and tangent lines
 
 The [`power_of_point`](@ref) of `p` with respect to a circle `c` is
 `distance(p, c.center)^2 - c.r^2`: negative inside the circle, zero on it,
 positive outside. Its square root, when `p` is outside, is exactly the
-length of a tangent segment from `p` to the circle — that's
+length of a tangent segment from `p` to the circle. That's
 [`tangent_length`](@ref). [`tangent_points`](@ref) and [`tangent_lines`](@ref)
 give the two actual points/lines of tangency.
 
@@ -75,10 +75,10 @@ tangent length either way.
 
 Two circles that don't share a center have a **radical axis**: the locus of
 points whose power is equal with respect to both. [`radical_axis`](@ref)
-always exists — even for circles that don't meet — and is perpendicular to
+always exists (even for circles that don't meet) and is perpendicular to
 the line joining their centers. "Don't share a center" is checked with a
 scale-aware tolerance (`atol`, like elsewhere in the package), not bare
-equality — two circles can be mathematically concentric yet have centers
+equality: two circles can be mathematically concentric yet have centers
 that only agree up to floating-point roundoff (this comes up for, e.g.,
 [`orthic_axis`](@ref) of an equilateral triangle, whose circumcircle and
 nine-point circle are concentric), and a bare `==` would miss that and
@@ -126,7 +126,7 @@ inversion_neg(APPoint(10.0, 0.0), c)   # (-2.5, 0.0): the mirror image of the po
 ```
 
 `invert`/`invert_neg` also take just `center` (and, as a keyword, `k`) to
-build a reusable one-argument function — the same convenience
+build a reusable one-argument function, the same convenience
 [`rotate`](@ref)/[`homothety`](@ref)/etc. have (see
 [Affine Maps](@ref)), except this returns a plain closure rather than an
 [`APAffineMap`](@ref), since circle inversion isn't an affine
@@ -148,7 +148,7 @@ map(inv5, [APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0)), APLine(APPoint(-3.0, 0.
 A straight side doesn't generally stay straight under inversion: it only
 does when the *line* it lies on passes through the inversion center
 (then it inverts to another `APSegment`, on that same line); otherwise it
-inverts to an arc of the circle its line inverts to — specifically the
+inverts to an arc of the circle its line inverts to: specifically the
 arc that does *not* pass through the center, since that point is the image
 of the line's own point at infinity, which a finite segment never reaches.
 [`invert(::APSegment, ::APPoint)`](@ref) returns whichever of the two
@@ -164,7 +164,7 @@ invert(APSegment(APPoint(0.5, -1.5), APPoint(1.5, -1.0)), APPoint(0.0, 0.0))   #
 ```
 
 Since an `APTriangle`'s or `APStraightNgon`'s sides invert independently
-like this, their image is generally a mix of straight and curved sides —
+like this, their image is generally a mix of straight and curved sides,
 not representable as another `APTriangle`/`APStraightNgon`.
 [`invert(::APTriangle, ::APPoint)`](@ref) and
 [`invert(::APStraightNgon, ::APPoint)`](@ref) return an
@@ -182,14 +182,14 @@ area(cp), perimeter(cp)
 <img src="../assets/img/circles/inversion_triangle.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
-The first example shows the typical case, where none of the triangle's sides passes through the inversion center. Consequently, all three sides become circular arcs. If one of the sides lies on a line through the center, however, that side remains straight under inversion, while the other sides are still transformed into circular arcs.
+In the first example, none of the triangle's sides passes through the inversion center, so all three become circular arcs. If one side does lie on a line through the center, that side stays straight; the other two still become arcs.
 
 
 ```@raw html
 <img src="../assets/img/circles/inversion_triangle2.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
-This behavior is not specific to triangles. For a general straight-sided polygon, each side is transformed independently according to whether its supporting line passes through the inversion center. The resulting image can therefore combine straight segments and circular arcs, as illustrated by the polygon below.
+Same rule for any straight-sided polygon: each side inverts on its own, straight if its line passes through the center, an arc otherwise, so the result can freely mix both.
 
 
 
@@ -206,7 +206,7 @@ too, transforming each side independently.
 
 [`polar_line`](@ref) and [`pole`](@ref) are the projective dual of this:
 the polar of `p` with respect to `c` is the line through the two tangent
-points from `p` (when `p` is outside `c`) — and `pole` is its inverse,
+points from `p` (when `p` is outside `c`), and `pole` is its inverse,
 recovering `p` from that line.
 
 ```@example geo
@@ -218,8 +218,8 @@ pole(c, pl)              # back to p = (13.0, 0.0)
 
 Two circles have two centers of similitude: the [`external_similitude_center`](@ref)
 (where their external common tangents meet) and the
-[`internal_similitude_center`](@ref) (where the internal ones — the ones
-that cross between the circles — meet). [`external_tangent_lines`](@ref)
+[`internal_similitude_center`](@ref) (where the internal ones, the ones
+that cross between the circles, meet). [`external_tangent_lines`](@ref)
 and [`internal_tangent_lines`](@ref) return those tangent lines directly,
 each as `APLine(p1, p2)` with `p1`/`p2` the actual points of tangency on
 `c1`/`c2` respectively (not the similitude center, even though every one
@@ -238,18 +238,18 @@ distance(ext[1].p1, c1.center), distance(ext[1].p2, c2.center)   # (c1.r, c2.r)
 ```
 
 The external center is far from both circles here because `c1` and `c2`
-have fairly close radii — the closer two radii are, the further out the
+have fairly close radii. The closer two radii are, the further out the
 external center sits, reaching infinity (parallel tangents) when the radii
 are exactly equal (in which case [`external_similitude_center`](@ref)
 throws, since there is no finite point to return).
 
 These similitude centers are also exactly the points used by the
-Apollonius/tangent-circle constructions — see
-[Tangency & Apollonius Problems](@ref) — since a circle tangent to two
+Apollonius/tangent-circle constructions (see
+[Tangency & Apollonius Problems](@ref)), since a circle tangent to two
 given circles is related to them by a homothety centered at one of these
 two points.
 
-[`tangent_parallel`](@ref) gives the two tangent lines to a circle parallel to a given line — the tangents at the two ends of the diameter perpendicular to it. In each returned line, the first point is the point of tangency:
+[`tangent_parallel`](@ref) gives the two tangent lines to a circle parallel to a given line: the tangents at the two ends of the diameter perpendicular to it. In each returned line, the first point is the point of tangency:
 
 ```@example geo
 t1, t2 = tangent_parallel(c, APLine(APPoint(0.0, 3.0), APPoint(1.0, 4.0)))
@@ -263,7 +263,7 @@ t1, t2 = tangent_parallel(c, APLine(APPoint(0.0, 3.0), APPoint(1.0, 4.0)))
 
 [`circles_position`](@ref) and [`line_circle_position`](@ref) classify the
 relationship between two circles, or a line and a circle, as a `Symbol`
-rather than a single boolean — useful when you need to distinguish, say,
+rather than a single boolean, useful when you need to distinguish, say,
 "tangent" from "disjoint" from "one contains the other" in one call instead
 of chaining several predicates:
 
@@ -280,7 +280,7 @@ line_circle_position(APLine(APPoint(0.0, 5.0), APPoint(1.0, 5.0)), APCircle2(APP
 ## Circular arcs
 
 [`APCircularArc2`](@ref) is the arc of a circle between two of its points,
-traversed **counterclockwise** from the first to the second — fixing the
+traversed **counterclockwise** from the first to the second. Fixing the
 direction like this is what makes the two points unambiguous, since
 otherwise there'd be two different arcs (the short way and the long way
 around) that a bare pair of points couldn't tell apart.
@@ -303,7 +303,7 @@ midpoint(arc)                   # point_on_arc(arc, 0.5)
 ```
 
 Swapping `p1` and `p2` gives the *complementary* arc (the other `3/4` of
-this circle here), not the same arc traversed backwards — `APCircularArc2`
+this circle here), not the same arc traversed backwards. `APCircularArc2`
 only ever sweeps counterclockwise, so which points is `p1` and which is
 `p2` is exactly what picks one of the two candidate arcs. [`reverse`](@ref)
 does exactly that swap:
@@ -313,9 +313,9 @@ reverse(arc) == APCircularArc2(c, p2, p1), measure(reverse(arc)) ≈ 2pi - measu
 ```
 
 This is the fix for a common gotcha: if `arc` gets built from points that
-already live in a mirrored coordinate space — e.g. after
-[`@to_luxor_picture`](@ref)'s default `flip=true` (see
-[Drawing with Luxor.jl](@ref)) — the "counterclockwise" sweep comes out
+already live in a mirrored coordinate space (e.g. after
+[`@to_luxor_picture`](@ref)'s default `flip=true`, see
+[Drawing with Luxor.jl](@ref)), the "counterclockwise" sweep comes out
 backwards, since it's computed straight from the `(x, y)` values with no
 idea they're mirrored; `reverse` corrects that after the fact (building
 the arc *before* the flip and letting the whole object pass through
@@ -323,7 +323,7 @@ the arc *before* the flip and letting the whole object pass through
 [`APAngle2`](@ref)).
 
 Ellipses have the exact same arc type, [`APEllipticArc2`](@ref), and the
-exact same convention (`reverse` included) — see
+exact same convention (`reverse` included); see
 [Conics: Ellipse, Parabola & Hyperbola](@ref).
 
 `APCircularArc2` is also what [`interstices`](@ref) (see
@@ -332,7 +332,7 @@ three sides out of.
 
 ## Circular sectors, segments and annuli
 
-An arc alone is just a curve; closing it up gives a genuine region — a
+An arc alone is just a curve; closing it up gives a genuine region: a
 finite-area [`APPolygon`](@ref) whose `sides` mix straight segments with
 the arc itself. [`APCircularSector2`](@ref), [`APCircularSegment2`](@ref)
 and [`APAnnularSector2`](@ref) are the three classical ways to do this
@@ -340,14 +340,14 @@ and [`APAnnularSector2`](@ref) are the three classical ways to do this
 `APCircularSector2(APCircularArc2(circle, p1, p2))`, and likewise for the
 other two):
 
-* **[`APCircularSector2`](@ref)** — the "pie slice": bounded by the two
+* **[`APCircularSector2`](@ref)**, the "pie slice": bounded by the two
   radii `circle.center -> p1`, `circle.center -> p2`, and the arc between
   them.
-* **[`APCircularSegment2`](@ref)** — the "cap": bounded by the arc and the
+* **[`APCircularSegment2`](@ref)**, the "cap": bounded by the arc and the
   straight chord `[p1, p2]` instead of the two radii.
-* **[`APAnnularSector2`](@ref)** — the "ring slice": the region between
+* **[`APAnnularSector2`](@ref)**, the "ring slice": the region between
   `arc` and the corresponding arc of a smaller, concentric circle
-  (`r_inner`), closed off by the two radial segments between them —
+  (`r_inner`), closed off by the two radial segments between them. This is
   Luxor's own `sector(center, innerradius, outerradius, ...)` shape,
   represented here as a real `APPolygon`.
 
@@ -372,7 +372,7 @@ area(asec)        # outer sector area minus inner sector area
 <img src="../assets/img/circles/sec_ann.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
-None of these three formulas is hand-derived per type — every one comes
+None of these three formulas is hand-derived per type. Every one comes
 for free from the generic, sides-based `area`/`perimeter` every
 [`APPolygon`](@ref) shares (see [`APPolygon`](@ref)'s own docstring), and
 none needs to special-case whether `arc` sweeps less or more than half the
@@ -380,7 +380,7 @@ circle (a "minor" vs "major" arc), since `measure(arc)` is already the
 specific directed angle for *this* arc.
 
 Both `APCircularSector2` and `APCircularSegment2` have a `Base.in` matching
-their shape — inside the circle *and* on the correct side (angularly, for
+their shape: inside the circle *and* on the correct side (angularly, for
 a sector; of the chord, for a segment):
 
 ```@example geo
@@ -404,7 +404,7 @@ homothety(arc, -2.0)   # negative k: still no swap needed
 <img src="../assets/img/circles/arc_rot_hom.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
-Reflecting about an `APPoint` is likewise a point reflection — no
+Reflecting about an `APPoint` is likewise a point reflection: no
 swap. Reflecting about an `APLine`, however, is a true mirror: it *does*
 reverse orientation, so `reflection(::APCircularArc2, ::APLine)` also swaps
 `p1` and `p2` internally, keeping the result's own `p1 -> p2` sweep
@@ -425,7 +425,7 @@ Without that swap, the reflected endpoints alone would trace out the arc's
 ## The gap between three mutually tangent circles
 
 Three circles that are pairwise tangent (each coin-touching-coin, or one
-containing the other two) leave a curvilinear-triangle gap between them —
+containing the other two) leave a curvilinear-triangle gap between them.
 [`interstices`](@ref) finds it (or, when one circle encloses the other
 two, *both* gaps, one on each side):
 
@@ -442,7 +442,7 @@ area(gap), perimeter(gap)
 <img src="../assets/img/circles/circle_gap.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
-The result is an [`APInterstice2`](@ref) — a specific 3-arc
+The result is an [`APInterstice2`](@ref): a specific 3-arc
 [`APPolygon`](@ref) built by finding the circle(s) tangent to all three
 (the classical `CCC` Apollonius problem, see
 [Tangency & Apollonius Problems](@ref)) and picking out the facing arc on
@@ -485,7 +485,7 @@ area(ct), perimeter(ct)
 ```
 
 This is exactly what [`APCircularSector2`](@ref) computes for the same
-three sides — building it directly like this is only necessary when the
+three sides. Building it directly like this is only necessary when the
 sides don't come from a common circle/ellipse/etc. in the first place
 (e.g. after inverting or affine-mapping a region whose sides were
 originally circular, see [Affine Maps](@ref) and
@@ -506,7 +506,7 @@ area(cq) > 0   # a genuine 4-sided mixed straight/circular/elliptic region
 
 [`APCurvilinearNgon2`](@ref)`(sides)` is the same idea for any number of
 sides ≥ 3, given as a plain vector instead of one positional argument per
-side — useful when the side count isn't fixed ahead of time:
+side, useful when the side count isn't fixed ahead of time:
 
 ```@example geo
 cn = APCurvilinearNgon2([rad1, arc, rad2])   # the same 3 sides as ct above
@@ -514,7 +514,7 @@ area(cn) ≈ area(ct), perimeter(cn) ≈ perimeter(ct)   # same sides, same regi
 ```
 
 `rotate`, `reflection`, `homothety` and `translate` all transform every
-side independently and reassemble the result — the same generic,
+side independently and reassemble the result, the same generic,
 sides-based machinery every [`APPolygon`](@ref) shares (see
 [`APCurvilinearNgon2`](@ref)'s own worked example above, via `invert`,
 for the *n*-sided case built from an arbitrary vector of sides).

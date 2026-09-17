@@ -5,7 +5,7 @@ CurrentModule = Apollonius
 # Triangles & Triangle Centers
 
 [`APTriangle`](@ref) is three points, indexed `t[1]`, `t[2]`, `t[3]` (its
-own type, `<: APPolygon` — see [Apollonius.jl](@ref) for the full hierarchy). This
+own type, `<: APPolygon`; see [Apollonius.jl](@ref) for the full hierarchy). This
 page is organized the same way triangle geometry
 usually is: the basic measurements, the four classical centers and how the
 Euler line ties three of them together, the excircles, barycentric
@@ -32,8 +32,8 @@ area(t), perimeter(t), is_degenerate(t)
 | [`incenter`](@ref) | `I` | equidistant from the three sides ([`incircle`](@ref) touches them) |
 | [`orthocenter`](@ref) | `H` | intersection of the three altitudes |
 
-`G`, `O` and `H` are always collinear — that line is the
-[`euler_line`](@ref) — and `G` divides `OH` in a fixed `1:2` ratio (`H = O +
+`G`, `O` and `H` are always collinear (that line is the
+[`euler_line`](@ref)), and `G` divides `OH` in a fixed `1:2` ratio (`H = O +
 3(G - O)`). `I` is *not* on the Euler line in general (it only coincides
 with the others for an equilateral triangle).
 
@@ -51,9 +51,9 @@ circumradius(t)   # the radius of circumcircle(t), same as npc.r * 2
 
 [`nine_point_circle`](@ref) passes through the three edge midpoints, the
 three altitude feet, and the three midpoints of segment `[vertex, H]` (nine
-points in total, though only the circle itself — not the nine points — is
+points in total, though only the circle itself, not the nine points, is
 what the function returns). Its center, [`nine_point_center`](@ref), is the
-midpoint of `O` and `H`, and it always sits on the Euler line too — its
+midpoint of `O` and `H`, and it always sits on the Euler line too. Its
 radius is exactly half the circumradius. [`euler_points`](@ref) returns
 that last group of three (the midpoints of `[H, vertex]`) directly, for
 when you need those specific points rather than just the circle.
@@ -66,7 +66,7 @@ npc.center == nine_point_center(t), npc.r ≈ circumradius(t) / 2
 Two more lines are naturally associated with this configuration:
 [`orthic_axis`](@ref), the radical axis of the circumcircle and the
 nine-point circle (always perpendicular to the Euler line), and
-[`brocard_axis`](@ref), the line through `O` and the symmedian point —
+[`brocard_axis`](@ref), the line through `O` and the symmedian point,
 whose polar line with respect to the circumcircle is, in turn, the
 [`lemoine_axis`](@ref).
 
@@ -89,7 +89,7 @@ orthic_axis(t), brocard_axis(t), lemoine_axis(t)
 Where the incircle is tangent to all three sides from *inside* the
 triangle, each **excircle** is tangent to one side and to the
 *extensions* of the other two, from outside. There are three of them, one
-opposite each vertex — [`excenters`](@ref) and [`exradii`](@ref) return
+opposite each vertex. [`excenters`](@ref) and [`exradii`](@ref) return
 all three as a named tuple `(A=..., B=..., C=...)`, and
 [`excircles`](@ref) the actual circles.
 
@@ -108,10 +108,10 @@ exc.A.r == er.A   # excircles(t).A already has radius exradii(t).A
 ## Barycentric coordinates
 
 Every point of the plane can be written as a weighted average of the three
-vertices, `p = αA + βB + γC` with `α+β+γ = 1` — these weights `(α,β,γ)`
+vertices, `p = αA + βB + γC` with `α+β+γ = 1`. These weights `(α,β,γ)`
 are its **barycentric coordinates** with respect to `t`.
 [`barycentric_point`](@ref) goes from coordinates to a point (weights don't
-need to be normalized — they're rescaled internally);
+need to be normalized; they're rescaled internally);
 [`barycentric_coordinates`](@ref) goes the other way.
 
 ```@example geo
@@ -124,7 +124,7 @@ barycentric_coordinates(t, centroid(t)) # (1/3, 1/3, 1/3)
 ```
 
 Most of the named centers below have simple, well-known barycentric
-coordinates (the incenter is `(a:b:c)` in the side lengths, for instance) —
+coordinates (the incenter is `(a:b:c)` in the side lengths, for instance).
 `barycentric_point` is the easiest way to construct a center directly from
 a formula found in a reference like the *Encyclopedia of Triangle Centers*,
 without rederiving it in Cartesian coordinates.
@@ -153,14 +153,14 @@ trilinear_point(t, 1.0, 1.0, 1.0) ≈ incenter(t)
 ```
 
 Many named centers found in a reference like the *Encyclopedia of Triangle
-Centers* are given as trilinears rather than barycentrics — [`kenmotu_point`](@ref)
-below is one example — so having both conversions on hand avoids
+Centers* are given as trilinears rather than barycentrics ([`kenmotu_point`](@ref)
+below is one example), so having both conversions on hand avoids
 rederiving one from the other by hand.
 
 ## Vertex-indexed lines
 
-Four of the classical triangle lines — the altitude, median, and internal
-and external angle bisectors — plus the perpendicular bisector of the
+Four of the classical triangle lines (the altitude, median, and internal
+and external angle bisectors) plus the perpendicular bisector of the
 opposite side and the angle trisectors, all come in threes, one per vertex.
 Rather than one function per vertex, each is a single function taking the
 triangle and a vertex index `i ∈ {1,2,3}`:
@@ -212,7 +212,7 @@ median.(t, 1:3)
 on_line(orthocenter(t), altitude(t, 1)), on_line(centroid(t), median(t, 1)), on_line(incenter(t), bisector(t, 1))
 ```
 
-`bisector_ext(t, i)` and `mediator(t, i)` complete the set — the external
+`bisector_ext(t, i)` and `mediator(t, i)` complete the set. The external
 bisector is always perpendicular to the internal one at the same vertex,
 and the mediator (the perpendicular bisector of the *opposite* side) is
 what all three concur at to give the circumcenter:
@@ -285,14 +285,14 @@ The rest, grouped by what they're built from:
 | Axis-like lines | [`fermat_axis`](@ref) (through [`fermat_point`](@ref) and [`second_fermat_point`](@ref)); see also [`orthic_axis`](@ref)/[`brocard_axis`](@ref)/[`lemoine_axis`](@ref) above and [`soddy_line`](@ref) |
 
 All of these take the `APTriangle` as their (only, or first) argument and
-return an `APPoint`, an `APCircle2`, an `APLine`, or — where there's naturally more
-than one, like `soddy_circles` or `three_apollonius_circles` — a tuple or
+return an `APPoint`, an `APCircle2`, an `APLine`, or (where there's naturally more
+than one, like `soddy_circles` or `three_apollonius_circles`) a tuple or
 named tuple. See the [API Reference](@ref) for exact signatures.
 
 [`steiner_line`](@ref)`(t, p)` is closely related to [`simson_line`](@ref)`(t,
 p)`: reflecting (rather than projecting) `p` across the three side-lines
 gives three points that are collinear exactly when `p` is on the
-circumcircle — and that Steiner line always passes through the orthocenter,
+circumcircle, and that Steiner line always passes through the orthocenter,
 parallel to the Simson line of the same point.
 
 ```@example geo
@@ -302,9 +302,9 @@ stl = steiner_line(t, p_on_circ)
 on_line(orthocenter(t), stl), is_parallel(sl, stl)
 ```
 
-[`orthopole`](@ref)`(l, t)` is the point where the three perpendiculars —
-one per vertex, dropped from that vertex's projection onto `l`, to the
-*opposite* side — always concur. [`pedal_triangle`](@ref)`(t, p)` (the feet
+[`orthopole`](@ref)`(l, t)` is the point where the three perpendiculars
+(one per vertex, dropped from that vertex's projection onto `l`, to the
+*opposite* side) always concur. [`pedal_triangle`](@ref)`(t, p)` (the feet
 of the perpendiculars from `p` to the three side-lines) generalizes
 [`orthic_triangle`](@ref)/[`contact_triangle`](@ref), which are just the
 pedal triangles of the orthocenter/incenter:
@@ -331,7 +331,7 @@ symmedian_point(t)
 [`isogonal_conjugate`](@ref)`(t, p)` reflects each cevian `vertex -> p`
 across the internal bisector at that vertex; [`isotomic_conjugate`](@ref)`(t,
 p)` instead reflects the cevian's foot across the opposite side's midpoint.
-Both are involutions — applying either twice returns `p` — and
+Both are involutions (applying either twice returns `p`), and
 `isogonal_conjugate` swaps orthocenter↔circumcenter and centroid↔symmedian
 point while fixing the incenter:
 
@@ -346,7 +346,7 @@ isotomic_conjugate(t, isotomic_conjugate(t, incenter(t))) ≈ incenter(t)
 ```
 
 [`anticomplement`](@ref)`(t, p)` is the inverse of [`complement`](@ref)`(t,
-p)` — homothety by `-2` instead of `-1/2` about the centroid:
+p)`: homothety by `-2` instead of `-1/2` about the centroid:
 
 ```@example geo
 anticomplement(t, complement(t, incenter(t))) ≈ incenter(t)
@@ -437,7 +437,7 @@ poncelet_point(t, APPoint(5.0, -2.0))
 [`thebault_circles`](@ref) builds the two circles of the classical
 **Sawayama–Thébault configuration**: given a point `p` on side `[t[2],
 t[3]]`, each is tangent to the cevian `t[1] -> p`, to that side, and
-internally tangent to the circumcircle — one nestled against `t[2]`, the
+internally tangent to the circumcircle: one nestled against `t[2]`, the
 other against `t[3]`.
 
 ```@example geo
@@ -445,7 +445,7 @@ D = B + 0.4 * (C - B)   # a point on side [B, C]
 th = thebault_circles(t, D)
 ```
 
-Remarkably, no matter where `p` sits on the side, the incenter always lies
+No matter where `p` sits on the side, the incenter always lies
 exactly on the segment joining the two circles' centers (the theorem the
 construction is named for):
 
@@ -465,7 +465,7 @@ distance(base[1].center, base[2].center) ≈ base[1].r + base[2].r   # pairwise 
 
 [`taylor_points`](@ref) is the full 6-point construction behind
 [`taylor_circle`](@ref): project each vertex of the [`orthic_triangle`](@ref)
-onto each of the two sides *not* used to define it — all 6 results are
+onto each of the two sides *not* used to define it; all 6 results are
 concyclic.
 
 ```@example geo
@@ -482,7 +482,7 @@ length(van_lamoen_points(t))   # 6
 ```
 
 [`complement`](@ref)`(t, p)` and [`anticomplement`](@ref)`(t, p)` are the
-homotheties of ratio `-1/2` and `-2` about the centroid — inverses of each
+homotheties of ratio `-1/2` and `-2` about the centroid, inverses of each
 other. Applied to `t`'s own vertices they give the [`medial_triangle`](@ref)
 and the anticomplementary triangle (see [Derived triangles](@ref))
 respectively:
@@ -492,7 +492,7 @@ complement(t, A) ≈ midpoint(B, C)
 ```
 
 [`kenmotu_circle`](@ref) is centered at the [`kenmotu_point`](@ref), with
-radius `√2·a·b·c / (4·Area + a²+b²+c²)` — it passes through the 6 points
+radius `√2·a·b·c / (4·Area + a²+b²+c²)`; it passes through the 6 points
 where the three congruent inscribed squares of the Kenmotu configuration
 meet the sides.
 
@@ -501,9 +501,9 @@ kenmotu_circle(t)
 ```
 
 [`feuerbach_points`](@ref) is the excircle analogue of
-[`feuerbach_point`](@ref): the nine-point circle is not just internally
-tangent to the incircle, it's also *externally* tangent to each of the
-three excircles, at these three points.
+[`feuerbach_point`](@ref): besides its internal tangency with the
+incircle, the nine-point circle is *externally* tangent to each of the
+three excircles too, at these three points.
 
 ```@example geo
 feuerbach_points(t)
@@ -542,7 +542,7 @@ inell.center ≈ circumell.center ≈ centroid(t)
 
 
 The circumellipse is always exactly the image of the inellipse under a
-homothety of ratio `-2` about the centroid — the same ratio that relates a
+homothety of ratio `-2` about the centroid, the same ratio that relates a
 triangle to its own [`medial_triangle`](@ref):
 
 ```@example geo
@@ -565,8 +565,8 @@ Beyond Steiner's, five more classical inscribed ellipses:
 | [`lemoine_inellipse`](@ref) | midpoint of centroid & symmedian point | centroid, symmedian point |
 | [`brocard_inellipse`](@ref) | midpoint of the two Brocard points | second/first Brocard point |
 | [`macbeath_inellipse`](@ref) | midpoint of circumcenter & orthocenter | circumcenter, orthocenter (acute triangles only) |
-| [`mandart_inellipse`](@ref) | [`mittenpunkt`](@ref) | — (fit through 5 points instead, see below) |
-| [`orthic_inellipse`](@ref) | [`symmedian_point`](@ref) | — (acute triangles only) |
+| [`mandart_inellipse`](@ref) | [`mittenpunkt`](@ref) | (fit through 5 points instead, see below) |
+| [`orthic_inellipse`](@ref) | [`symmedian_point`](@ref) | (acute triangles only) |
 
 The first three are bifocal ellipses (see [Conics: Ellipse, Parabola & Hyperbola](@ref)):
 each is pinned down by requiring it pass through one specific extra point
@@ -598,14 +598,14 @@ These take an `APTriangle` and return another `APTriangle` built from it:
 | Function | Vertices are... |
 |:---------|:-----------------|
 | [`medial_triangle`](@ref) | the three edge midpoints |
-| [`anticomplementary_triangle`](@ref) | `B+C-A`, `C+A-B`, `A+B-C` — the inverse of `medial_triangle` (`t` is *its* medial triangle) |
+| [`anticomplementary_triangle`](@ref) | `B+C-A`, `C+A-B`, `A+B-C`: the inverse of `medial_triangle` (`t` is *its* medial triangle) |
 | [`orthic_triangle`](@ref) | the three altitude feet |
 | [`reflection_triangle`](@ref) | each vertex reflected across its *opposite side line* (unlike `orthic_triangle`, which projects instead) |
 | [`contact_triangle`](@ref) | the three points where the incircle touches the sides |
 | [`extouch_triangle`](@ref) | the three points where the excircles touch the sides |
 | [`excentral_triangle`](@ref) | the three excenters |
 | [`tangential_triangle`](@ref) | tangents to the circumcircle at each vertex, pairwise intersected |
-| [`napoleon_triangle`](@ref) | centers of equilateral triangles erected on each side ([`napoleon_point`](@ref) is its centroid — by Napoleon's theorem, always `t`'s own centroid too) |
+| [`napoleon_triangle`](@ref) | centers of equilateral triangles erected on each side ([`napoleon_point`](@ref) is its centroid; by Napoleon's theorem, always `t`'s own centroid too) |
 | [`morley_triangle`](@ref) | intersections of adjacent angle trisectors |
 | [`pedal_triangle`](@ref) | projections of a chosen point onto the three sides |
 | [`cevian_triangle`](@ref) / [`circumcevian_triangle`](@ref) | feet of cevians through a chosen point (extended to the circumcircle, for the latter) |
@@ -615,7 +615,7 @@ mt = medial_triangle(t)
 ```
 
 The medial triangle is always similar to `t` at half scale, sharing its
-centroid — and its own circumcircle is exactly `t`'s nine-point circle.
+centroid, and its own circumcircle is exactly `t`'s nine-point circle.
 
 ```@example geo
 anticomplementary_triangle(mt) ≈ t   # medial_triangle and anticomplementary_triangle are inverses
@@ -656,7 +656,7 @@ on_segment(cev[1], APSegment(t[2], t[3])), on_line(ccev[1], APLine(t[1], incente
 
 [`square_inscribed`](@ref)`(t, i)` builds the square with one side on the
 side opposite `t[i]` and its other two vertices exactly on the two sides
-through `t[i]` — returned as an [`APQuadrilateral`](@ref). There are 3 such
+through `t[i]`, returned as an [`APQuadrilateral`](@ref). There are 3 such
 squares (one per side, hence the vertex index):
 
 ```@example geo
@@ -665,7 +665,7 @@ distance(sq[1], sq[2]), distance(sq[2], sq[3])   # equal: it really is a square
 ```
 
 Its side length is `a*h / (a+h)` (`a` the base length, `h` the
-corresponding height) regardless of how oblique the triangle is — a
+corresponding height) regardless of how oblique the triangle is, a
 classical fact that falls out of simple similar-triangles reasoning once
 you set up coordinates with the base on an axis.
 

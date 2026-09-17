@@ -6,8 +6,8 @@ CurrentModule = Apollonius
 
 [`APStraightNgon`](@ref) is an ordered list of vertices (no repeated
 closing point), assumed to describe a *simple* polygon (edges don't cross
-themselves). It's one member of the [`APPolygon`](@ref) family — the same
-one `APTriangle` and `APQuadrilateral` belong to — so `area`, `perimeter`,
+themselves). It's one member of the [`APPolygon`](@ref) family (the same
+one `APTriangle` and `APQuadrilateral` belong to), so `area`, `perimeter`,
 `centroid`, `is_convex` and `point_in_polygon` are all defined *once*,
 generically, on `APPolygon` itself, rather than reimplemented per type.
 This page also covers a separate, lighter-weight [`APBoundingBox`](@ref)
@@ -25,7 +25,7 @@ vertices(pg)
 ```@example geo
 area(pg)       # 10.5, shoelace formula
 perimeter(pg)  # sum of edge lengths
-centroid(pg)   # area-weighted centroid — not the plain vertex average
+centroid(pg)   # area-weighted centroid, not the plain vertex average
 ```
 
 ```@raw html
@@ -74,10 +74,10 @@ point_in_polygon(APPoint(5.0, 1.0), pg)        # false: strictly outside
 ```
 
 [`point_in_polygon`](@ref) uses the standard ray-casting (even-odd) rule,
-and works the same way for every [`APPolygon`](@ref) — `APTriangle`,
+and works the same way for every [`APPolygon`](@ref): `APTriangle`,
 `APQuadrilateral`, or any curved region from [Circles](@ref). Its one
 sharp edge: a point that lies *exactly* on the boundary can come back as
-either `true` or `false`, depending on which edge and in which direction —
+either `true` or `false`, depending on which edge and in which direction;
 this is a well-known property of ray casting itself, not a bug, so don't
 rely on an exact boundary point going either way.
 
@@ -95,14 +95,14 @@ vertices(hull)
 
 [`convex_hull`](@ref) is Andrew's monotone chain algorithm (`O(n log n)`,
 sorts the points then builds the lower and upper chains in one pass each),
-returning an [`APStraightNgon`](@ref). Points strictly inside the hull —
-like `(2, 1)` above — are simply dropped; duplicate input points are also
+returning an [`APStraightNgon`](@ref). Points strictly inside the hull
+(like `(2, 1)` above) are simply dropped; duplicate input points are also
 removed before the sweep.
 
 ## Bounding boxes
 
-[`APBoundingBox`](@ref) is a separate, minimal type — just two points,
-`.min` and `.max` — for when a full polygon is more machinery than you
+[`APBoundingBox`](@ref) is a separate, minimal type (just two points,
+`.min` and `.max`) for when a full polygon is more machinery than you
 need (a quick overlap test, a viewport, a spatial-indexing key). It has
 constructors from a vector of points, or directly from most shapes in the
 package (`APSegment`, `APTriangle`, `APPolygon`, `APCircle2`, ...):
@@ -124,7 +124,7 @@ bbox_aspect_ratio(bb)             # width / height
 ```
 
 Translating (`+`/`-` an `APPoint`) and scaling (`*` a real number) an
-`APBoundingBox` both return a new, still-valid `APBoundingBox` — scaling by
+`APBoundingBox` both return a new, still-valid `APBoundingBox`: scaling by
 a negative factor still produces `min <= max` correctly, by re-sorting the
 two scaled corners rather than assuming the sign of the factor.
 
@@ -149,7 +149,7 @@ bbox_intersection(bb, bb2)    # the overlapping region itself
 ```
 
 [`distance`](@ref)`(p, bb)` has the same `mode = :region`/`:boundary` pair
-as `distance(p, pg::APPolygon)` above — `0.0` from inside with the default
+as `distance(p, pg::APPolygon)` above: `0.0` from inside with the default
 `:region`, or always the distance to the box's edge with `:boundary`:
 
 ```@example geo
@@ -161,7 +161,7 @@ distance(APPoint(1.0, 1.0), bb; mode=:boundary)   # > 0.0: distance to the neare
 as intersecting. [`bbox_intersection`](@ref) returns `nothing` instead of a
 degenerate box when they don't overlap at all.
 
-[`bbox_union`](@ref) is the other direction — the smallest box containing
+[`bbox_union`](@ref) is the other direction: the smallest box containing
 both, always defined (unlike the intersection, `a`/`b` don't need to
 overlap):
 
@@ -174,12 +174,12 @@ bbox_union(bb, bb2)
 ```
 
 Not everything has a *finite* box to report. [`APPoint`](@ref) gets a real
-but degenerate (zero-size) box at its own location — a point is a
-position, so it can still grow a union — while a plain number, an
+but degenerate (zero-size) box at its own location (a point is a
+position, so it can still grow a union), while a plain number, an
 [`APVector`](@ref) (a direction, not a location), and any unbounded
 curve/region (`APLine`, `APRay`, `APAngle2`, `APHalfPlane2`, `APStrip2`)
 have none at all. `APBoundingBox` returns the special **empty box**,
-[`APBoundingBox()`](@ref), for these — the identity element for
+[`APBoundingBox()`](@ref), for these, the identity element for
 `bbox_union`: unioning it with anything just returns the other box
 unchanged, and [`isempty`](@ref) tells the two apart:
 
@@ -193,7 +193,7 @@ bbox_union(APBoundingBox(5.0), bb) == bb
 
 This is what lets [`@boundingbox`](@ref)/[`@to_luxor_picture`](@ref) (see
 [Transforming in Bulk: Macros](@ref)) call `APBoundingBox` on *every*
-value named in a block — construction helpers included — without needing
+value named in a block (construction helpers included) without needing
 to special-case the ones that were never meant to be drawn or sized.
 
 ## Named polygon constructors
@@ -223,7 +223,7 @@ regular_polygon(APPoint(0.0, 0.0), APPoint(1.0, 0.0), 6)  # a regular hexagon
 ```
 
 `square_on_segment` and `rectangle_on_segment` both take a `ccw` keyword
-(default `true`) to build on the other side of `[a,b]` instead — useful
+(default `true`) to build on the other side of `[a,b]` instead, useful
 when the side you're extending from is itself part of a larger polygon and
 you need to stay outside (or inside) it consistently.
 
@@ -231,7 +231,7 @@ you need to stay outside (or inside) it consistently.
 
 [`APQuadrilateral`](@ref) is a dedicated 4-vertex type (fields `a, b, c,
 d`, taken in order around the shape), distinct from a general
-`APStraightNgon` — it exists because a quadrilateral has its own
+`APStraightNgon`. It exists because a quadrilateral has its own
 well-known named features (a pair of diagonals, a well-defined "is it
 cyclic" question) that don't generalize cleanly to arbitrary polygons.
 
@@ -259,14 +259,14 @@ is_cyclic(q)                     # false: no circle passes through all 4 vertice
 point_in_polygon(APPoint(2.0, 1.0), q)  # true: strictly inside
 ```
 
-There's no separate `point_in_quadrilateral` function — since
+There's no separate `point_in_quadrilateral` function, since
 `APQuadrilateral` is a genuine [`APPolygon`](@ref) rather than an unrelated
 struct, the one generic [`point_in_polygon`](@ref)/`Base.in` already
 covers it, along with every other member of the family.
 
 One thing to watch: [`centroid`](@ref) of an `APQuadrilateral` is the
 plain average of the 4 vertices `(a+b+c+d)/4`, **not** area-weighted like
-the generic `centroid(::APPolygon)` — for a quadrilateral this plain
+the generic `centroid(::APPolygon)`: for a quadrilateral this plain
 average is itself a classical, well-defined point (sometimes called the
 "vertex centroid"), so it's kept simple rather than silently reproducing
 the polygon's weighted version under the same name.

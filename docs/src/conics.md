@@ -4,8 +4,8 @@ CurrentModule = Apollonius
 
 # Conics: Ellipse, Parabola & Hyperbola
 
-Three separate types — [`APEllipse2`](@ref), [`APParabola2`](@ref) and
-[`APHyperbola2`](@ref) — each aligned with a coordinate axis of its own
+Three separate types ([`APEllipse2`](@ref), [`APParabola2`](@ref) and
+[`APHyperbola2`](@ref)) each aligned with a coordinate axis of its own
 (`center`/`angle` for the first two, `focus`/`directrix` for the parabola),
 plus a fifth constructor, [`conic_through_points`](@ref), that fits an
 ellipse or hyperbola through five arbitrary points.
@@ -27,7 +27,7 @@ e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)  # center, semi-axis a, semi-axis b
 ```
 
 `APEllipse2(center, a, b, angle=0.0)` places semi-axis `a` along `angle`
-(radians from the x-axis) and semi-axis `b` perpendicular to it — `a` and
+(radians from the x-axis) and semi-axis `b` perpendicular to it; `a` and
 `b` don't need to be ordered; either can be the longer one. There is also
 the classical **bifocal** constructor:
 
@@ -38,7 +38,7 @@ APEllipse2(APPoint(-4.0, 0.0), APPoint(4.0, 0.0), 5.0)   # foci + semi-major axi
 which throws an `ArgumentError` if `a` isn't greater than half the
 distance between the foci (otherwise no real ellipse has that focal
 distance and semi-major axis). A third form, `APEllipse2(f1, f2, p)`, builds
-the ellipse through a known point `p` instead of a known `a` — computing
+the ellipse through a known point `p` instead of a known `a`, computing
 `a` from the bifocal sum `(|pf1| + |pf2|)/2` first.
 
 ```@example geo
@@ -68,8 +68,8 @@ directrix = APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0))
 par = APParabola2(focus, directrix)
 ```
 
-A parabola only has one natural constructor — the focus/directrix
-definition itself — since (unlike the ellipse/hyperbola) there's no
+A parabola only has one natural constructor (the focus/directrix
+definition itself), since (unlike the ellipse/hyperbola) there's no
 second, equally standard center/axis parametrization to offer as an
 alternative.
 
@@ -90,8 +90,8 @@ point_on_parabola(par, 2.0)
 is_on_parabola(point_on_parabola(par, 2.0), par)   # true, by construction
 ```
 
-The parabola's own [`orthoptic`](@ref) (director curve) is, remarkably,
-exactly its **directrix** — a fact special to the parabola (the ellipse's
+The parabola's own [`orthoptic`](@ref) (director curve) turns out to be
+exactly its **directrix**, a fact special to the parabola (the ellipse's
 and hyperbola's orthoptics are circles, not lines):
 
 ```@example geo
@@ -105,7 +105,7 @@ h = APHyperbola2(APPoint(0.0, 0.0), 3.0, 4.0)  # center, transverse a, conjugate
 ```
 
 `APHyperbola2(center, a, b, angle=0.0)` reads `(x/a)² - (y/b)² = 1` in the
-rotated local frame — `a` is the semi-transverse axis (along `angle`, the
+rotated local frame: `a` is the semi-transverse axis (along `angle`, the
 one that actually meets the curve) and `b` the semi-conjugate axis (which
 doesn't). The bifocal constructor mirrors the ellipse's:
 
@@ -122,7 +122,7 @@ asymptotes(h)   # the two asymptote lines, through the center
 ```
 
 [`orthoptic`](@ref) (the director circle) exists for a hyperbola only when
-`a > b`, with radius `sqrt(a² - b²)` — otherwise there's no point in the
+`a > b`, with radius `sqrt(a² - b²)`; otherwise there's no point in the
 plane from which both tangents can be perpendicular, and it throws an
 `ArgumentError`:
 
@@ -146,7 +146,7 @@ is_on_hyperbola(point_on_hyperbola(h, 0.5), h)   # true, on either branch
 `p in h` (via `Base.in`) is the natural analogue of "inside" for a curve
 that doesn't bound a single finite region: it's true when `p` is on `h`
 itself or beyond either branch (`(x/a)² - (y/b)² >= 1` in the local
-frame) — i.e. on the same side as the curve, rather than in the "waist"
+frame), i.e. on the same side as the curve, rather than in the "waist"
 between the two branches.
 
 ## Points, tangents and duality
@@ -169,11 +169,11 @@ projective-duality construction that makes all of `tangent_points` and
 [Circles](@ref)):
 
 * When `p` is *outside* the curve, its polar is the chord joining the two
-  points where the tangent lines from `p` touch the curve — so
+  points where the tangent lines from `p` touch the curve, so
   `tangent_points` is implemented as simply `intersection(polar_line(conic,
   p), conic)`.
 * When `p` is *on* the curve, its polar line degenerates to the tangent
-  line *at* `p` itself — which is exactly why `tangent_lines` special-cases
+  line *at* `p` itself, which is exactly why `tangent_lines` special-cases
   that situation, rather than returning the degenerate `APLine(p, p)` a
   naive "join `p` to its own tangent point" would give.
 * `polar_line` returns `nothing` at the one truly degenerate input: `p`
@@ -190,7 +190,7 @@ tangent_lines(e, p)
 
 For an `APHyperbola2` specifically, note that being far from the curve doesn't
 guarantee real tangents (or the lack of them) the way it does for an
-ellipse — it depends on which side of which branch `p` sits on;
+ellipse. It depends on which side of which branch `p` sits on;
 `tangent_points`/`tangent_lines` still return an empty vector rather than
 erroring when there are none.
 
@@ -218,8 +218,8 @@ harc = APHyperbolicArc2(h, point_on_hyperbola(h, -0.5), point_on_hyperbola(h, 0.
 harc isa APHyperbolicArc2
 ```
 
-Unlike a circular or elliptic arc — where "the arc from `p1` to `p2`" means
-one of two complementary, closed possibilities — a single hyperbola branch
+Unlike a circular or elliptic arc (where "the arc from `p1` to `p2`" means
+one of two complementary, closed possibilities), a single hyperbola branch
 or a parabola is an *open* curve, so two points on it always determine
 exactly one unambiguous arc; there's no sweep direction to pick. See
 [Drawing with Luxor.jl](@ref) for how all four arc types render (a true
@@ -228,12 +228,12 @@ three, since Luxor has no native primitive for them).
 
 All four arc types (this trio plus [`APCircularArc2`](@ref)) support
 [`reverse`](@ref), swapping `p1`/`p2`. For the *closed* conics
-(`APCircularArc2`/`APEllipticArc2`), this gives the complementary arc — a
+(`APCircularArc2`/`APEllipticArc2`), this gives the complementary arc: a
 genuinely different piece of the curve, "the rest of the way around" (same
 gotcha as [`reverse(::APAngle2)`](@ref): useful when the arc was built from
 points already in a mirrored coordinate space, e.g. after
 [`@to_luxor_picture`](@ref)'s default `flip=true`). For the *open* ones
-(`APParabolicArc2`/`APHyperbolicArc2`), there's no such ambiguity — `reverse`
+(`APParabolicArc2`/`APHyperbolicArc2`), there's no such ambiguity: `reverse`
 just re-parametrizes the same arc in the opposite direction (`point_on_arc(arc,
 t)` becomes `point_on_arc(reverse(arc), 1 - t)`):
 
@@ -247,7 +247,7 @@ reverse(reverse(parc)) == parc, point_on_arc(reverse(parc), 0.0) ≈ parc.p2
 `APEllipse2`/`APHyperbola2`, `center` transforms pointwise; `rotate` adds its
 angle onto `angle` too; `homothety` scales `a`/`b` by `abs(k)` (never
 negative, and never swaps which axis is which) while leaving `angle`
-alone, even for a negative `k` — a homothety, negative ratio included,
+alone, even for a negative `k`: a homothety, negative ratio included,
 never reverses orientation:
 
 ```@example geo
@@ -259,11 +259,11 @@ homothety(e, -2.0)   # a, b both scale by 2 (abs(-2.0)); angle unchanged
 `reflection(::APPoint, about)` itself does:
 
 * `reflection(conic, about::APPoint)` is a point reflection (a 180°
-  rotation) — orientation-preserving, so `angle` is unchanged.
-* `reflection(conic, about::APLine)` is a true mirror — orientation-reversing,
+  rotation): orientation-preserving, so `angle` is unchanged.
+* `reflection(conic, about::APLine)` is a true mirror: orientation-reversing,
   so the new `angle` is `2φ - conic.angle`, where `φ` is the line's own
   angle from the x-axis (not simply `conic.angle` unchanged, nor its
-  negation — the formula accounts for the mirror line's own orientation).
+  negation; the formula accounts for the mirror line's own orientation).
 
 ```@example geo
 reflection(e, APPoint(1.0, 1.0))                              # angle unchanged
@@ -292,14 +292,14 @@ conic_through_points(pts...)
 ```
 
 It throws an `ArgumentError` when the five points don't determine a unique
-conic (a degenerate configuration — e.g. four of them collinear), or when
+conic (a degenerate configuration, e.g. four of them collinear), or when
 they do determine a conic but it's a parabola (discriminant ≈ 0): a
 parabola isn't representable by this function, since it isn't a
 `(center, a, b, angle)`-style object the way the other two are.
 
 Internally, the points are first centered on their own centroid and
 rescaled to unit average distance before the linear system is solved, and
-the fitted center/axes are transformed back afterwards — fitting directly
+the fitted center/axes are transformed back afterwards. Fitting directly
 in the original coordinates would badly ill-condition the underlying
 linear algebra for points far from the origin or spread far apart, since
 the quadratic terms of the conic's equation would then dwarf the linear

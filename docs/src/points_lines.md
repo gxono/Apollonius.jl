@@ -13,7 +13,7 @@ These are the building blocks everything else in the package is made of.
   [`direction`](@ref) returns) without being confused for a location.
   Arithmetic between them stays permissive on purpose: `APPoint - APPoint`
   still gives back an `APPoint` (not a vector), so familiar formulas like
-  `2*about - p` keep working exactly as before — see the table below.
+  `2*about - p` keep working exactly as before. See the table below.
 * A **segment** is a finite piece of straight line between two points:
   [`APSegment`](@ref).
 * A **line** ([`APLine`](@ref)) is the *infinite* straight line through two
@@ -33,14 +33,14 @@ All four are part of the package's own AP-prefixed type hierarchy (see
 | [`APLine`](@ref) | the infinite line through `p1`, `p2` | `l[1]`, `l[2]` (also `.p1`, `.p2`) |
 | [`APRay`](@ref) | the half-line from `origin` through `through` | `r[1]`, `r[2]` (also `.origin`, `.through`) |
 
-None of `APSegment`/`APLine`/`APRay` carry a direction *magnitude* — an
+None of `APSegment`/`APLine`/`APRay` carry a direction *magnitude* (an
 `APLine` through `p1` and `p2` is the same object as the line through `p2`
-and `p1` — but `APSegment` and `APRay` do remember which of their two
+and `p1`), but `APSegment` and `APRay` do remember which of their two
 points comes first, since that is what makes them finite/one-sided in the
 first place.
 
 `APPoint`/`APVector`/`APSegment`/`APLine`/`APRay` all support
-**destructuring** (`x, y = p`, `p1, p2 = s`) for convenience — including
+**destructuring** (`x, y = p`, `p1, p2 = s`) for convenience, including
 flattening a whole collection of them into their defining points at once,
 via `Iterators.flatten`:
 
@@ -80,7 +80,7 @@ distance(O, A)
 
 `distance(O, A)` is `5.0`: with `A = (3, 4)`, this is just the classic
 3-4-5 triangle. `APSegment`, `APLine` and `APRay` all wrap the *same* two
-points here — what differs is only how far they extend and what other
+points here. What differs is only how far they extend and what other
 functions are willing to do with them (e.g. [`on_segment`](@ref) only
 makes sense for an `APSegment`, [`slope_angle`](@ref) treats `APLine` and
 `APRay` as pointing one way and an `APSegment` as pointing from its first
@@ -88,12 +88,12 @@ point to its second).
 
 ## Points vs. vectors
 
-A point minus a point is *still a point*, not a vector — `A - O` above
+A point minus a point is *still a point*, not a vector. `A - O` above
 stays an `APPoint`. This is a deliberate choice: it keeps existing
 point-arithmetic formulas (like a reflection written as `2*about - p`)
 working exactly as they read, without forcing every subtraction through a
-vector type first. Where a genuine *direction* is called for — the
-result of [`direction`](@ref) below, for instance — the package hands
+vector type first. Where a genuine *direction* is called for (the
+result of [`direction`](@ref) below, for instance), the package hands
 back an actual [`APVector`](@ref) instead:
 
 ```@example geo
@@ -102,7 +102,7 @@ typeof(d)
 ```
 
 Both types support the same arithmetic and the standard linear-algebra
-functions `norm`, `dot` and `normalize` — re-exported from `LinearAlgebra`
+functions `norm`, `dot` and `normalize`, re-exported from `LinearAlgebra`
 purely so `using Apollonius` alone is enough to get the full
 vector toolkit, without a separate `using LinearAlgebra`:
 
@@ -114,14 +114,14 @@ dot(d, APVector(1.0, 0.0))   # 3.0
 
 ### Giving a vector a position: `APEquipollentVector`
 
-An `APVector` is deliberately positionless — that's exactly what makes it
+An `APVector` is deliberately positionless. That's exactly what makes it
 the right type for `direction(l)`, a normal, or anything else that's
 purely "which way and how far," never "where." That positionlessness
 means a bare `APVector` has no [`APBoundingBox`](@ref) at all
 (`isempty(APBoundingBox(::APVector))` is always `true`), so it never
 contributes to [`@to_luxor_picture`](@ref)'s fit-to-canvas *sizing*, and
 it can't be shifted into place the way a positioned shape can (there's
-nowhere to shift it *to*) — but it still gets scaled and flipped to the
+nowhere to shift it *to*), but it still gets scaled and flipped to the
 picture's own scale, so `path(v, from=anchor)` (with `v` and `anchor`
 both built inside the same block) comes out at the right length and
 orientation, anchored wherever `anchor` itself lands.
@@ -132,7 +132,7 @@ has no bounding box of its own to size a picture by, can't be
 with a point that's tracked separately alongside it.
 [`APEquipollentVector`](@ref) (the classical "vector equipolente": a
 representative of a free vector, tied to a point of application) is the
-fix for that — it wraps a `vector` and the `point` it's applied at as one
+fix for that. It wraps a `vector` and the `point` it's applied at as one
 object, with a real, non-empty bounding box, and transforms fully like
 any other `APCurve`:
 
@@ -144,7 +144,7 @@ APBoundingBox(ev)                 # a real box now, unlike APBoundingBox(d)
 `tip(ev)` is `ev.point + ev.vector`, computed on demand. `norm`/
 `normalize`/`dot` all work the same way as on a bare `APVector` (acting on
 `ev.vector`; `normalize` keeps `ev.point` fixed), and the usual
-`rotate`/`translate`/`homothety`/`reflection` quartet works too —
+`rotate`/`translate`/`homothety`/`reflection` quartet works too.
 `translate` in particular moves `ev.point`, something a bare `APVector`
 (having no position to begin with) can never do:
 
@@ -161,7 +161,7 @@ homothety(ev, 2.0, O)   # both O and the vector scale together
 ```
 
 [`APVector`](@ref)`(ev)` unwraps back to the bare, positionless vector
-(mirroring `APVector(::APPoint)`), and — more usefully — every
+(mirroring `APVector(::APPoint)`), and, more usefully, every
 [`translate`](@ref) method that already accepts a bare `APVector` accepts
 an `APEquipollentVector` in its place too, driven by `ev.vector` and
 ignoring wherever `ev` itself happens to be anchored; `p + ev` (point
@@ -184,7 +184,7 @@ with [`path`](@ref)`(ev; as=:arrow)` (see
 ## Polar coordinates
 
 [`polar_point`](@ref) builds a point from a distance and an angle (radians,
-counterclockwise from the positive x-axis) instead of `x`/`y` — and
+counterclockwise from the positive x-axis) instead of `x`/`y`, and
 [`polar_point_deg`](@ref) is the same with the angle in degrees. Both
 require an explicit `center` (there's no zero-argument default here, to
 avoid ambiguity with `Real`-only single-argument calls elsewhere in the
@@ -203,7 +203,7 @@ and [`distance`](@ref) give you the other way around:
 ## Direction, slope and predicates
 
 ```@example geo
-direction(l)                    # (3.0, 4.0) — l.p2 - l.p1, as an APVector
+direction(l)                    # (3.0, 4.0): l.p2 - l.p1, as an APVector
 rad2deg(slope_angle(l))         # ≈ 53.13°
 is_collinear(O, A, APPoint(6.0, 8.0))
 on_line(APPoint(6.0, 8.0), l)
@@ -246,7 +246,7 @@ APPoint(6.0, 8.0) in l, APPoint(10.0, 0.0) in r
 ## Distance to a line, segment or ray
 
 [`distance`](@ref) also works between a point and any of `APLine`,
-`APSegment` or `APRay` — the perpendicular distance to the *infinite* line
+`APSegment` or `APRay`: the perpendicular distance to the *infinite* line
 in the first case, but clamped to the finite extent for the other two (so
 a point "past the end" measures to the nearest endpoint, not along the
 infinite extension):
@@ -278,7 +278,7 @@ l = APLine(P, Q)
 C = APPoint(2.0, 6.0)
 
 foot = projection(C, l)      # the perpendicular foot of C on l
-Cref = reflection(C, foot)   # C mirrored through that foot — i.e. across l
+Cref = reflection(C, foot)   # C mirrored through that foot, i.e. across l
 ```
 
 ```@raw html
@@ -287,7 +287,7 @@ Cref = reflection(C, foot)   # C mirrored through that foot — i.e. across l
 
 `projection` also takes an `angle` keyword (radians, default `pi/2`,
 measured counterclockwise from `l`'s own direction) for the **oblique**
-projection of `p` onto `l` — the point where a line through `p` at that
+projection of `p` onto `l`: the point where a line through `p` at that
 angle meets `l`, instead of the perpendicular:
 
 ```@example geo
@@ -295,7 +295,7 @@ projection(C, l; angle=pi / 2) == foot   # pi/2 is the ordinary case
 projection(C, l; angle=pi / 3)            # a genuinely oblique projection
 ```
 
-`angle` must be strictly between `0` and `π` — at either end the
+`angle` must be strictly between `0` and `π`. At either end the
 projecting line would be parallel to `l` itself, so there'd be no single
 intersection point:
 
@@ -319,8 +319,8 @@ map(projection(l), [C, P, Q])   # project a whole collection onto l at once
 [`rotate`](@ref) turns a point about a center by an angle (radians,
 counter-clockwise); [`homothety`](@ref) scales it by a factor `k` about a
 center (`k = -1` is a point reflection, `0 < k < 1` shrinks towards the
-center); [`translate`](@ref) shifts it by an [`APVector`](@ref) — the
-fourth member of this quartet, and the only one with no `center` (a
+center); [`translate`](@ref) shifts it by an [`APVector`](@ref) (the
+fourth member of this quartet, and the only one with no `center`: a
 translation has none). `rotate`/`homothety` default to the origin when no
 center is given.
 
@@ -369,7 +369,7 @@ angle_bisectors(xaxis, yaxis)   # the two diagonals y = x and y = -x
 Under the hood, angles between two vectors come from two free functions:
 [`angle_between`](@ref)`(u, v)` (signed, counterclockwise from `u` to `v`,
 in `(-π, π]`) and [`angle_at`](@ref)`(vertex, p1, p2)` (unsigned, in
-`[0, π]`) — use these directly when you just need a number and not
+`[0, π]`). Use these directly when you just need a number and not
 something to pass around.
 
 ```@example geo
@@ -378,7 +378,7 @@ angle_between(APVector(4.0, 0.0), APVector(0.0, 4.0))   # π/2
 
 [`APAngle2`](@ref) wraps up the "angle at a vertex between two rays" idea
 into a small struct (`vertex`, `a`, `b`) so it can be passed around and
-measured without repeating the three points everywhere —
+measured without repeating the three points everywhere.
 `measure`/`abs` on an `APAngle2` are exactly `angle_between`/`angle_at` on
 its two defining vectors. Unlike a bare number, it's also a genuine
 *region* of the plane (it's part of the [`APSet`](@ref) family): `p in ang`
@@ -391,8 +391,8 @@ O = APPoint(0.0, 0.0)
 P1, P2 = APPoint(4.0, 0.0), APPoint(0.0, 4.0)
 ang = APAngle2(O, P1, P2)
 
-rad2deg(measure(ang))    # 90.0 — signed, counterclockwise from a to b
-abs(ang)                 # 1.5707... — the unsigned angle, in [0, π]
+rad2deg(measure(ang))    # 90.0: signed, counterclockwise from a to b
+abs(ang)                 # 1.5707...: the unsigned angle, in [0, π]
 is_direct(ang)           # true: measure(ang) > 0
 (O + APVector(1.0, 1.0)) in ang   # true: inside the wedge
 ```
@@ -404,12 +404,12 @@ leaves `abs` unchanged:
 
 ```@example geo
 ang2 = APAngle2(O, P2, P1)
-measure(ang2), is_direct(ang2)   # (-π/2, false) — same magnitude, opposite orientation
+measure(ang2), is_direct(ang2)   # (-π/2, false): same magnitude, opposite orientation
 normalized_measure(ang2)          # -π/2 + 2π = 3π/2 rad (270°), shifted into [0, 2π)
 ```
 
 [`reverse`](@ref)`(ang)` does exactly that swap for you (`ang2 == reverse(ang)`
-above) — handy when you've built an `APAngle2` from points that already
+above), handy when you've built an `APAngle2` from points that already
 live in a mirrored coordinate space (e.g. after
 [`@to_luxor_picture`](@ref)'s default `flip=true`, see
 [Drawing with Luxor.jl](@ref)) and need the wedge that matches what you'd
@@ -428,7 +428,7 @@ rays = angle_trisectors(O, P1, P2)   # 2 rays, each 30° apart (a 90° angle, /3
 ```
 
 Both also have an `APAngle2` form, splitting `ang` itself into equal-sized
-`APAngle2` pieces (instead of just the intersecting rays/lines) — handy
+`APAngle2` pieces (instead of just the intersecting rays/lines), handy
 when you want to keep working with wedges rather than unwrap them into
 points again:
 
@@ -450,12 +450,12 @@ distance(APPoint(-1.0, -1.0), ang; mode=:boundary) # distance to the nearer ray
 
 `rotate`, `reflection` and `homothety` transform `vertex`, `a` and `b`
 pointwise, so `abs(ang)` is always preserved, and so is the *sign* of
-`measure` — for every one of them, including `reflection`. That's a
+`measure`, for every one of them, including `reflection`. That's a
 deliberate consequence of `APAngle2` being a real region rather than a bare
 signed value: reflecting about an `APLine` (a true mirror) swaps `a` and
 `b` internally so the wedge comes back as a genuine mirror image of the
 original (not its complement), and that swap is exactly what keeps
-`measure`'s sign unchanged too — the same convention
+`measure`'s sign unchanged too, the same convention
 [`APCircularArc2`](@ref)/[`APEllipticArc2`](@ref) use for the same reason.
 
 ```@example geo
@@ -466,7 +466,7 @@ measure(reflection(ang, APLine(O, APPoint(1.0, 1.0)))) ≈ measure(ang)  # line 
 
 Conversely, `rotate(obj, ang::APAngle2, ...)` goes the other way: it
 rotates some *other* object by `measure(ang)`, driven directly by an
-`APAngle2`'s own measure instead of a bare number — a stand-in for
+`APAngle2`'s own measure instead of a bare number, a stand-in for
 `rotate(obj, measure(ang), ...)`, useful once you already have the angle
 as an `APAngle2` (say, from `angle_between`'s caller building one to
 measure/display it) and don't want to unwrap it by hand first:
@@ -479,7 +479,7 @@ rotate(P1, ang, O) == rotate(P1, measure(ang), O)   # true: same rotation, just 
 
 Given `A`, `B` on a line and a third point `P` on that same line,
 [`harmonic_conjugate`](@ref) returns the point `P'` for which `(A, B; P, P')`
-is a harmonic range — i.e. `P` and `P'` divide `[A,B]` internally and
+is a harmonic range, i.e. `P` and `P'` divide `[A,B]` internally and
 externally in the same ratio. [`golden_ratio_point`](@ref) is the special
 point that divides `[A,B]` in the golden ratio, `A + (B-A)/φ`.
 
@@ -488,7 +488,7 @@ A, B = APPoint(0.0, 0.0), APPoint(8.0, 0.0)
 P = APPoint(2.0, 0.0)
 
 Pgold = golden_ratio_point(A, B)     # ≈ (4.944, 0)
-Pconj = harmonic_conjugate(A, B, P)  # (-4.0, 0) — P's harmonic conjugate
+Pconj = harmonic_conjugate(A, B, P)  # (-4.0, 0): P's harmonic conjugate
 ```
 
 `P'` falls *outside* `[A,B]`, on the opposite side from `B`: that is exactly
@@ -498,7 +498,7 @@ for the other, which is the defining property of a harmonic range.
 ## The Apollonius circle of two points, and concyclic points
 
 [`apollonius_circle`](@ref)`(a, b, k)` is the locus of points `p` with
-`distance(p, a) / distance(p, b) == k` — a genuine circle for any `k != 1`
+`distance(p, a) / distance(p, b) == k`: a genuine circle for any `k != 1`
 (at `k == 1` the locus degenerates to the perpendicular bisector of
 `[a, b]`, a line, so that case throws an `ArgumentError` instead):
 
@@ -522,7 +522,7 @@ end
 ```
 
 [`is_concyclic`](@ref)`(a, b, c, d)` tests whether four points lie on a
-common circle — used internally by [`is_cyclic`](@ref) for a quadrilateral:
+common circle, used internally by [`is_cyclic`](@ref) for a quadrilateral:
 
 ```@example geo
 circ = APCircle2(APPoint(0.0, 0.0), 5.0)

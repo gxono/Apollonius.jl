@@ -5,7 +5,7 @@ CurrentModule = Apollonius
 # Affine Maps
 
 [`APAffineMap`](@ref) (`<: APTransform`, deliberately outside the
-[`APObject`](@ref) tree — see its own docstring) is a general 2D affine
+[`APObject`](@ref) tree; see its own docstring) is a general 2D affine
 transformation, `p -> A*p + t` for a `2×2` matrix `A` (stored as four
 scalars, `a11 a12 a21 a22`) and a translation `t = (tx, ty)`. It
 generalizes [`rotate`](@ref), [`homothety`](@ref), [`reflection`](@ref) and
@@ -16,7 +16,7 @@ function composition (`∘`).
 
 Unlike those four (each always orientation-preserving, or a
 straightforward orientation flip for `reflection`), an `APAffineMap` can
-be a genuine shear or non-uniform scale — so it's also the place where a
+be a genuine shear or non-uniform scale, so it's also the place where a
 few subtleties specific to *general* affine transformations show up:
 circles becoming ellipses, conic arcs sometimes needing their endpoints
 swapped, and circular-arc regions becoming curvilinear. Each is covered
@@ -26,7 +26,7 @@ below.
 
 The general constructor, [`affine_map`](@ref), builds the unique affine
 map sending three given (non-collinear) source points to three chosen
-destination points — the 2D affine analogue of "3 points determine a
+destination points: the 2D affine analogue of "3 points determine a
 transformation":
 
 ```@example geo
