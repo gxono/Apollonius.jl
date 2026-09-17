@@ -148,6 +148,37 @@ using Base.MathConstants: golden
 
         @test sprint(show, s) == "APSegment([0.0, 0.0] -> [4.0, 0.0])"
 
+        @testset "isapprox: APLine (defining points don't matter, only the line does)" begin
+            # same infinite line, defining points nowhere near each other --
+            # a real regression risk if isapprox ever went back to comparing
+            # p1/p2 directly instead of is_parallel + on_line
+            far1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
+            far2 = APLine(APPoint(1000.0, 1000.0), APPoint(1005.0, 1005.0))
+            @test isapprox(far1, far2)
+
+            # same line, opposite parametrization direction
+            @test isapprox(far1, APLine(APPoint(1.0, 1.0), APPoint(0.0, 0.0)))
+
+            # parallel but distinct lines must NOT compare equal
+            @test !isapprox(far1, APLine(APPoint(0.0, 1.0), APPoint(1.0, 2.0)))
+
+            # crossing (non-parallel) lines must NOT compare equal
+            @test !isapprox(far1, APLine(APPoint(0.0, 1.0), APPoint(1.0, 0.0)))
+        end
+
+        @testset "isapprox: APRay (same origin AND same direction, not just parallel)" begin
+            # this used to throw UndefVarError: same_direction not defined --
+            # every case below is a regression test against that
+            base = APRay(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
+            @test isapprox(base, APRay(APPoint(0.0, 0.0), APPoint(2.0, 2.0)))  # same ray, different `through`
+
+            # opposite direction from the same origin is a DIFFERENT ray
+            @test !isapprox(base, APRay(APPoint(0.0, 0.0), APPoint(-1.0, -1.0)))
+
+            # same direction, different origin is also a different ray
+            @test !isapprox(base, APRay(APPoint(1.0, 0.0), APPoint(2.0, 1.0)))
+        end
+
         @testset "projection, distance to a line, reflection" begin
             off = APPoint(2.0, 3.0)
             @test projection(off, l) == APPoint(2.0, 0.0)
@@ -257,6 +288,21 @@ using Base.MathConstants: golden
             @test APBoundingBox(mixed) == APBoundingBox(mixed[2])  # the line contributes nothing
             @test isempty(APBoundingBox(APLine{2,Float64}[]))
             @test_throws ArgumentError APBoundingBox(APPoint{2,Float64}[])
+
+            # any-shaped array of points (not just a Vector) -- what
+            # `reduce(hcat, intersection.(ll, circshift(ll, 1)))` produces
+            pts_matrix = [APPoint(0.0, 0.0) APPoint(1.0, 0.0); APPoint(0.0, 1.0) APPoint(1.0, 1.0)]
+            @test APBoundingBox(pts_matrix) == APBoundingBox(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
+
+            # Tuple/NamedTuple of shapes -- what euler_points/excenters/
+            # excircles/soddy_circles return -- work directly, no `collect` needed
+            @test APBoundingBox((APPoint(0.0, 0.0), APPoint(2.0, 3.0))) ==
+                  APBoundingBox(APPoint(0.0, 0.0), APPoint(2.0, 3.0))
+            named = (A=APPoint(-1.0, 0.0), B=APPoint(1.0, 4.0))
+            @test APBoundingBox(named) == APBoundingBox(APPoint(-1.0, 0.0), APPoint(1.0, 4.0))
+            # a NamedTuple of plain numbers (e.g. exradii) still correctly
+            # contributes nothing, exactly like a bare number would
+            @test isempty(APBoundingBox((A=1.0, B=2.0, C=3.0)))
         end
 
         @testset "3D construction works (forward-compat check)" begin
@@ -4991,7 +5037,7 @@ using Base.MathConstants: golden
             end
         end
 
-        @testset "curved regions (via sides, since they lack vertices)" begin
+        @testset "curved regions (via sides -- vertices(p) is now derived from sides(p))" begin
             point_on_arc_or_seg(s::APSegment, t) = s.p1 + t * (s.p2 - s.p1)
             point_on_arc_or_seg(s, t) = point_on_arc(s, t)
 
@@ -5005,6 +5051,11 @@ using Base.MathConstants: golden
                 p = point_on_arc_or_seg(side, t)
                 @test bb_sec.min[1] - 1e-6 <= p[1] <= bb_sec.max[1] + 1e-6 && bb_sec.min[2] - 1e-6 <= p[2] <= bb_sec.max[2] + 1e-6
             end
+            # vertices(p) == the starting point of each side, in order
+            @test vertices(sec) == [Apollonius._side_p1(s) for s in sides(sec)]
+            @test vertices(sec) == [c.center, arc.p1, arc.p2]
+            seg2 = APCircularSegment2(arc)
+            @test vertices(seg2) == [arc.p1, arc.p2]
 
             asec = APAnnularSector2(arc, 2.0)
             bb_asec = APBoundingBox(asec)

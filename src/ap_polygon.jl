@@ -30,6 +30,16 @@ function sides(p::APPolygon)
     return [APSegment(v[i], v[mod1(i + 1, n)]) for i in 1:n]
 end
 
+"""
+    vertices(p::APPolygon)
+
+The corner points of `p`, in order. Default: the starting point of each of
+`p`'s [`sides`](@ref) — the counterpart of `sides`'s own default above, for
+any curved-region subtype that defines `sides` directly instead of
+`vertices` (see the protocol note above).
+"""
+vertices(pg::APPolygon) = [_side_p1(s) for s in sides(pg)]
+
 _side_p1(s::APSegment) = s.p1
 _side_p2(s::APSegment) = s.p2
 _side_length(s::APSegment) = distance(s.p1, s.p2)

@@ -154,8 +154,9 @@ function Base.isapprox(a::APLine{2}, b::APLine{2}; atol=1e-9, kwargs...)
         on_line(a.p1, b; atol=atol)
 end
 function Base.isapprox(a::APRay, b::APRay; atol=1e-9, kwargs...)
-    isapprox(a.origin, b.origin; atol=atol, kwargs...) &&
-    same_direction(direction(a), direction(b); atol=atol)
+    isapprox(a.origin, b.origin; atol=atol, kwargs...) || return false
+    d1, d2 = direction(a), direction(b)
+    abs(cross2(d1, d2)) <= atol * norm(d1) * norm(d2) && dot(d1, d2) > 0
 end
 Base.show(io::IO, s::APSegment) = print(io, "APSegment(", s.p1, " -> ", s.p2, ")")
 
@@ -512,9 +513,26 @@ function APBoundingBox(points::AbstractVector{<:APPoint{Dim}}) where {Dim}
     hi = APPoint(ntuple(i -> maximum(p[i] for p in points), Dim))
     return APBoundingBox(lo, hi)
 end
-APBoundingBox(points::AbstractVector{<:Tuple}) = APBoundingBox([p for p in points])
+
+# Any other array shape (e.g. the `Matrix{APPoint}` that
+# `reduce(hcat, intersection.(...))` produces) reduces to the vector case.
+APBoundingBox(points::AbstractArray{<:APPoint}) = APBoundingBox(vec(points))
 
 APBoundingBox(s::APSegment) = APBoundingBox([s.p1, s.p2])
+
+"""
+    APBoundingBox(shapes::Union{Tuple,NamedTuple})
+
+The [`bbox_union`](@ref) of a fixed-size group of shapes — e.g. the
+`(A=..., B=..., C=...)` returned by [`excenters`](@ref)/[`excircles`](@ref)
+or the plain 3-tuple returned by [`euler_points`](@ref) — so these work
+directly wherever a single shape would (like inside
+[`@to_luxor_picture`](@ref)) without first calling `collect`.
+"""
+function APBoundingBox(shapes::Union{Tuple,NamedTuple})
+    isempty(shapes) && throw(ArgumentError("APBoundingBox requires at least one shape"))
+    return reduce(bbox_union, APBoundingBox.(values(shapes)))
+end
 
 """
     APBoundingBox(p::APPoint)
