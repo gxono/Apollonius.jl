@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -19,7 +19,7 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    A, B = EGPoint(0.0, 0.0), EGPoint(8.0, 0.0)
+    A, B = APPoint(0.0, 0.0), APPoint(8.0, 0.0)
     ap = apollonius_circle(A, B, 2.0)
     Ptest1, Ptest2 = polar_point_deg.(ap.r, [50.0, 210], ap.center)
 end
@@ -37,8 +37,8 @@ sethue(julia_purple)
 
     setdash(:dash)
     path([
-        EGSegment(A,Ptest1), EGSegment(B,Ptest1),
-        EGSegment(A,Ptest2), EGSegment(B,Ptest2),
+        APSegment(A,Ptest1), APSegment(B,Ptest1),
+        APSegment(A,Ptest2), APSegment(B,Ptest2),
         ], action=:stroke)
     setdash(:solid)
 

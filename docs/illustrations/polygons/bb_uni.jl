@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: Drawing, finish, preview, origin,
     sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, 
@@ -20,12 +20,12 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    pg = EGStraightNgon([EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(4.0, 3.0), EGPoint(1.0, 3.0)])
-    p1, p2 = EGPoint(2.0, 1.0), EGPoint(6.0, 5.0)
+    pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 3.0), APPoint(1.0, 3.0)])
+    p1, p2 = APPoint(2.0, 1.0), APPoint(6.0, 5.0)
 end
 
-bb = EGBoundingBox(pg)
-bb2 = EGBoundingBox([p1, p2])
+bb = APBoundingBox(pg)
+bb2 = APBoundingBox([p1, p2])
 bi = bbox_union(bb, bb2)
 
 begin

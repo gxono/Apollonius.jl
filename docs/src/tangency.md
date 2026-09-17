@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = EuclideanGeometry
+CurrentModule = Apollonius
 ```
 
 # Tangency & Apollonius Problems
@@ -10,7 +10,7 @@ three (a point counts as a "circle" of radius zero to be tangent to, i.e.
 passing through it). There are ten combinations up to symmetry (PPP, LPP,
 LLP, CPP, CLP, CCP, LLL, CLL, CCL, CCC); this package covers the ones that
 involve at least one circle or line (PPP is just
-[`circumcircle`](@ref) of an `EGTriangle`, and LLL is
+[`circumcircle`](@ref) of an `APTriangle`, and LLL is
 [`incenter`](@ref)/[`excenters`](@ref)).
 
 The functions are named by what role the *points* among the three objects
@@ -25,7 +25,7 @@ play:
   all to be tangent to.
 
 Every one of these can return **multiple** solutions (up to 8, for three
-circles), so they all return a `Vector{EGCircle2}` — never a single `EGCircle2`.
+circles), so they all return a `Vector{APCircle2}` — never a single `APCircle2`.
 The given circles themselves are always excluded from the result, even
 when the configuration is symmetric enough that one of them would
 otherwise satisfy the tangency equations too (a circle is degenerately
@@ -39,10 +39,10 @@ placed symmetrically about the perpendicular from their midpoint to `l`
 leaving exactly one genuine circle:
 
 ```@example geo
-using EuclideanGeometry
+using Apollonius
 
-a, b = EGPoint(-3.0, 0.0), EGPoint(3.0, 0.0)
-l = EGLine(EGPoint(-5.0, -4.0), EGPoint(5.0, -4.0))
+a, b = APPoint(-3.0, 0.0), APPoint(3.0, 0.0)
+l = APLine(APPoint(-5.0, -4.0), APPoint(5.0, -4.0))
 
 sols = tangent_circles_through_points(a, b, l)
 length(sols)   # exactly 1, in this symmetric case
@@ -62,8 +62,8 @@ The same function also takes a circle instead of a line as the third,
 tangent-to object:
 
 ```@example geo
-a2, b2 = EGPoint(-2.0, 1.0), EGPoint(2.0, 1.0)
-given_c = EGCircle2(EGPoint(0.0, -3.0), 2.0)
+a2, b2 = APPoint(-2.0, 1.0), APPoint(2.0, 1.0)
+given_c = APCircle2(APPoint(0.0, -3.0), 2.0)
 
 sols_c = tangent_circles_through_points(a2, b2, given_c)
 length(sols_c)   # 2 here: one tangent externally, one internally
@@ -80,9 +80,9 @@ two lines and a circle (`CLL`), two circles and a line (`CCL`), or three
 circles (`CCC`, Apollonius' original problem, below):
 
 ```@example geo
-l1 = EGLine(EGPoint(0.0, 0.0), EGPoint(0.0, 1.0))   # the y-axis
-l2 = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0))   # the x-axis
-c_cll = EGCircle2(EGPoint(6.0, 6.0), 2.0)
+l1 = APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0))   # the y-axis
+l2 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))   # the x-axis
+c_cll = APCircle2(APPoint(6.0, 6.0), 2.0)
 
 sols_cll = tangent_circles(l1, l2, c_cll)
 length(sols_cll)   # 4
@@ -94,9 +94,9 @@ length(sols_cll)   # 4
 
 
 ```@example geo
-c1_ccl = EGCircle2(EGPoint(0.0, 0.0), 2.0)
-c2_ccl = EGCircle2(EGPoint(6.0, 0.0), 2.0)
-l_ccl = EGLine(EGPoint(0.0, -3.0), EGPoint(1.0, -3.0))
+c1_ccl = APCircle2(APPoint(0.0, 0.0), 2.0)
+c2_ccl = APCircle2(APPoint(6.0, 0.0), 2.0)
+l_ccl = APLine(APPoint(0.0, -3.0), APPoint(1.0, -3.0))
 
 sols_ccl = tangent_circles(c1_ccl, c2_ccl, l_ccl)
 length(sols_ccl)   # 6
@@ -114,8 +114,8 @@ independently be internal or external.
 
 ```@example geo
 R = 3.0
-centers = [EGPoint(R * cos(pi / 2 + 2pi * k / 3), R * sin(pi / 2 + 2pi * k / 3)) for k in 0:2]
-given = [EGCircle2(centers[k+1], 1.0) for k in 0:2]
+centers = [APPoint(R * cos(pi / 2 + 2pi * k / 3), R * sin(pi / 2 + 2pi * k / 3)) for k in 0:2]
+given = [APCircle2(centers[k+1], 1.0) for k in 0:2]
 
 sols3 = tangent_circles(given[1], given[2], given[3])
 length(sols3)   # 8 solutions
@@ -144,14 +144,14 @@ Three *mutually* tangent circles (each pair, not just each with a third
 common circle) leave a curvilinear-triangle-shaped gap between them —
 called an **interstice** in this context (the same term used for the gaps
 of an [Apollonian gasket](https://en.wikipedia.org/wiki/Apollonian_gasket)).
-[`interstices`](@ref) returns it (or them — see below) as a `Vector{EGInterstice2}`,
-each one bounded by three [`EGCircularArc2`](@ref)s, one per circle:
+[`interstices`](@ref) returns it (or them — see below) as a `Vector{APInterstice2}`,
+each one bounded by three [`APCircularArc2`](@ref)s, one per circle:
 
 ```@example geo
-c1 = EGCircle2(EGPoint(0.0, 0.0), 40.0)
-c2 = EGCircle2(EGPoint(90.0, 0.0), 50.0)   # tangent to c1: distance 90 == 40 + 50
-c3_center = intersection(EGCircle2(c1.center, c1.r + 35.0), EGCircle2(c2.center, c2.r + 35.0))[1]
-c3 = EGCircle2(c3_center, 35.0)            # tangent to both c1 and c2
+c1 = APCircle2(APPoint(0.0, 0.0), 40.0)
+c2 = APCircle2(APPoint(90.0, 0.0), 50.0)   # tangent to c1: distance 90 == 40 + 50
+c3_center = intersection(APCircle2(c1.center, c1.r + 35.0), APCircle2(c2.center, c2.r + 35.0))[1]
+c3 = APCircle2(c3_center, 35.0)            # tangent to both c1 and c2
 
 gaps = interstices(c1, c2, c3)
 length(gaps)   # 1: an externally tangent "chain" of 3 has exactly one gap
@@ -175,10 +175,10 @@ other), the two inner circles' own tangency point splits the gap into
 
 ```@example geo
 R = 100.0
-big = EGCircle2(EGPoint(0.0, 0.0), R)
-A = EGCircle2(polar_point_deg(R - 25.0, 100.0, big.center), 25.0) # inside big, tangent to it
-B_center = intersection(EGCircle2(big.center, R - 45.0), EGCircle2(A.center, A.r + 45.0))[1]
-B = EGCircle2(B_center, 45.0)                                       # inside big, tangent to it and to A
+big = APCircle2(APPoint(0.0, 0.0), R)
+A = APCircle2(polar_point_deg(R - 25.0, 100.0, big.center), 25.0) # inside big, tangent to it
+B_center = intersection(APCircle2(big.center, R - 45.0), APCircle2(A.center, A.r + 45.0))[1]
+B = APCircle2(B_center, 45.0)                                       # inside big, tangent to it and to A
 
 length(interstices(big, A, B))   # 2
 ```
@@ -192,7 +192,7 @@ the second case, correctly splits the gap in two) on its own — the order
 `c1`, `c2`, `c3` are given in never matters. It throws an `ArgumentError`
 if the three circles aren't all pairwise tangent to begin with.
 
-An `EGInterstice2`'s [`area`](@ref) is computed via a Green's-theorem line
+An `APInterstice2`'s [`area`](@ref) is computed via a Green's-theorem line
 integral around its three arcs rather than a "straight triangle plus or
 minus circular segments" formula — the latter needs an extra inside/outside
 decision per arc that breaks down for very unequal arc sizes (as in the
@@ -203,9 +203,9 @@ area(gaps[1])
 perimeter(gaps[1])   # the three arcs' arc_length, summed
 ```
 
-`rotate`, `reflection` and `homothety` all work on an `EGInterstice2` too —
+`rotate`, `reflection` and `homothety` all work on an `APInterstice2` too —
 each of the three arcs transforms on its own, and (since each does so
-correctly regardless of orientation, see [`reflection(::EGCircularArc2, _)`](@ref)
+correctly regardless of orientation, see [`reflection(::APCircularArc2, _)`](@ref)
 above) they still connect end to end afterward into the transformed gap.
 
 ## Through a point, tangent to two objects
@@ -215,9 +215,9 @@ above) they still connect end to end afterward into the transformed gap.
 to two circles and passing through a chosen point between them:
 
 ```@example geo
-c1 = EGCircle2(EGPoint(-4.0, 0.0), 1.5)
-c2 = EGCircle2(EGPoint(4.0, 0.0), 1.5)
-p = EGPoint(0.0, 1.0)
+c1 = APCircle2(APPoint(-4.0, 0.0), 1.5)
+c2 = APCircle2(APPoint(4.0, 0.0), 1.5)
+p = APPoint(0.0, 1.0)
 
 sols_p = tangent_circles_through_point(c1, c2, p)
 length(sols_p)
@@ -236,8 +236,8 @@ asks for circles of exactly that radius tangent to two lines, a line and a
 circle, or two circles:
 
 ```@example geo
-l1 = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))   # the y-axis
-l2 = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0))   # the x-axis
+l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))   # the y-axis
+l2 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))   # the x-axis
 sols_r = tangent_circles_with_radius(l1, l2, 3.0)   # radius 3, tangent to both axes
 length(sols_r), all(s -> s.r == 3.0, sols_r)   # 4 solutions, one per quadrant
 ```
@@ -258,7 +258,7 @@ distance `r`" into "passes through `l` shifted by `±r`", then intersecting
 those shifted lines/circles directly:
 
 ```@example geo
-offset_line(l1, 3.0) == EGLine(EGPoint(-3.0, 0.0), EGPoint(-3.0, 1.0))   # shifted left of p1->p2
+offset_line(l1, 3.0) == APLine(APPoint(-3.0, 0.0), APPoint(-3.0, 1.0))   # shifted left of p1->p2
 ```
 
 ## Related helpers

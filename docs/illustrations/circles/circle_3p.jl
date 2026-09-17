@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -16,8 +16,8 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    A, B, C = EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(0.0, 3.0)
-    circ = EGCircle2(A, B, C)
+    A, B, C = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0)
+    circ = APCircle2(A, B, C)
 end
 
 begin

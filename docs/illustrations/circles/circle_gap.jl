@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -17,9 +17,9 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    u1 = EGCircle2(EGPoint(0.0, 0.0), 1.0)
-    u2 = EGCircle2(EGPoint(2.0, 0.0), 1.0)
-    u3 = EGCircle2(EGPoint(1.0, sqrt(3)), 1.0)
+    u1 = APCircle2(APPoint(0.0, 0.0), 1.0)
+    u2 = APCircle2(APPoint(2.0, 0.0), 1.0)
+    u3 = APCircle2(APPoint(1.0, sqrt(3)), 1.0)
 
     gap = only(interstices(u1, u2, u3))
 end

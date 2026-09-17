@@ -1,11 +1,11 @@
 ```@meta
-CurrentModule = EuclideanGeometry
+CurrentModule = Apollonius
 ```
 
 # Conics: Ellipse, Parabola & Hyperbola
 
-Three separate types — [`EGEllipse2`](@ref), [`EGParabola2`](@ref) and
-[`EGHyperbola2`](@ref) — each aligned with a coordinate axis of its own
+Three separate types — [`APEllipse2`](@ref), [`APParabola2`](@ref) and
+[`APHyperbola2`](@ref) — each aligned with a coordinate axis of its own
 (`center`/`angle` for the first two, `focus`/`directrix` for the parabola),
 plus a fifth constructor, [`conic_through_points`](@ref), that fits an
 ellipse or hyperbola through five arbitrary points.
@@ -13,7 +13,7 @@ ellipse or hyperbola through five arbitrary points.
 All three conic types share the same *shape* of API, since they share the
 same underlying pattern (a curve defined by an equation in its own local
 frame, plus a point/line duality): `point_on_*`, `is_on_*`, `intersection`
-with an `EGLine`, `polar_line`, `tangent_points` and `tangent_lines` all exist
+with an `APLine`, `polar_line`, `tangent_points` and `tangent_lines` all exist
 for each of the three, with the same meaning throughout. That shared
 behavior is described once, in [Points, tangents and duality](@ref), rather
 than three times.
@@ -21,23 +21,23 @@ than three times.
 ## Ellipse
 
 ```@example geo
-using EuclideanGeometry
+using Apollonius
 
-e = EGEllipse2(EGPoint(0.0, 0.0), 5.0, 3.0)  # center, semi-axis a, semi-axis b
+e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)  # center, semi-axis a, semi-axis b
 ```
 
-`EGEllipse2(center, a, b, angle=0.0)` places semi-axis `a` along `angle`
+`APEllipse2(center, a, b, angle=0.0)` places semi-axis `a` along `angle`
 (radians from the x-axis) and semi-axis `b` perpendicular to it — `a` and
 `b` don't need to be ordered; either can be the longer one. There is also
 the classical **bifocal** constructor:
 
 ```@example geo
-EGEllipse2(EGPoint(-4.0, 0.0), EGPoint(4.0, 0.0), 5.0)   # foci + semi-major axis a
+APEllipse2(APPoint(-4.0, 0.0), APPoint(4.0, 0.0), 5.0)   # foci + semi-major axis a
 ```
 
 which throws an `ArgumentError` if `a` isn't greater than half the
 distance between the foci (otherwise no real ellipse has that focal
-distance and semi-major axis). A third form, `EGEllipse2(f1, f2, p)`, builds
+distance and semi-major axis). A third form, `APEllipse2(f1, f2, p)`, builds
 the ellipse through a known point `p` instead of a known `a` — computing
 `a` from the bifocal sum `(|pf1| + |pf2|)/2` first.
 
@@ -48,8 +48,8 @@ foci(e)        # the two focus points, as a 2-tuple
 ```
 
 ```@example geo
-is_on_ellipse(EGPoint(5.0, 0.0), e)   # true: exactly at the end of the major axis
-is_on_ellipse(EGPoint(1.0, 1.0), e)   # false: strictly inside
+is_on_ellipse(APPoint(5.0, 0.0), e)   # true: exactly at the end of the major axis
+is_on_ellipse(APPoint(1.0, 1.0), e)   # false: strictly inside
 ```
 
 [`orthoptic`](@ref) is the **director circle**: the locus of points from
@@ -57,15 +57,15 @@ which the two tangent lines to `e` are perpendicular. For an ellipse it's
 always a real circle, of radius `sqrt(a² + b²)`, centered at `e.center`.
 
 ```@example geo
-orthoptic(e)   # EGCircle2(center, sqrt(5^2+3^2)) ≈ EGCircle2(center, 5.83)
+orthoptic(e)   # APCircle2(center, sqrt(5^2+3^2)) ≈ APCircle2(center, 5.83)
 ```
 
 ## Parabola
 
 ```@example geo
-focus = EGPoint(0.0, 1.0)
-directrix = EGLine(EGPoint(-5.0, -1.0), EGPoint(5.0, -1.0))
-par = EGParabola2(focus, directrix)
+focus = APPoint(0.0, 1.0)
+directrix = APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0))
+par = APParabola2(focus, directrix)
 ```
 
 A parabola only has one natural constructor — the focus/directrix
@@ -101,16 +101,16 @@ orthoptic(par) == par.directrix
 ## Hyperbola
 
 ```@example geo
-h = EGHyperbola2(EGPoint(0.0, 0.0), 3.0, 4.0)  # center, transverse a, conjugate b
+h = APHyperbola2(APPoint(0.0, 0.0), 3.0, 4.0)  # center, transverse a, conjugate b
 ```
 
-`EGHyperbola2(center, a, b, angle=0.0)` reads `(x/a)² - (y/b)² = 1` in the
+`APHyperbola2(center, a, b, angle=0.0)` reads `(x/a)² - (y/b)² = 1` in the
 rotated local frame — `a` is the semi-transverse axis (along `angle`, the
 one that actually meets the curve) and `b` the semi-conjugate axis (which
 doesn't). The bifocal constructor mirrors the ellipse's:
 
 ```@example geo
-EGHyperbola2(EGPoint(-5.0, 0.0), EGPoint(5.0, 0.0), 3.0)   # foci + semi-transverse axis a
+APHyperbola2(APPoint(-5.0, 0.0), APPoint(5.0, 0.0), 3.0)   # foci + semi-transverse axis a
 ```
 
 throwing instead when `a` isn't *less* than half the focal distance (the
@@ -127,7 +127,7 @@ plane from which both tangents can be perpendicular, and it throws an
 `ArgumentError`:
 
 ```@example geo
-orthoptic(EGHyperbola2(EGPoint(0.0, 0.0), 5.0, 3.0))   # a > b: EGCircle2 of radius sqrt(25-9) = 4
+orthoptic(APHyperbola2(APPoint(0.0, 0.0), 5.0, 3.0))   # a > b: APCircle2 of radius sqrt(25-9) = 4
 ```
 
 [`point_on_hyperbola`](@ref) parametrizes one branch at a time
@@ -152,20 +152,20 @@ between the two branches.
 ## Points, tangents and duality
 
 The following table applies to all three types (write `conic` for whichever
-of `EGEllipse2`, `EGParabola2` or `EGHyperbola2` you're using):
+of `APEllipse2`, `APParabola2` or `APHyperbola2` you're using):
 
 | Function | Meaning |
 |:---------|:--------|
 | `point_on_conic(conic, param)` | a point on the curve at the given parameter |
 | `is_on_conic(p, conic)` | is `p` exactly on the curve? |
-| `intersection(l, conic)` | 0, 1 or 2 points where an `EGLine` crosses the curve |
+| `intersection(l, conic)` | 0, 1 or 2 points where an `APLine` crosses the curve |
 | `polar_line(conic, p)` | the polar line of `p` (see below) |
 | `tangent_points(conic, p)` | the point(s) of tangency of the line(s) from `p` |
 | `tangent_lines(conic, p)` | the tangent line(s) themselves |
 
 The **polar line** of a point `p` with respect to a conic is the
 projective-duality construction that makes all of `tangent_points` and
-`tangent_lines` work uniformly, for every conic (including `EGCircle2`, see
+`tangent_lines` work uniformly, for every conic (including `APCircle2`, see
 [Circles](@ref)):
 
 * When `p` is *outside* the curve, its polar is the chord joining the two
@@ -174,7 +174,7 @@ projective-duality construction that makes all of `tangent_points` and
   p), conic)`.
 * When `p` is *on* the curve, its polar line degenerates to the tangent
   line *at* `p` itself — which is exactly why `tangent_lines` special-cases
-  that situation, rather than returning the degenerate `EGLine(p, p)` a
+  that situation, rather than returning the degenerate `APLine(p, p)` a
   naive "join `p` to its own tangent point" would give.
 * `polar_line` returns `nothing` at the one truly degenerate input: `p`
   being the ellipse/hyperbola's center (an ellipse's or hyperbola's polar
@@ -183,12 +183,12 @@ projective-duality construction that makes all of `tangent_points` and
   curve at all).
 
 ```@example geo
-p = EGPoint(13.0, 0.0)
+p = APPoint(13.0, 0.0)
 tangent_points(e, p)
 tangent_lines(e, p)
 ```
 
-For an `EGHyperbola2` specifically, note that being far from the curve doesn't
+For an `APHyperbola2` specifically, note that being far from the curve doesn't
 guarantee real tangents (or the lack of them) the way it does for an
 ellipse — it depends on which side of which branch `p` sits on;
 `tangent_points`/`tangent_lines` still return an empty vector rather than
@@ -196,26 +196,26 @@ erroring when there are none.
 
 ## Arcs of a conic
 
-[`EGEllipticArc2`](@ref), [`EGParabolicArc2`](@ref) and
-[`EGHyperbolicArc2`](@ref) are the finite-arc analogues of
-[`EGCircularArc2`](@ref) (see [Circles](@ref)) for these three conics: each
+[`APEllipticArc2`](@ref), [`APParabolicArc2`](@ref) and
+[`APHyperbolicArc2`](@ref) are the finite-arc analogues of
+[`APCircularArc2`](@ref) (see [Circles](@ref)) for these three conics: each
 holds the underlying conic plus two points `p1`/`p2` on it, and
 [`point_on_arc`](@ref)/[`arc_length`](@ref) work on all four arc types
 uniformly:
 
 ```@example geo
-earc = EGEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
+earc = APEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
 point_on_arc(earc, 0.0) ≈ earc.p1, point_on_arc(earc, 1.0) ≈ earc.p2
 ```
 
 ```@example geo
-parc = EGParabolicArc2(par, point_on_parabola(par, -3.0), point_on_parabola(par, 3.0))
+parc = APParabolicArc2(par, point_on_parabola(par, -3.0), point_on_parabola(par, 3.0))
 arc_length(parc) > distance(parc.p1, parc.p2)   # the arc is always longer than its chord
 ```
 
 ```@example geo
-harc = EGHyperbolicArc2(h, point_on_hyperbola(h, -0.5), point_on_hyperbola(h, 0.5))
-harc isa EGHyperbolicArc2
+harc = APHyperbolicArc2(h, point_on_hyperbola(h, -0.5), point_on_hyperbola(h, 0.5))
+harc isa APHyperbolicArc2
 ```
 
 Unlike a circular or elliptic arc — where "the arc from `p1` to `p2`" means
@@ -226,14 +226,14 @@ exactly one unambiguous arc; there's no sweep direction to pick. See
 Cairo primitive for the circular case, a sampled polyline for the other
 three, since Luxor has no native primitive for them).
 
-All four arc types (this trio plus [`EGCircularArc2`](@ref)) support
+All four arc types (this trio plus [`APCircularArc2`](@ref)) support
 [`reverse`](@ref), swapping `p1`/`p2`. For the *closed* conics
-(`EGCircularArc2`/`EGEllipticArc2`), this gives the complementary arc — a
+(`APCircularArc2`/`APEllipticArc2`), this gives the complementary arc — a
 genuinely different piece of the curve, "the rest of the way around" (same
-gotcha as [`reverse(::EGAngle2)`](@ref): useful when the arc was built from
+gotcha as [`reverse(::APAngle2)`](@ref): useful when the arc was built from
 points already in a mirrored coordinate space, e.g. after
 [`@to_luxor_picture`](@ref)'s default `flip=true`). For the *open* ones
-(`EGParabolicArc2`/`EGHyperbolicArc2`), there's no such ambiguity — `reverse`
+(`APParabolicArc2`/`APHyperbolicArc2`), there's no such ambiguity — `reverse`
 just re-parametrizes the same arc in the opposite direction (`point_on_arc(arc,
 t)` becomes `point_on_arc(reverse(arc), 1 - t)`):
 
@@ -244,7 +244,7 @@ reverse(reverse(parc)) == parc, point_on_arc(reverse(parc), 0.0) ≈ parc.p2
 ## Transforming conics
 
 `rotate`, `reflection` and `homothety` work on all three types. For
-`EGEllipse2`/`EGHyperbola2`, `center` transforms pointwise; `rotate` adds its
+`APEllipse2`/`APHyperbola2`, `center` transforms pointwise; `rotate` adds its
 angle onto `angle` too; `homothety` scales `a`/`b` by `abs(k)` (never
 negative, and never swaps which axis is which) while leaving `angle`
 alone, even for a negative `k` — a homothety, negative ratio included,
@@ -256,22 +256,22 @@ homothety(e, -2.0)   # a, b both scale by 2 (abs(-2.0)); angle unchanged
 ```
 
 `reflection` needs two separate methods here, the same way the base
-`reflection(::EGPoint, about)` itself does:
+`reflection(::APPoint, about)` itself does:
 
-* `reflection(conic, about::EGPoint)` is a point reflection (a 180°
+* `reflection(conic, about::APPoint)` is a point reflection (a 180°
   rotation) — orientation-preserving, so `angle` is unchanged.
-* `reflection(conic, about::EGLine)` is a true mirror — orientation-reversing,
+* `reflection(conic, about::APLine)` is a true mirror — orientation-reversing,
   so the new `angle` is `2φ - conic.angle`, where `φ` is the line's own
   angle from the x-axis (not simply `conic.angle` unchanged, nor its
   negation — the formula accounts for the mirror line's own orientation).
 
 ```@example geo
-reflection(e, EGPoint(1.0, 1.0))                              # angle unchanged
-reflection(e, EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0)))       # angle: 2φ - e.angle
+reflection(e, APPoint(1.0, 1.0))                              # angle unchanged
+reflection(e, APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))       # angle: 2φ - e.angle
 ```
 
-An `EGParabola2` is entirely determined by its `focus` and `directrix`, and
-both already transform correctly on their own (an `EGPoint` and an `EGLine`),
+An `APParabola2` is entirely determined by its `focus` and `directrix`, and
+both already transform correctly on their own (an `APPoint` and an `APLine`),
 so its `rotate`/`reflection`/`homothety` just transform each of the two
 and rebuild:
 
@@ -282,12 +282,12 @@ rotate(par, pi / 4)
 ## Fitting a conic through five points
 
 [`conic_through_points`](@ref) takes five points in general position and
-returns the unique `EGEllipse2` or `EGHyperbola2` passing through all of them
+returns the unique `APEllipse2` or `APHyperbola2` passing through all of them
 (five points determine a conic, the same way three determine a circle or
 two a line):
 
 ```@example geo
-pts = [point_on_ellipse(EGEllipse2(EGPoint(1.0, 2.0), 6.0, 4.0, 0.3), t) for t in (0.1, 1.0, 2.0, 3.0, 4.5)]
+pts = [point_on_ellipse(APEllipse2(APPoint(1.0, 2.0), 6.0, 4.0, 0.3), t) for t in (0.1, 1.0, 2.0, 3.0, 4.5)]
 conic_through_points(pts...)
 ```
 

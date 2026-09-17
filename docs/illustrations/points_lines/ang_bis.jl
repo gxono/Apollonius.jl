@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -19,9 +19,9 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    P, Q, C = EGPoint(1.0, 1.0), EGPoint(6.0, 3.0), EGPoint(3.0, 6.0)
-    l1 = EGLine(P,Q)
-    l2 = EGLine(C,Q)
+    P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(3.0, 6.0)
+    l1 = APLine(P,Q)
+    l2 = APLine(C,Q)
     lb1, lb2 = angle_bisectors(l1, l2)
 end
 

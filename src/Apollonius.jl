@@ -1,119 +1,119 @@
-module EuclideanGeometry
+module Apollonius
 
 using LinearAlgebra: norm, dot, normalize, nullspace
 import LinearAlgebra
 
-# The EGPoint/EGVector primitives and the abstract type hierarchy
-# (EGObject/EGLocus/EGCurve/EGSet/EGRegion/EGPolygon/EGTransform) that
+# The APPoint/APVector primitives and the abstract type hierarchy
+# (APObject/APLocus/APCurve/APSet/APRegion/APPolygon/APTransform) that
 # everything else in the package builds on.
-include("eg_point.jl")
-export EGObject, EGLocus, EGCurve, EGSet, EGRegion, EGPolygon, EGPolyhedron, EGSurface, EGTransform
-export EGPoint, EGVector
+include("ap_point.jl")
+export APObject, APLocus, APCurve, APSet, APRegion, APPolygon, APPolyhedron, APSurface, APTransform
+export APPoint, APVector
 
-include("eg_primitives.jl")
-export EGSegment, EGLine, EGRay, EGBoundingBox
+include("ap_primitives.jl")
+export APSegment, APLine, APRay, APBoundingBox
 
-# EGEquipollentVector: a free EGVector applied at a point -- unlike a bare
-# EGVector (deliberately positionless), this one has a real
-# EGBoundingBox and transforms fully (including being scaled by
+# APEquipollentVector: a free APVector applied at a point -- unlike a bare
+# APVector (deliberately positionless), this one has a real
+# APBoundingBox and transforms fully (including being scaled by
 # homothety), so it's the type to reach for whenever a vector needs to be
 # drawn correctly inside @to_luxor_picture.
-include("eg_equipollent_vector.jl")
-export EGEquipollentVector, tip
+include("ap_equipollent_vector.jl")
+export APEquipollentVector, tip
 
-# 3D geometry (EGPlane3/EGSphere3, 3D unbounded sets, EGPolyhedron and its
+# 3D geometry (APPlane3/APSphere3, 3D unbounded sets, APPolyhedron and its
 # concrete solids, 3D conics, quadric surfaces, 3D curved regions,
-# EGAffineMap3) is PAUSED -- see PLAN/ARCHITECTURE.md. The focus for now
+# APAffineMap3) is PAUSED -- see PLAN/ARCHITECTURE.md. The focus for now
 # is 2D only; the files themselves are untracked (see .gitignore) rather
 # than deleted, so this whole block is commented out instead of removed.
 # Re-enable by uncommenting once 3D work resumes.
-# include("eg_plane.jl")
-# export EGPlane3, EGSphere3, EGCircle3
+# include("ap_plane.jl")
+# export APPlane3, APSphere3, APCircle3
 # export on_plane, on_sphere, side_of_plane, volume, surface_area, plane
 #
-# include("eg_unbounded3.jl")
-# export EGHalfSpace3, EGSlab3, EGDihedralAngle3, EGPolyhedralAngle3
+# include("ap_unbounded3.jl")
+# export APHalfSpace3, APSlab3, APDihedralAngle3, APPolyhedralAngle3
 # export slab_width, solid_angle
 
-include("eg_polygon.jl")
-export EGTriangle, EGQuadrilateral, EGStraightNgon
+include("ap_polygon.jl")
+export APTriangle, APQuadrilateral, APStraightNgon
 
-# EGPolyhedron: the flat-faced-solid sibling of EGPolygon, one dimension
-# up -- needs EGTriangle/EGQuadrilateral/EGStraightNgon above (its
+# APPolyhedron: the flat-faced-solid sibling of APPolygon, one dimension
+# up -- needs APTriangle/APQuadrilateral/APStraightNgon above (its
 # concrete faces) already defined. Paused along with the rest of 3D.
-# include("eg_polyhedron.jl")
-# export EGTetrahedron3, EGParallelepiped3, EGPyramid3, EGPrism3, EGGeneralPolyhedron3
+# include("ap_polyhedron.jl")
+# export APTetrahedron3, APParallelepiped3, APPyramid3, APPrism3, APGeneralPolyhedron3
 # export faces, box3, cube3
 #
-# include("eg_named_polyhedra.jl")
+# include("ap_named_polyhedra.jl")
 # export regular_tetrahedron3, regular_octahedron3
 #
-# include("eg_curved_solid.jl")
-# export EGCylinder3, EGCone3
+# include("ap_curved_solid.jl")
+# export APCylinder3, APCone3
 # export height, slant_height, caps, base
 
-include("eg_conic.jl")
-export EGCircle2, EGEllipse2, EGParabola2, EGHyperbola2
-export EGCircularArc2, EGEllipticArc2, EGParabolicArc2, EGHyperbolicArc2
+include("ap_conic.jl")
+export APCircle2, APEllipse2, APParabola2, APHyperbola2
+export APCircularArc2, APEllipticArc2, APParabolicArc2, APHyperbolicArc2
 
 # 3D conics/quadrics/curved regions -- paused along with the rest of 3D.
-# include("eg_conic3.jl")
-# export EGEllipse3, EGParabola3, EGHyperbola3
-# export EGCircularArc3, EGEllipticArc3, EGParabolicArc3, EGHyperbolicArc3
+# include("ap_conic3.jl")
+# export APEllipse3, APParabola3, APHyperbola3
+# export APCircularArc3, APEllipticArc3, APParabolicArc3, APHyperbolicArc3
 # export point_on_circle3, is_on_circle3
 # export point_on_ellipse3, is_on_ellipse3
 # export point_on_hyperbola3, is_on_hyperbola3
 # export point_on_parabola3, is_on_parabola3
 #
-# include("eg_quadric.jl")
-# export EGEllipsoid3, EGParaboloid3, EGHyperboloid3, EGHyperbolicParaboloid3
+# include("ap_quadric.jl")
+# export APEllipsoid3, APParaboloid3, APHyperboloid3, APHyperbolicParaboloid3
 # export point_on_ellipsoid3, is_on_ellipsoid3
 # export point_on_paraboloid3, is_on_paraboloid3
 # export point_on_hyperboloid3, is_on_hyperboloid3
 # export point_on_hyperbolic_paraboloid3, is_on_hyperbolic_paraboloid3
 #
-# include("eg_curved_region3.jl")
-# export EGCircularSector3, EGCircularSegment3, EGAnnularSector3
+# include("ap_curved_region3.jl")
+# export APCircularSector3, APCircularSegment3, APAnnularSector3
 
 # intersection/polar_line/tangent_points/tangent_lines for
-# EGEllipse2/EGHyperbola2/EGParabola2 — split out from eg_conic.jl since
+# APEllipse2/APHyperbola2/APParabola2 — split out from ap_conic.jl since
 # they need `intersection` on lines/circles, defined later in this file.
-include("eg_conic_tangency.jl")
+include("ap_conic_tangency.jl")
 
-include("eg_curved_region.jl")
-export EGCircularSector2, EGCircularSegment2, EGAnnularSector2, EGInterstice2
-export EGCurvilinearTriangle2, EGCurvilinearQuadrilateral2, EGCurvilinearNgon2
+include("ap_curved_region.jl")
+export APCircularSector2, APCircularSegment2, APAnnularSector2, APInterstice2
+export APCurvilinearTriangle2, APCurvilinearQuadrilateral2, APCurvilinearNgon2
 
-include("eg_polyline.jl")
-export EGPolyline2, EGCurvilinearPolyline2
+include("ap_polyline.jl")
+export APPolyline2, APCurvilinearPolyline2
 
-include("eg_unbounded.jl")
-export EGAngle2, EGHalfPlane2, EGStrip2, strip_width
+include("ap_unbounded.jl")
+export APAngle2, APHalfPlane2, APStrip2, strip_width
 
-include("eg_transform.jl")
-export EGAffineMap
+include("ap_transform.jl")
+export APAffineMap
 
-# EGAffineMap3 -- paused along with the rest of 3D.
-# include("eg_transform3.jl")
-# export EGAffineMap3
+# APAffineMap3 -- paused along with the rest of 3D.
+# include("ap_transform3.jl")
+# export APAffineMap3
 
-include("eg_predicates.jl")
-include("eg_intersections.jl")
+include("ap_predicates.jl")
+include("ap_intersections.jl")
 
 using Base.MathConstants: golden
 
-include("eg_constructions.jl")
-include("eg_tangency.jl")
-include("eg_radical_axis.jl")
-include("eg_inversion.jl")
-include("eg_apollonius.jl")
-include("eg_named_polygons.jl")
-include("eg_triangle_on_segment.jl")
-include("eg_conic_fit.jl")
+include("ap_constructions.jl")
+include("ap_tangency.jl")
+include("ap_radical_axis.jl")
+include("ap_inversion.jl")
+include("ap_apollonius.jl")
+include("ap_named_polygons.jl")
+include("ap_triangle_on_segment.jl")
+include("ap_conic_fit.jl")
 
 # Every named triangle center, axis, circle and derived
 # triangle/inellipse/circumellipse.
-include("eg_triangle.jl")
+include("ap_triangle.jl")
 
 include("utils.jl")
 
@@ -180,18 +180,18 @@ export path
 """
     path(obj; action=:path, kwargs...)
 
-Add `obj` (an `EGPoint`, `EGVector`, `EGSegment`, `EGLine`, `EGRay`,
-`EGCircle2`, `EGBoundingBox`, `EGEllipse2`, `EGParabola2`, `EGHyperbola2`,
-`EGAngle2`, `EGHalfPlane2`, `EGStrip2`, any conic arc (`EGCircularArc2`,
-`EGEllipticArc2`, `EGParabolicArc2`, `EGHyperbolicArc2`), or any
-`EGPolygon` — `EGTriangle`, `EGQuadrilateral`, `EGStraightNgon`,
-`EGCircularSector2`, `EGCircularSegment2`, `EGAnnularSector2`,
-`EGInterstice2`, `EGCurvilinearTriangle2`, `EGCurvilinearQuadrilateral2`,
-`EGCurvilinearNgon2`) to the current path of an active Luxor `Drawing`,
+Add `obj` (an `APPoint`, `APVector`, `APSegment`, `APLine`, `APRay`,
+`APCircle2`, `APBoundingBox`, `APEllipse2`, `APParabola2`, `APHyperbola2`,
+`APAngle2`, `APHalfPlane2`, `APStrip2`, any conic arc (`APCircularArc2`,
+`APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2`), or any
+`APPolygon` — `APTriangle`, `APQuadrilateral`, `APStraightNgon`,
+`APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`,
+`APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2`,
+`APCurvilinearNgon2`) to the current path of an active Luxor `Drawing`,
 using [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl)'s own
-primitives. This is a package extension: `EuclideanGeometry` doesn't
+primitives. This is a package extension: `Apollonius` doesn't
 depend on Luxor, but methods for `path` become available as soon as both
-packages are loaded (`using EuclideanGeometry, Luxor`).
+packages are loaded (`using Apollonius, Luxor`).
 
 Deliberately thin: `path` never touches color, fill, or labels — that's
 already what Luxor's own `sethue`, `setopacity`, `label`, etc. do well.
@@ -199,18 +199,18 @@ Every method accepts `action` (`:path` by default, meaning "add to the
 current path and do nothing else" — pass `:stroke`, `:fill`, `:fillstroke`
 or `:clip` to render/use it immediately, exactly as Luxor's own shape
 functions do) plus whatever shape-specific keywords the curve needs
-(`extend` for the unbounded `EGLine`/`EGRay`, `srange`/`n` for
-`EGParabola2`, `trange`/`n`/`branch` for `EGHyperbola2`, `as`/`radius` for
-`EGAngle2`, `n` for `EGEllipticArc2`/`EGParabolicArc2`/`EGHyperbolicArc2`
-and for any `EGPolygon` with such a side). `EGSegment`/`EGLine`/`EGRay`
+(`extend` for the unbounded `APLine`/`APRay`, `srange`/`n` for
+`APParabola2`, `trange`/`n`/`branch` for `APHyperbola2`, `as`/`radius` for
+`APAngle2`, `n` for `APEllipticArc2`/`APParabolicArc2`/`APHyperbolicArc2`
+and for any `APPolygon` with such a side). `APSegment`/`APLine`/`APRay`
 also take `as=:arrow` to draw as an arrow instead of a plain line — the
 one exception to the "just adds to the path" rule, since it draws
 immediately (`action` is ignored in that case). See
 [Drawing with Luxor.jl](@ref) for the full per-type reference.
 
-Note: `EGBoundingBox` is ambiguous when both packages are loaded with
+Note: `APBoundingBox` is ambiguous when both packages are loaded with
 `using` (Luxor has its own `BoundingBox` type) — write
-`EuclideanGeometry.EGBoundingBox` explicitly when you mean this package's.
+`Apollonius.APBoundingBox` explicitly when you mean this package's.
 """
 function path end
 
@@ -219,14 +219,14 @@ export current_path_bbox
 """
     current_path_bbox()
 
-The [`EGBoundingBox`](@ref) of whatever is currently on the active Luxor
+The [`APBoundingBox`](@ref) of whatever is currently on the active Luxor
 `Drawing`'s Cairo path (in the current user-space coordinates, i.e. after
 any `origin`/`translate`/`scale`/`rotate` already applied) — via
-`Luxor.path_extents`. Unlike computing an `EGBoundingBox` directly from
-the EG shapes themselves (exact, needs no `Drawing` at all), this reflects
+`Luxor.path_extents`. Unlike computing an `APBoundingBox` directly from
+the AP shapes themselves (exact, needs no `Drawing` at all), this reflects
 whatever Cairo itself actually measured, so it also picks up anything
 drawn with plain Luxor calls, and only approximates the true extent of a
-shape whose `path` method samples points (`EGParabola2`, `EGHyperbola2`,
+shape whose `path` method samples points (`APParabola2`, `APHyperbola2`,
 the non-circular conic arcs) rather than using a native Cairo primitive.
 Like [`path`](@ref), this is a package extension: only callable once
 Luxor is also loaded.
@@ -238,4 +238,4 @@ an empty (all-zero) box afterward.
 """
 function current_path_bbox end
 
-end # module EuclideanGeometry
+end # module Apollonius

@@ -1,11 +1,11 @@
-using EuclideanGeometry, Luxor
+using Apollonius, Luxor
 using Luxor: julia_blue, julia_green, julia_purple, julia_red
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    A = EGPoint(5.0, 4.0)
-    O = EGPoint(0.0, 0.0)
-    l = EGLine(A, O)
-    d = EGEquipollentVector(direction(l))
+    A = APPoint(5.0, 4.0)
+    O = APPoint(0.0, 0.0)
+    l = APLine(A, O)
+    d = APEquipollentVector(direction(l))
     v = normalize(d)
 end
 

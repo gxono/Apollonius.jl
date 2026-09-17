@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin, 
     background, RGBA,
@@ -17,10 +17,10 @@ end
 
 
 sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
-    sec = EGCircularSector2(EGCircularArc2(EGCircle2(EGPoint(0.0, 0.0), 30.0), EGPoint(30.0, 0.0), EGPoint(0.0, 30.0)))
+    sec = APCircularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 30.0), APPoint(30.0, 0.0), APPoint(0.0, 30.0)))
 end
 
-skew = EGAffineMap(1.3, 0.4, -0.2, 0.9, 0.0, 0.0)
+skew = APAffineMap(1.3, 0.4, -0.2, 0.9, 0.0, 0.0)
 
 
 begin

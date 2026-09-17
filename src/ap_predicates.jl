@@ -1,46 +1,46 @@
 # -------------------------------------------------------------------------
-# Boolean/classification predicates on EGPoint/EGLine/EGSegment/EGCircle2/
-# EGTriangle.
+# Boolean/classification predicates on APPoint/APLine/APSegment/APCircle2/
+# APTriangle.
 #
 # `is_parallel`/`is_perpendicular` need no methods here — they dispatch
 # purely via `direction(...)`, duck-typed, so they already work on
-# EGLine/EGSegment/EGRay for free.
+# APLine/APSegment/APRay for free.
 #
-# `is_concyclic` (below) needs `circumcenter`/`circumradius(::EGTriangle)`,
-# defined in eg_triangle.jl (included after this file; fine, since it's
+# `is_concyclic` (below) needs `circumcenter`/`circumradius(::APTriangle)`,
+# defined in ap_triangle.jl (included after this file; fine, since it's
 # only referenced inside a function body, not a type signature).
 # -------------------------------------------------------------------------
 
 """
-    is_collinear(a::EGPoint, b::EGPoint, c::EGPoint; atol=1e-9)
+    is_collinear(a::APPoint, b::APPoint, c::APPoint; atol=1e-9)
 
 Whether points `a`, `b` and `c` lie on a common line.
 """
-is_collinear(a::EGPoint, b::EGPoint, c::EGPoint; atol=1e-9) =
+is_collinear(a::APPoint, b::APPoint, c::APPoint; atol=1e-9) =
     abs(cross2(b - a, c - a)) <= atol * norm(b - a) * norm(c - a)
 
 """
-    is_coplanar(a::EGPoint{3}, b::EGPoint{3}, c::EGPoint{3}, d::EGPoint{3}; atol=1e-9)
+    is_coplanar(a::APPoint{3}, b::APPoint{3}, c::APPoint{3}, d::APPoint{3}; atol=1e-9)
 
 Whether the four 3D points lie on a common plane (via the scalar triple
 product `(b-a, c-a, d-a)`, which vanishes exactly when they're coplanar —
 the 3D analogue of [`is_collinear`](@ref)).
 """
-function is_coplanar(a::EGPoint{3}, b::EGPoint{3}, c::EGPoint{3}, d::EGPoint{3}; atol=1e-9)
+function is_coplanar(a::APPoint{3}, b::APPoint{3}, c::APPoint{3}, d::APPoint{3}; atol=1e-9)
     u, v, w = b - a, c - a, d - a
     scale = max(norm(u) * norm(v), norm(u) * norm(w), norm(v) * norm(w), 1.0)
     return abs(dot(cross3(u, v), w)) <= atol * scale
 end
 
 """
-    line_line_position(l1::EGLine{3}, l2::EGLine{3}; atol=1e-9)
+    line_line_position(l1::APLine{3}, l2::APLine{3}; atol=1e-9)
 
 How two 3D lines relate: `:coincident` (the same line), `:parallel`
 (same direction, distinct), `:intersecting` (coplanar, cross at a single
 point), or `:skew` (not coplanar at all — the genuinely 3D case that never
-arises for `EGLine{2}`, where two non-parallel lines always meet).
+arises for `APLine{2}`, where two non-parallel lines always meet).
 """
-function line_line_position(l1::EGLine{3}, l2::EGLine{3}; atol=1e-9)
+function line_line_position(l1::APLine{3}, l2::APLine{3}; atol=1e-9)
     d1, d2 = direction(l1), direction(l2)
     tol = sqrt(atol) * max(norm(d1) * norm(d2), 1.0)
     if norm(cross3(d1, d2)) <= tol
@@ -50,28 +50,28 @@ function line_line_position(l1::EGLine{3}, l2::EGLine{3}; atol=1e-9)
 end
 
 """
-    on_line(p::EGPoint, l::EGLine; atol=1e-9)
+    on_line(p::APPoint, l::APLine; atol=1e-9)
 
 Whether point `p` lies on the infinite line `l`.
 """
-on_line(p::EGPoint, l::EGLine; atol=1e-9) =
+on_line(p::APPoint, l::APLine; atol=1e-9) =
     distance(p, l) <= sqrt(atol) * max(norm(p), norm(l.p1), norm(l.p2), 1.0)
 #NO USAR is_collinear(p, l.p1, l.p2; atol=atol)
 
 """
-    on_line(l::EGLine; atol=1e-9)
+    on_line(l::APLine; atol=1e-9)
 
 `p -> on_line(p, l; atol=atol)` — for composing with `filter`/`map`, e.g.
 `filter(on_line(l), points)`.
 """
-on_line(l::EGLine; atol=1e-9) = p -> on_line(p, l; atol=atol)
+on_line(l::APLine; atol=1e-9) = p -> on_line(p, l; atol=atol)
 
 """
-    on_segment(p::EGPoint, s::EGSegment; atol=1e-9)
+    on_segment(p::APPoint, s::APSegment; atol=1e-9)
 
 Whether point `p` lies on the finite segment `s` (endpoints included).
 """
-function on_segment(p::EGPoint, s::EGSegment; atol=1e-9)
+function on_segment(p::APPoint, s::APSegment; atol=1e-9)
     a, b = s[1], s[2]
     is_collinear(a, b, p; atol=atol) || return false
     ab2 = dot(b - a, b - a)
@@ -81,18 +81,18 @@ function on_segment(p::EGPoint, s::EGSegment; atol=1e-9)
 end
 
 """
-    on_segment(s::EGSegment; atol=1e-9)
+    on_segment(s::APSegment; atol=1e-9)
 
 `p -> on_segment(p, s; atol=atol)` — see the single-argument [`on_line`](@ref).
 """
-on_segment(s::EGSegment; atol=1e-9) = p -> on_segment(p, s; atol=atol)
+on_segment(s::APSegment; atol=1e-9) = p -> on_segment(p, s; atol=atol)
 
 """
-    on_ray(p::EGPoint, r::EGRay; atol=1e-9)
+    on_ray(p::APPoint, r::APRay; atol=1e-9)
 
 Whether point `p` lies on the half-line `r` (the origin included).
 """
-function on_ray(p::EGPoint, r::EGRay; atol=1e-9)
+function on_ray(p::APPoint, r::APRay; atol=1e-9)
     a, b = r.origin, r.through
     is_collinear(a, b, p; atol=atol) || return false
     ab2 = dot(b - a, b - a)
@@ -102,43 +102,43 @@ function on_ray(p::EGPoint, r::EGRay; atol=1e-9)
 end
 
 """
-    on_ray(r::EGRay; atol=1e-9)
+    on_ray(r::APRay; atol=1e-9)
 
 `p -> on_ray(p, r; atol=atol)` — see the single-argument [`on_line`](@ref).
 """
-on_ray(r::EGRay; atol=1e-9) = p -> on_ray(p, r; atol=atol)
+on_ray(r::APRay; atol=1e-9) = p -> on_ray(p, r; atol=atol)
 
 
 
-Base.in(p::EGPoint, s::EGSegment) = on_segment(p, s)
-Base.in(p::EGPoint, l::EGLine) = on_line(p, l)
-Base.in(p::EGPoint, r::EGRay) = on_ray(p, r)
+Base.in(p::APPoint, s::APSegment) = on_segment(p, s)
+Base.in(p::APPoint, l::APLine) = on_line(p, l)
+Base.in(p::APPoint, r::APRay) = on_ray(p, r)
 
 """
-    side_of_line(p::EGPoint, l::EGLine)
+    side_of_line(p::APPoint, l::APLine)
 
 `+1` if `p` is to the left of `l` (oriented from `l.p1` to `l.p2`), `-1` if
 to the right, `0` if `p` is on `l`.
 """
-function side_of_line(p::EGPoint, l::EGLine)
+function side_of_line(p::APPoint, l::APLine)
     v = cross2(direction(l), p - l.p1)
     return v > 0 ? 1 : (v < 0 ? -1 : 0)
 end
 
 """
-    is_degenerate(t::EGTriangle; atol=1e-9)
+    is_degenerate(t::APTriangle; atol=1e-9)
 
 Whether the three vertices of `t` are collinear (zero area).
 """
-is_degenerate(t::EGTriangle; atol=1e-9) = is_collinear(t.a, t.b, t.c; atol=atol)
+is_degenerate(t::APTriangle; atol=1e-9) = is_collinear(t.a, t.b, t.c; atol=atol)
 
 """
-    line_circle_position(l::EGLine, c::EGCircle2; atol=1e-9)
+    line_circle_position(l::APLine, c::APCircle2; atol=1e-9)
 
 How `l` and `c` relate: `:disjoint` (no intersection), `:tangent` (touch at
 exactly one point), or `:secant` (cross at two points).
 """
-function line_circle_position(l::EGLine, c::EGCircle2; atol=1e-9)
+function line_circle_position(l::APLine, c::APCircle2; atol=1e-9)
     d = distance(c.center, l)
     tol = sqrt(atol) * max(c.r, norm(c.center), 1.0)
     d > c.r + tol && return :disjoint
@@ -147,7 +147,7 @@ function line_circle_position(l::EGLine, c::EGCircle2; atol=1e-9)
 end
 
 """
-    circles_position(c1::EGCircle2, c2::EGCircle2; atol=1e-9)
+    circles_position(c1::APCircle2, c2::APCircle2; atol=1e-9)
 
 How `c1` and `c2` relate, as one of: `:identical` (same center and
 radius), `:concentric` (same center, different radius), `:disjoint_ext`
@@ -155,7 +155,7 @@ radius), `:concentric` (same center, different radius), `:disjoint_ext`
 `:secant` (cross at two points), `:tangent_int` (internally tangent), or
 `:disjoint_int` (one strictly inside the other, not touching).
 """
-function circles_position(c1::EGCircle2, c2::EGCircle2; atol=1e-9)
+function circles_position(c1::APCircle2, c2::APCircle2; atol=1e-9)
     d = distance(c1.center, c2.center)
     tol = sqrt(atol) * max(c1.r, c2.r, 1.0)
     if d <= tol
@@ -170,17 +170,17 @@ function circles_position(c1::EGCircle2, c2::EGCircle2; atol=1e-9)
 end
 
 """
-    is_concyclic(a::EGPoint, b::EGPoint, c::EGPoint, d::EGPoint; atol=1e-9)
+    is_concyclic(a::APPoint, b::APPoint, c::APPoint, d::APPoint; atol=1e-9)
 
 Whether the four points lie on a common circle (or are collinear, treated
 as a degenerate "circle" of infinite radius). `a`, `b`, `c` must not be
 collinear unless `d` is collinear with them too.
 """
-function is_concyclic(a::EGPoint, b::EGPoint, c::EGPoint, d::EGPoint; atol=1e-9)
-    if is_degenerate(EGTriangle(a, b, c); atol=atol)
+function is_concyclic(a::APPoint, b::APPoint, c::APPoint, d::APPoint; atol=1e-9)
+    if is_degenerate(APTriangle(a, b, c); atol=atol)
         return is_collinear(a, b, d; atol=atol)
     end
-    t = EGTriangle(a, b, c)
+    t = APTriangle(a, b, c)
     cc, cr = circumcenter(t), circumradius(t)
     return abs(distance(cc, d) - cr) <= sqrt(atol) * max(cr, norm(cc), 1.0)
 end

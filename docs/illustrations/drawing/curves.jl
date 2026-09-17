@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin, 
     background, RGBA,
@@ -17,15 +17,15 @@ end
 
 
 sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
-    circ = EGCircle2(EGPoint(0.0, 0.0), 30.0)
-    p1, p2 = EGPoint(30.0, 0.0), EGPoint(0.0, 30.0)
-    arc = EGCircularArc2(circ, p1, p2)
+    circ = APCircle2(APPoint(0.0, 0.0), 30.0)
+    p1, p2 = APPoint(30.0, 0.0), APPoint(0.0, 30.0)
+    arc = APCircularArc2(circ, p1, p2)
 
-    c1 = EGCircle2(EGPoint(0.0, 0.0), 40.0)
-    c2 = EGCircle2(EGPoint(90.0, 0.0), 50.0)
-    c3_center = intersection(EGCircle2(c1.center, c1.r + 35.0), EGCircle2(c2.center, c2.r + 35.0))[1]
-    c3 = EGCircle2(c3_center, 35.0)
-    tinv = invert(EGTriangle(EGPoint(50.0, 20.0), EGPoint(90.0, 30.0), EGPoint(60.0, 80.0)), EGPoint(0.0, 0.0), k = 100)
+    c1 = APCircle2(APPoint(0.0, 0.0), 40.0)
+    c2 = APCircle2(APPoint(90.0, 0.0), 50.0)
+    c3_center = intersection(APCircle2(c1.center, c1.r + 35.0), APCircle2(c2.center, c2.r + 35.0))[1]
+    c3 = APCircle2(c3_center, 35.0)
+    tinv = invert(APTriangle(APPoint(50.0, 20.0), APPoint(90.0, 30.0), APPoint(60.0, 80.0)), APPoint(0.0, 0.0), k = 100)
     gap = interstices(c1, c2, c3)
 end
 
@@ -35,8 +35,8 @@ Drawing(sz.width, sz.height, "docs/src/assets/img/drawing/$fmt_name")
 origin()
 
 sethue("steelblue"); setopacity(0.4)
-path(EGCircularSector2(arc); action=:fill)
-path(EGCircularSegment2(arc); action=:fill)
+path(APCircularSector2(arc); action=:fill)
+path(APCircularSegment2(arc); action=:fill)
 
 setopacity(1)
 

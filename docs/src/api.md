@@ -1,9 +1,9 @@
 ```@meta
-CurrentModule = EuclideanGeometry
+CurrentModule = Apollonius
 ```
 
 # API Reference
 
 ```@autodocs
-Modules = [EuclideanGeometry]
+Modules = [Apollonius]
 ```

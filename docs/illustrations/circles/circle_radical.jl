@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -16,9 +16,9 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    c1 = EGCircle2(EGPoint(0.0, 0.0), 3.0)
-    c2 = EGCircle2(EGPoint(8.0, 0.0), 2.0)
-    c3 = EGCircle2(EGPoint(3.0, 6.0), 4.0)
+    c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
+    c2 = APCircle2(APPoint(8.0, 0.0), 2.0)
+    c3 = APCircle2(APPoint(3.0, 6.0), 4.0)
 
     ra1 = radical_axis(c1, c2)
     ra2 = radical_axis(c2, c3)
@@ -34,12 +34,12 @@ origin()
 
 sethue("gray80")
 setdash(:dash)
-path(EGSegment(c1.center, c3.center), action=:stroke)
-path(EGSegment(c2.center, c3.center), action=:stroke)
+path(APSegment(c1.center, c3.center), action=:stroke)
+path(APSegment(c2.center, c3.center), action=:stroke)
 path([ra2, ra3], action=:stroke)
 
 sethue(julia_purple)
-path(EGSegment(c1.center, c2.center), action=:stroke)
+path(APSegment(c1.center, c2.center), action=:stroke)
 setdash(:solid)
 
 sethue(julia_blue)

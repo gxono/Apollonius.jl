@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: Drawing, finish, preview, origin,
     sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, 
@@ -21,8 +21,8 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    p1, p2 = EGPoint(0.0, 0.0), EGPoint(6.0, 0.0)
-    s = EGSegment(p1, p2)
+    p1, p2 = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
+    s = APSegment(p1, p2)
     it = isosceles_right_triangle_on_segment(s)
 end
 

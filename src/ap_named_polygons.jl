@@ -4,44 +4,44 @@
 # -------------------------------------------------------------------------
 
 """
-    parallelogram(a::EGPoint, b::EGPoint, c::EGPoint)
+    parallelogram(a::APPoint, b::APPoint, c::APPoint)
 
 The parallelogram with consecutive vertices `a`, `b`, `c` and fourth vertex
 `d = a + (c - b)` (so `[a,b] ∥ [d,c]` and `[b,c] ∥ [a,d]`).
 """
-parallelogram(a::EGPoint, b::EGPoint, c::EGPoint) = EGQuadrilateral(a, b, c, a + (c - b))
+parallelogram(a::APPoint, b::APPoint, c::APPoint) = APQuadrilateral(a, b, c, a + (c - b))
 
 """
-    square_on_segment(a::EGPoint, b::EGPoint; ccw=true)
+    square_on_segment(a::APPoint, b::APPoint; ccw=true)
 
 The square with side `[a, b]`, built counterclockwise from `a` to `b`
 (`ccw=false` builds it on the other side).
 """
-function square_on_segment(a::EGPoint, b::EGPoint; ccw::Bool=true)
+function square_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
     v = orthogonal(b - a)
     v = ccw ? v : -v
-    return EGQuadrilateral(a, b, b + v, a + v)
+    return APQuadrilateral(a, b, b + v, a + v)
 end
 
 """
-    rectangle_on_segment(a::EGPoint, b::EGPoint, height::Real; ccw=true)
+    rectangle_on_segment(a::APPoint, b::APPoint, height::Real; ccw=true)
 
 The rectangle with side `[a, b]` and the given `height`, built
 counterclockwise from `a` to `b` (`ccw=false` builds it on the other side).
 """
-function rectangle_on_segment(a::EGPoint, b::EGPoint, height::Real; ccw::Bool=true)
+function rectangle_on_segment(a::APPoint, b::APPoint, height::Real; ccw::Bool=true)
     u = orthogonal((b - a) / norm(b - a))
     v = (ccw ? height : -height) * u
-    return EGQuadrilateral(a, b, b + v, a + v)
+    return APQuadrilateral(a, b, b + v, a + v)
 end
 
 """
-    regular_polygon(center::EGPoint, vertex::EGPoint, n::Integer)
+    regular_polygon(center::APPoint, vertex::APPoint, n::Integer)
 
 The regular `n`-gon centered at `center` with `vertex` as one of its
 vertices.
 """
-function regular_polygon(center::EGPoint, vertex::EGPoint, n::Integer)
+function regular_polygon(center::APPoint, vertex::APPoint, n::Integer)
     n >= 3 || throw(ArgumentError("regular_polygon needs n >= 3"))
-    return EGStraightNgon([rotate(vertex, 2pi * k / n, center) for k in 0:n-1])
+    return APStraightNgon([rotate(vertex, 2pi * k / n, center) for k in 0:n-1])
 end

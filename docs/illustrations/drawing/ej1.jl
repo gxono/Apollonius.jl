@@ -1,6 +1,6 @@
-using EuclideanGeometry, Luxor
+using Apollonius, Luxor
 
-t = EGTriangle(EGPoint(-80.0, 60.0), EGPoint(80.0, 60.0), EGPoint(-20.0, -80.0))
+t = APTriangle(APPoint(-80.0, 60.0), APPoint(80.0, 60.0), APPoint(-20.0, -80.0))
 
 Drawing(250, 250, "ej1.png")
 origin()

@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: Drawing, finish, preview, origin,
     sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, 
@@ -17,8 +17,8 @@ fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
 end
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    A, B, C = EGPoint(0.0, 0.0), EGPoint(8.0, 0.0), EGPoint(3.0, 6.0)
-    t = EGTriangle(A, B, C)
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
 end
 
 

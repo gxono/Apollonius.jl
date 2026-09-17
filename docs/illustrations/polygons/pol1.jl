@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: Drawing, finish, preview, origin,
     sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, 
@@ -20,7 +20,7 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    pg = EGStraightNgon([EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(4.0, 3.0), EGPoint(1.0, 3.0)])
+    pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 3.0), APPoint(1.0, 3.0)])
 end
 
 begin

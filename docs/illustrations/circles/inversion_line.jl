@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -19,13 +19,13 @@ end
 
 
 
-P = EGPoint(0.0, 0.0)
+P = APPoint(0.0, 0.0)
 inv5 = invert(P; k=5.0)
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     P
-    circ = EGCircle2(P, 5.0)
-    l1 = EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0))
-    l2 = EGLine(EGPoint(-3.0, 0.0), EGPoint(-3.0, 1.0))
+    circ = APCircle2(P, 5.0)
+    l1 = APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0))
+    l2 = APLine(APPoint(-3.0, 0.0), APPoint(-3.0, 1.0))
     t1, t2 = map(inv5, [l1, l2])
 end
 

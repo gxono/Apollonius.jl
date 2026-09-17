@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -19,9 +19,9 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    P, Q, C = EGPoint(1.0, 1.0), EGPoint(6.0, 3.0), EGPoint(3.0, 6.0)
-    s = EGSegment(P, Q)
-    l = EGLine(s)
+    P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(3.0, 6.0)
+    s = APSegment(P, Q)
+    l = APLine(s)
     M = midpoint(s)
     lpa = parallel_through(l, C)
     lpe = perpendicular_through(l, C)

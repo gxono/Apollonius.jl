@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -21,9 +21,9 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    o = EGPoint(0.0, 0.0)
-    circ = EGCircle2(o, 1)
-    trian = EGTriangle(EGPoint(1.5, 1.5), EGPoint(3.0, 0.5), EGPoint(1.0, -1.0))
+    o = APPoint(0.0, 0.0)
+    circ = APCircle2(o, 1)
+    trian = APTriangle(APPoint(1.5, 1.5), APPoint(3.0, 0.5), APPoint(1.0, -1.0))
     cp = invert(trian, o)
 end
 

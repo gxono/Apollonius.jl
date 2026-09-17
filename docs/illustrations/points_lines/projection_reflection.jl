@@ -1,10 +1,10 @@
-using EuclideanGeometry, Luxor
+using Apollonius, Luxor
 using Luxor: julia_blue, julia_green, julia_purple, julia_red
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    P, Q = EGPoint(1.0, 1.0), EGPoint(6.0, 3.0)
-    l = EGLine(P, Q)
-    C = EGPoint(2.0, 6.0)
+    P, Q = APPoint(1.0, 1.0), APPoint(6.0, 3.0)
+    l = APLine(P, Q)
+    C = APPoint(2.0, 6.0)
     foot = projection(C, l)
     Cref = reflection(C, foot)
 end
@@ -18,7 +18,7 @@ setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepa
     gsave()
         setdash(:dash)
         sethue(julia_purple)
-        path(EGSegment(C,Cref),action=:stroke)
+        path(APSegment(C,Cref),action=:stroke)
     grestore()
 
     path([P,Q])

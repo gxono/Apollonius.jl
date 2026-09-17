@@ -1,62 +1,62 @@
 ```@meta
-CurrentModule = EuclideanGeometry
+CurrentModule = Apollonius
 ```
 
 # Points, Lines & Rays
 
 These are the building blocks everything else in the package is made of.
 
-* A **point** is [`EGPoint`](@ref), and a **vector** (a free direction, with
-  no fixed location) is the separate type [`EGVector`](@ref). Both wrap the
-  same `(x, y)` coordinate pair, but keeping them distinct means `EGVector`
+* A **point** is [`APPoint`](@ref), and a **vector** (a free direction, with
+  no fixed location) is the separate type [`APVector`](@ref). Both wrap the
+  same `(x, y)` coordinate pair, but keeping them distinct means `APVector`
   can carry its own meaning (a *direction*, e.g. what
   [`direction`](@ref) returns) without being confused for a location.
-  Arithmetic between them stays permissive on purpose: `EGPoint - EGPoint`
-  still gives back an `EGPoint` (not a vector), so familiar formulas like
+  Arithmetic between them stays permissive on purpose: `APPoint - APPoint`
+  still gives back an `APPoint` (not a vector), so familiar formulas like
   `2*about - p` keep working exactly as before — see the table below.
 * A **segment** is a finite piece of straight line between two points:
-  [`EGSegment`](@ref).
-* A **line** ([`EGLine`](@ref)) is the *infinite* straight line through two
-  points, and a **ray** ([`EGRay`](@ref)) is the *half-line* starting at an
+  [`APSegment`](@ref).
+* A **line** ([`APLine`](@ref)) is the *infinite* straight line through two
+  points, and a **ray** ([`APRay`](@ref)) is the *half-line* starting at an
   origin and passing through a second point. Both are small immutable
   structs holding the two defining points.
 
-All four are part of the package's own EG-prefixed type hierarchy (see
-[EuclideanGeometry.jl](@ref) for the full tree): `EGPoint`/`EGVector` sit directly under
-`EGObject`, while `EGSegment`/`EGLine`/`EGRay` are all `EGCurve`s.
+All four are part of the package's own AP-prefixed type hierarchy (see
+[Apollonius.jl](@ref) for the full tree): `APPoint`/`APVector` sit directly under
+`APObject`, while `APSegment`/`APLine`/`APRay` are all `APCurve`s.
 
 | Type | Represents | Fields |
 |:-----|:-----------|:-------|
-| [`EGPoint`](@ref) | a point in the plane | `p[1]`, `p[2]` (x, y) |
-| [`EGVector`](@ref) | a free direction/displacement | `v[1]`, `v[2]` (x, y) |
-| [`EGSegment`](@ref) | the segment `[p1, p2]` | `s[1]`, `s[2]` (also `.p1`, `.p2`) |
-| [`EGLine`](@ref) | the infinite line through `p1`, `p2` | `l[1]`, `l[2]` (also `.p1`, `.p2`) |
-| [`EGRay`](@ref) | the half-line from `origin` through `through` | `r[1]`, `r[2]` (also `.origin`, `.through`) |
+| [`APPoint`](@ref) | a point in the plane | `p[1]`, `p[2]` (x, y) |
+| [`APVector`](@ref) | a free direction/displacement | `v[1]`, `v[2]` (x, y) |
+| [`APSegment`](@ref) | the segment `[p1, p2]` | `s[1]`, `s[2]` (also `.p1`, `.p2`) |
+| [`APLine`](@ref) | the infinite line through `p1`, `p2` | `l[1]`, `l[2]` (also `.p1`, `.p2`) |
+| [`APRay`](@ref) | the half-line from `origin` through `through` | `r[1]`, `r[2]` (also `.origin`, `.through`) |
 
-None of `EGSegment`/`EGLine`/`EGRay` carry a direction *magnitude* — an
-`EGLine` through `p1` and `p2` is the same object as the line through `p2`
-and `p1` — but `EGSegment` and `EGRay` do remember which of their two
+None of `APSegment`/`APLine`/`APRay` carry a direction *magnitude* — an
+`APLine` through `p1` and `p2` is the same object as the line through `p2`
+and `p1` — but `APSegment` and `APRay` do remember which of their two
 points comes first, since that is what makes them finite/one-sided in the
 first place.
 
-`EGPoint`/`EGVector`/`EGSegment`/`EGLine`/`EGRay` all support
+`APPoint`/`APVector`/`APSegment`/`APLine`/`APRay` all support
 **destructuring** (`x, y = p`, `p1, p2 = s`) for convenience — including
 flattening a whole collection of them into their defining points at once,
 via `Iterators.flatten`:
 
 ```@example geo
-using EuclideanGeometry
+using Apollonius
 
-c1, c2 = EGCircle2(EGPoint(0.0, 0.0), 2.0), EGCircle2(EGPoint(10.0, 0.0), 1.0)
+c1, c2 = APCircle2(APPoint(0.0, 0.0), 2.0), APCircle2(APPoint(10.0, 0.0), 1.0)
 l1, l2 = external_tangent_lines(c1, c2)
-collect(Iterators.flatten([l1, l2]))   # the 4 points of tangency, in one Vector{EGPoint}
+collect(Iterators.flatten([l1, l2]))   # the 4 points of tangency, in one Vector{APPoint}
 ```
 
 ```@raw html
 <img src="../assets/img/points_lines/destructuring_tangents.svg" alt="Two circles with their two common external tangent lines, the four tangent points marked" style="width:100%; max-width: 700px;">
 ```
 
-But every `EGObject`/`EGTransform` (this one included) is always a
+But every `APObject`/`APTransform` (this one included) is always a
 *scalar* for **broadcasting** purposes, so `translate.(p, [v1, v2])` or
 `intersection.(l, [c1, c2])` repeats the single shape against each
 element of the other argument, rather than Julia's usual `f.(x)`
@@ -66,59 +66,59 @@ components.
 ## Creating them
 
 ```@example geo
-using EuclideanGeometry
+using Apollonius
 
-A = EGPoint(3.0, 4.0)
-O = EGPoint(0.0, 0.0)
+A = APPoint(3.0, 4.0)
+O = APPoint(0.0, 0.0)
 
-s = EGSegment(O, A)     # the segment from O to A
-l = EGLine(O, A)        # the infinite line through O and A
-r = EGRay(O, A)         # the half-line starting at O, through A
+s = APSegment(O, A)     # the segment from O to A
+l = APLine(O, A)        # the infinite line through O and A
+r = APRay(O, A)         # the half-line starting at O, through A
 
 distance(O, A)
 ```
 
 `distance(O, A)` is `5.0`: with `A = (3, 4)`, this is just the classic
-3-4-5 triangle. `EGSegment`, `EGLine` and `EGRay` all wrap the *same* two
+3-4-5 triangle. `APSegment`, `APLine` and `APRay` all wrap the *same* two
 points here — what differs is only how far they extend and what other
 functions are willing to do with them (e.g. [`on_segment`](@ref) only
-makes sense for an `EGSegment`, [`slope_angle`](@ref) treats `EGLine` and
-`EGRay` as pointing one way and an `EGSegment` as pointing from its first
+makes sense for an `APSegment`, [`slope_angle`](@ref) treats `APLine` and
+`APRay` as pointing one way and an `APSegment` as pointing from its first
 point to its second).
 
 ## Points vs. vectors
 
 A point minus a point is *still a point*, not a vector — `A - O` above
-stays an `EGPoint`. This is a deliberate choice: it keeps existing
+stays an `APPoint`. This is a deliberate choice: it keeps existing
 point-arithmetic formulas (like a reflection written as `2*about - p`)
 working exactly as they read, without forcing every subtraction through a
 vector type first. Where a genuine *direction* is called for — the
 result of [`direction`](@ref) below, for instance — the package hands
-back an actual [`EGVector`](@ref) instead:
+back an actual [`APVector`](@ref) instead:
 
 ```@example geo
-d = direction(l)    # an EGVector, not an EGPoint
+d = direction(l)    # an APVector, not an APPoint
 typeof(d)
 ```
 
 Both types support the same arithmetic and the standard linear-algebra
 functions `norm`, `dot` and `normalize` — re-exported from `LinearAlgebra`
-purely so `using EuclideanGeometry` alone is enough to get the full
+purely so `using Apollonius` alone is enough to get the full
 vector toolkit, without a separate `using LinearAlgebra`:
 
 ```@example geo
 norm(d)        # 5.0
 normalize(d)   # (0.6, 0.8): unit vector, same direction
-dot(d, EGVector(1.0, 0.0))   # 3.0
+dot(d, APVector(1.0, 0.0))   # 3.0
 ```
 
-### Giving a vector a position: `EGEquipollentVector`
+### Giving a vector a position: `APEquipollentVector`
 
-An `EGVector` is deliberately positionless — that's exactly what makes it
+An `APVector` is deliberately positionless — that's exactly what makes it
 the right type for `direction(l)`, a normal, or anything else that's
 purely "which way and how far," never "where." That positionlessness
-means a bare `EGVector` has no [`EGBoundingBox`](@ref) at all
-(`isempty(EGBoundingBox(::EGVector))` is always `true`), so it never
+means a bare `APVector` has no [`APBoundingBox`](@ref) at all
+(`isempty(APBoundingBox(::APVector))` is always `true`), so it never
 contributes to [`@to_luxor_picture`](@ref)'s fit-to-canvas *sizing*, and
 it can't be shifted into place the way a positioned shape can (there's
 nowhere to shift it *to*) — but it still gets scaled and flipped to the
@@ -130,26 +130,26 @@ What a bare vector still can't do is stand as *one positioned thing*: it
 has no bounding box of its own to size a picture by, can't be
 `translate`d anywhere, and can't be transformed as a single unit together
 with a point that's tracked separately alongside it.
-[`EGEquipollentVector`](@ref) (the classical "vector equipolente": a
+[`APEquipollentVector`](@ref) (the classical "vector equipolente": a
 representative of a free vector, tied to a point of application) is the
 fix for that — it wraps a `vector` and the `point` it's applied at as one
 object, with a real, non-empty bounding box, and transforms fully like
-any other `EGCurve`:
+any other `APCurve`:
 
 ```@example geo
-ev = EGEquipollentVector(d, O)   # d applied at O
-EGBoundingBox(ev)                 # a real box now, unlike EGBoundingBox(d)
+ev = APEquipollentVector(d, O)   # d applied at O
+APBoundingBox(ev)                 # a real box now, unlike APBoundingBox(d)
 ```
 
 `tip(ev)` is `ev.point + ev.vector`, computed on demand. `norm`/
-`normalize`/`dot` all work the same way as on a bare `EGVector` (acting on
+`normalize`/`dot` all work the same way as on a bare `APVector` (acting on
 `ev.vector`; `normalize` keeps `ev.point` fixed), and the usual
 `rotate`/`translate`/`homothety`/`reflection` quartet works too —
-`translate` in particular moves `ev.point`, something a bare `EGVector`
+`translate` in particular moves `ev.point`, something a bare `APVector`
 (having no position to begin with) can never do:
 
 ```@example geo
-translate(ev, EGVector(1.0, 1.0))   # ev.point moves; ev.vector itself doesn't
+translate(ev, APVector(1.0, 1.0))   # ev.point moves; ev.vector itself doesn't
 ```
 
 `homothety` scales `ev.point` about a center *and* `ev.vector`'s own
@@ -160,16 +160,16 @@ as one piece:
 homothety(ev, 2.0, O)   # both O and the vector scale together
 ```
 
-[`EGVector`](@ref)`(ev)` unwraps back to the bare, positionless vector
-(mirroring `EGVector(::EGPoint)`), and — more usefully — every
-[`translate`](@ref) method that already accepts a bare `EGVector` accepts
-an `EGEquipollentVector` in its place too, driven by `ev.vector` and
+[`APVector`](@ref)`(ev)` unwraps back to the bare, positionless vector
+(mirroring `APVector(::APPoint)`), and — more usefully — every
+[`translate`](@ref) method that already accepts a bare `APVector` accepts
+an `APEquipollentVector` in its place too, driven by `ev.vector` and
 ignoring wherever `ev` itself happens to be anchored; `p + ev` (point
 arithmetic, not a call to `translate`) is the same shorthand for a plain
-`EGPoint`:
+`APPoint`:
 
 ```@example geo
-EGVector(ev)         # unwraps back to the bare vector -- same as d
+APVector(ev)         # unwraps back to the bare vector -- same as d
 translate(A, ev)     # same as translate(A, d): ev's own point is ignored
 ```
 
@@ -197,22 +197,22 @@ distance(O, Bpolar)                       # 4.0, regardless of the angle
 
 This is exactly the point/angle/modulus relationship [`slope_angle`](@ref)
 and [`distance`](@ref) give you the other way around:
-`polar_point(distance(O, p), slope_angle(EGLine(O, p)), O)` recovers `p`
+`polar_point(distance(O, p), slope_angle(APLine(O, p)), O)` recovers `p`
 (for `p != O`).
 
 ## Direction, slope and predicates
 
 ```@example geo
-direction(l)                    # (3.0, 4.0) — l.p2 - l.p1, as an EGVector
+direction(l)                    # (3.0, 4.0) — l.p2 - l.p1, as an APVector
 rad2deg(slope_angle(l))         # ≈ 53.13°
-is_collinear(O, A, EGPoint(6.0, 8.0))
-on_line(EGPoint(6.0, 8.0), l)
-on_segment(EGPoint(6.0, 8.0), s) # false: beyond A
+is_collinear(O, A, APPoint(6.0, 8.0))
+on_line(APPoint(6.0, 8.0), l)
+on_segment(APPoint(6.0, 8.0), s) # false: beyond A
 ```
 
 | Function | Returns | Meaning |
 |:---------|:--------|:--------|
-| [`direction`](@ref) | `EGVector` | non-normalized direction of an `EGLine`/`EGRay`/`EGSegment` |
+| [`direction`](@ref) | `APVector` | non-normalized direction of an `APLine`/`APRay`/`APSegment` |
 | [`slope_angle`](@ref) | angle | `atan(dy, dx)` of that direction, in radians |
 | [`is_collinear`](@ref) | `Bool` | do three points lie on a common line? |
 | [`is_parallel`](@ref) / [`is_perpendicular`](@ref) | `Bool` | relation between two lines |
@@ -220,39 +220,39 @@ on_segment(EGPoint(6.0, 8.0), s) # false: beyond A
 | [`side_of_line`](@ref) | `-1`, `0` or `1` | which side of a line a point falls on |
 
 ```@example geo
-l_horiz = EGLine(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0))
-side_of_line(EGPoint(2.0, 1.0), l_horiz)   #  1 : "above"
-side_of_line(EGPoint(2.0, -1.0), l_horiz)  # -1 : "below"
+l_horiz = APLine(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
+side_of_line(APPoint(2.0, 1.0), l_horiz)   #  1 : "above"
+side_of_line(APPoint(2.0, -1.0), l_horiz)  # -1 : "below"
 ```
 
 ```@example geo
-l_vert = EGLine(EGPoint(0.0, 0.0), EGPoint(0.0, 4.0))
-is_parallel(l, EGLine(EGPoint(1.0, 0.0), EGPoint(4.0, 4.0))), is_perpendicular(l_horiz, l_vert)
+l_vert = APLine(APPoint(0.0, 0.0), APPoint(0.0, 4.0))
+is_parallel(l, APLine(APPoint(1.0, 0.0), APPoint(4.0, 4.0))), is_perpendicular(l_horiz, l_vert)
 ```
 
 ```@example geo
-r = EGRay(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0))
-on_ray(EGPoint(10.0, 0.0), r)    # true: ahead of the origin, same direction
-on_ray(EGPoint(-1.0, 0.0), r)    # false: on the line, but behind the origin
+r = APRay(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
+on_ray(APPoint(10.0, 0.0), r)    # true: ahead of the origin, same direction
+on_ray(APPoint(-1.0, 0.0), r)    # false: on the line, but behind the origin
 ```
 
 `on_line`/`on_segment`/`on_ray` are also exactly what `Base.in` uses under
 the hood, so the more natural `p in l` reads just as well:
 
 ```@example geo
-EGPoint(6.0, 8.0) in l, EGPoint(10.0, 0.0) in r
+APPoint(6.0, 8.0) in l, APPoint(10.0, 0.0) in r
 ```
 
 ## Distance to a line, segment or ray
 
-[`distance`](@ref) also works between a point and any of `EGLine`,
-`EGSegment` or `EGRay` — the perpendicular distance to the *infinite* line
+[`distance`](@ref) also works between a point and any of `APLine`,
+`APSegment` or `APRay` — the perpendicular distance to the *infinite* line
 in the first case, but clamped to the finite extent for the other two (so
 a point "past the end" measures to the nearest endpoint, not along the
 infinite extension):
 
 ```@example geo
-far_point = EGPoint(10.0, 10.0)
+far_point = APPoint(10.0, 10.0)
 distance(far_point, l), distance(far_point, s), distance(far_point, r)
 # perpendicular to the infinite line; clamped to the finite segment [O,A]; clamped to the ray
 ```
@@ -261,7 +261,7 @@ distance(far_point, l), distance(far_point, s), distance(far_point, r)
 (no point) to build a reusable one-argument predicate, for `filter`:
 
 ```@example geo
-pts = [EGPoint(2.0, 0.0), EGPoint(2.0, 1.0), EGPoint(-1.0, 0.0)]
+pts = [APPoint(2.0, 0.0), APPoint(2.0, 1.0), APPoint(-1.0, 0.0)]
 filter(on_ray(r), pts)   # only the point that's on r
 ```
 
@@ -273,9 +273,9 @@ mirroring *across a line* is: project first, then reflect through the
 foot).
 
 ```@example geo
-P, Q = EGPoint(1.0, 1.0), EGPoint(6.0, 3.0)
-l = EGLine(P, Q)
-C = EGPoint(2.0, 6.0)
+P, Q = APPoint(1.0, 1.0), APPoint(6.0, 3.0)
+l = APLine(P, Q)
+C = APPoint(2.0, 6.0)
 
 foot = projection(C, l)      # the perpendicular foot of C on l
 Cref = reflection(C, foot)   # C mirrored through that foot — i.e. across l
@@ -319,7 +319,7 @@ map(projection(l), [C, P, Q])   # project a whole collection onto l at once
 [`rotate`](@ref) turns a point about a center by an angle (radians,
 counter-clockwise); [`homothety`](@ref) scales it by a factor `k` about a
 center (`k = -1` is a point reflection, `0 < k < 1` shrinks towards the
-center); [`translate`](@ref) shifts it by an [`EGVector`](@ref) — the
+center); [`translate`](@ref) shifts it by an [`APVector`](@ref) — the
 fourth member of this quartet, and the only one with no `center` (a
 translation has none). `rotate`/`homothety` default to the origin when no
 center is given.
@@ -327,7 +327,7 @@ center is given.
 ```@example geo
 rotate(C, pi / 2, P)     # C rotated 90° about P
 homothety(C, 2.0, P)     # C scaled by 2 about P
-translate(C, EGVector(1.0, -1.0))   # C shifted by (1,-1)
+translate(C, APVector(1.0, -1.0))   # C shifted by (1,-1)
 barycenter([P, Q, C], [1.0, 1.0, 2.0])   # weighted average of the three
 ```
 
@@ -355,8 +355,8 @@ lines: it returns *both* bisectors (they are always perpendicular to each
 other), as a 2-element vector.
 
 ```@example geo
-xaxis = EGLine(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0))
-yaxis = EGLine(EGPoint(0.0, 0.0), EGPoint(0.0, 4.0))
+xaxis = APLine(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
+yaxis = APLine(APPoint(0.0, 0.0), APPoint(0.0, 4.0))
 angle_bisectors(xaxis, yaxis)   # the two diagonals y = x and y = -x
 ```
 
@@ -373,28 +373,28 @@ in `(-π, π]`) and [`angle_at`](@ref)`(vertex, p1, p2)` (unsigned, in
 something to pass around.
 
 ```@example geo
-angle_between(EGVector(4.0, 0.0), EGVector(0.0, 4.0))   # π/2
+angle_between(APVector(4.0, 0.0), APVector(0.0, 4.0))   # π/2
 ```
 
-[`EGAngle2`](@ref) wraps up the "angle at a vertex between two rays" idea
+[`APAngle2`](@ref) wraps up the "angle at a vertex between two rays" idea
 into a small struct (`vertex`, `a`, `b`) so it can be passed around and
 measured without repeating the three points everywhere —
-`measure`/`abs` on an `EGAngle2` are exactly `angle_between`/`angle_at` on
+`measure`/`abs` on an `APAngle2` are exactly `angle_between`/`angle_at` on
 its two defining vectors. Unlike a bare number, it's also a genuine
-*region* of the plane (it's part of the [`EGSet`](@ref) family): `p in ang`
+*region* of the plane (it's part of the [`APSet`](@ref) family): `p in ang`
 tests whether `p` falls in the infinite wedge swept counterclockwise from
-`a` to `b`. It's oriented: `EGAngle2(O, P1, P2)` and `EGAngle2(O, P2, P1)`
+`a` to `b`. It's oriented: `APAngle2(O, P1, P2)` and `APAngle2(O, P2, P1)`
 have the same [`abs`](@ref) but opposite sign.
 
 ```@example geo
-O = EGPoint(0.0, 0.0)
-P1, P2 = EGPoint(4.0, 0.0), EGPoint(0.0, 4.0)
-ang = EGAngle2(O, P1, P2)
+O = APPoint(0.0, 0.0)
+P1, P2 = APPoint(4.0, 0.0), APPoint(0.0, 4.0)
+ang = APAngle2(O, P1, P2)
 
 rad2deg(measure(ang))    # 90.0 — signed, counterclockwise from a to b
 abs(ang)                 # 1.5707... — the unsigned angle, in [0, π]
 is_direct(ang)           # true: measure(ang) > 0
-(O + EGVector(1.0, 1.0)) in ang   # true: inside the wedge
+(O + APVector(1.0, 1.0)) in ang   # true: inside the wedge
 ```
 
 [`normalized_measure`](@ref) is [`measure`](@ref) shifted into `[0, 2π)`
@@ -403,13 +403,13 @@ Swapping `a` and `b` flips the sign of `measure` (and `is_direct`) but
 leaves `abs` unchanged:
 
 ```@example geo
-ang2 = EGAngle2(O, P2, P1)
+ang2 = APAngle2(O, P2, P1)
 measure(ang2), is_direct(ang2)   # (-π/2, false) — same magnitude, opposite orientation
 normalized_measure(ang2)          # -π/2 + 2π = 3π/2 rad (270°), shifted into [0, 2π)
 ```
 
 [`reverse`](@ref)`(ang)` does exactly that swap for you (`ang2 == reverse(ang)`
-above) — handy when you've built an `EGAngle2` from points that already
+above) — handy when you've built an `APAngle2` from points that already
 live in a mirrored coordinate space (e.g. after
 [`@to_luxor_picture`](@ref)'s default `flip=true`, see
 [Drawing with Luxor.jl](@ref)) and need the wedge that matches what you'd
@@ -428,37 +428,37 @@ rays = angle_trisectors(O, P1, P2)   # 2 rays, each 30° apart (a 90° angle, /3
 ```
 
 [`distance`](@ref)`(p, ang)` follows the same `mode = :region`/`:boundary`
-convention as the other [`EGSet`](@ref) types (see
+convention as the other [`APSet`](@ref) types (see
 [Unbounded Regions: Half-Planes, Strips & Angles](@ref)): `0.0` from inside the
 wedge with the default `:region`, or always the distance to the nearer of
 the two bounding rays (`vertex -> a`, `vertex -> b`) with `:boundary`:
 
 ```@example geo
-distance(EGPoint(1.0, 1.0), ang)                  # 0.0: inside the wedge
-distance(EGPoint(-1.0, -1.0), ang; mode=:boundary) # distance to the nearer ray
+distance(APPoint(1.0, 1.0), ang)                  # 0.0: inside the wedge
+distance(APPoint(-1.0, -1.0), ang; mode=:boundary) # distance to the nearer ray
 ```
 
 `rotate`, `reflection` and `homothety` transform `vertex`, `a` and `b`
 pointwise, so `abs(ang)` is always preserved, and so is the *sign* of
 `measure` — for every one of them, including `reflection`. That's a
-deliberate consequence of `EGAngle2` being a real region rather than a bare
-signed value: reflecting about an `EGLine` (a true mirror) swaps `a` and
+deliberate consequence of `APAngle2` being a real region rather than a bare
+signed value: reflecting about an `APLine` (a true mirror) swaps `a` and
 `b` internally so the wedge comes back as a genuine mirror image of the
 original (not its complement), and that swap is exactly what keeps
 `measure`'s sign unchanged too — the same convention
-[`EGCircularArc2`](@ref)/[`EGEllipticArc2`](@ref) use for the same reason.
+[`APCircularArc2`](@ref)/[`APEllipticArc2`](@ref) use for the same reason.
 
 ```@example geo
 measure(rotate(ang, pi / 3)) ≈ measure(ang)                        # sign preserved
-measure(reflection(ang, EGPoint(1.0, 1.0))) ≈ measure(ang)         # point reflection
-measure(reflection(ang, EGLine(O, EGPoint(1.0, 1.0)))) ≈ measure(ang)  # line reflection too
+measure(reflection(ang, APPoint(1.0, 1.0))) ≈ measure(ang)         # point reflection
+measure(reflection(ang, APLine(O, APPoint(1.0, 1.0)))) ≈ measure(ang)  # line reflection too
 ```
 
-Conversely, `rotate(obj, ang::EGAngle2, ...)` goes the other way: it
+Conversely, `rotate(obj, ang::APAngle2, ...)` goes the other way: it
 rotates some *other* object by `measure(ang)`, driven directly by an
-`EGAngle2`'s own measure instead of a bare number — a stand-in for
+`APAngle2`'s own measure instead of a bare number — a stand-in for
 `rotate(obj, measure(ang), ...)`, useful once you already have the angle
-as an `EGAngle2` (say, from `angle_between`'s caller building one to
+as an `APAngle2` (say, from `angle_between`'s caller building one to
 measure/display it) and don't want to unwrap it by hand first:
 
 ```@example geo
@@ -474,8 +474,8 @@ externally in the same ratio. [`golden_ratio_point`](@ref) is the special
 point that divides `[A,B]` in the golden ratio, `A + (B-A)/φ`.
 
 ```@example geo
-A, B = EGPoint(0.0, 0.0), EGPoint(8.0, 0.0)
-P = EGPoint(2.0, 0.0)
+A, B = APPoint(0.0, 0.0), APPoint(8.0, 0.0)
+P = APPoint(2.0, 0.0)
 
 Pgold = golden_ratio_point(A, B)     # ≈ (4.944, 0)
 Pconj = harmonic_conjugate(A, B, P)  # (-4.0, 0) — P's harmonic conjugate
@@ -515,8 +515,8 @@ end
 common circle — used internally by [`is_cyclic`](@ref) for a quadrilateral:
 
 ```@example geo
-circ = EGCircle2(EGPoint(0.0, 0.0), 5.0)
-Q1, Q2, Q3, Q4 = (polar_point_deg(5.0, ang, EGPoint(0.0, 0.0)) for ang in (0.0, 80.0, 170.0, 260.0))
+circ = APCircle2(APPoint(0.0, 0.0), 5.0)
+Q1, Q2, Q3, Q4 = (polar_point_deg(5.0, ang, APPoint(0.0, 0.0)) for ang in (0.0, 80.0, 170.0, 260.0))
 is_concyclic(Q1, Q2, Q3, Q4)                       # true: all 4 on the same circle
-is_concyclic(Q1, Q2, Q3, EGPoint(1.0, 1.0))        # false: this last point isn't on circ
+is_concyclic(Q1, Q2, Q3, APPoint(1.0, 1.0))        # false: this last point isn't on circ
 ```

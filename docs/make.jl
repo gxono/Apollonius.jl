@@ -1,14 +1,14 @@
-using EuclideanGeometry
+using Apollonius
 using Documenter
 
-DocMeta.setdocmeta!(EuclideanGeometry, :DocTestSetup, :(using EuclideanGeometry); recursive=true)
+DocMeta.setdocmeta!(Apollonius, :DocTestSetup, :(using Apollonius); recursive=true)
 
 makedocs(;
-    modules=[EuclideanGeometry],
+    modules=[Apollonius],
     authors="Jonatan Perren",
-    sitename="EuclideanGeometry.jl",
+    sitename="Apollonius.jl",
     format=Documenter.HTML(;
-        canonical="https://gxono.github.io/EuclideanGeometry.jl",
+        canonical="https://gxono.github.io/Apollonius.jl",
         edit_link="master",
         assets=String[],
         size_threshold_ignore=["api.md"],
@@ -38,6 +38,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/gxono/EuclideanGeometry.jl",
+    repo="github.com/gxono/Apollonius.jl",
     devbranch="master",
 )

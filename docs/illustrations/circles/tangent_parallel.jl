@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -21,8 +21,8 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    c = EGCircle2(EGPoint(0.0, 0.0), 5.0)
-    l = EGLine(EGPoint(0.0, 3), EGPoint(1.0, 4))
+    c = APCircle2(APPoint(0.0, 0.0), 5.0)
+    l = APLine(APPoint(0.0, 3), APPoint(1.0, 4))
     t1, t2 = tangent_parallel(c, l)
 end
 

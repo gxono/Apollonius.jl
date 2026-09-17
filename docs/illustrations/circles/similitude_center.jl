@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -21,8 +21,8 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    c1 = EGCircle2(EGPoint(0.0, 0.0), 3.0)
-    c2 = EGCircle2(EGPoint(8.0, 0.0), 2.0)
+    c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
+    c2 = APCircle2(APPoint(8.0, 0.0), 2.0)
     ec = external_similitude_center(c1, c2)
     ic = internal_similitude_center(c1, c2)
     ext = external_tangent_lines(c1, c2)

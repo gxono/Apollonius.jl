@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -16,9 +16,9 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    c = EGPoint(0.0, 0.0)
-    circ = EGCircle2(c, 5.0)
-    p = EGPoint(13.0, 0.0)
+    c = APPoint(0.0, 0.0)
+    circ = APCircle2(c, 5.0)
+    p = APPoint(13.0, 0.0)
     pts = tangent_points(circ, p)
 end
 
@@ -28,7 +28,7 @@ origin()
 
 sethue(julia_purple)
 setdash(:dash)
-path(EGQuadrilateral(c, pts[1], p, pts[2]), action=:stroke)
+path(APQuadrilateral(c, pts[1], p, pts[2]), action=:stroke)
 
 setdash(:solid)
 sethue(julia_blue)

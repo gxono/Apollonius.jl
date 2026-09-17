@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -17,12 +17,12 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    circ = EGCircle2(EGPoint(0.0, 0.0), 3.0)
-    arc = EGCircularArc2(circ, EGPoint(0.0, 3.0), EGPoint(-3.0, 0.0))
-    rad1 = EGSegment(EGPoint(0.0, 3.0), EGPoint(0.0, 0.0))
-    rad2 = EGSegment(EGPoint(0.0, 0.0), EGPoint(-3.0, 0.0))
+    circ = APCircle2(APPoint(0.0, 0.0), 3.0)
+    arc = APCircularArc2(circ, APPoint(0.0, 3.0), APPoint(-3.0, 0.0))
+    rad1 = APSegment(APPoint(0.0, 3.0), APPoint(0.0, 0.0))
+    rad2 = APSegment(APPoint(0.0, 0.0), APPoint(-3.0, 0.0))
 
-    ct = EGCurvilinearTriangle2(rad1, arc, rad2)
+    ct = APCurvilinearTriangle2(rad1, arc, rad2)
 end
 
 

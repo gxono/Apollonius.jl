@@ -1,11 +1,11 @@
 ```@meta
-CurrentModule = EuclideanGeometry
+CurrentModule = Apollonius
 ```
 
 # Affine Maps
 
-[`EGAffineMap`](@ref) (`<: EGTransform`, deliberately outside the
-[`EGObject`](@ref) tree — see its own docstring) is a general 2D affine
+[`APAffineMap`](@ref) (`<: APTransform`, deliberately outside the
+[`APObject`](@ref) tree — see its own docstring) is a general 2D affine
 transformation, `p -> A*p + t` for a `2×2` matrix `A` (stored as four
 scalars, `a11 a12 a21 a22`) and a translation `t = (tx, ty)`. It
 generalizes [`rotate`](@ref), [`homothety`](@ref), [`reflection`](@ref) and
@@ -15,7 +15,7 @@ points/shapes as you like, and combine several into one with plain
 function composition (`∘`).
 
 Unlike those four (each always orientation-preserving, or a
-straightforward orientation flip for `reflection`), an `EGAffineMap` can
+straightforward orientation flip for `reflection`), an `APAffineMap` can
 be a genuine shear or non-uniform scale — so it's also the place where a
 few subtleties specific to *general* affine transformations show up:
 circles becoming ellipses, conic arcs sometimes needing their endpoints
@@ -30,10 +30,10 @@ destination points — the 2D affine analogue of "3 points determine a
 transformation":
 
 ```@example geo
-using EuclideanGeometry
+using Apollonius
 
-src = (EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
-dst = (EGPoint(2.0, 3.0), EGPoint(5.0, 3.0), EGPoint(2.0, 7.0))
+src = (APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
+dst = (APPoint(2.0, 3.0), APPoint(5.0, 3.0), APPoint(2.0, 7.0))
 m = affine_map(src, dst)
 ```
 
@@ -55,15 +55,15 @@ direct than describing the map via three point correspondences:
 is no zero-argument default here, unlike [`rotate`](@ref)/[`homothety`](@ref)
 themselves (a default would let `rotation_map(angle)`/`homothety_map(k)`
 alone silently rotate/scale about the origin with no `center` in sight at
-the call site). `translation_map` takes either an `EGVector` or an `EGPoint`
-for `v`; `reflection_map` takes either an `EGLine` (mirror) or an `EGPoint`
+the call site). `translation_map` takes either an `APVector` or an `APPoint`
+for `v`; `reflection_map` takes either an `APLine` (mirror) or an `APPoint`
 (point reflection).
 
 ```@example geo
-tm = translation_map(EGVector(3.0, -2.0))
-rm = rotation_map(pi / 2, EGPoint(1.0, 1.0))
-hm = homothety_map(2.0, EGPoint(1.0, 1.0))
-refm = reflection_map(EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0)))
+tm = translation_map(APVector(3.0, -2.0))
+rm = rotation_map(pi / 2, APPoint(1.0, 1.0))
+hm = homothety_map(2.0, APPoint(1.0, 1.0))
+refm = reflection_map(APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
 ```
 
 Each of these agrees exactly with its point-based counterpart —
@@ -79,32 +79,32 @@ single-argument form — `rotate(angle, center)`, `homothety(k, center)`,
 `translate(v)`, `reflection(about)` — for `|>`/`∘`/`map`/`filter`
 composition without a shape already in hand. Unlike
 `rotation_map`/`homothety_map`/`translation_map`/`reflection_map` above,
-these are **plain functions**, not `EGAffineMap`s: each is just
+these are **plain functions**, not `APAffineMap`s: each is just
 `shape -> rotate(shape, angle, center)` (and likewise for the other
 three), so they *preserve* whatever specific type the direct call already
-returns — a circle piped through stays an `EGCircle2`, not an
-`EGEllipse2`:
+returns — a circle piped through stays an `APCircle2`, not an
+`APEllipse2`:
 
 ```@example geo
-t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
+t = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
 
 rotate(pi / 2)(t)                              # rotate(t, pi/2, origin)
-t |> translate(EGVector(2.0, 0.0)) |> rotate(pi / 2)  # pipe several in a row -- each step exact
+t |> translate(APVector(2.0, 0.0)) |> rotate(pi / 2)  # pipe several in a row -- each step exact
 
-# circumcircle(t) stays an EGCircle2 all the way through -- contrast with
-# map(homothety_map(2.0, EGPoint(0.0,0.0)), ...) below, which widens it
+# circumcircle(t) stays an APCircle2 all the way through -- contrast with
+# map(homothety_map(2.0, APPoint(0.0,0.0)), ...) below, which widens it
 map(homothety(2.0), [t, circumcircle(t)])
 ```
 
 The cost of that exactness: composing two of these with `∘` builds
 *another plain function* — a chain of type-preserving calls applied one
 after another each time — not a single, reusable, inspectable object the
-way composing two `EGAffineMap`s does:
+way composing two `APAffineMap`s does:
 
 ```@example geo
-chain = rotate(pi / 2) ∘ translate(EGVector(2.0, 0.0))
-chain isa EGAffineMap   # false -- just a Function
-chain(circumcircle(t))  # still an EGCircle2, computed via 2 exact calls in sequence
+chain = rotate(pi / 2) ∘ translate(APVector(2.0, 0.0))
+chain isa APAffineMap   # false -- just a Function
+chain(circumcircle(t))  # still an APCircle2, computed via 2 exact calls in sequence
 ```
 
 So the choice between the two families is a genuine tradeoff, not a
@@ -112,8 +112,8 @@ strict upgrade either way:
 
 | | `rotate(angle)` etc. | `rotation_map(angle, center)` etc. |
 |:--|:--|:--|
-| Result type | preserved exactly (`EGCircle2` stays `EGCircle2`) | always generic (a circle → `EGEllipse2`) |
-| `∘`/pipe result | a plain `Function` (chain of exact calls) | one combined, reusable `EGAffineMap` |
+| Result type | preserved exactly (`APCircle2` stays `APCircle2`) | always generic (a circle → `APEllipse2`) |
+| `∘`/pipe result | a plain `Function` (chain of exact calls) | one combined, reusable `APAffineMap` |
 | Reapplying many times | re-walks the chain every time | cheap: one precomputed matrix |
 
 Reach for the plain-function form by default (most shapes here have a
@@ -124,30 +124,30 @@ one precomputed object, and the generic-conic tradeoff is acceptable.
 [`invert`](@ref)/[`invert_neg`](@ref) have the same single-argument
 convenience (`invert(center; k=1.0)`, see [Circles](@ref)), also a plain
 closure — circle inversion isn't an affine transformation at all, so
-there's no `EGAffineMap`-based alternative for it in the first place.
+there's no `APAffineMap`-based alternative for it in the first place.
 
 ## Applying and composing
 
-An `EGAffineMap` is directly callable, and works pointwise on every other
+An `APAffineMap` is directly callable, and works pointwise on every other
 straight-edged type in the package:
 
 ```@example geo
-m(EGPoint(1.0, 0.0))                 # a single point
-t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
-m(t)                                 # a whole EGTriangle, vertex by vertex
+m(APPoint(1.0, 0.0))                 # a single point
+t = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
+m(t)                                 # a whole APTriangle, vertex by vertex
 ```
 
-The same works for `EGSegment`, `EGLine`, `EGRay`, `EGStraightNgon`,
-`EGQuadrilateral`, `EGAngle2`, `EGHalfPlane2` and `EGStrip2` — all
+The same works for `APSegment`, `APLine`, `APRay`, `APStraightNgon`,
+`APQuadrilateral`, `APAngle2`, `APHalfPlane2` and `APStrip2` — all
 pointwise, vertex by vertex (or endpoint by endpoint). It's also directly
-callable on an [`EGVector`](@ref), applying the linear part only (no
+callable on an [`APVector`](@ref), applying the linear part only (no
 translation, since a vector has no position):
 
 ```@example geo
-m(EGVector(1.0, 0.0))
+m(APVector(1.0, 0.0))
 ```
 
-`EGHalfPlane2` needs one extra piece of bookkeeping: unlike `rotate`/
+`APHalfPlane2` needs one extra piece of bookkeeping: unlike `rotate`/
 `homothety` (always orientation-preserving in 2D), a general affine map
 can reverse orientation, which would flip which side of the transformed
 boundary is "inside" — so its `side` field is recomputed fresh from an
@@ -161,12 +161,12 @@ Sylvester's law of inertia, the map acts on a conic's defining quadratic
 form as a congruence, which can't change how many of its eigenvalues are
 positive/negative/zero). Concretely:
 
-- `m(c::EGCircle2)` always returns an [`EGEllipse2`](@ref), never another
-  `EGCircle2` — only a *similarity* (rotation/homothety/reflection/
+- `m(c::APCircle2)` always returns an [`APEllipse2`](@ref), never another
+  `APCircle2` — only a *similarity* (rotation/homothety/reflection/
   translation, or a combination) sends a circle to a circle, and this
   covers every affine map, so the return type doesn't special-case that.
-- `m(e::EGEllipse2)` returns another `EGEllipse2`, `m(h::EGHyperbola2)`
-  another `EGHyperbola2`, `m(par::EGParabola2)` another `EGParabola2` —
+- `m(e::APEllipse2)` returns another `APEllipse2`, `m(h::APHyperbola2)`
+  another `APHyperbola2`, `m(par::APParabola2)` another `APParabola2` —
   each computed exactly (no sampling or fitting): the conic's own
   quadratic form transforms as a congruence, which is diagonalized to
   recover the new semi-axes/angle directly (for the parabola, whose
@@ -176,17 +176,17 @@ positive/negative/zero). Concretely:
   transformed axis direction).
 
 ```@example geo
-c = EGCircle2(EGPoint(1.0, 2.0), 5.0)
-skew = EGAffineMap(2.0, 0.5, -0.3, 1.4, 3.0, -1.0)
-skew(c)          # a genuine EGEllipse2: the linear part isn't a similarity
-rm(c)            # rm is a pure rotation, so this EGEllipse2 has a == b
+c = APCircle2(APPoint(1.0, 2.0), 5.0)
+skew = APAffineMap(2.0, 0.5, -0.3, 1.4, 3.0, -1.0)
+skew(c)          # a genuine APEllipse2: the linear part isn't a similarity
+rm(c)            # rm is a pure rotation, so this APEllipse2 has a == b
 ```
 
 ## Conic arcs: orientation-reversing maps need an endpoint swap
 
-`m(arc::EGCircularArc2)` returns an `EGEllipticArc2` (same reasoning as
-the circle case above); `EGEllipticArc2`, `EGHyperbolicArc2` and
-`EGParabolicArc2` each map to the same arc type, on the image of their
+`m(arc::APCircularArc2)` returns an `APEllipticArc2` (same reasoning as
+the circle case above); `APEllipticArc2`, `APHyperbolicArc2` and
+`APParabolicArc2` each map to the same arc type, on the image of their
 underlying conic.
 
 For the two *closed*-conic arcs (circular, elliptic), "the arc from `p1`
@@ -194,29 +194,29 @@ to `p2`" only picks out one of two complementary arcs because it's
 understood to sweep counterclockwise. An orientation-reversing map
 (`det(m) < 0`, like a reflection) turns that sweep clockwise, so `p1`/`p2`
 are swapped when reconstructing the transformed arc — otherwise it would
-silently become the *complementary* arc instead. `EGHyperbolicArc2`/
-`EGParabolicArc2` need no such swap: a single hyperbola branch or a
+silently become the *complementary* arc instead. `APHyperbolicArc2`/
+`APParabolicArc2` need no such swap: a single hyperbola branch or a
 parabola is open, so two points on it always determine one unambiguous
 arc regardless of orientation.
 
 ## Circular-arc regions become curvilinear
 
-`EGCircularSector2`, `EGCircularSegment2`, `EGAnnularSector2` and
-`EGInterstice2` each hold a concrete `EGCircularArc2` (or two) as a field
+`APCircularSector2`, `APCircularSegment2`, `APAnnularSector2` and
+`APInterstice2` each hold a concrete `APCircularArc2` (or two) as a field
 — but under a general affine map, that arc generically becomes elliptic,
 which no longer fits. So `m` applied to one of these returns the more
-general [`EGCurvilinearTriangle2`](@ref)/[`EGCurvilinearQuadrilateral2`](@ref)/
-[`EGCurvilinearNgon2`](@ref) instead, built from the same sides, each
+general [`APCurvilinearTriangle2`](@ref)/[`APCurvilinearQuadrilateral2`](@ref)/
+[`APCurvilinearNgon2`](@ref) instead, built from the same sides, each
 individually mapped through `m`:
 
 ```@example geo
-c = EGCircle2(EGPoint(0.0, 0.0), 4.0)
-arc = EGCircularArc2(c, EGPoint(4.0, 0.0), EGPoint(0.0, 4.0))
-sec = EGCircularSector2(arc)
-skew(sec)   # an EGCurvilinearTriangle2: 2 straight sides + 1 elliptic arc
+c = APCircle2(APPoint(0.0, 0.0), 4.0)
+arc = APCircularArc2(c, APPoint(4.0, 0.0), APPoint(0.0, 4.0))
+sec = APCircularSector2(arc)
+skew(sec)   # an APCurvilinearTriangle2: 2 straight sides + 1 elliptic arc
 ```
 
-`EGCurvilinearTriangle2`/`EGCurvilinearQuadrilateral2`/`EGCurvilinearNgon2`
+`APCurvilinearTriangle2`/`APCurvilinearQuadrilateral2`/`APCurvilinearNgon2`
 themselves are already general enough to be closed under this: `m` just
 maps each of their sides through itself, whatever mix of segments and
 conic arcs they are.
@@ -226,10 +226,10 @@ like any other Julia functions — `(m2 ∘ m1)(p) == m2(m1(p))`:
 
 ```@example geo
 composed = rm ∘ tm     # first translate, then rotate
-composed(EGPoint(0.0, 0.0))
+composed(APPoint(0.0, 0.0))
 ```
 
-This builds a single new `EGAffineMap` (not a closure), so applying
+This builds a single new `APAffineMap` (not a closure), so applying
 `composed` to many points is exactly as cheap as applying any other single
 map — the composition happens once, up front, not on every call.
 
@@ -240,8 +240,8 @@ shapes in one expression, returning the results as a tuple:
 
 ```@example geo
 T1, C1 = @affinemap skew begin
-    tri = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
-    circ = EGCircle2(EGPoint(1.0, 2.0), 5.0)
+    tri = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
+    circ = APCircle2(APPoint(1.0, 2.0), 5.0)
 end
 T1, C1
 ```

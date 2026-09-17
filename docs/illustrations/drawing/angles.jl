@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin, 
     background, RGBA,
@@ -17,11 +17,11 @@ end
 
 
 sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
-    t = EGTriangle(EGPoint(-80.0, 60.0), EGPoint(80.0, 60.0), EGPoint(-20.0, -80.0))
-    ang = EGAngle2(t[2], t[1], t[3])
+    t = APTriangle(APPoint(-80.0, 60.0), APPoint(80.0, 60.0), APPoint(-20.0, -80.0))
+    ang = APAngle2(t[2], t[1], t[3])
 
-    tv = EuclideanGeometry.translate.(t, EGVector.([0, 200, 400, 600, 800], 0))
-    angv = EuclideanGeometry.translate.(ang, EGVector.([0, 200, 400, 600, 800], 0))
+    tv = Apollonius.translate.(t, APVector.([0, 200, 400, 600, 800], 0))
+    angv = Apollonius.translate.(ang, APVector.([0, 200, 400, 600, 800], 0))
 end
 
 

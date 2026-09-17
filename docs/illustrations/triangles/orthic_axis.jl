@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -17,13 +17,13 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    A, B, C = EGPoint(0.0,0), EGPoint(10,0), EGPoint(7,5)
-    t =  EGTriangle(A, B, C)
-    l1, l2, l3 = EGLine.(sides(t))
+    A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
+    t =  APTriangle(A, B, C)
+    l1, l2, l3 = APLine.(sides(t))
     oa = orthic_axis(t)
 
     h1, h2, h3 = projection.([C, A, B], [l1, l2, l3])
-    lh1, lh2, lh3 = EGLine(h2, h3), EGLine(h3, h1), EGLine(h1, h2)
+    lh1, lh2, lh3 = APLine(h2, h3), APLine(h3, h1), APLine(h1, h2)
     ih1 = intersection(lh1, l1)
     ih2 = intersection(lh2, l2)
     ih3 = intersection(lh3, l3)
@@ -39,7 +39,7 @@ sethue("gray80")
 setdash(:dash)
 gsave()
 setline(1)
-h = EGSegment.([C,A,B],[h1,h2,h3])
+h = APSegment.([C,A,B],[h1,h2,h3])
 path(h, action=:stroke)
 path([l1, l2, l3], action=:stroke)
 sethue(julia_green)

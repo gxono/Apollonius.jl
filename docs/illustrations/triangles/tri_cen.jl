@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin, newsubpath,
     background, RGBA,
@@ -17,14 +17,14 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    A, B, C = EGPoint(0.0,0), EGPoint(10,0), EGPoint(7,5)
-    triangle =  EGTriangle(A, B, C)
+    A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
+    triangle =  APTriangle(A, B, C)
     G = centroid(triangle)
     O = circumcenter(triangle)
     I = incenter(triangle)
     H = orthocenter(triangle)
     l = euler_line(triangle)
-    lados = EGLine.(sides(triangle))
+    lados = APLine.(sides(triangle))
     @unbounded cc = circumcircle(triangle)
     ic = incircle(triangle)
     iv = projection.(I, lados)
@@ -45,8 +45,8 @@ gsave()
 setline(1)
 setdash(:dash)
 path([cc, ic], action=:stroke)
-path(EGSegment(O, A), action=:stroke)
-path(EGSegment(I, iv[2]), action=:stroke)
+path(APSegment(O, A), action=:stroke)
+path(APSegment(I, iv[2]), action=:stroke)
 grestore()
 
 sethue(julia_purple)

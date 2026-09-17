@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -15,17 +15,17 @@ setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepa
 end
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    P, Q, C = EGPoint(1.0, 1.0), EGPoint(6.0, 3.0), EGPoint(2.0, 6.0)
+    P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(2.0, 6.0)
     
     R = rotate(C, pi / 2, P)
-    angTR = EGAngle2(P, C, R)
+    angTR = APAngle2(P, C, R)
     
     H = homothety(C, 2.0, P)
 
-    vecCT = EGVector(1.0, -1.0)
+    vecCT = APVector(1.0, -1.0)
     T = translate(C, vecCT)
 
-    trian = EGTriangle(P,Q,C)
+    trian = APTriangle(P,Q,C)
     B = barycenter(vertices(trian), [1.0, 1.0, 2.0])
     m1, m2, m3 = midpoint.(sides(trian))
 end
@@ -39,24 +39,24 @@ sethue("gray80")
 #Barycenter
 
 #median
-path([EGSegment(p,m) for (p,m) in zip([C,P,Q], [m1,m2,m3])], action = :stroke)    
-path(EGTriangle(P, Q, C), action=:stroke)
+path([APSegment(p,m) for (p,m) in zip([C,P,Q], [m1,m2,m3])], action = :stroke)    
+path(APTriangle(P, Q, C), action=:stroke)
 
 #Homothety
 sethue(julia_purple)
-path(EGLine(C,P), action=:stroke)
+path(APLine(C,P), action=:stroke)
 
 #Rotation
 sethue(julia_red)
-path(EGSegment(P,C), action=:stroke)
+path(APSegment(P,C), action=:stroke)
 
 sethue(julia_purple)
 path(angTR, action=:fill, as=:rsector)
-path(EGSegment(P,R), action=:stroke)
+path(APSegment(P,R), action=:stroke)
 
 
 #Traslation
-path(EGEquipollentVector(vecCT, C), action=:stroke, as=:arrow)
+path(APEquipollentVector(vecCT, C), action=:stroke, as=:arrow)
 
 path(P)
 setpoint(julia_blue)

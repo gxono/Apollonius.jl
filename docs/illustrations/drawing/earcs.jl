@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin, 
     background, RGBA,
@@ -17,8 +17,8 @@ end
 
 
 sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
-    e = EGEllipse2(EGPoint(0.0, 0.0), 40.0, 20.0, pi / 6)
-earc = EGEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
+    e = APEllipse2(APPoint(0.0, 0.0), 40.0, 20.0, pi / 6)
+earc = APEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
 
 end
 

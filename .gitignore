@@ -2,12 +2,12 @@ Manifest*.toml
 /docs/build/
 /scratch/
 
-/src/eg_plane.jl
-/src/eg_unbounded3.jl
-/src/eg_polyhedron.jl
-/src/eg_named_polyhedra.jl
-/src/eg_curved_solid.jl
-/src/eg_conic3.jl
-/src/eg_quadric.jl
-/src/eg_curved_region3.jl
-/src/eg_transform3.jl
+/src/ap_plane.jl
+/src/ap_unbounded3.jl
+/src/ap_polyhedron.jl
+/src/ap_named_polyhedra.jl
+/src/ap_curved_solid.jl
+/src/ap_conic3.jl
+/src/ap_quadric.jl
+/src/ap_curved_region3.jl
+/src/ap_transform3.jl

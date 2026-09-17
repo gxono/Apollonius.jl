@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin, 
     background, RGBA,
@@ -17,13 +17,13 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    A, B, C = EGPoint(0.0,0), EGPoint(10,0), EGPoint(7,5)
-    t = EGTriangle(A, B, C)
-    l = EGLine.(sides(t))
+    A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
+    t = APTriangle(A, B, C)
+    l = APLine.(sides(t))
     ex = collect(excenters(t))
     exc = collect(excircles(t)) 
     pp = projection.(ex, [l[2], l[3], l[1]])
-    rangles = EGAngle2.(pp, ex, getproperty.(l, :p2))
+    rangles = APAngle2.(pp, ex, getproperty.(l, :p2))
 end
 
 
@@ -37,10 +37,10 @@ sethue("gray80")
 setdash(:dash)
 setline(1)
 path(l, action=:stroke)
-path(EGTriangle(ex...), action=:stroke)
+path(APTriangle(ex...), action=:stroke)
 sethue(julia_green)
 setdash(:solid)
-path(EGSegment.(ex, pp), action=:stroke)
+path(APSegment.(ex, pp), action=:stroke)
 grestore()
 
 sethue(julia_purple)

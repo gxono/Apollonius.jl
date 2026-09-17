@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: Drawing, finish, preview, origin,
     sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, 
@@ -20,8 +20,8 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    a, b, c = EGPoint(0.0, 0.0), EGPoint(4.0, 0.0), EGPoint(5.0, 2.0)
-    d = EGPoint(1.0, 0.0) 
+    a, b, c = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(5.0, 2.0)
+    d = APPoint(1.0, 0.0) 
     pa = parallelogram(a, b, c)
     ps = square_on_segment(a, b)
     pr = rectangle_on_segment(a, b, 2.0)

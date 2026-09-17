@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: Drawing, finish, preview, origin,
     sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, 
@@ -17,8 +17,8 @@ fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
 end
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    a, b = EGPoint(-3.0, 0.0), EGPoint(3.0, 0.0)
-    l = EGLine(EGPoint(-5.0, -4.0), EGPoint(5.0, -4.0))
+    a, b = APPoint(-3.0, 0.0), APPoint(3.0, 0.0)
+    l = APLine(APPoint(-5.0, -4.0), APPoint(5.0, -4.0))
 
     sols = tangent_circles_through_points(a, b, l)
 end

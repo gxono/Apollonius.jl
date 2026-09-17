@@ -1,11 +1,11 @@
 ```@meta
-CurrentModule = EuclideanGeometry
+CurrentModule = Apollonius
 ```
 
 # Triangles & Triangle Centers
 
-[`EGTriangle`](@ref) is three points, indexed `t[1]`, `t[2]`, `t[3]` (its
-own type, `<: EGPolygon` — see [EuclideanGeometry.jl](@ref) for the full hierarchy). This
+[`APTriangle`](@ref) is three points, indexed `t[1]`, `t[2]`, `t[3]` (its
+own type, `<: APPolygon` — see [Apollonius.jl](@ref) for the full hierarchy). This
 page is organized the same way triangle geometry
 usually is: the basic measurements, the four classical centers and how the
 Euler line ties three of them together, the excircles, barycentric
@@ -15,10 +15,10 @@ derived triangles that classical triangle geometry has accumulated.
 Throughout, the running example is the scalene triangle:
 
 ```@example geo
-using EuclideanGeometry
+using Apollonius
 
-A, B, C = EGPoint(0.0, 0.0), EGPoint(8.0, 0.0), EGPoint(3.0, 6.0)
-t = EGTriangle(A, B, C)
+A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+t = APTriangle(A, B, C)
 
 area(t), perimeter(t), is_degenerate(t)
 ```
@@ -284,8 +284,8 @@ The rest, grouped by what they're built from:
 | Apollonius circles of a triangle | [`three_apollonius_circles`](@ref) (one per vertex; their common points are the [`isodynamic_points`](@ref)) |
 | Axis-like lines | [`fermat_axis`](@ref) (through [`fermat_point`](@ref) and [`second_fermat_point`](@ref)); see also [`orthic_axis`](@ref)/[`brocard_axis`](@ref)/[`lemoine_axis`](@ref) above and [`soddy_line`](@ref) |
 
-All of these take the `EGTriangle` as their (only, or first) argument and
-return an `EGPoint`, an `EGCircle2`, an `EGLine`, or — where there's naturally more
+All of these take the `APTriangle` as their (only, or first) argument and
+return an `APPoint`, an `APCircle2`, an `APLine`, or — where there's naturally more
 than one, like `soddy_circles` or `three_apollonius_circles` — a tuple or
 named tuple. See the [API Reference](@ref) for exact signatures.
 
@@ -310,7 +310,7 @@ of the perpendiculars from `p` to the three side-lines) generalizes
 pedal triangles of the orthocenter/incenter:
 
 ```@example geo
-orthopole(EGLine(t[2], t[3]), t) isa EGPoint
+orthopole(APLine(t[2], t[3]), t) isa APPoint
 pedal_triangle(t, incenter(t)) ≈ contact_triangle(t)
 ```
 
@@ -422,7 +422,7 @@ but with the three equilateral triangles erected *inward* instead of
 outward; [`fermat_axis`](@ref) is the line through both:
 
 ```@example geo
-fermat_axis(t)   # EGLine(fermat_point(t), second_fermat_point(t))
+fermat_axis(t)   # APLine(fermat_point(t), second_fermat_point(t))
 ```
 
 [`poncelet_point`](@ref)`(t, p)` uses a striking fact about *any* 4 points
@@ -431,7 +431,7 @@ nine-point circles of the 4 triangles obtained by leaving out one point
 each time always share a single common point.
 
 ```@example geo
-poncelet_point(t, EGPoint(5.0, -2.0))
+poncelet_point(t, APPoint(5.0, -2.0))
 ```
 
 [`thebault_circles`](@ref) builds the two circles of the classical
@@ -450,7 +450,7 @@ exactly on the segment joining the two circles' centers (the theorem the
 construction is named for):
 
 ```@example geo
-on_line(incenter(t), EGLine(th.near_b.center, th.near_c.center))
+on_line(incenter(t), APLine(th.near_b.center, th.near_c.center))
 ```
 
 [`three_tangent_circles`](@ref) is the simpler configuration
@@ -516,8 +516,8 @@ has focus Kimberling center X(110) and directrix the [`euler_line`](@ref)
 (undefined for an isosceles triangle, where X(110) doesn't exist):
 
 ```@example geo
-kiepert_hyperbola(t) isa EGHyperbola2
-kiepert_parabola(t) isa EGParabola2
+kiepert_hyperbola(t) isa APHyperbola2
+kiepert_parabola(t) isa APParabola2
 ```
 
 ## Steiner ellipses
@@ -593,7 +593,7 @@ orthic_inellipse(t).center ≈ symmedian_point(t)                             # 
 
 ## Derived triangles
 
-These take an `EGTriangle` and return another `EGTriangle` built from it:
+These take an `APTriangle` and return another `APTriangle` built from it:
 
 | Function | Vertices are... |
 |:---------|:-----------------|
@@ -632,7 +632,7 @@ ct = contact_triangle(t)        # incircle touch points
 et = extouch_triangle(t)        # excircle touch points
 et_center = excentral_triangle(t)   # the 3 excenters, as a triangle
 tt = tangential_triangle(t)     # tangent lines to the circumcircle at each vertex, intersected pairwise
-on_line(circumcenter(t), EGLine(t[1], tt[1])) == false   # circumcenter isn't generally on a tangent line
+on_line(circumcenter(t), APLine(t[1], tt[1])) == false   # circumcenter isn't generally on a tangent line
 ```
 
 ```@example geo
@@ -649,14 +649,14 @@ distance(mor[1], mor[2]) ≈ distance(mor[2], mor[3]) ≈ distance(mor[3], mor[1
 ```@example geo
 cev = cevian_triangle(t, incenter(t))            # feet of the cevians through the incenter
 ccev = circumcevian_triangle(t, incenter(t))     # same cevians, extended to the circumcircle
-on_segment(cev[1], EGSegment(t[2], t[3])), on_line(ccev[1], EGLine(t[1], incenter(t)))
+on_segment(cev[1], APSegment(t[2], t[3])), on_line(ccev[1], APLine(t[1], incenter(t)))
 ```
 
 ## Inscribed squares
 
 [`square_inscribed`](@ref)`(t, i)` builds the square with one side on the
 side opposite `t[i]` and its other two vertices exactly on the two sides
-through `t[i]` — returned as an [`EGQuadrilateral`](@ref). There are 3 such
+through `t[i]` — returned as an [`APQuadrilateral`](@ref). There are 3 such
 squares (one per side, hence the vertex index):
 
 ```@example geo
@@ -690,7 +690,7 @@ keyword picking which side of `[a, b]` the third vertex falls on.
 
 
 ```@example geo
-p1, p2 = EGPoint(0.0, 0.0), EGPoint(6.0, 0.0)
+p1, p2 = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
 golden_triangle_on_segment(p1, p2)   # apex angle 36°, both base angles 72°
 ```
 

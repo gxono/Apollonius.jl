@@ -1,17 +1,17 @@
 # -------------------------------------------------------------------------
-# Fitting an EGEllipse2/EGHyperbola2 through five points.
+# Fitting an APEllipse2/APHyperbola2 through five points.
 # -------------------------------------------------------------------------
 
 """
-    conic_through_points(p1::EGPoint, p2::EGPoint, p3::EGPoint, p4::EGPoint, p5::EGPoint; atol=1e-9)
+    conic_through_points(p1::APPoint, p2::APPoint, p3::APPoint, p4::APPoint, p5::APPoint; atol=1e-9)
 
-The ellipse or hyperbola (as an `EGEllipse2` or `EGHyperbola2`) passing
+The ellipse or hyperbola (as an `APEllipse2` or `APHyperbola2`) passing
 through the 5 given points, assumed to be in general position. Throws an
 `ArgumentError` if the points don't determine a unique conic (a degenerate
 configuration), or if that conic is a parabola (discriminant ≈ 0), which
 isn't representable by this function.
 """
-function conic_through_points(p1::EGPoint, p2::EGPoint, p3::EGPoint, p4::EGPoint, p5::EGPoint; atol=1e-9)
+function conic_through_points(p1::APPoint, p2::APPoint, p3::APPoint, p4::APPoint, p5::APPoint; atol=1e-9)
     pts = (p1, p2, p3, p4, p5)
     centroid = p1 + sum(p - p1 for p in pts) / 5
     scale = max(sum(distance(p, centroid) for p in pts) / 5, 1.0)
@@ -31,7 +31,7 @@ function conic_through_points(p1::EGPoint, p2::EGPoint, p3::EGPoint, p4::EGPoint
         "conic_through_points: the points lie on (or near) a parabola, which this function can't return"))
 
     x0, y0 = [2A B; B 2C] \ [-D, -E]
-    center = centroid + scale * EGVector(x0, y0)
+    center = centroid + scale * APVector(x0, y0)
     F0 = A * x0^2 + B * x0 * y0 + C * y0^2 + D * x0 + E * y0 + F
 
     lam1 = (A + C + sqrt((A - C)^2 + B^2)) / 2
@@ -41,12 +41,12 @@ function conic_through_points(p1::EGPoint, p2::EGPoint, p3::EGPoint, p4::EGPoint
 
     if disc < 0
         (s1 <= atol || s2 <= atol) && throw(ArgumentError("conic_through_points: no real ellipse fits these points"))
-        return EGEllipse2(center, scale * sqrt(s1), scale * sqrt(s2), theta)
+        return APEllipse2(center, scale * sqrt(s1), scale * sqrt(s2), theta)
     else
         if s1 > 0 && s2 < 0
-            return EGHyperbola2(center, scale * sqrt(s1), scale * sqrt(-s2), theta)
+            return APHyperbola2(center, scale * sqrt(s1), scale * sqrt(-s2), theta)
         elseif s2 > 0 && s1 < 0
-            return EGHyperbola2(center, scale * sqrt(s2), scale * sqrt(-s1), theta + pi / 2)
+            return APHyperbola2(center, scale * sqrt(s2), scale * sqrt(-s1), theta + pi / 2)
         else
             throw(ArgumentError("conic_through_points: no real hyperbola fits these points"))
         end

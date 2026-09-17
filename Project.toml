@@ -1,5 +1,5 @@
-name = "EuclideanGeometry"
-uuid = "b1cfe91b-89b0-40c2-94e7-715cbacdec75"
+name = "Apollonius"
+uuid = "54d4ec63-6df0-448b-bd74-e1b9ab51cc02"
 authors = ["Jonatan Perren"]
 version = "0.1.1"
 
@@ -10,7 +10,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Luxor = "ae8d54c2-7ccd-5906-9d76-62fc9837b5bc"
 
 [extensions]
-EuclideanGeometryLuxorExt = "Luxor"
+ApolloniusLuxorExt = "Luxor"
 
 [compat]
 LinearAlgebra = "1"

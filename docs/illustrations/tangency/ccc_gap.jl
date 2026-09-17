@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: Drawing, finish, preview, origin,
     sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, 
@@ -17,10 +17,10 @@ fmt_name = replace(split(@__FILE__,"\\")[end],".jl" => ".svg")
 end
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    c1 = EGCircle2(EGPoint(0.0, 0.0), 40.0)
-    c2 = EGCircle2(EGPoint(90.0, 0.0), 50.0)
-    c3_center = intersection(EGCircle2(c1.center, c1.r + 35.0), EGCircle2(c2.center, c2.r + 35.0))[1]
-    c3 = EGCircle2(c3_center, 35.0)
+    c1 = APCircle2(APPoint(0.0, 0.0), 40.0)
+    c2 = APCircle2(APPoint(90.0, 0.0), 50.0)
+    c3_center = intersection(APCircle2(c1.center, c1.r + 35.0), APCircle2(c2.center, c2.r + 35.0))[1]
+    c3 = APCircle2(c3_center, 35.0)
     gaps = interstices(c1, c2, c3)
 end
 

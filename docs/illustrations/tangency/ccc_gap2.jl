@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: Drawing, finish, preview, origin,
     sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, 
@@ -18,10 +18,10 @@ end
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     R = 100.0
-    big = EGCircle2(EGPoint(0.0, 0.0), R)
-    A = EGCircle2(polar_point_deg(R - 25.0, 100.0, big.center), 25.0)
-    B_center = intersection(EGCircle2(big.center, R - 45.0), EGCircle2(A.center, A.r + 45.0))[1]
-    B = EGCircle2(B_center, 45.0)
+    big = APCircle2(APPoint(0.0, 0.0), R)
+    A = APCircle2(polar_point_deg(R - 25.0, 100.0, big.center), 25.0)
+    B_center = intersection(APCircle2(big.center, R - 45.0), APCircle2(A.center, A.r + 45.0))[1]
+    B = APCircle2(B_center, 45.0)
     gaps = interstices(big, A, B)
 end
 

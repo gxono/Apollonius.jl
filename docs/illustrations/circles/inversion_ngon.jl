@@ -1,5 +1,5 @@
 begin
-using EuclideanGeometry
+using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin,
     background, RGBA,
@@ -21,9 +21,9 @@ end
 
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    o = EGPoint(0.0, 0.0)
-    circ = EGCircle2(o, 1)
-    pol = EGStraightNgon([polar_point_deg(0.6, a, EGPoint(0,0)) for a in 0:60:330]) |> translate(EGVector(1.25,0))
+    o = APPoint(0.0, 0.0)
+    circ = APCircle2(o, 1)
+    pol = APStraightNgon([polar_point_deg(0.6, a, APPoint(0,0)) for a in 0:60:330]) |> translate(APVector(1.25,0))
     cp = invert(pol, o)
 end
 

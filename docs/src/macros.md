@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = EuclideanGeometry
+CurrentModule = Apollonius
 ```
 
 # Transforming in Bulk: Macros
@@ -8,7 +8,7 @@ Applying the same transform to several shapes one at a time is repetitive:
 `c2 = rotate(c, angle); s2 = rotate(s, angle); t2 = rotate(t, angle)`. Every
 transform in the package ([`translate`](@ref), [`rotate`](@ref),
 [`homothety`](@ref), [`reflection`](@ref), [`invert`](@ref)/
-[`invert_neg`](@ref), and [`EGAffineMap`](@ref) application) has a matching
+[`invert_neg`](@ref), and [`APAffineMap`](@ref) application) has a matching
 macro that instead takes a whole `begin ... end` block naming several
 shapes at once, applies the transform to each, and returns the results
 together as a tuple — plus a mutating `!` counterpart that rebinds each
@@ -18,14 +18,14 @@ listed, rather than applying a transform.
 
 | Macro | Transform applied | Mutating form |
 |:------|:-------------------|:--------------|
-| [`@boundingbox`](@ref) | — (builds one [`EGBoundingBox`](@ref) around everything) | — |
+| [`@boundingbox`](@ref) | — (builds one [`APBoundingBox`](@ref) around everything) | — |
 | [`@translate`](@ref) | [`translate`](@ref) | [`@translate!`](@ref) |
 | [`@rotate`](@ref) | [`rotate`](@ref) | [`@rotate!`](@ref) |
 | [`@homothety`](@ref) | [`homothety`](@ref) | [`@homothety!`](@ref) |
 | [`@reflection`](@ref) | [`reflection`](@ref) | [`@reflection!`](@ref) |
 | [`@invert`](@ref) | [`invert`](@ref) | [`@invert!`](@ref) |
 | [`@invert_neg`](@ref) | [`invert_neg`](@ref) | [`@invert_neg!`](@ref) |
-| [`@affinemap`](@ref) | any [`EGAffineMap`](@ref) | [`@affinemap!`](@ref) |
+| [`@affinemap`](@ref) | any [`APAffineMap`](@ref) | [`@affinemap!`](@ref) |
 
 ![Several shapes rotated together by one @rotate block](assets/img/placeholder.png)
 
@@ -49,10 +49,10 @@ A single shape/expression instead of a full block also works
 result is returned bare rather than wrapped in a 1-tuple.
 
 ```@example geo
-using EuclideanGeometry
+using Apollonius
 
-c = EGCircle2(EGPoint(1.0, 2.0), 3.0)
-s = EGSegment(EGPoint(0.0, 0.0), EGPoint(4.0, 0.0))
+c = APCircle2(APPoint(1.0, 2.0), 3.0)
+s = APSegment(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
 
 C2, S2 = @rotate (pi / 2) begin
     c
@@ -62,7 +62,7 @@ C2, S2
 ```
 
 ```@example geo
-c1, c2 = EGCircle2(EGPoint(0.0, 0.0), 2.0), EGCircle2(EGPoint(10.0, 0.0), 1.0)
+c1, c2 = APCircle2(APPoint(0.0, 0.0), 2.0), APCircle2(APPoint(10.0, 0.0), 1.0)
 
 L1, L2 = @rotate (pi / 2) begin
     l1, l2 = external_tangent_lines(c1, c2)   # destructuring assignment
@@ -75,10 +75,10 @@ A named item can even be a plain `Vector` of shapes — what
 give 0, 1 or 2 points depending on the geometry — and it's transformed
 element-wise, via [`translate`](@ref)/[`rotate`](@ref)/[`homothety`](@ref)/
 [`reflection`](@ref)/[`invert`](@ref)/[`invert_neg`](@ref)'s own
-`AbstractVector{<:EGObject}` methods (plain broadcasting under the hood):
+`AbstractVector{<:APObject}` methods (plain broadcasting under the hood):
 
 ```@example geo
-P1, P2 = intersection.(l1, [c1, c2])   # each a Vector{EGPoint} (l1 is tangent to both)
+P1, P2 = intersection.(l1, [c1, c2])   # each a Vector{APPoint} (l1 is tangent to both)
 
 Q1, Q2 = @rotate (pi / 2) begin
     P1
@@ -89,13 +89,13 @@ Q1, Q2
 
 ## `@boundingbox`
 
-Builds one [`EGBoundingBox`](@ref) around every shape listed — shorthand
-for `reduce(bbox_union, EGBoundingBox.(shapes))`, [`bbox_union`](@ref)
+Builds one [`APBoundingBox`](@ref) around every shape listed — shorthand
+for `reduce(bbox_union, APBoundingBox.(shapes))`, [`bbox_union`](@ref)
 itself being the box around two boxes:
 
 ```@example geo
-t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(5.0, 1.0), EGPoint(2.0, 4.0))
-circ = EGCircle2(EGPoint(-1.0, -1.0), 1.5)
+t = APTriangle(APPoint(0.0, 0.0), APPoint(5.0, 1.0), APPoint(2.0, 4.0))
+circ = APCircle2(APPoint(-1.0, -1.0), 1.5)
 
 @boundingbox begin
     t
@@ -104,25 +104,25 @@ end
 ```
 
 ```@example geo
-bbox_union(EGBoundingBox(t), EGBoundingBox(circ))   # exactly what @boundingbox computed above
+bbox_union(APBoundingBox(t), APBoundingBox(circ))   # exactly what @boundingbox computed above
 ```
 
 Blocks like this often mix in plain construction helpers alongside the
 actual shapes — a center point, a radius, a scalar computed along the
-way. `EGBoundingBox` handles every one of those without erroring:
+way. `APBoundingBox` handles every one of those without erroring:
 
-  - a bare [`EGPoint`](@ref) gets its own degenerate (zero-size) box at
+  - a bare [`APPoint`](@ref) gets its own degenerate (zero-size) box at
     its own location — a point *is* a position, so it grows a
     [`bbox_union`](@ref) exactly like any other shape;
-  - a plain number, an [`EGVector`](@ref) (a direction, not a location),
-    or an unbounded curve/region (`EGLine`, `EGRay`, `EGAngle2`,
-    `EGHalfPlane2`, `EGStrip2`) has no position of its own to report, so
-    `EGBoundingBox` returns the *empty* box for these instead — the
+  - a plain number, an [`APVector`](@ref) (a direction, not a location),
+    or an unbounded curve/region (`APLine`, `APRay`, `APAngle2`,
+    `APHalfPlane2`, `APStrip2`) has no position of its own to report, so
+    `APBoundingBox` returns the *empty* box for these instead — the
     identity element for `bbox_union`, so combining it with anything else
     just returns that other box unchanged:
 
 ```@example geo
-centro = EGPoint(2.0, 1.0)
+centro = APPoint(2.0, 1.0)
 radio = 5.0
 
 @boundingbox begin
@@ -132,7 +132,7 @@ end
 ```
 
 ```@example geo
-isempty(EGBoundingBox(radio)), bbox_union(EGBoundingBox(radio), EGBoundingBox(centro)) == EGBoundingBox(centro)
+isempty(APBoundingBox(radio)), bbox_union(APBoundingBox(radio), APBoundingBox(centro)) == APBoundingBox(centro)
 ```
 
 An empty block is an `ArgumentError` — there's no box to build:
@@ -152,7 +152,7 @@ fiddly questions by hand: how big is this thing, how far do I need to
 shift it so it isn't half off-canvas, and what canvas size do I even pass
 to `Drawing`? [`@to_luxor_picture`](@ref) answers all three in one call:
 it translates and uniformly scales every shape in the block so their
-combined [`EGBoundingBox`](@ref) fits centered on `(0, 0)`, and returns
+combined [`APBoundingBox`](@ref) fits centered on `(0, 0)`, and returns
 the exact canvas size — as a `(width=w, height=h)` `NamedTuple` — alongside
 the transformed shapes. Centering on `(0, 0)` matches Luxor's own
 `origin()` convention, so the result is ready to draw right after
@@ -169,7 +169,7 @@ everything would render as a vertical mirror image of how it reads on
 paper. Pass `flip=false` to get the raw, un-mirrored coordinates instead:
 
 ```@example geo
-t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(80.0, 0.0), EGPoint(0.0, 80.0))
+t = APTriangle(APPoint(0.0, 0.0), APPoint(80.0, 0.0), APPoint(0.0, 80.0))
 
 _, t2 = @to_luxor_picture width = 200.0 begin
     t
@@ -185,8 +185,8 @@ t2_noflip.c   # flip=false: the raw, un-mirrored coordinates
 ```
 
 ```@example geo
-c = EGCircle2(EGPoint(3.0, -1.0), 5.0)
-s = EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+c = APCircle2(APPoint(3.0, -1.0), 5.0)
+s = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 
 sz, (c2, s2) = @to_luxor_picture begin
     c
@@ -214,16 +214,16 @@ for the mutating form); the block is read exactly like
 binds its name(s) as usual, a bare expression contributes without binding
 anything, and a single shape/expression works without `begin`/`end` too)
 — including how construction helpers are handled: a bare
-[`EGPoint`](@ref) is repositioned along with everything else (it's a real
-position), while a plain number or an [`EGVector`](@ref) is left
+[`APPoint`](@ref) is repositioned along with everything else (it's a real
+position), while a plain number or an [`APVector`](@ref) is left
 completely untouched (there's no position to move, and a number in
 particular isn't the kind of value `translate`/`homothety` know how to
 transform):
 
 ```@example geo
-centro = EGPoint(2.0, 1.0)
+centro = APPoint(2.0, 1.0)
 radio = 5.0
-circ2 = EGCircle2(centro, radio)
+circ2 = APCircle2(centro, radio)
 
 (w, h), (centro2, radio2, c2) = @to_luxor_picture width = 400.0 begin
     centro
@@ -233,15 +233,15 @@ end
 radio2 == radio, centro2   # radio2 untouched; centro2 repositioned like circ2
 ```
 
-An unbounded shape (`EGLine`, `EGRay`, `EGAngle2`, `EGHalfPlane2`,
-`EGStrip2`) is a third case: it doesn't contribute to the canvas size
-(no finite extent to report — see [`EGBoundingBox()`](@ref)), but it *is*
+An unbounded shape (`APLine`, `APRay`, `APAngle2`, `APHalfPlane2`,
+`APStrip2`) is a third case: it doesn't contribute to the canvas size
+(no finite extent to report — see [`APBoundingBox()`](@ref)), but it *is*
 still repositioned along with everything else, since — unlike a number or
 a vector — it does have a position and does support `translate`/
 `homothety` like any other shape:
 
 ```@example geo
-c1, c2 = EGCircle2(EGPoint(0.0, 0.0), 3.0), EGCircle2(EGPoint(10.0, 0.0), 3.0)
+c1, c2 = APCircle2(APPoint(0.0, 0.0), 3.0), APCircle2(APPoint(10.0, 0.0), 3.0)
 
 (w, h), (c1_2, c2_2, ext1, ext2) = @to_luxor_picture width = 200.0 begin
     c1
@@ -277,7 +277,7 @@ passed through `@to_luxor_picture` is always still a circle, never
 distorted into an ellipse, no matter which sizing option is used.
 
 ```@example geo
-c, s = EGCircle2(EGPoint(3.0, -1.0), 5.0), EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+c, s = APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 (w, h), _ = @to_luxor_picture width=400.0 begin
     c
     s
@@ -286,7 +286,7 @@ end
 ```
 
 ```@example geo
-c, s = EGCircle2(EGPoint(3.0, -1.0), 5.0), EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+c, s = APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 (w, h), _ = @to_luxor_picture scale=2.0 begin
     c
     s
@@ -301,21 +301,21 @@ space (beyond `margin`) lands on whichever axis has slack, rather than
 stretching the content to fill it:
 
 ```@example geo
-t = EGTriangle(EGPoint(0.0, 0.0), EGPoint(6.0, 0.0), EGPoint(3.0, 5.0))
-circ = EGCircle2(EGPoint(3.0, 2.0), 1.5)
+t = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(3.0, 5.0))
+circ = APCircle2(APPoint(3.0, 2.0), 1.5)
 
 (w, h), (t2, circ2) = @to_luxor_picture width=400.0 height=200.0 margin=10.0 begin
     t
     circ
 end
-(w, h), circ2   # circ2 is still an EGCircle2 -- never distorted
+(w, h), circ2   # circ2 is still an APCircle2 -- never distorted
 ```
 
 `margin` works the same way whether or not `width`/`height` are given —
 with neither, it simply pads the content's own natural size on every side:
 
 ```@example geo
-c, s = EGCircle2(EGPoint(3.0, -1.0), 5.0), EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+c, s = APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 (w, h), _ = @to_luxor_picture margin=3.0 begin
     c
     s
@@ -344,8 +344,8 @@ already accessible under their own names afterward, it returns just the
 `(width=w, height=h)` `NamedTuple`:
 
 ```@example geo
-c3 = EGCircle2(EGPoint(3.0, -1.0), 5.0)
-s3 = EGSegment(EGPoint(-2.0, 4.0), EGPoint(6.0, -3.0))
+c3 = APCircle2(APPoint(3.0, -1.0), 5.0)
+s3 = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 
 (w, h) = @to_luxor_picture! width=50.0 begin
     c3
@@ -357,12 +357,12 @@ end
 A bare, unnamed expression has nothing to rebind, so this form rejects it
 (same as `@translate!` and the rest of that family) — see
 [Drawing with Luxor.jl](@ref) for the complete pipeline, from a bare set
-of `EGPoint`/`EGTriangle`/etc. all the way to a finished PNG.
+of `APPoint`/`APTriangle`/etc. all the way to a finished PNG.
 
 ## `@translate` / `@translate!`
 
 ```@example geo
-v = EGVector(2.0, -1.0)
+v = APVector(2.0, -1.0)
 
 T1, S1 = @translate v begin
     t
@@ -377,7 +377,7 @@ object itself never mutates, since these are all immutable structs; only
 the variable is repointed, the same trick `Setfield.jl`'s `@set!` uses):
 
 ```@example geo
-t3 = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
+t3 = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
 @translate! v t3
 t3   # t3 itself now refers to the translated triangle
 ```
@@ -388,7 +388,7 @@ reject it:
 ```@example geo
 try
     @translate! v begin
-        EGPoint(0.0, 0.0)   # not assigned to a name
+        APPoint(0.0, 0.0)   # not assigned to a name
     end
 catch e
     e
@@ -401,7 +401,7 @@ Takes an optional `center` (defaults to the origin, exactly like
 [`rotate`](@ref) itself):
 
 ```@example geo
-R1, R2 = @rotate (pi / 2) EGPoint(1.0, 1.0) begin
+R1, R2 = @rotate (pi / 2) APPoint(1.0, 1.0) begin
     t
     circ
 end
@@ -409,7 +409,7 @@ R1
 ```
 
 ```@example geo
-t4 = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
+t4 = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
 @rotate! (pi / 2) t4
 t4
 ```
@@ -427,8 +427,8 @@ H1
 ```
 
 ```@example geo
-t5 = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
-@homothety! (-1.0) EGPoint(0.5, 0.5) t5   # a point reflection through (0.5, 0.5)
+t5 = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
+@homothety! (-1.0) APPoint(0.5, 0.5) t5   # a point reflection through (0.5, 0.5)
 t5
 ```
 
@@ -437,7 +437,7 @@ t5
 `about` a point or a line, same as [`reflection`](@ref) itself:
 
 ```@example geo
-mirror = EGLine(EGPoint(0.0, 0.0), EGPoint(1.0, 1.0))
+mirror = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
 
 M1, M2 = @reflection mirror begin
     t
@@ -447,8 +447,8 @@ M1
 ```
 
 ```@example geo
-t6 = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
-@reflection! EGPoint(2.0, 2.0) t6
+t6 = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
+@reflection! APPoint(2.0, 2.0) t6
 t6
 ```
 
@@ -456,25 +456,25 @@ t6
 
 [`invert`](@ref)/[`invert_neg`](@ref) with respect to the circle centered
 at `center` (radius `k`, defaulting to `1.0`) — note that inversion can
-change a shape's own *type* (an `EGLine` not through `center` inverts to
-an `EGCircle2`, and vice versa), no different here:
+change a shape's own *type* (an `APLine` not through `center` inverts to
+an `APCircle2`, and vice versa), no different here:
 
 ```@example geo
-center = EGPoint(0.0, 0.0)
-far_line = EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0))
+center = APPoint(0.0, 0.0)
+far_line = APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0))
 
 I1, I2 = @invert center 3.0 begin
     far_line
     circ
 end
-I1   # an EGCircle2: far_line doesn't pass through center
+I1   # an APCircle2: far_line doesn't pass through center
 ```
 
 `@invert!` is the mutating form, exactly like every other macro's `!`
 counterpart:
 
 ```@example geo
-near_line = EGLine(EGPoint(0.5, 0.0), EGPoint(0.5, 1.0))
+near_line = APLine(APPoint(0.5, 0.0), APPoint(0.5, 1.0))
 @invert! center 3.0 near_line
 near_line   # rebound to its own inverted image
 ```
@@ -482,28 +482,28 @@ near_line   # rebound to its own inverted image
 `@invert_neg` is the negative-ratio counterpart, used the same way:
 
 ```@example geo
-far_line2 = EGLine(EGPoint(2.0, 0.0), EGPoint(2.0, 1.0))
+far_line2 = APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0))
 @invert_neg! center far_line2
 far_line2
 ```
 
 ## `@affinemap` / `@affinemap!`
 
-Applies any [`EGAffineMap`](@ref) `m`, exactly like calling `m(shape)`
+Applies any [`APAffineMap`](@ref) `m`, exactly like calling `m(shape)`
 by hand — see [Affine Maps](@ref) for how `m` itself is built:
 
 ```@example geo
-m = EGAffineMap(1.3, 0.4, -0.2, 0.9, 0.0, 0.0)
+m = APAffineMap(1.3, 0.4, -0.2, 0.9, 0.0, 0.0)
 
 T7, C7 = @affinemap m begin
     t
     circ
 end
-T7   # circ, being non-similarity-mapped, would come back as an EGEllipse2 — see Affine Maps
+T7   # circ, being non-similarity-mapped, would come back as an APEllipse2 — see Affine Maps
 ```
 
 ```@example geo
-t8 = EGTriangle(EGPoint(0.0, 0.0), EGPoint(1.0, 0.0), EGPoint(0.0, 1.0))
+t8 = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
 @affinemap! m t8
 t8
 ```
