@@ -55,7 +55,7 @@ end
 tangent_points(p::APPoint, e::APEllipse2; atol=1e-9) = tangent_points(e, p; atol=atol)
 function _tangent_lines_via_polar(conic, p::APPoint; atol=1e-9)
     tps = tangent_points(conic, p; atol=atol)
-    any(tp -> isapprox(tp, p; atol=sqrt(atol) * max(norm(p), 1.0)), tps) && return [polar_line(conic, p; atol=atol)]
+    any(tp -> isapprox(tp, p; atol=sqrt(atol)), tps) && return [polar_line(conic, p; atol=atol)]
     return [APLine(p, tp) for tp in tps]
 end
 """
@@ -143,7 +143,7 @@ with 0, 1 or 2 points.
 """
 function intersection(l::APLine, par::APParabola2; atol=1e-9)
     p = focal_parameter(par)
-    p <= sqrt(atol) * max(norm(par.focus), 1.0) && return APPoint{2,Float64}[]
+    p <= sqrt(atol) && return APPoint{2,Float64}[]
     V, u, w = _parabola_frame(par)
     Ax, Ay = _to_local_frame(l.p1, V, u, w)
     Bx, By = _to_local_frame(l.p2, V, u, w)
@@ -165,7 +165,7 @@ focus is on its directrix (degenerate parabola).
 """
 function polar_line(par::APParabola2, p::APPoint; atol=1e-9)
     pfoc = focal_parameter(par)
-    pfoc <= sqrt(atol) * max(norm(par.focus), 1.0) && return nothing
+    pfoc <= sqrt(atol) && return nothing
     V, u, w = _parabola_frame(par)
     X0, Y0 = _to_local_frame(p, V, u, w)
     Ax, Ay, K = -pfoc, Y0, -pfoc * X0

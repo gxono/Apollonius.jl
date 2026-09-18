@@ -15,7 +15,7 @@ centers. Defined even when the circles don't intersect (it coincides with
 the centers when `c1.r == c2.r`).
 """
 function radical_axis(c1::APCircle2, c2::APCircle2; atol=1e-9)
-    tol = sqrt(atol) * max(norm(c1.center), norm(c2.center), 1.0)
+    tol = sqrt(atol) * max(c1.r, c2.r, 1.0)
     distance(c1.center, c2.center) <= tol && throw(ArgumentError("radical_axis: c1 and c2 are concentric"))
     m, _, _, _ = _radical_foot(c1, c2)
     return perpendicular_through(APLine(c1.center, c2.center), m)
@@ -74,7 +74,7 @@ other collinear-degenerate input surfaces as the ordinary `ArgumentError`
 from [`APCircle2`](@ref)`(p1, p2, p3)`.
 """
 function orthogonal_circle(c::APCircle2, p1::APPoint, p2::APPoint; atol=1e-9)
-    tol = sqrt(atol) * max(c.r, norm(c.center), 1.0)
+    tol = sqrt(atol) * max(c.r, 1.0)
     (abs(distance(p1, c.center) - c.r) <= tol || abs(distance(p2, c.center) - c.r) <= tol) &&
         throw(ArgumentError("orthogonal_circle: p1/p2 exactly on c isn't supported (infinite family of solutions)"))
     z = inversion(p1, c)

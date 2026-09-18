@@ -8,7 +8,7 @@ _side_greens_term(s::APCircularArc2) = begin
     θ2 = θ1 + Δθ
     (c.r^2 * Δθ + c.r * c.center[1] * (sin(θ2) - sin(θ1)) + c.r * c.center[2] * (cos(θ1) - cos(θ2))) / 2
 end
-_side_scale(s::APCircularArc2) = max(s.circle.r, norm(s.circle.center))
+_side_scale(s::APCircularArc2) = max(s.circle.r, 1.0)
 _side_p1(s::APEllipticArc2) = s.p1
 _side_p2(s::APEllipticArc2) = s.p2
 _side_length(s::APEllipticArc2) = arc_length(s)
@@ -20,7 +20,7 @@ function _side_greens_term(s::APEllipticArc2)
     P1, P2 = point_on_ellipse(e, θ1) - e.center, point_on_ellipse(e, θ2) - e.center
     return (e.a * e.b * Δθ + e.center[1] * (P2[2] - P1[2]) - e.center[2] * (P2[1] - P1[1])) / 2
 end
-_side_scale(s::APEllipticArc2) = max(s.ellipse.a, s.ellipse.b, norm(s.ellipse.center))
+_side_scale(s::APEllipticArc2) = max(s.ellipse.a, s.ellipse.b, 1.0)
 _side_p1(s::APHyperbolicArc2) = s.p1
 _side_p2(s::APHyperbolicArc2) = s.p2
 _side_length(s::APHyperbolicArc2) = arc_length(s)
@@ -31,7 +31,7 @@ function _side_greens_term(s::APHyperbolicArc2)
     P1, P2 = point_on_hyperbola(h, t1; branch=branch) - h.center, point_on_hyperbola(h, t2; branch=branch) - h.center
     return (branch * h.a * h.b * (t2 - t1) + h.center[1] * (P2[2] - P1[2]) - h.center[2] * (P2[1] - P1[1])) / 2
 end
-_side_scale(s::APHyperbolicArc2) = max(s.hyperbola.a, s.hyperbola.b, norm(s.hyperbola.center))
+_side_scale(s::APHyperbolicArc2) = max(s.hyperbola.a, s.hyperbola.b, 1.0)
 _side_p1(s::APParabolicArc2) = s.p1
 _side_p2(s::APParabolicArc2) = s.p2
 _side_length(s::APParabolicArc2) = arc_length(s)
@@ -44,7 +44,7 @@ function _side_greens_term(s::APParabolicArc2)
     local_term = -(s2^3 - s1^3) / (6pf)
     return (local_term + V[1] * (P2[2] - P1[2]) - V[2] * (P2[1] - P1[1])) / 2
 end
-_side_scale(s::APParabolicArc2) = max(focal_parameter(s.parabola), norm(vertex(s.parabola)), 1.0)
+_side_scale(s::APParabolicArc2) = max(focal_parameter(s.parabola), distance(s.p1, s.p2), 1.0)
 _map_sides(f, ss) = map(f, ss)
 """
     APCircularSector2(arc::APCircularArc2)

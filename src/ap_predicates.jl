@@ -38,8 +38,7 @@ end
 
 Whether point `p` lies on the infinite line `l`.
 """
-on_line(p::APPoint, l::APLine; atol=1e-9) =
-    distance(p, l) <= sqrt(atol) * max(norm(p), norm(l.p1), norm(l.p2), 1.0)
+on_line(p::APPoint, l::APLine; atol=1e-9) = distance(p, l) <= sqrt(atol)
 """
     on_line(l::APLine; atol=1e-9)
 
@@ -112,7 +111,7 @@ exactly one point), or `:secant` (cross at two points).
 """
 function line_circle_position(l::APLine, c::APCircle2; atol=1e-9)
     d = distance(c.center, l)
-    tol = sqrt(atol) * max(c.r, norm(c.center), 1.0)
+    tol = sqrt(atol) * max(c.r, 1.0)
     d > c.r + tol && return :disjoint
     abs(d - c.r) <= tol && return :tangent
     return :secant
@@ -152,5 +151,5 @@ function is_concyclic(a::APPoint, b::APPoint, c::APPoint, d::APPoint; atol=1e-9)
     end
     t = APTriangle(a, b, c)
     cc, cr = circumcenter(t), circumradius(t)
-    return abs(distance(cc, d) - cr) <= sqrt(atol) * max(cr, norm(cc), 1.0)
+    return abs(distance(cc, d) - cr) <= sqrt(atol) * max(cr, 1.0)
 end

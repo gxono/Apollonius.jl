@@ -91,13 +91,23 @@ makes this robust to the numerical instability the companion-matrix
 approach has right at a repeated root (a tangency, or the doubled root a
 symmetric configuration like two concentric axis-aligned conics
 produces).
+
+The whole computation runs in coordinates shifted so `c1`'s own center
+sits at the origin, then shifts the results back. Without this, the
+implicit coefficients (built from the conics' *absolute* position) grow
+with the distance from the global origin, and the elimination step
+squares them, so two conics far from `(0, 0)` (coordinates in the tens of
+thousands or beyond) lost enough precision to return points that don't
+actually lie on either curve.
 """
 function intersection(c1::APConic2, c2::APConic2; atol=1e-9)
-    coeffs1, coeffs2 = _implicit_form(c1), _implicit_form(c2)
+    shift = APVector(_conic_center(c1)[1], _conic_center(c1)[2])
+    c1s, c2s = translate(c1, -shift), translate(c2, -shift)
+    coeffs1, coeffs2 = _implicit_form(c1s), _implicit_form(c2s)
     A1, B1, C1, D1, E1, F1 = coeffs1
     A2, B2, C2, D2, E2, F2 = coeffs2
-    y0 = (_conic_center(c1)[2] + _conic_center(c2)[2]) / 2
-    yscale = max(_conic_scale(c1) + _conic_scale(c2), sqrt(atol))
+    y0 = (_conic_center(c1s)[2] + _conic_center(c2s)[2]) / 2
+    yscale = max(_conic_scale(c1s) + _conic_scale(c2s), sqrt(atol))
     ys = y0 .+ yscale .* (-2.0:1.0:2.0)
     resvals = [_resultant_at_y(y, coeffs1..., coeffs2...) for y in ys]
     V = [(y - y0)^k for y in ys, k in 0:4]
@@ -111,10 +121,10 @@ function intersection(c1::APConic2, c2::APConic2; atol=1e-9)
             abs(r2) <= sqrt(atol) * max(abs(a2), abs(b2), abs(cc2), 1.0) && push!(pts, APPoint(x, y))
         end
     end
-    sanity_center = midpoint(_conic_center(c1), _conic_center(c2))
-    sanity_radius = 200 * (_conic_scale(c1) + _conic_scale(c2)) + distance(_conic_center(c1), _conic_center(c2))
+    sanity_center = midpoint(_conic_center(c1s), _conic_center(c2s))
+    sanity_radius = 200 * (_conic_scale(c1s) + _conic_scale(c2s)) + distance(_conic_center(c1s), _conic_center(c2s))
     pts = filter(p -> distance(p, sanity_center) <= sanity_radius, pts)
-    return _dedupe_points(pts; atol=atol)
+    return translate.(_dedupe_points(pts; atol=atol), shift)
 end
 """
     intersection(c::APConic2, arc::APConicArc2; atol=1e-9)

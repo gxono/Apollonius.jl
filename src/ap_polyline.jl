@@ -58,7 +58,7 @@ translate(pl::APPolyline2, v::APVector) = APPolyline2([translate(p, v) for p in 
 
 Whether `p` lies on one of `pl`'s sides.
 """
-Base.in(p::APPoint, pl::APPolyline2; atol=1e-9) = any(s -> distance(p, s) <= atol * max(norm(p), 1.0), sides(pl))
+Base.in(p::APPoint, pl::APPolyline2; atol=1e-9) = any(s -> distance(p, s) <= atol * max(_side_length(s), 1.0), sides(pl))
 """
     distance(p::APPoint, pl::APPolyline2)
 
@@ -127,7 +127,7 @@ translate(pg::APCurvilinearPolyline2, v::APVector) = APCurvilinearPolyline2([tra
 
 Whether `p` lies on one of `pg`'s sides.
 """
-Base.in(p::APPoint, pg::APCurvilinearPolyline2; atol=1e-9) = any(s -> distance(p, s) <= atol * max(norm(p), 1.0), pg.sides)
+Base.in(p::APPoint, pg::APCurvilinearPolyline2; atol=1e-9) = any(s -> distance(p, s) <= atol * max(_side_length(s), 1.0), pg.sides)
 """
     distance(p::APPoint, pg::APCurvilinearPolyline2)
 

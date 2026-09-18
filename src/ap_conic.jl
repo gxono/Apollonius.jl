@@ -156,9 +156,14 @@ function APEllipse2(f1::APPoint, f2::APPoint, p::APPoint)
 end
 Base.:(==)(x::APEllipse2, y::APEllipse2) = x.center == y.center && x.a == y.a && x.b == y.b && x.angle == y.angle
 Base.convert(::Type{APEllipse2{T}}, e::APEllipse2) where {T} = APEllipse2{T}(e.center, T(e.a), T(e.b), T(e.angle))
-Base.isapprox(x::APEllipse2, y::APEllipse2; kwargs...) =
-    isapprox(x.center, y.center; kwargs...) && isapprox(x.a, y.a; kwargs...) &&
-    isapprox(x.b, y.b; kwargs...) && isapprox(x.angle, y.angle; kwargs...)
+function Base.isapprox(x::APEllipse2, y::APEllipse2; atol=1e-9, kwargs...)
+    isapprox(x.center, y.center; atol=atol, kwargs...) && isapprox(x.a, y.a; atol=atol, kwargs...) &&
+        isapprox(x.b, y.b; atol=atol, kwargs...) || return false
+    # angle and angle + π describe the identical ellipse (e.g. APEllipse2(f1, f2, a) vs.
+    # APEllipse2(f2, f1, a), the two foci swapped), so compare it mod π rather than directly
+    d = mod(x.angle - y.angle, pi)
+    return min(d, pi - d) <= atol
+end
 Base.show(io::IO, e::APEllipse2) = print(io, "APEllipse2(center=", e.center, ", a=", e.a, ", b=", e.b, ", angle=", e.angle, ")")
 _to_ellipse_local(p::APPoint, e::APEllipse2) = _to_local_frame(p, e.center, e.angle)
 _from_ellipse_local(x, y, e::APEllipse2) = _from_local_frame(x, y, e.center, e.angle)
@@ -316,9 +321,14 @@ function APHyperbola2(f1::APPoint, f2::APPoint, p::APPoint)
 end
 Base.:(==)(x::APHyperbola2, y::APHyperbola2) = x.center == y.center && x.a == y.a && x.b == y.b && x.angle == y.angle
 Base.convert(::Type{APHyperbola2{T}}, h::APHyperbola2) where {T} = APHyperbola2{T}(h.center, T(h.a), T(h.b), T(h.angle))
-Base.isapprox(x::APHyperbola2, y::APHyperbola2; kwargs...) =
-    isapprox(x.center, y.center; kwargs...) && isapprox(x.a, y.a; kwargs...) &&
-    isapprox(x.b, y.b; kwargs...) && isapprox(x.angle, y.angle; kwargs...)
+function Base.isapprox(x::APHyperbola2, y::APHyperbola2; atol=1e-9, kwargs...)
+    isapprox(x.center, y.center; atol=atol, kwargs...) && isapprox(x.a, y.a; atol=atol, kwargs...) &&
+        isapprox(x.b, y.b; atol=atol, kwargs...) || return false
+    # same π-periodicity as APEllipse2's isapprox (see there): angle and angle + π describe
+    # the identical hyperbola (e.g. the two foci swapped in the bifocal constructor)
+    d = mod(x.angle - y.angle, pi)
+    return min(d, pi - d) <= atol
+end
 Base.show(io::IO, h::APHyperbola2) = print(io, "APHyperbola2(center=", h.center, ", a=", h.a, ", b=", h.b, ", angle=", h.angle, ")")
 _to_hyperbola_local(p::APPoint, h::APHyperbola2) = _to_local_frame(p, h.center, h.angle)
 _from_hyperbola_local(x, y, h::APHyperbola2) = _from_local_frame(x, y, h.center, h.angle)
@@ -510,7 +520,7 @@ end
 """
 is_on_parabola(p::APPoint, par::APParabola2; atol=1e-9) =
     abs(distance(p, par.focus) - distance(p, par.directrix)) <=
-    sqrt(atol) * max(norm(p), norm(par.focus), 1.0)
+    sqrt(atol) * max(focal_parameter(par), 1.0)
 rotate(par::APParabola2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APParabola2(rotate(par.focus, angle, center), rotate(par.directrix, angle, center))
 reflection(par::APParabola2, about) = APParabola2(reflection(par.focus, about), reflection(par.directrix, about))
@@ -714,7 +724,7 @@ angular sweep from `p1` to `p2` (not just anywhere on the full circle).
 """
 function Base.in(p::APPoint, arc::APCircularArc2; atol=1e-9)
     c = arc.circle
-    abs(distance(p, c.center) - c.r) <= sqrt(atol) * max(c.r, norm(c.center), 1.0) || return false
+    abs(distance(p, c.center) - c.r) <= sqrt(atol) * max(c.r, 1.0) || return false
     return _angle_in_arc_range(_arc_angle(arc, p), _arc_angle(arc, arc.p1), measure(arc))
 end
 rotate(arc::APCircularArc2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =

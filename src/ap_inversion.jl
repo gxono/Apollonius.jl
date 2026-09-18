@@ -35,7 +35,7 @@ through `center` (its image would be `l` itself, not a circle).
 """
 function invert(l::APLine, center::APPoint; k::Real=1.0, atol=1e-9)
     f = projection(center, l)
-    distance(center, f) <= sqrt(atol) * max(norm(center), norm(l.p1), norm(l.p2), 1.0) &&
+    distance(center, f) <= sqrt(atol) * max(k, 1.0) &&
         throw(ArgumentError("invert: l passes through center; its image is itself, not a circle"))
     finv = inversion(f, APCircle2(center, k))
     return APCircle2(midpoint(center, finv), distance(center, finv) / 2)
@@ -51,7 +51,7 @@ other circle inverts to another `APCircle2` — so this returns a
 """
 function invert(c::APCircle2, center::APPoint; k::Real=1.0, atol=1e-9)
     center == c.center && return APCircle2(center, k^2 / c.r)
-    if abs(distance(center, c.center) - c.r) <= sqrt(atol) * max(c.r, norm(center), norm(c.center), 1.0)
+    if abs(distance(center, c.center) - c.r) <= sqrt(atol) * max(c.r, k, 1.0)
         antipode = c.center + (c.center - center)
         antipode_inv = inversion(antipode, APCircle2(center, k))
         return perpendicular_through(APLine(center, c.center), antipode_inv)
@@ -80,7 +80,7 @@ segment (being finite) never reaches. So this returns a
 """
 function invert(s::APSegment, center::APPoint; k::Real=1.0, atol=1e-9)
     p1, p2 = s[1], s[2]
-    tol = sqrt(atol) * max(norm(center), norm(p1), norm(p2), 1.0)
+    tol = sqrt(atol) * max(k, distance(p1, p2), 1.0)
     ci = APCircle2(center, k)
     if distance(center, APLine(p1, p2)) <= tol
         return APSegment(inversion(p1, ci), inversion(p2, ci))
@@ -168,7 +168,7 @@ this is the chord of contact of the two tangent lines from `p` (see
 methods), rather than throwing.
 """
 function polar_line(c::APCircle2, p::APPoint; atol=1e-9)
-    distance(p, c.center) <= sqrt(atol) * max(c.r, norm(p), norm(c.center), 1.0) && return nothing
+    distance(p, c.center) <= sqrt(atol) * max(c.r, 1.0) && return nothing
     return perpendicular_through(APLine(c.center, p), inversion(p, c))
 end
 """

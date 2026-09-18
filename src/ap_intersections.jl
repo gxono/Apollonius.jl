@@ -21,7 +21,7 @@ function intersection(l::APLine, c::APCircle2; atol=1e-9)
     f = projection(c.center, l)
     d = distance(c.center, f)
     r = c.r
-    tol = sqrt(atol) * max(r, norm(c.center), 1.0)
+    tol = sqrt(atol) * max(r, 1.0)
     d > r + tol && return APPoint{2,Float64}[]
     u = direction(l) / norm(direction(l))
     abs(d - r) <= tol && return [APPoint(f[1], f[2])]
@@ -89,7 +89,7 @@ end
 function intersection(c1::APCircle2, c2::APCircle2; atol=1e-9)
     r1, r2 = c1.r, c2.r
     d = distance(c1.center, c2.center)
-    scale = max(r1, r2, norm(c1.center), norm(c2.center), 1.0)
+    scale = max(r1, r2, 1.0)
     tol = sqrt(atol) * scale
     d <= atol * max(r1, r2, 1.0) && return APPoint{2,Float64}[]
     (d > r1 + r2 + tol || d < abs(r1 - r2) - tol) && return APPoint{2,Float64}[]

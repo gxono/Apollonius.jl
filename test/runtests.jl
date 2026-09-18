@@ -1066,6 +1066,19 @@ using Base.MathConstants: golden
             pcp = intersection(cc0, par1)
             @test all(p -> isapprox(distance(p, cc0.center), cc0.r; atol=1e-6) && is_on_parabola(p, par1; atol=1e-6), pcp)
         end
+        @testset "general conic intersection stays accurate far from the origin" begin
+            # same relative ellipse pair, translated by increasingly large offsets: without
+            # recentering internally, the implicit-form coefficients grow with absolute
+            # position and the elimination step squares them, losing enough precision by
+            # offset ~1e4 to return points that don't actually lie on either curve
+            for offset in (0.0, 1e3, 1e4, 1e5, 1e6, 1e9)
+                oe1 = APEllipse2(APPoint(offset, offset), 5.0, 3.0)
+                oe2 = APEllipse2(APPoint(offset + 7.0, offset + 1.0), 4.0, 2.0, 0.3)
+                opts = intersection(oe1, oe2)
+                @test length(opts) == 2
+                @test all(p -> is_on_ellipse(p, oe1; atol=1e-6) && is_on_ellipse(p, oe2; atol=1e-6), opts)
+            end
+        end
         @testset "general conic intersection reaches conic arcs of any type" begin
             e1 = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
             h1 = APHyperbola2(APPoint(2.0, 0.0), 2.0, 1.5, 0.3)
@@ -1585,9 +1598,11 @@ using Base.MathConstants: golden
         lA = APLine(ec.A, midpoint(t[2], t[3]))
         lB = APLine(ec.B, midpoint(t[1], t[3]))
         @test only(intersection(lA, lB)) ≈ mittenpunkt(t)
-        A, B, C = angle_at(t[1], t[2], t[3]), angle_at(t[2], t[1], t[3]), angle_at(t[3], t[1], t[2])
-        cw = clawson_point(t)
-        wA, wB, wC = barycentric_coordinates(t, cw)
+        @test_throws ArgumentError clawson_point(t)   # t is the 3-4-5 right triangle: X(19) is undefined here
+        scalene = APTriangle(APPoint(0.0, 0.0), APPoint(7.0, 0.0), APPoint(2.0, 4.0))
+        A, B, C = angle_at(scalene[1], scalene[2], scalene[3]), angle_at(scalene[2], scalene[1], scalene[3]), angle_at(scalene[3], scalene[1], scalene[2])
+        cw = clawson_point(scalene)
+        wA, wB, wC = barycentric_coordinates(scalene, cw)
         @test wA / tan(A) ≈ wB / tan(B) atol = 1e-9
         @test wB / tan(B) ≈ wC / tan(C) atol = 1e-9
         eq = APTriangle(APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(1.0, sqrt(3.0)))
@@ -3150,6 +3165,12 @@ using Base.MathConstants: golden
         @test rotation_map(0.3, APPoint(0.0, 0.0)) ≈ rotation_map(0.3 + 1e-13, APPoint(0.0, 0.0))
         @test APEllipse2(APPoint(0.0, 0.0), 2.0, 1.0) == e
         @test par ≈ APParabola2(APPoint(0.0, 1.0 + 1e-13), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
+        f1, f2 = APPoint(-3.0, 0.0), APPoint(3.0, 0.0)
+        @test APEllipse2(f1, f2, 5.0) ≈ APEllipse2(f2, f1, 5.0)   # foci swapped: angle differs by exactly π, same ellipse
+        @test !(APEllipse2(f1, f2, 5.0) == APEllipse2(f2, f1, 5.0))   # == stays field-exact, like APLine's
+        @test !(APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0, 0.3) ≈ APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0, 0.3 + pi / 2))
+        @test APHyperbola2(f1, f2, 2.0) ≈ APHyperbola2(f2, f1, 2.0)   # same foci-swap equivalence as APEllipse2
+        @test !(APHyperbola2(APPoint(0.0, 0.0), 2.0, 3.0, 0.3) ≈ APHyperbola2(APPoint(0.0, 0.0), 2.0, 3.0, 1.0))
         @test !occursin("APLine{Float64}(", sprint(show, l1))
         @test occursin("APLine(", sprint(show, l1))
         @test occursin("APRay(", sprint(show, APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0))))
@@ -3845,6 +3866,69 @@ using Base.MathConstants: golden
             @test polar_line(c, center) === nothing
             l_through_center = APLine(center, center + scale * APVector(1.0, 0.3))
             @test_throws ArgumentError invert(l_through_center, center)
+        end
+    end
+    @testset "scale robustness: small objects far from the origin" begin
+        # every case above scales the offset WITH the object (radius/scale grow together), which
+        # never actually exercises `tol = sqrt(atol) * max(local_size, norm(center), 1.0)`-style
+        # formulas: local_size and norm(center) stay comparable, so norm(center) never dominates.
+        # A small, fixed-size object sitting FAR from the origin is the case that broke: found via
+        # `intersection(::APCircle2,::APCircle2)` silently collapsing 2 real points into 1.
+        offset = 1e6
+        off = APPoint(offset, offset)
+        @testset "intersection(APCircle2, APCircle2)" begin
+            c1 = APCircle2(off, 5.0)
+            c2 = APCircle2(off + APVector(6.0, 0.0), 7.0)
+            @test length(intersection(c1, c2)) == 2
+        end
+        @testset "intersection(APLine, APCircle2)" begin
+            c = APCircle2(off, 5.0)
+            l = APLine(off + APVector(-10.0, 2.0), off + APVector(10.0, 2.0))
+            @test length(intersection(l, c)) == 2
+        end
+        @testset "radical_axis on non-concentric circles" begin
+            c1 = APCircle2(off, 5.0)
+            c2 = APCircle2(off + APVector(8.0, 0.0), 5.0)
+            @test radical_axis(c1, c2) isa APLine
+        end
+        @testset "p in APCircularArc2" begin
+            c = APCircle2(off, 5.0)
+            arc = APCircularArc2(c, off + APVector(5.0, 0.0), off + APVector(-5.0, 0.0))
+            @test !(off + APVector(0.0, 5.3) in arc)
+            @test off + APVector(0.0, 5.0) in arc
+        end
+        @testset "on_line" begin
+            l = APLine(off, off + APVector(10.0, 0.0))
+            @test !on_line(off + APVector(3.0, 0.3), l)
+            @test on_line(off + APVector(3.0, 0.0), l)
+        end
+        @testset "line_circle_position / circles_position" begin
+            c = APCircle2(off, 5.0)
+            secant = APLine(off + APVector(-10.0, 2.0), off + APVector(10.0, 2.0))
+            @test line_circle_position(secant, c) == :secant
+            c1 = APCircle2(off, 5.0)
+            c2 = APCircle2(off + APVector(6.0, 0.0), 7.0)
+            @test circles_position(c1, c2) == :secant
+        end
+        @testset "is_on_parabola / polar_line(APParabola2)" begin
+            par = APParabola2(off, APLine(off + APVector(-5.0, -3.0), off + APVector(5.0, -3.0)))
+            p_off_curve = off + APVector(0.0, 3.3)
+            @test !is_on_parabola(p_off_curve, par)
+            @test is_on_parabola(point_on_parabola(par, 2.0), par)
+            @test polar_line(par, off + APVector(1.0, 5.0)) isa APLine
+        end
+        @testset "is_concyclic on distinct (not accidentally-concentric-looking) points" begin
+            c = APCircle2(off, 5.0)
+            pts = [c.center + c.r * APVector(cos(t), sin(t)) for t in (0.3, 1.1, 2.4, 4.0)]
+            @test is_concyclic(pts...)
+            @test !is_concyclic(pts[1], pts[2], pts[3], off + APVector(5.3, 0.0))
+        end
+        @testset "triangle_on_segment_sss / apollonius_circle_of_triangle" begin
+            p1, p2 = off, off + APVector(6.0, 0.0)
+            t3 = triangle_on_segment_sss(p1, p2, 5.0, 7.0)
+            @test isapprox(distance(p1, t3.c), 5.0; atol=1e-6) && isapprox(distance(p2, t3.c), 7.0; atol=1e-6)
+            tt = APTriangle(p1, p2, off + APVector(2.0, 5.0))
+            @test apollonius_circle_of_triangle(tt).r > 0
         end
     end
     @testset "boundary and degenerate configurations" begin

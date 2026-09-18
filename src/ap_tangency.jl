@@ -15,7 +15,7 @@ point (`p` on `c`) or 2 points (`p` outside `c`).
 function tangent_points(c::APCircle2, p::APPoint; atol=1e-9)
     d = distance(c.center, p)
     r = c.r
-    tol = sqrt(atol) * max(r, norm(c.center), 1.0)
+    tol = sqrt(atol) * max(r, 1.0)
     d < r - tol && return APPoint{2,Float64}[]
     abs(d - r) <= tol && return [APPoint(p[1], p[2])]
     u = (p - c.center) / d
@@ -92,7 +92,7 @@ function external_tangent_lines(c1::APCircle2, c2::APCircle2; atol=1e-9)
     if abs(c1.r - c2.r) <= atol * max(c1.r, c2.r, 1.0)
         d = c2.center - c1.center
         len = norm(d)
-        len <= atol * max(norm(c1.center), norm(c2.center), 1.0) && return APLine{2,Float64}[]
+        len <= atol * max(c1.r, c2.r, 1.0) && return APLine{2,Float64}[]
         n = orthogonal(d / len)
         return [APLine(c1.center + c1.r * n, c2.center + c1.r * n),
             APLine(c1.center - c1.r * n, c2.center - c1.r * n)]
@@ -127,7 +127,7 @@ function offset_line(l::APLine, d::Real)
     return APLine(l.p1 + d * n, l.p2 + d * n)
 end
 function _circles_coincide(a::APCircle2, b::APCircle2; atol=1e-9)
-    tol = sqrt(atol) * max(norm(a.center), norm(b.center), a.r, b.r, 1.0)
+    tol = sqrt(atol) * max(a.r, b.r, 1.0)
     distance(a.center, b.center) <= tol && abs(a.r - b.r) <= tol
 end
 function _dedupe_circles(cs::Vector{APCircle2{Float64}}; atol=1e-9)

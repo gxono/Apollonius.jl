@@ -356,13 +356,19 @@ function mittenpunkt(t::APTriangle)
     return barycentric_point(t, a * (s - a), b * (s - b), c * (s - c))
 end
 """
-    clawson_point(t::APTriangle)
+    clawson_point(t::APTriangle; atol=1e-9)
 
 The Clawson point of `t` (Kimberling X(19)): trilinear coordinates
-`tan(A) : tan(B) : tan(C)`, the angles of `t` at each vertex.
+`tan(A) : tan(B) : tan(C)`, the angles of `t` at each vertex. Undefined
+for a right triangle (`tan` of the right angle has no finite value, so
+the point is genuinely at infinity, not just numerically awkward), which
+throws an `ArgumentError` instead of silently returning a meaningless
+finite point from a near-infinite weight.
 """
-function clawson_point(t::APTriangle)
+function clawson_point(t::APTriangle; atol=1e-9)
     A, B, C = angle_at(t[1], t[2], t[3]), angle_at(t[2], t[1], t[3]), angle_at(t[3], t[1], t[2])
+    any(ang -> isapprox(ang, pi / 2; atol=atol), (A, B, C)) &&
+        throw(ArgumentError("clawson_point: undefined for a right triangle (X(19) is a point at infinity here)"))
     return barycentric_point(t, tan(A), tan(B), tan(C))
 end
 """
