@@ -933,6 +933,35 @@ function first_lemoine_circle(t::APTriangle)
     return APCircle2(center, distance(center, first_lemoine_points(t)[1]))
 end
 """
+    adams_points(t::APTriangle)
+
+6 points, as a 6-tuple: through the Gergonne point, draw the line
+parallel to each side of [`contact_triangle`](@ref)`(t)`, and take its
+intersections with the two sides of `t` adjacent to the corresponding
+vertex. All 6 lie on the [`adams_circle`](@ref) (a classical theorem).
+"""
+function adams_points(t::APTriangle)
+    A, B, C = t[1], t[2], t[3]
+    g = gergonne_point(t)
+    m, l, n = contact_triangle(t)   # touch points on BC, CA, AB
+    lx = parallel_through(APLine(m, n), g)
+    ly = parallel_through(APLine(n, l), g)
+    lz = parallel_through(APLine(m, l), g)
+    return (only(intersection(lx, APLine(A, B))), only(intersection(ly, APLine(A, B))),
+        only(intersection(lz, APLine(B, C))), only(intersection(lx, APLine(B, C))),
+        only(intersection(ly, APLine(A, C))), only(intersection(lz, APLine(A, C))))
+end
+"""
+    adams_circle(t::APTriangle)
+
+The Adams circle of `t`: centered at the incenter, passing through the 6
+[`adams_points`](@ref).
+"""
+function adams_circle(t::APTriangle)
+    ic = incenter(t)
+    return APCircle2(ic, distance(ic, adams_points(t)[1]))
+end
+"""
     van_lamoen_points(t::APTriangle)
 
 The 6 circumcenters of the sub-triangles that the three medians of `t` cut

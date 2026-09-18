@@ -67,6 +67,7 @@ export barycentric_point, barycentric_coordinates, trilinear_point, trilinear_co
        isodynamic_points, three_apollonius_circles, orthopole, poncelet_point,
        conway_points, conway_circle, taylor_points, taylor_circle,
        first_lemoine_points, first_lemoine_circle, second_lemoine_circle,
+       adams_points, adams_circle,
        van_lamoen_points, van_lamoen_circle,
        soddy_circles, soddy_line, soddy_center, soddy_points, three_tangent_circles,
        complement, anticomplement, feuerbach_points, symmedial_circle

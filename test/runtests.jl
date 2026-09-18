@@ -1608,6 +1608,13 @@ using Base.MathConstants: golden
         for p in flp
             @test distance(flc.center, p) ≈ flc.r atol = 1e-9
         end
+        adp = adams_points(t)
+        @test length(adp) == 6
+        adc = adams_circle(t)
+        @test adc.center == incenter(t)
+        for p in adp
+            @test distance(adc.center, p) ≈ adc.r atol = 1e-9
+        end
         slc = second_lemoine_circle(t)
         @test slc.center ≈ symmedian_point(t)
         @test slc.r ≈ a * b * c / (a^2 + b^2 + c^2) atol = 1e-9
