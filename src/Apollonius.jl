@@ -81,7 +81,7 @@ export equilateral_triangle_on_segment, isosceles_triangle_on_segment, triangle_
 export tangent_length, tangent_points, tangent_lines, external_tangent_lines, internal_tangent_lines,
        tangent_parallel
 export external_similitude_center, internal_similitude_center
-export power_of_point, radical_axis, radical_center, radical_circle, orthogonal_circle
+export power_of_point, radical_axis, radical_center, radical_circle, orthogonal_circle, midcircle
 export vertices, is_convex, point_in_polygon, convex_hull, is_planar
 export bbox_width, bbox_height, bbox_center, bbox_diagonal, bbox_aspect_ratio,
        bboxes_intersect, bbox_intersection, bbox_union, @boundingbox

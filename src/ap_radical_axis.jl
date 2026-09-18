@@ -82,3 +82,104 @@ function orthogonal_circle(c::APCircle2, p1::APPoint, p2::APPoint; atol=1e-9)
         throw(ArgumentError("orthogonal_circle: p1/p2 are an exact inverse pair with respect to c, not supported yet"))
     return APCircle2(p1, p2, z)
 end
+"""
+    midcircle(c1::APCircle2, c2::APCircle2; atol=1e-9)
+
+The circle(s) of antisimilitude of `c1` and `c2`: circle(s) `M` such that
+inverting in `M` (`invert(c1, M.center; k=M.r)`, see [`invert`](@ref))
+swaps `c1` and `c2`. How many, and how they're built, depends on how the
+two circles relate ([`circles_position`](@ref)):
+
+  - externally disjoint or externally tangent: one, centered at the
+    [`external_similitude_center`](@ref), with radius the geometric mean
+    of the tangent lengths ([`tangent_length`](@ref)) from that center to
+    `c1` and to `c2`;
+  - secant: two, centered at the external and internal similitude
+    centers respectively, both passing through either intersection point
+    of `c1` and `c2` (and so, by symmetry, through both);
+  - one strictly inside the other (disjoint or internally tangent): one,
+    centered at the internal similitude center, [`orthogonal_circle`](@ref)
+    to whichever of two candidate "diameter circles" (built from where
+    the line through both centers crosses `c1` and `c2`) turns out
+    smaller.
+
+Throws `ArgumentError` for `c1`/`c2` identical or concentric (no
+similitude center exists either way).
+"""
+function midcircle(c1::APCircle2, c2::APCircle2; atol=1e-9)
+    pos = circles_position(c1, c2; atol=atol)
+    if pos in (:disjoint_ext, :tangent_ext)
+        i = external_similitude_center(c1, c2; atol=atol)
+        return [APCircle2(i, sqrt(tangent_length(c1, i) * tangent_length(c2, i)))]
+    elseif pos == :secant
+        i = external_similitude_center(c1, c2; atol=atol)
+        j = internal_similitude_center(c1, c2; atol=atol)
+        p = intersection(c1, c2; atol=atol)[1]
+        return [APCircle2(i, distance(i, p)), APCircle2(j, distance(j, p))]
+    elseif pos in (:disjoint_int, :tangent_int)
+        r1, r2 = c1.r, c2.r
+        centerline = APLine(c1.center, c2.center)
+        a, b = intersection(centerline, c1; atol=atol)
+        cc, dd = intersection(centerline, c2; atol=atol)
+        u, v, rr, ss = r1 < r2 ? (a, b, cc, dd) : (cc, dd, a, b)
+        if on_segment(u, APSegment(ss, v); atol=atol)
+            cand1 = APCircle2(midpoint(rr, v), distance(rr, v) / 2)
+            cand2 = APCircle2(midpoint(u, ss), distance(u, ss) / 2)
+        else
+            cand1 = APCircle2(midpoint(ss, v), distance(ss, v) / 2)
+            cand2 = APCircle2(midpoint(u, rr), distance(u, rr) / 2)
+        end
+        smaller = cand1.r < cand2.r ? cand1 : cand2
+        j = internal_similitude_center(c1, c2; atol=atol)
+        return [orthogonal_circle(smaller, j)]
+    else
+        throw(ArgumentError("midcircle: c1 and c2 must not be identical or concentric"))
+    end
+end
+"""
+    midcircle(c::APCircle2, l::APLine; atol=1e-9)
+    midcircle(l::APLine, c::APCircle2; atol=1e-9)
+
+The circle(s) of antisimilitude of `c` and `l`: circle(s) `M`, centered
+*on* `c` itself, such that inverting in `M` sends `c` to `l` (a line is
+the degenerate "circle through infinity", and this is the analogue of
+[`midcircle(::APCircle2, ::APCircle2)`](@ref) for that case; see there
+for the general idea). How many, and where, depends on
+[`line_circle_position`](@ref):
+
+  - disjoint: one, centered at whichever of the two points where the
+    perpendicular from `c.center` to `l` meets `c` is *farther* from `l`;
+  - tangent: one, centered at the [`antipode`](@ref) (on `c`) of the
+    tangency point;
+  - secant: two, centered at the same two perpendicular-foot points as
+    the disjoint case, each passing through either intersection point of
+    `l` and `c` (and so, by symmetry, through both).
+
+Note on the disjoint case: tkz-elements (the reference this package's
+Adams/Soddy/symmedial-style additions were checked against) returns two
+circles here, one centered at each of the two perpendicular-foot points.
+Deriving the *nearer* point's radius from first principles and checking
+the result by inverting `c` back through it shows that circle never
+actually maps `c` onto `l` -- there is only one real solution in the
+disjoint case, mirroring how [`midcircle`](@ref)`(::APCircle2,
+::APCircle2)` also has exactly one solution for externally disjoint
+circles (a line is the "infinite-radius, externally disjoint" case, so
+this is consistent rather than an unrelated one-off).
+"""
+function midcircle(c::APCircle2, l::APLine; atol=1e-9)
+    pos = line_circle_position(l, c; atol=atol)
+    O, r = c.center, c.r
+    A, B = intersection(perpendicular_through(l, O), c; atol=atol)
+    if pos == :disjoint
+        far = distance(A, l) > distance(B, l) ? A : B
+        return [APCircle2(far, sqrt(2 * r * distance(far, l)))]
+    elseif pos == :tangent
+        S = only(intersection(l, c; atol=atol))
+        K = antipode(S, c)
+        return [APCircle2(K, distance(K, S))]
+    else
+        p = intersection(l, c; atol=atol)[1]
+        return [APCircle2(A, distance(A, p)), APCircle2(B, distance(B, p))]
+    end
+end
+midcircle(l::APLine, c::APCircle2; atol=1e-9) = midcircle(c, l; atol=atol)

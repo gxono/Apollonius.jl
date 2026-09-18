@@ -2288,6 +2288,52 @@ using Base.MathConstants: golden
             pinv = APPoint(10.0, 0.0)
             @test_throws ArgumentError orthogonal_circle(oc0, pinv, inversion(pinv, oc0))
         end
+        @testset "midcircle" begin
+            swaps(c1, c2, M) = invert(c1, M.center; k=M.r) ≈ c2
+            swaps_line(c, l, M) = invert(c, M.center; k=M.r) ≈ l
+            c1 = APCircle2(APPoint(0.0, 0.0), 2.0)
+            c2 = APCircle2(APPoint(10.0, 0.0), 3.0)
+            @test circles_position(c1, c2) == :disjoint_ext
+            m1 = midcircle(c1, c2)
+            @test length(m1) == 1 && swaps(c1, c2, m1[1])
+            ct1 = APCircle2(APPoint(0.0, 0.0), 2.0)
+            ct2 = APCircle2(APPoint(5.0, 0.0), 3.0)
+            @test circles_position(ct1, ct2) == :tangent_ext
+            mt = midcircle(ct1, ct2)
+            @test length(mt) == 1 && swaps(ct1, ct2, mt[1])
+            cs1 = APCircle2(APPoint(0.0, 0.0), 5.0)
+            cs2 = APCircle2(APPoint(6.0, 0.0), 4.0)
+            @test circles_position(cs1, cs2) == :secant
+            ms = midcircle(cs1, cs2)
+            @test length(ms) == 2 && all(M -> swaps(cs1, cs2, M), ms)
+            ci1 = APCircle2(APPoint(0.0, 0.0), 8.0)
+            ci2 = APCircle2(APPoint(3.0, 0.0), 2.0)
+            @test circles_position(ci1, ci2) == :disjoint_int
+            mi = midcircle(ci1, ci2)
+            @test length(mi) == 1 && swaps(ci1, ci2, mi[1])
+            cit1 = APCircle2(APPoint(0.0, 0.0), 8.0)
+            cit2 = APCircle2(APPoint(5.0, 0.0), 3.0)
+            @test circles_position(cit1, cit2) == :tangent_int
+            mit = midcircle(cit1, cit2)
+            @test length(mit) == 1 && swaps(cit1, cit2, mit[1])
+            @test only(midcircle(ci1, ci2)) ≈ only(midcircle(ci2, ci1)) atol = 1e-9   # order-independent internally
+            @test_throws ArgumentError midcircle(c1, APCircle2(c1.center, c1.r))
+            @test_throws ArgumentError midcircle(c1, APCircle2(c1.center, 9.0))
+            cl = APCircle2(APPoint(0.0, 0.0), 3.0)
+            l_disjoint = APLine(APPoint(-10.0, 8.0), APPoint(10.0, 8.0))
+            @test line_circle_position(l_disjoint, cl) == :disjoint
+            md = midcircle(cl, l_disjoint)
+            @test length(md) == 1 && swaps_line(cl, l_disjoint, md[1])
+            @test midcircle(l_disjoint, cl) == md
+            l_tangent = APLine(APPoint(-10.0, 3.0), APPoint(10.0, 3.0))
+            @test line_circle_position(l_tangent, cl) == :tangent
+            mtl = midcircle(cl, l_tangent)
+            @test length(mtl) == 1 && swaps_line(cl, l_tangent, mtl[1])
+            l_secant = APLine(APPoint(-10.0, 1.0), APPoint(10.0, 1.0))
+            @test line_circle_position(l_secant, cl) == :secant
+            msl = midcircle(cl, l_secant)
+            @test length(msl) == 2 && all(M -> swaps_line(cl, l_secant, M), msl)
+        end
     end
     @testset "apollonius: circle through 2 points tangent to a line/circle" begin
         a, b = APPoint(1.0, 3.0), APPoint(5.0, 4.0)
