@@ -468,6 +468,21 @@ function APParabola2(focus::APPoint{2,T1}, directrix::APLine{2,T2}) where {T1,T2
     T = promote_type(T1, T2)
     return APParabola2{T}(APPoint{2,T}(focus.coords), APLine{2,T}(directrix.p1, directrix.p2))
 end
+"""
+    APParabola2(vertex::APPoint, focus::APPoint)
+
+The parabola with the given vertex and focus: the same idea as
+[`APCircle2`](@ref)`(center, through)`/the bifocal `APEllipse2`/
+`APHyperbola2` constructors, pinning the parabola down from points alone.
+The directrix is the line through the reflection of `focus` across
+`vertex`, perpendicular to the axis `vertex -> focus` (matching
+[`vertex`](@ref)'s own definition: the midpoint between the focus and its
+foot on the directrix). Throws an `ArgumentError` if `vertex == focus`.
+"""
+function APParabola2(vertex::APPoint, focus::APPoint)
+    vertex == focus && throw(ArgumentError("APParabola2: vertex and focus must not coincide"))
+    return APParabola2(focus, perpendicular_through(APLine(vertex, focus), reflection(focus, vertex)))
+end
 Base.:(==)(x::APParabola2, y::APParabola2) = x.focus == y.focus && x.directrix == y.directrix
 Base.convert(::Type{APParabola2{T}}, p::APParabola2) where {T} = APParabola2{T}(p.focus, p.directrix)
 Base.isapprox(x::APParabola2, y::APParabola2; kwargs...) =
@@ -761,6 +776,15 @@ function APEllipticArc2(ellipse::APEllipse2, p1::APPoint, p2::APPoint)
     T = promote_type(eltype(ellipse.center), eltype(p1), eltype(p2))
     return APEllipticArc2{T}(convert(APEllipse2{T}, ellipse), convert(APPoint{2,T}, p1), convert(APPoint{2,T}, p2))
 end
+"""
+    APEllipticArc2(center::APPoint, a::Real, b::Real, p1::APPoint, p2::APPoint; angle::Real=0.0)
+
+Same as [`APEllipticArc2(::APEllipse2, ::APPoint, ::APPoint)`](@ref) above,
+built from an ellipse's raw parameters instead of an [`APEllipse2`](@ref)
+directly.
+"""
+APEllipticArc2(center::APPoint, a::Real, b::Real, p1::APPoint, p2::APPoint; angle::Real=0.0) =
+    APEllipticArc2(APEllipse2(center, a, b, angle), p1, p2)
 Base.convert(::Type{APEllipticArc2{T}}, a::APEllipticArc2) where {T} = APEllipticArc2{T}(a.ellipse, a.p1, a.p2)
 """
     reverse(arc::APEllipticArc2)
@@ -897,6 +921,15 @@ function APParabolicArc2(parabola::APParabola2, p1::APPoint, p2::APPoint)
     T = promote_type(eltype(parabola.focus), eltype(p1), eltype(p2))
     return APParabolicArc2{T}(convert(APParabola2{T}, parabola), convert(APPoint{2,T}, p1), convert(APPoint{2,T}, p2))
 end
+"""
+    APParabolicArc2(focus::APPoint, directrix::APLine, p1::APPoint, p2::APPoint)
+
+Same as [`APParabolicArc2(::APParabola2, ::APPoint, ::APPoint)`](@ref)
+above, built from a parabola's raw focus/directrix instead of an
+[`APParabola2`](@ref) directly.
+"""
+APParabolicArc2(focus::APPoint, directrix::APLine, p1::APPoint, p2::APPoint) =
+    APParabolicArc2(APParabola2(focus, directrix), p1, p2)
 Base.convert(::Type{APParabolicArc2{T}}, a::APParabolicArc2) where {T} = APParabolicArc2{T}(a.parabola, a.p1, a.p2)
 """
     reverse(arc::APParabolicArc2)
@@ -1025,6 +1058,15 @@ function APHyperbolicArc2(hyperbola::APHyperbola2, p1::APPoint, p2::APPoint)
     T = promote_type(eltype(hyperbola.center), eltype(p1), eltype(p2))
     return APHyperbolicArc2{T}(convert(APHyperbola2{T}, hyperbola), convert(APPoint{2,T}, p1), convert(APPoint{2,T}, p2))
 end
+"""
+    APHyperbolicArc2(center::APPoint, a::Real, b::Real, p1::APPoint, p2::APPoint; angle::Real=0.0)
+
+Same as [`APHyperbolicArc2(::APHyperbola2, ::APPoint, ::APPoint)`](@ref)
+above, built from a hyperbola's raw parameters instead of an
+[`APHyperbola2`](@ref) directly.
+"""
+APHyperbolicArc2(center::APPoint, a::Real, b::Real, p1::APPoint, p2::APPoint; angle::Real=0.0) =
+    APHyperbolicArc2(APHyperbola2(center, a, b, angle), p1, p2)
 Base.convert(::Type{APHyperbolicArc2{T}}, a::APHyperbolicArc2) where {T} = APHyperbolicArc2{T}(a.hyperbola, a.p1, a.p2)
 """
     reverse(arc::APHyperbolicArc2)

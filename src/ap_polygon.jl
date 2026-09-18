@@ -418,6 +418,14 @@ function APStraightNgon(vs::AbstractVector{<:APPoint{Dim}}) where {Dim}
     return APStraightNgon(APPoint{Dim,T}[convert(APPoint{Dim,T}, v) for v in vs])
 end
 APStraightNgon(vs::AbstractVector) = APStraightNgon([v for v in vs])
+"""
+    APStraightNgon(vertices::APPoint...)
+
+Same as [`APStraightNgon(::AbstractVector{<:APPoint})`](@ref) above, one
+vertex per argument instead of wrapped in a `Vector` -- matching
+[`APPolyline2`](@ref)'s own vector/varargs pair.
+"""
+APStraightNgon(vs::APPoint...) = APStraightNgon(collect(vs))
 function APStraightNgon(bb::APBoundingBox)
     return APStraightNgon([
         bb.min, APPoint(bb.max[1],bb.min[2]),

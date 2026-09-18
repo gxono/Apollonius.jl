@@ -57,6 +57,14 @@ struct APCircularSector2{T<:Real} <: APPolygon{2,T}
     arc::APCircularArc2{T}
 end
 APCircularSector2(circle::APCircle2, p1, p2) = APCircularSector2(APCircularArc2(circle, p1, p2))
+"""
+    APCircularSector2(center::APPoint, r::Real, p1::APPoint, p2::APPoint)
+
+Same as [`APCircularSector2(::APCircle2, ::APPoint, ::APPoint)`](@ref)
+above, from the circle's raw center/radius instead of an [`APCircle2`](@ref)
+directly.
+"""
+APCircularSector2(center::APPoint, r::Real, p1, p2) = APCircularSector2(APCircularArc2(center, r, p1, p2))
 Base.:(==)(x::APCircularSector2, y::APCircularSector2) = x.arc == y.arc
 Base.isapprox(x::APCircularSector2, y::APCircularSector2; kwargs...) = isapprox(x.arc, y.arc; kwargs...)
 Base.show(io::IO, s::APCircularSector2) = print(io, "APCircularSector2(", s.arc, ")")
@@ -101,6 +109,14 @@ struct APCircularSegment2{T<:Real} <: APPolygon{2,T}
     arc::APCircularArc2{T}
 end
 APCircularSegment2(circle::APCircle2, p1, p2) = APCircularSegment2(APCircularArc2(circle, p1, p2))
+"""
+    APCircularSegment2(center::APPoint, r::Real, p1::APPoint, p2::APPoint)
+
+Same as [`APCircularSegment2(::APCircle2, ::APPoint, ::APPoint)`](@ref)
+above, from the circle's raw center/radius instead of an [`APCircle2`](@ref)
+directly.
+"""
+APCircularSegment2(center::APPoint, r::Real, p1, p2) = APCircularSegment2(APCircularArc2(center, r, p1, p2))
 Base.:(==)(x::APCircularSegment2, y::APCircularSegment2) = x.arc == y.arc
 Base.isapprox(x::APCircularSegment2, y::APCircularSegment2; kwargs...) = isapprox(x.arc, y.arc; kwargs...)
 Base.show(io::IO, s::APCircularSegment2) = print(io, "APCircularSegment2(", s.arc, ")")
@@ -154,6 +170,15 @@ function APAnnularSector2(outer::APCircularArc2{T1}, r_inner::T2) where {T1,T2}
     T = promote_type(T1, T2)
     return APAnnularSector2{T}(convert(APCircularArc2{T}, outer), T(r_inner))
 end
+"""
+    APAnnularSector2(center::APPoint, r_outer::Real, p1::APPoint, p2::APPoint, r_inner::Real)
+
+Same as [`APAnnularSector2(::APCircularArc2, ::Real)`](@ref) above, from
+the outer arc's raw center/radius instead of an [`APCircularArc2`](@ref)
+directly.
+"""
+APAnnularSector2(center::APPoint, r_outer::Real, p1, p2, r_inner::Real) =
+    APAnnularSector2(APCircularArc2(center, r_outer, p1, p2), r_inner)
 Base.:(==)(x::APAnnularSector2, y::APAnnularSector2) = x.outer == y.outer && x.r_inner == y.r_inner
 Base.isapprox(x::APAnnularSector2, y::APAnnularSector2; kwargs...) =
     isapprox(x.outer, y.outer; kwargs...) && isapprox(x.r_inner, y.r_inner; kwargs...)
@@ -294,6 +319,15 @@ function APCurvilinearNgon2(sides::AbstractVector)
     T = promote_type(_side_eltype.(sides)...)
     return APCurvilinearNgon2(APSide{T}[_side_convert(s, T) for s in sides])
 end
+"""
+    APCurvilinearNgon2(sides...)
+
+Same as [`APCurvilinearNgon2(::AbstractVector)`](@ref) above, one side per
+argument instead of wrapped in a `Vector` -- matching
+[`APCurvilinearTriangle2`](@ref)/[`APCurvilinearQuadrilateral2`](@ref)'s
+own fixed-count, one-argument-per-side style for the arbitrary-count case.
+"""
+APCurvilinearNgon2(sides...) = APCurvilinearNgon2(collect(sides))
 sides(pg::APCurvilinearNgon2) = pg.sides
 Base.getindex(pg::APCurvilinearNgon2, i::Integer) = pg.sides[i]
 Base.length(pg::APCurvilinearNgon2) = length(pg.sides)
