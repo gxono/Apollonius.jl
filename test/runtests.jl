@@ -249,6 +249,20 @@ using Base.MathConstants: golden
             @test invert_neg(lines, center; k=2.0) == invert_neg.(lines, center; k=2.0)
             @test translate(APPoint[], v) == APPoint[]
         end
+        @testset "translate/rotate/homothety/reflection/invert/invert_neg on a Tuple of shapes" begin
+            t = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0))
+            pts = vertices(t)
+            @test pts isa Tuple
+            v = APVector(1.0, -2.0)
+            @test translate(pts, v) == translate.(pts, v)
+            @test rotate(pts, pi / 2) == rotate.(pts, pi / 2)
+            @test homothety(pts, 2.0) == homothety.(pts, 2.0)
+            @test reflection(pts, APPoint(1.0, 1.0)) == reflection.(pts, APPoint(1.0, 1.0))
+            lines = (APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0)), APLine(APPoint(3.0, 0.0), APPoint(3.0, 1.0)))
+            center = APPoint(-1.0, -1.0)
+            @test invert(lines, center; k=2.0) == invert.(lines, center; k=2.0)
+            @test invert_neg(lines, center; k=2.0) == invert_neg.(lines, center; k=2.0)
+        end
     end
     @testset "APTriangle / APQuadrilateral / APStraightNgon" begin
         @testset "APTriangle" begin
@@ -3134,6 +3148,18 @@ using Base.MathConstants: golden
                     _, only_kept = midpoint(s.p1, s.p2), s.p2
                 end
                 @test only_kept == s.p2
+            end
+            @testset "a name bound to a Tuple of shapes (e.g. broadcasting over vertices(t)) gets transformed too" begin
+                d = 100.0
+                t = equilateral_triangle_on_segment(APPoint(0.0, 0.0), APPoint(d, 0.0))
+                sz6 = @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+                    t
+                    c = APCircle2.(vertices(t), d / 2)
+                end
+                @test c isa Tuple
+                @test all(cc -> cc.center in [v for v in vertices(t)], c)
+                @test all(cc -> cc.r ≈ c[1].r, c)
+                @test c[1].r > d / 2
             end
             c, s = fresh()
             (_, (c2, s2)) = @to_luxor_picture begin

@@ -116,6 +116,10 @@ translate(v::AbstractVector{<:APObject}, args...; kwargs...) = translate.(v, arg
 rotate(v::AbstractVector{<:APObject}, args...; kwargs...) = rotate.(v, args...; kwargs...)
 homothety(v::AbstractVector{<:APObject}, args...; kwargs...) = homothety.(v, args...; kwargs...)
 reflection(v::AbstractVector{<:APObject}, args...; kwargs...) = reflection.(v, args...; kwargs...)
+translate(t::Tuple{Vararg{APObject}}, args...; kwargs...) = translate.(t, args...; kwargs...)
+rotate(t::Tuple{Vararg{APObject}}, args...; kwargs...) = rotate.(t, args...; kwargs...)
+homothety(t::Tuple{Vararg{APObject}}, args...; kwargs...) = homothety.(t, args...; kwargs...)
+reflection(t::Tuple{Vararg{APObject}}, args...; kwargs...) = reflection.(t, args...; kwargs...)
 """
     APPoint(x, y)
     APPoint(x, y, z)

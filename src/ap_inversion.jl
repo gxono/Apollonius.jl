@@ -149,9 +149,13 @@ Invert every element of `v` — see the `AbstractVector` forms of
 [`translate`](@ref)/[`rotate`](@ref)/[`homothety`](@ref)/[`reflection`](@ref)
 for why this exists (a plain `Vector` of shapes, e.g. from
 [`intersection`](@ref)/[`tangent_points`](@ref), used as a single item).
+The same overload exists for a `Tuple` of shapes (e.g. `vertices(t)`, or
+a broadcast `f.(vertices(t), ...)`), for the same reason.
 """
 invert(v::AbstractVector{<:APObject}, center::APPoint; k::Real=1.0, atol=1e-9) = invert.(v, center; k=k, atol=atol)
 invert_neg(v::AbstractVector{<:APObject}, center::APPoint; k::Real=1.0, atol=1e-9) = invert_neg.(v, center; k=k, atol=atol)
+invert(t::Tuple{Vararg{APObject}}, center::APPoint; k::Real=1.0, atol=1e-9) = invert.(t, center; k=k, atol=atol)
+invert_neg(t::Tuple{Vararg{APObject}}, center::APPoint; k::Real=1.0, atol=1e-9) = invert_neg.(t, center; k=k, atol=atol)
 """
     polar_line(c::APCircle2, p::APPoint; atol=1e-9)
 
