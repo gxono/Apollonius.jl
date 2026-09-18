@@ -1252,6 +1252,17 @@ using Base.MathConstants: golden
         t306090 = triangle_30_60_90_on_segment(p1, p2)
         @test isapprox(angle_at(p1, p2, t306090.c), pi / 6; atol=1e-6)
         @test isapprox(angle_at(p2, p1, t306090.c), pi / 3; atol=1e-6)
+        tgen = triangle_on_segment(p1, p2, deg2rad(40.0), deg2rad(60.0))
+        @test isapprox(angle_at(p1, p2, tgen.c), deg2rad(40.0); atol=1e-9)
+        @test isapprox(angle_at(p2, p1, tgen.c), deg2rad(60.0); atol=1e-9)
+        @test area(tgen) > 0
+        tgen_cw = triangle_on_segment(p1, p2, deg2rad(40.0), deg2rad(60.0); ccw=false)
+        @test isapprox(angle_at(p1, p2, tgen_cw.c), deg2rad(40.0); atol=1e-9)
+        @test tgen_cw.c[2] < 0 < tgen.c[2]   # opposite sides of the [p1,p2] base
+        @test triangle_on_segment(APSegment(p1, p2), deg2rad(40.0), deg2rad(60.0)) == tgen
+        @test_throws ArgumentError triangle_on_segment(p1, p2, deg2rad(100.0), deg2rad(100.0))   # sum >= π
+        @test_throws ArgumentError triangle_on_segment(p1, p2, 0.0, deg2rad(60.0))
+        @test_throws ArgumentError triangle_on_segment(p1, p2, deg2rad(40.0), pi)
         isoright = isosceles_right_triangle_on_segment(p1, p2)
         @test isapprox(distance(p1, isoright.c), distance(p2, isoright.c); atol=1e-6)
         @test isapprox(angle_at(isoright.c, p1, p2), pi / 2; atol=1e-6)

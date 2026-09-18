@@ -36,18 +36,40 @@ function isosceles_triangle_on_segment(s::APSegment, leg::Real; ccw::Bool=true)
     return isosceles_triangle_on_segment(s.p1, s.p2, leg; ccw=ccw)
 end
 """
+    triangle_on_segment(a::APPoint, b::APPoint, angle_a::Real, angle_b::Real; ccw::Bool=true)
+
+The triangle with base `[a, b]`, angle `angle_a` (radians) at `a` and
+`angle_b` at `b`, built counterclockwise from `a` to `b` (`ccw=false`
+builds it on the other side) -- the generic ASA construction every
+fixed-shape `*_on_segment` constructor in this file is a special case of
+(e.g. [`triangle_30_60_90_on_segment`](@ref) is
+`triangle_on_segment(a, b, pi/6, pi/3)`). Throws an `ArgumentError` unless
+both angles are in `(0, π)` and sum to less than `π`, since otherwise the
+two rays from `a` and `b` never meet on a genuine triangle's side.
+"""
+function triangle_on_segment(a::APPoint, b::APPoint, angle_a::Real, angle_b::Real; ccw::Bool=true)
+    (0 < angle_a < pi && 0 < angle_b < pi && angle_a + angle_b < pi) ||
+        throw(ArgumentError("triangle_on_segment: angle_a and angle_b must each be in (0, π) and sum to less than π"))
+    s = ccw ? 1 : -1
+    ray_a = APLine(a, rotate(b, s * angle_a, a))
+    ray_b = APLine(b, rotate(a, -s * angle_b, b))
+    return APTriangle(a, b, only(intersection(ray_a, ray_b)))
+end
+"""
+    triangle_on_segment(s::APSegment, angle_a::Real, angle_b::Real; ccw::Bool=true)
+"""
+function triangle_on_segment(s::APSegment, angle_a::Real, angle_b::Real; ccw::Bool=true)
+    return triangle_on_segment(s.p1, s.p2, angle_a, angle_b; ccw=ccw)
+end
+"""
     triangle_30_60_90_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
 
 The right triangle with hypotenuse `[a, b]`, angle `30°` at `a` and `60°`
 at `b`, built counterclockwise from `a` to `b` (`ccw=false` builds it on
 the other side).
 """
-function triangle_30_60_90_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
-    s = ccw ? 1 : -1
-    ray_a = APLine(a, rotate(b, s * pi / 6, a))
-    ray_b = APLine(b, rotate(a, -s * pi / 3, b))
-    return APTriangle(a, b, only(intersection(ray_a, ray_b)))
-end
+triangle_30_60_90_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
+    triangle_on_segment(a, b, pi / 6, pi / 3; ccw=ccw)
 """
     triangle_30_60_90_on_segment(s::APSegment; ccw::Bool=true)
 """

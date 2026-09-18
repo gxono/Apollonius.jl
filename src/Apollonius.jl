@@ -75,7 +75,7 @@ export medial_triangle, orthic_triangle, excentral_triangle, contact_triangle,
        extouch_triangle, tangential_triangle, napoleon_triangle, morley_triangle,
        pedal_triangle, pedal_circle, cevian_triangle, circumcevian_triangle, square_inscribed,
        anticomplementary_triangle, reflection_triangle
-export equilateral_triangle_on_segment, isosceles_triangle_on_segment, triangle_30_60_90_on_segment,
+export equilateral_triangle_on_segment, isosceles_triangle_on_segment, triangle_on_segment, triangle_30_60_90_on_segment,
        isosceles_right_triangle_on_segment, golden_triangle_on_segment, golden_gnomon_on_segment,
        egyptian_triangle_on_segment
 export tangent_length, tangent_points, tangent_lines, external_tangent_lines, internal_tangent_lines,
