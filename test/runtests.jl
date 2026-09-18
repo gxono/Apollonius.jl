@@ -507,6 +507,26 @@ using Base.MathConstants: golden
             @test reverse(rev) == harc
         end
     end
+    @testset "APParametricCurve2" begin
+        curve = APParametricCurve2(t -> APPoint(2t, t^2), (0.0, 3.0))
+        @test point_on_curve(curve, 0.0) == APPoint(0.0, 0.0)
+        @test point_on_curve(curve, 2.0) == APPoint(4.0, 4.0)
+        @test curve.trange == (0.0, 3.0)
+        v = APVector(1.0, -2.0)
+        tcurve = translate(curve, v)
+        @test point_on_curve(tcurve, 2.0) ≈ point_on_curve(curve, 2.0) + v
+        @test tcurve.trange == curve.trange
+        rcurve = rotate(curve, pi / 2, APPoint(0.0, 0.0))
+        @test point_on_curve(rcurve, 2.0) ≈ rotate(point_on_curve(curve, 2.0), pi / 2, APPoint(0.0, 0.0))
+        hcurve = homothety(curve, 2.0)
+        @test point_on_curve(hcurve, 2.0) ≈ point_on_curve(curve, 2.0) * 2.0
+        rfcurve = reflection(curve, APPoint(0.0, 0.0))
+        @test point_on_curve(rfcurve, 2.0) ≈ reflection(point_on_curve(curve, 2.0), APPoint(0.0, 0.0))
+        bb = APBoundingBox(curve)
+        @test isapprox(bb.min, APPoint(0.0, 0.0); atol=1e-6)
+        @test isapprox(bb.max, APPoint(6.0, 9.0); atol=1e-6)
+        @test APBoundingBox(curve; n=1000) ≈ APBoundingBox(curve; n=200) atol = 1e-3
+    end
     @testset "APPolygon curved regions" begin
         @testset "APCircularSector2" begin
             circ = APCircle2(APPoint(2.0, -1.0), 5.0)
@@ -4834,6 +4854,8 @@ using Base.MathConstants: golden
             hyp2 = APHyperbola2(APPoint(0.0, 0.0), 20.0, 10.0)
             hyparc = APHyperbolicArc2(hyp2, point_on_hyperbola(hyp2, -0.5; branch=1), point_on_hyperbola(hyp2, 0.5; branch=1))
             path(hyparc; action=:stroke)
+            pcurve = APParametricCurve2(t -> APPoint(30 * cos(t), 15 * sin(2t)), (0.0, 2pi))
+            path(pcurve; action=:stroke)
             apex = APPoint(-60.0, -60.0)
             curv_tri = APCurvilinearTriangle2(APSegment(earc.p2, apex), APSegment(apex, earc.p1), earc)
             path(curv_tri; action=:stroke)

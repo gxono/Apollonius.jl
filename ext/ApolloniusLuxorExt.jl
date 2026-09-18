@@ -254,6 +254,18 @@ function AP.path(arc::Union{AP.APEllipticArc2,AP.APParabolicArc2,AP.APHyperbolic
     pts = [_lp(AP.point_on_arc(arc, t)) for t in range(0.0, 1.0; length=n)]
     Luxor.poly(pts, action; close=false)
 end
+"""
+    path(curve::APParametricCurve2; n=60, action=:path)
+
+Luxor has no native primitive for an arbitrary parametrized curve, so
+it's added as an `n`-point open polyline, sampled via
+[`point_on_curve`](@ref) over `curve.trange` -- same idea as the sampled
+conic-arc types above.
+"""
+function AP.path(curve::AP.APParametricCurve2; n=60, action=:path)
+    pts = [_lp(AP.point_on_curve(curve, t)) for t in range(curve.trange[1], curve.trange[2]; length=n)]
+    Luxor.poly(pts, action; close=false)
+end
 function _add_arc!(arc::AP.APCircularArc2, reversed::Bool; n=60)
     c = _lp(arc.circle.center)
     reversed ? Luxor.carc2r(c, _lp(arc.p2), _lp(arc.p1)) : Luxor.arc2r(c, _lp(arc.p1), _lp(arc.p2))

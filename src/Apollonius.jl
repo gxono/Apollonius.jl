@@ -14,6 +14,8 @@ export APTriangle, APQuadrilateral, APStraightNgon
 include("ap_conic.jl")
 export APCircle2, APEllipse2, APParabola2, APHyperbola2
 export APCircularArc2, APEllipticArc2, APParabolicArc2, APHyperbolicArc2
+include("ap_parametric_curve.jl")
+export APParametricCurve2, point_on_curve
 include("ap_conic_tangency.jl")
 include("ap_curved_region.jl")
 export APCircularSector2, APCircularSegment2, APAnnularSector2, APInterstice2
@@ -103,8 +105,9 @@ export path
 
 Add `obj` (an `APPoint`, `APVector`, `APSegment`, `APLine`, `APRay`,
 `APCircle2`, `APBoundingBox`, `APEllipse2`, `APParabola2`, `APHyperbola2`,
-`APAngle2`, `APHalfPlane2`, `APStrip2`, any conic arc (`APCircularArc2`,
-`APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2`), or any
+`APParametricCurve2`, `APAngle2`, `APHalfPlane2`, `APStrip2`, any conic
+arc (`APCircularArc2`, `APEllipticArc2`, `APParabolicArc2`,
+`APHyperbolicArc2`), or any
 `APPolygon` — `APTriangle`, `APQuadrilateral`, `APStraightNgon`,
 `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`,
 `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2`,
