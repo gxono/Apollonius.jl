@@ -92,6 +92,15 @@ homothety(c::APCircle2, k::Real, center::APPoint=APPoint(0.0, 0.0)) = APCircle2(
 reflection(c::APCircle2, about) = APCircle2(reflection(c.center, about), c.r)
 translate(c::APCircle2, v::APVector) = APCircle2(translate(c.center, v), c.r)
 """
+    antipode(p::APPoint, c::APCircle2)
+
+The point diametrically opposite `p` on `c`: `c.center` is the midpoint of
+`p` and its antipode, so this is just `reflection(p, c.center)`. Most
+meaningful when `p` is actually on `c`, but works the same way (a plain
+point reflection through `c.center`) for any `p`.
+"""
+antipode(p::APPoint, c::APCircle2) = reflection(p, c.center)
+"""
     distance(p::APPoint, c::APCircle2)
 
 Distance from `p` to the *curve* of `c` (like every other `APCurve` — not

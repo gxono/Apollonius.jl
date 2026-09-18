@@ -1,7 +1,7 @@
 begin
 using Apollonius
-using Luxor: Drawing, finish, preview, origin,
-    sethue, julia_blue, julia_green, julia_red, julia_purple, gsave, grestore, setopacity
+using Luxor: Drawing, finish, origin,
+    sethue, julia_blue, julia_green, julia_red, julia_purple
 import Luxor
 end
 
@@ -30,9 +30,8 @@ origin()
 
 for (i, color) in enumerate(colors)
     sethue(color)
-    path(rotate(circles, deg2rad((i-1)*(-120))), action=:fill)
+    path(rotate(circles, (1-i)*2pi/3), action=:fill)
 end
 
 finish()
-preview()
 end

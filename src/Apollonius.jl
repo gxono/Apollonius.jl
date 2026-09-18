@@ -39,7 +39,7 @@ include("ap_triangle.jl")
 include("utils.jl")
 include("ap_rand.jl")
 export sides, diagonals, diagonal_intersection, is_cyclic
-export direction, slope_angle, midpoint, distance, polar_point, polar_point_deg
+export direction, slope_angle, midpoint, distance, polar_point, polar_point_deg, antipode
 export norm, dot, normalize, angle_between, angle_at
 export measure, normalized_measure, is_direct
 export arc_length, point_on_arc
@@ -68,11 +68,11 @@ export barycentric_point, barycentric_coordinates, trilinear_point, trilinear_co
        conway_points, conway_circle, taylor_points, taylor_circle,
        first_lemoine_points, first_lemoine_circle, second_lemoine_circle,
        van_lamoen_points, van_lamoen_circle,
-       soddy_circles, soddy_line, three_tangent_circles,
-       complement, anticomplement, feuerbach_points
+       soddy_circles, soddy_line, soddy_center, soddy_points, three_tangent_circles,
+       complement, anticomplement, feuerbach_points, symmedial_circle
 export medial_triangle, orthic_triangle, excentral_triangle, contact_triangle,
        extouch_triangle, tangential_triangle, napoleon_triangle, morley_triangle,
-       pedal_triangle, cevian_triangle, circumcevian_triangle, square_inscribed,
+       pedal_triangle, pedal_circle, cevian_triangle, circumcevian_triangle, square_inscribed,
        anticomplementary_triangle, reflection_triangle
 export equilateral_triangle_on_segment, isosceles_triangle_on_segment, triangle_30_60_90_on_segment,
        isosceles_right_triangle_on_segment, golden_triangle_on_segment, golden_gnomon_on_segment,

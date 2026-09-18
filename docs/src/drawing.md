@@ -658,51 +658,43 @@ that order) complete the 3-fold symmetric figure. `A` is placed at angle
 coordinates), so `270°` is the direction that reads as "up" once drawn:
 
 ```julia
+begin
 using Apollonius
-using Luxor: Drawing, origin, sethue, finish
+using Luxor: Drawing, finish, origin,
+    sethue, julia_blue, julia_green, julia_red, julia_purple
 import Luxor
-
-delta_r = -2.0    # subtracted from each circle's own real-space radius
-r_min = 0.01      # stops the chain once that radius is no longer usable
-max_circles = 100
-
-A = polar_point_deg(100.0, 270.0, APPoint(0.0, 0.0))
-B = polar_point_deg(100.0, 30.0, APPoint(0.0, 0.0))
-diametro = distance(A, B)
-K1 = APCircle2(A, diametro / 2)
-K2 = APCircle2(B, diametro / 2)
-K = APCircle2(APPoint(0.0, 0.0), 100.0 + diametro / 2)
-
-T = K.center + K.r * (K2.center - K.center) / distance(K.center, K2.center)
-k_inv = diametro
-u = direction(invert(K, T; k=k_inv))
-u = u / norm(u)
-
-prev_inv = invert(K1, T; k=k_inv)
-step = 2 * prev_inv.r
-
-V = [APCircle2(K1.center, K1.r + delta_r)]
-for _ in 1:max_circles
-    global prev_inv
-    prev_inv = APCircle2(prev_inv.center + step * u, prev_inv.r)
-    real_circle = invert(prev_inv, T; k=k_inv)
-    r = real_circle.r + delta_r
-    r <= r_min && break
-    push!(V, APCircle2(real_circle.center, r))
 end
 
-V = reflection(V, APLine(K.center, A))
+colors = [julia_red, julia_purple, julia_green]
 
-Drawing(400, 400, "logo.svg")
+begin
+Δr = 5
+p1, p2 = polar_point_deg.(100, [30, 30+120])
+t = equilateral_triangle_on_segment(p1, p2)
+three_circles = APCircle2.(vertices(t), distance(p1, p2) / 2)
+outer_circle = argmax(c -> c.r, tangent_circles(three_circles...))
+circles = [three_circles[2]]
+
+while true
+    tc = argmin(c -> c.r, tangent_circles(outer_circle, three_circles[1], circles[end]))
+    tc.r > Δr ? push!(circles, tc) : break
+end
+
+map!(c -> APCircle2(c.center, c.r - Δr), circles)
+
+end
+
+begin
+Drawing(500, 500, "docs/src/assets/img/examples/logo.svg")
 origin()
 
-colors = (Luxor.julia_green, Luxor.julia_purple, Luxor.julia_red)
 for (i, color) in enumerate(colors)
     sethue(color)
-    path(rotate(V, deg2rad((i - 1) * 120)); action=:fill)
+    path(rotate(circles, (1-i)*2pi/3), action=:fill)
 end
 
 finish()
+end
 ```
 
 ## Name collisions with Luxor

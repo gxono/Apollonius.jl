@@ -353,6 +353,8 @@ using Base.MathConstants: golden
             c3 = APCircle2(p1, p2, p3)
             @test c3 ≈ circumcircle(APTriangle(p1, p2, p3))
             @test_throws ArgumentError APCircle2(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(2.0, 0.0))
+            @test antipode(APPoint(6.0, 2.0), c) == APPoint(-4.0, 2.0)   # opposite end of the diameter through (6,2)
+            @test midpoint(APPoint(6.0, 2.0), antipode(APPoint(6.0, 2.0), c)) == c.center
         end
         @testset "APEllipse2" begin
             e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0, 0.4)
@@ -1609,6 +1611,8 @@ using Base.MathConstants: golden
         slc = second_lemoine_circle(t)
         @test slc.center ≈ symmedian_point(t)
         @test slc.r ≈ a * b * c / (a^2 + b^2 + c^2) atol = 1e-9
+        symc = symmedial_circle(t)
+        @test symc ≈ circumcircle(cevian_triangle(t, symmedian_point(t))) atol = 1e-9
         base = three_tangent_circles(t)
         @test base[1].center == A && base[1].r ≈ s - a
         @test base[2].center == B && base[2].r ≈ s - b
@@ -1628,6 +1632,10 @@ using Base.MathConstants: golden
         sceq = soddy_circles(eq)
         @test sceq.inner.center ≈ centroid(eq) atol = 1e-9
         @test sceq.outer.center ≈ centroid(eq) atol = 1e-9
+        @test soddy_center(t) == sc.inner.center
+        @test soddy_center(t; outer=true) == sc.outer.center
+        sp = soddy_points(t)
+        @test sp.inner == sc.inner.center && sp.outer == sc.outer.center
     end
     @testset "isodynamic points and orthopole" begin
         t = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(2.0, 4.0))
@@ -1787,6 +1795,10 @@ using Base.MathConstants: golden
             @test pt1[i] ≈ ot[i] atol = 1e-9
             @test pt3[i] ≈ ct[i] atol = 1e-9
         end
+        @test pedal_circle(t, orthocenter(t)) ≈ circumcircle(ot) atol = 1e-9
+        p_ped = APPoint(2.0, 1.5)
+        pc = pedal_circle(t, p_ped)
+        @test all(v -> isapprox(distance(v, pc.center), pc.r; atol=1e-9), pedal_triangle(t, p_ped))
         cvt = cevian_triangle(t, centroid(t))
         mt = medial_triangle(t)
         for i in 1:3

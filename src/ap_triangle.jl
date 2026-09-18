@@ -715,6 +715,13 @@ function pedal_triangle(t::APTriangle, p::APPoint)
     return APTriangle(projection(p, APLine(B, C)), projection(p, APLine(C, A)), projection(p, APLine(A, B)))
 end
 """
+    pedal_circle(t::APTriangle, p::APPoint)
+
+The pedal circle of `p` with respect to `t`: the circumcircle of
+[`pedal_triangle`](@ref)`(t, p)`.
+"""
+pedal_circle(t::APTriangle, p::APPoint) = circumcircle(pedal_triangle(t, p))
+"""
     cevian_triangle(t::APTriangle, p::APPoint)
 
 The cevian triangle of `p` with respect to `t`: where each cevian
@@ -967,6 +974,13 @@ function second_lemoine_circle(t::APTriangle)
     return APCircle2(symmedian_point(t), a * b * c / (a^2 + b^2 + c^2))
 end
 """
+    symmedial_circle(t::APTriangle)
+
+The symmedial circle of `t`: the circumcircle of
+[`cevian_triangle`](@ref)`(t, symmedian_point(t))`.
+"""
+symmedial_circle(t::APTriangle) = circumcircle(cevian_triangle(t, symmedian_point(t)))
+"""
     three_tangent_circles(t::APTriangle)
 
 The three circles centered at the vertices of `t`, each with radius equal
@@ -1012,6 +1026,27 @@ The Soddy line of `t`: the line through the centers of its two
 function soddy_line(t::APTriangle; atol=1e-9)
     sc = soddy_circles(t; atol=atol)
     return APLine(sc.inner.center, sc.outer.center)
+end
+"""
+    soddy_center(t::APTriangle; outer::Bool=false, atol=1e-9)
+
+The center of `t`'s inner (`outer=false`, the default) or outer
+(`outer=true`) [`soddy_circles`](@ref) circle, as a point on its own
+(Kimberling X(176) and X(175) respectively).
+"""
+function soddy_center(t::APTriangle; outer::Bool=false, atol=1e-9)
+    sc = soddy_circles(t; atol=atol)
+    return outer ? sc.outer.center : sc.inner.center
+end
+"""
+    soddy_points(t::APTriangle; atol=1e-9)
+
+Both Soddy centers of `t`, as `(inner=..., outer=...)`: the point-only
+analogue of [`soddy_circles`](@ref).
+"""
+function soddy_points(t::APTriangle; atol=1e-9)
+    sc = soddy_circles(t; atol=atol)
+    return (inner=sc.inner.center, outer=sc.outer.center)
 end
 """
     simson_line(t::APTriangle, p::APPoint)
