@@ -317,6 +317,7 @@ using Base.MathConstants: golden
         end
         @testset "APStraightNgon" begin
             square = APStraightNgon([APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(2.0, 2.0), APPoint(0.0, 2.0)])
+            @test square == APStraightNgon(APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(2.0, 2.0), APPoint(0.0, 2.0))
             @test area(square) == 4.0
             @test perimeter(square) == 8.0
             @test centroid(square) == APPoint(1.0, 1.0)
@@ -479,6 +480,7 @@ using Base.MathConstants: golden
             rev = reverse(earc)
             @test rev == APEllipticArc2(e2, pb, pa)
             @test reverse(rev) == earc
+            @test APEllipticArc2(APPoint(0.0, 0.0), 5.0, 3.0, pa, pb; angle=0.2) == earc
         end
         @testset "APParabolicArc2 (new)" begin
             par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
@@ -498,6 +500,7 @@ using Base.MathConstants: golden
             @test isapprox(point_on_arc(rev, 0.0), pb; atol=1e-6)
             @test isapprox(point_on_arc(rev, 1.0), pa; atol=1e-6)
             @test reverse(rev) == parc
+            @test APParabolicArc2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)), pa, pb) == parc
         end
         @testset "APHyperbolicArc2 (new)" begin
             h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.1)
@@ -515,6 +518,7 @@ using Base.MathConstants: golden
             rev = reverse(harc)
             @test rev == APHyperbolicArc2(h, pb, pa)
             @test reverse(rev) == harc
+            @test APHyperbolicArc2(APPoint(0.0, 0.0), 2.0, 1.0, pa, pb; angle=0.1) == harc
         end
     end
     @testset "APParametricCurve2" begin
@@ -545,6 +549,7 @@ using Base.MathConstants: golden
             p2 = circ.center + APVector(5.0 * cos(θ), 5.0 * sin(θ))
             arc = APCircularArc2(circ, p1, p2)
             sec = APCircularSector2(arc)
+            @test APCircularSector2(circ.center, circ.r, p1, p2) == sec
             @test area(sec) ≈ 0.5 * 25 * θ atol = 1e-9
             @test perimeter(sec) ≈ 2 * 5 + 5 * θ atol = 1e-9
             @test circ.center in sec
@@ -563,6 +568,7 @@ using Base.MathConstants: golden
             p2 = circ.center + APVector(5.0 * cos(θ), 5.0 * sin(θ))
             arc = APCircularArc2(circ, p1, p2)
             seg = APCircularSegment2(arc)
+            @test APCircularSegment2(circ.center, circ.r, p1, p2) == seg
             @test area(seg) ≈ 0.5 * 25 * (θ - sin(θ)) atol = 1e-9
             @test centroid(seg) in seg
         end
@@ -573,6 +579,7 @@ using Base.MathConstants: golden
             p2 = circ.center + APVector(5.0 * cos(θ), 5.0 * sin(θ))
             arc = APCircularArc2(circ, p1, p2)
             asec = APAnnularSector2(arc, 2.0)
+            @test APAnnularSector2(circ.center, circ.r, p1, p2, 2.0) == asec
             @test area(asec) ≈ 0.5 * 25 * θ - 0.5 * 4 * θ atol = 1e-9
             @test perimeter(asec) ≈ (5 * θ) + (2 * θ) + 2 * (5.0 - 2.0) atol = 1e-9
             @test_throws ArgumentError APAnnularSector2(arc, 6.0)
@@ -628,6 +635,7 @@ using Base.MathConstants: golden
             ngon = APCurvilinearNgon2([APSegment(A, p1), arc, APSegment(p2, A)])
             @test length(sides(ngon)) == 3
             @test area(ngon) > 0
+            @test ngon == APCurvilinearNgon2(APSegment(A, p1), arc, APSegment(p2, A))
         end
         @testset "APPolyline2" begin
             p0, p1, p2 = APPoint(0.0, 0.0), APPoint(3.0, 0.0), APPoint(3.0, 4.0)
@@ -2908,6 +2916,8 @@ using Base.MathConstants: golden
         par = APParabola2(focus, directrix)
         @test vertex(par) == APPoint(0.0, 0.0)
         @test focal_parameter(par) == 2.0
+        @test APParabola2(APPoint(0.0, 0.0), focus) ≈ par
+        @test_throws ArgumentError APParabola2(focus, focus)
         v = vertex(par)
         @test distance(v, focus) ≈ distance(v, directrix)
         @test is_on_parabola(v, par)

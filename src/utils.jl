@@ -25,7 +25,7 @@ cross2(a, b) = a[1] * b[2] - a[2] * b[1]
 """
     cross3(a, b)
 
-The 3D (vector) cross product of `a` and `b`, as an [`APVector`](@ref) —
+The 3D (vector) cross product of `a` and `b`, as an [`APVector`](@ref) --
 the 3D counterpart of [`cross2`](@ref). Works on any indexable `a`/`b`
 (`APPoint{3}` or `APVector{3}`), same duck-typed convention as `cross2`.
 """
@@ -34,7 +34,7 @@ cross3(a, b) = APVector(a[2] * b[3] - a[3] * b[2], a[3] * b[1] - a[1] * b[3], a[
     slope_angle(obj)
 
 The angle (radians, from the positive x-axis) of `obj`'s [`direction`](@ref)
-— any `APLine`/`APRay`/`APSegment`.
+-- any `APLine`/`APRay`/`APSegment`.
 """
 slope_angle(obj) = atan(direction(obj)[2], direction(obj)[1])
 """

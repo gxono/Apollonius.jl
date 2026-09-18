@@ -46,7 +46,7 @@ end
 The image of `c` under inversion with respect to the circle centered at
 `center` with radius `k`. A circle through `center` inverts to an
 `APLine` (the mirror image of [`invert(::APLine, ::APPoint)`](@ref)); any
-other circle inverts to another `APCircle2` — so this returns a
+other circle inverts to another `APCircle2` -- so this returns a
 `Union{APCircle2,APLine}`.
 """
 function invert(c::APCircle2, center::APPoint; k::Real=1.0, atol=1e-9)
@@ -73,7 +73,7 @@ The image of `s` under inversion with respect to the circle centered at
 `center` with radius `k`. A segment on a line through `center` inverts to
 another `APSegment` (on the same line); any other segment inverts to an
 [`APCircularArc2`](@ref) of [`invert(::APLine, ::APPoint)`](@ref)'s image
-circle — specifically the arc that does *not* pass through `center`, since
+circle -- specifically the arc that does *not* pass through `center`, since
 that point is the image of the line's own point at infinity, which the
 segment (being finite) never reaches. So this returns a
 `Union{APSegment,APCircularArc2}`.
@@ -110,7 +110,7 @@ invert(pg::APStraightNgon, center::APPoint; k::Real=1.0, atol=1e-9) =
 
 The image of `p` under inversion of *negative* ratio with respect to `c`:
 the ordinary (positive) [`inversion`](@ref), point-reflected through
-`c.center` — i.e. the point on ray `p -> O` (not `O -> p`) at distance
+`c.center` -- i.e. the point on ray `p -> O` (not `O -> p`) at distance
 `r^2/|Op|` from `O`.
 """
 inversion_neg(p::APPoint, c::APCircle2) = reflection(inversion(p, c), c.center)
@@ -127,7 +127,7 @@ invert_neg(c::APCircle2, center::APPoint; k::Real=1.0, atol=1e-9) = reflection(i
 """
     invert(center::APPoint; k::Real=1.0, atol=1e-9)
 
-`p -> invert(p, center; k=k, atol=atol)` — for composing with `|>`/`map`/`∘`,
+`p -> invert(p, center; k=k, atol=atol)` -- for composing with `|>`/`map`/`∘`,
 same as [`rotate`](@ref)/[`homothety`](@ref)'s own single-argument forms.
 Unlike those, this is *not* an [`APAffineMap`](@ref) (circle inversion
 isn't affine), so it's a plain closure rather than a reusable, inspectable
@@ -137,7 +137,7 @@ invert(center::APPoint; k::Real=1.0, atol=1e-9) = shape -> invert(shape, center;
 """
     invert_neg(center::APPoint; k::Real=1.0, atol=1e-9)
 
-`p -> invert_neg(p, center; k=k, atol=atol)` — see the single-argument
+`p -> invert_neg(p, center; k=k, atol=atol)` -- see the single-argument
 [`invert`](@ref).
 """
 invert_neg(center::APPoint; k::Real=1.0, atol=1e-9) = shape -> invert_neg(shape, center; k=k, atol=atol)
@@ -145,7 +145,7 @@ invert_neg(center::APPoint; k::Real=1.0, atol=1e-9) = shape -> invert_neg(shape,
     invert(v::AbstractVector{<:APObject}, center::APPoint; k::Real=1.0, atol=1e-9)
     invert_neg(v::AbstractVector{<:APObject}, center::APPoint; k::Real=1.0, atol=1e-9)
 
-Invert every element of `v` — see the `AbstractVector` forms of
+Invert every element of `v` -- see the `AbstractVector` forms of
 [`translate`](@ref)/[`rotate`](@ref)/[`homothety`](@ref)/[`reflection`](@ref)
 for why this exists (a plain `Vector` of shapes, e.g. from
 [`intersection`](@ref)/[`tangent_points`](@ref), used as a single item).

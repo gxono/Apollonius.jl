@@ -27,7 +27,7 @@ Base.show(io::IO, m::APAffineMap) =
 """
     (m::APAffineMap)(v::APVector)
 
-The image of the free vector `v` under `m`'s *linear* part only — a
+The image of the free vector `v` under `m`'s *linear* part only -- a
 vector has no position, so the translation `(tx, ty)` is not applied.
 """
 (m::APAffineMap)(v::APVector{2}) = APVector(m.a11 * v[1] + m.a12 * v[2], m.a21 * v[1] + m.a22 * v[2])
@@ -45,7 +45,7 @@ The image of `hp` under `m`. Unlike [`rotate`](@ref)/[`homothety`](@ref)
 (always orientation-preserving in 2D, so `side` never needs to change), a
 general affine map can reverse orientation (`det(m) < 0`, like a
 reflection), which would flip which side of the transformed boundary is
-"inside" — so `side` is recomputed fresh from a point already known to be
+"inside" -- so `side` is recomputed fresh from a point already known to be
 on the correct side, rather than carried over unchanged.
 """
 function (m::APAffineMap)(hp::APHalfPlane2)
@@ -67,12 +67,12 @@ transformed boundary lines are still parallel.
     (m::APAffineMap)(g::APInterstice2)
 
 The image under `m` of a region built from circular arcs. None of these
-four *types* are closed under a general affine map — their circular arcs
+four *types* are closed under a general affine map -- their circular arcs
 generically become elliptic ones (see `(m::APAffineMap)(arc::APCircularArc2)`
 above), which no longer fits an
 `APCircularSector2`/`APCircularSegment2`/`APAnnularSector2`/
 `APInterstice2` (each holds a concrete `APCircularArc2` field, not any
-conic arc) — so the result is the more general
+conic arc) -- so the result is the more general
 [`APCurvilinearTriangle2`](@ref)/[`APCurvilinearQuadrilateral2`](@ref)/
 [`APCurvilinearNgon2`](@ref) with the same sides, each mapped through `m`
 (reusing [`sides`](@ref) rather than each type's own fields, so this
@@ -97,9 +97,9 @@ end
     (m::APAffineMap)(q::APCurvilinearQuadrilateral2)
     (m::APAffineMap)(pg::APCurvilinearNgon2)
 
-The image under `m` of a general mixed-side region — the same type,
-each side mapped through `m` (every side type — `APSegment` and all four
-conic arcs — already knows how to transform itself under `m`).
+The image under `m` of a general mixed-side region -- the same type,
+each side mapped through `m` (every side type -- `APSegment` and all four
+conic arcs -- already knows how to transform itself under `m`).
 """
 (m::APAffineMap)(t::APCurvilinearTriangle2) = APCurvilinearTriangle2(map(m, t.sides))
 (m::APAffineMap)(q::APCurvilinearQuadrilateral2) = APCurvilinearQuadrilateral2(map(m, q.sides))
@@ -108,8 +108,8 @@ conic arcs — already knows how to transform itself under `m`).
     (m::APAffineMap)(c::APCircle2)
 
 The image of `c` under `m`: in general an [`APEllipse2`](@ref) (a circle
-is only mapped to another circle by the *conformal* affine maps — a
-rotation, translation, or uniform scaling — and this covers all affine
+is only mapped to another circle by the *conformal* affine maps -- a
+rotation, translation, or uniform scaling -- and this covers all affine
 maps, so it always returns an `APEllipse2`, never an `APCircle2`, even
 when `m` happens to be conformal).
 
@@ -150,8 +150,8 @@ end
 """
     (m::APAffineMap)(e::APEllipse2)
 
-The image of `e` under `m` — always another `APEllipse2` (never a circle,
-even if `e` happens to be one and `m` conformal — same convention as
+The image of `e` under `m` -- always another `APEllipse2` (never a circle,
+even if `e` happens to be one and `m` conformal -- same convention as
 `(m::APAffineMap)(c::APCircle2)` above).
 """
 function (m::APAffineMap)(e::APEllipse2)
@@ -161,7 +161,7 @@ end
 """
     (m::APAffineMap)(h::APHyperbola2)
 
-The image of `h` under `m` — always another `APHyperbola2`.
+The image of `h` under `m` -- always another `APHyperbola2`.
 """
 function (m::APAffineMap)(h::APHyperbola2)
     λ1, λ2, θ = _affine_map_conic_quadratic_form(m, h.a, h.b, h.angle, -1.0)
@@ -170,14 +170,14 @@ end
 """
     (m::APAffineMap)(par::APParabola2)
 
-The image of `par` under `m` — always another `APParabola2`. Unlike
+The image of `par` under `m` -- always another `APParabola2`. Unlike
 `(m::APAffineMap)(e::APEllipse2)`/`(m::APAffineMap)(h::APHyperbola2)`
 above, `focus`/`directrix` are metric (not affine-invariant) constructs, so they
-can't just be mapped pointwise like a segment's endpoints — `m` can shear
+can't just be mapped pointwise like a segment's endpoints -- `m` can shear
 or scale non-uniformly, which moves the true focus/directrix off of
 `m(par.focus)`/`m(par.directrix)`. Instead: `par`'s own parametrization
 `point_on_parabola(par, y) = vertex + (y²/2pf)u + y·w` becomes, under `m`,
-`q(y) = m(vertex) + y·m(w) + y²·(m(u)/2pf)` — a quadratic *vector*
+`q(y) = m(vertex) + y·m(w) + y²·(m(u)/2pf)` -- a quadratic *vector*
 function of `y` whose own vertex/axis/focal parameter are recovered by
 rewriting it in the orthonormal frame aligned with its (generally skewed)
 `y²` coefficient direction, then completing the square.
@@ -205,7 +205,7 @@ _affine_map_det(m::APAffineMap) = m.a11 * m.a22 - m.a12 * m.a21
 """
     (m::APAffineMap)(arc::APCircularArc2)
 
-The image of `arc` under `m` — an [`APEllipticArc2`](@ref), not another
+The image of `arc` under `m` -- an [`APEllipticArc2`](@ref), not another
 `APCircularArc2` (matching `(m::APAffineMap)(c::APCircle2)`'s convention:
 a general affine map turns a circle into an ellipse).
 
@@ -214,7 +214,7 @@ whether `m` preserves or reverses orientation: for a *closed* conic, "the
 arc from `p1` to `p2`" only picks out one of the two complementary arcs
 because it's understood to sweep counterclockwise, and an
 orientation-reversing map (`det(m) < 0`, like a reflection) turns that
-sweep clockwise — so `p1`/`p2` are swapped in that case to reconstruct
+sweep clockwise -- so `p1`/`p2` are swapped in that case to reconstruct
 the correct (not the complementary) arc.
 """
 function (m::APAffineMap)(arc::APCircularArc2)
@@ -224,7 +224,7 @@ end
 """
     (m::APAffineMap)(arc::APEllipticArc2)
 
-The image of `arc` under `m` — another `APEllipticArc2`, on the image of
+The image of `arc` under `m` -- another `APEllipticArc2`, on the image of
 its ellipse (an affine invariant, see `(m::APAffineMap)(e::APEllipse2)`
 above). Swaps `p1`/`p2` when `m` is
 orientation-reversing, for the same reason as
@@ -238,7 +238,7 @@ end
     (m::APAffineMap)(arc::APHyperbolicArc2)
     (m::APAffineMap)(arc::APParabolicArc2)
 
-The image of `arc` under `m` — the same arc type, on the image of its
+The image of `arc` under `m` -- the same arc type, on the image of its
 underlying conic. Unlike the closed-conic arcs above, a single hyperbola
 branch/a parabola is open, so there's no complementary-arc ambiguity and
 no swap is needed even when `m` reverses orientation (matching
@@ -271,18 +271,18 @@ end
     translation_map(v::APVector)
     translation_map(v::APPoint)
 
-The affine map `p -> p + v` — equivalent to `p -> translate(p, v)`, as a
+The affine map `p -> p + v` -- equivalent to `p -> translate(p, v)`, as a
 genuine, reusable `APAffineMap` value: composes with `∘`/other maps into
 one *combined* map (computed once, applied as cheaply as any single map),
 and works uniformly across every type this file already handles (see
 [Affine Maps](@ref)).
 
-The tradeoff for that generality: applying an `APAffineMap` — this one
-included — can't preserve an exotic type the way `translate(shape, v)`
+The tradeoff for that generality: applying an `APAffineMap` -- this one
+included -- can't preserve an exotic type the way `translate(shape, v)`
 itself does (a circle piped through here comes back as an `APEllipse2`,
 never `APCircle2`, since nothing in the map's own type says it happens to
 be conformal). [`translate`](@ref)'s own one-argument form
-(`translate(v)`) is the type-preserving alternative — a plain function
+(`translate(v)`) is the type-preserving alternative -- a plain function
 rather than an `APAffineMap`, so it doesn't compose into one combined
 object, but chains of direct, exact `translate(shape, v)` calls instead.
 Reach for whichever tradeoff the situation calls for.
@@ -292,14 +292,14 @@ translation_map(v::APPointOrVector{2}) = APAffineMap(one(v[1]), zero(v[1]), zero
     rotation_map(angle::Real, center::APPoint)
 
 The affine map rotating by `angle` radians (counterclockwise) around
-`center` — equivalent to `p -> rotate(p, angle, center)`, as a genuine,
+`center` -- equivalent to `p -> rotate(p, angle, center)`, as a genuine,
 composable `APAffineMap` value (see [`translation_map`](@ref) for the
 tradeoff against [`rotate`](@ref)'s own type-preserving one-argument
 form).
 
 No default for `center` here (unlike `rotate`, which defaults to the
 origin): a default would make `rotation_map(angle)` alone valid, silently
-rotating about the origin with no `center` in sight at the call site —
+rotating about the origin with no `center` in sight at the call site --
 pass `center` explicitly instead.
 """
 function rotation_map(angle::Real, center::APPoint{2})
@@ -311,7 +311,7 @@ end
 """
     homothety_map(k::Real, center::APPoint)
 
-The affine map scaling by ratio `k` about `center` — equivalent to
+The affine map scaling by ratio `k` about `center` -- equivalent to
 `p -> homothety(p, k, center)`, as a genuine, composable `APAffineMap`
 value (see [`translation_map`](@ref) for the tradeoff against
 [`homothety`](@ref)'s own type-preserving one-argument form). See
@@ -324,7 +324,7 @@ end
 """
     reflection_map(l::APLine)
 
-The affine map reflecting across `l` — equivalent to
+The affine map reflecting across `l` -- equivalent to
 `p -> reflection(p, l)`, as a genuine, composable `APAffineMap` value
 (see [`translation_map`](@ref) for the tradeoff against
 [`reflection`](@ref)'s own type-preserving one-argument form).
@@ -336,7 +336,7 @@ end
 """
     reflection_map(about::APPoint)
 
-The affine map point-reflecting through `about` (`p -> 2*about - p`) —
+The affine map point-reflecting through `about` (`p -> 2*about - p`) --
 equivalent to `p -> reflection(p, about)`, as a genuine, composable
 `APAffineMap` value (see [`translation_map`](@ref) for the tradeoff
 against [`reflection`](@ref)'s own type-preserving one-argument form).
@@ -345,14 +345,14 @@ reflection_map(about::APPoint{2}) = APAffineMap(-one(about[1]), zero(about[1]), 
 """
     translate(v::APVector)
 
-A reusable, one-argument function, `shape -> translate(shape, v)` — for
+A reusable, one-argument function, `shape -> translate(shape, v)` -- for
 `|>`/`∘`/`map`/`filter` composition without a shape already in hand yet,
-same as [`translation_map`](@ref)`(v)` — but a plain function rather than
+same as [`translation_map`](@ref)`(v)` -- but a plain function rather than
 an `APAffineMap`, so it *preserves* whatever specific type
 `translate(shape, v)` itself already returns (a circle stays a circle).
 Composing two of these with `∘` builds a plain function too (a chain of
 type-preserving calls, applied in sequence each time), not one combined,
-reusable map object — reach for [`translation_map`](@ref) instead if
+reusable map object -- reach for [`translation_map`](@ref) instead if
 that's what's actually needed.
 
 ```julia
@@ -366,7 +366,7 @@ translate(v::APVector{2}) = shape -> translate(shape, v)
     rotate(angle::Real, center::APPoint=APPoint(0.0, 0.0))
 
 A reusable, one-argument function, `shape -> rotate(shape, angle,
-center)` — the type-preserving counterpart of
+center)` -- the type-preserving counterpart of
 [`rotation_map`](@ref)`(angle, center)` (see [`translate`](@ref)`(v)` for
 the full tradeoff). Unlike `rotation_map`, `center` here defaults to the
 origin, same as the direct, shape-taking `rotate` itself.
@@ -376,7 +376,7 @@ rotate(angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) = shape -> rotate(shap
     homothety(k::Real, center::APPoint=APPoint(0.0, 0.0))
 
 A reusable, one-argument function, `shape -> homothety(shape, k,
-center)` — the type-preserving counterpart of
+center)` -- the type-preserving counterpart of
 [`homothety_map`](@ref)`(k, center)` (see [`translate`](@ref)`(v)` for the
 full tradeoff). Unlike `homothety_map`, `center` here defaults to the
 origin, same as the direct, shape-taking `homothety` itself.
@@ -386,7 +386,7 @@ homothety(k::Real, center::APPoint{2}=APPoint(0.0, 0.0)) = shape -> homothety(sh
     reflection(about::APPoint)
     reflection(about::APLine)
 
-A reusable, one-argument function, `shape -> reflection(shape, about)` —
+A reusable, one-argument function, `shape -> reflection(shape, about)` --
 the type-preserving counterpart of [`reflection_map`](@ref)`(about)` (see
 [`translate`](@ref)`(v)` for the full tradeoff).
 """

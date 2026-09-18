@@ -5,7 +5,7 @@
 `point + vector`. A bare [`APVector`](@ref) has no position of its own, so
 it never contributes to [`@to_luxor_picture`](@ref)'s fit-to-canvas
 *sizing* and can't be shifted into place the way a positioned shape can
-— this type can, since it has a real [`APBoundingBox`](@ref) and
+-- this type can, since it has a real [`APBoundingBox`](@ref) and
 transforms fully as one piece via `translate`/`rotate`/`homothety`/
 `reflection`, without needing a second point tracked alongside it.
 `vector` comes first to match [`path(::APVector, ::APPoint)`](@ref)'s own
@@ -33,7 +33,7 @@ Base.show(io::IO, ev::APEquipollentVector) = print(io, "APEquipollentVector(", e
 """
     tip(ev::APEquipollentVector)
 
-`ev.point + ev.vector` — computed on demand rather than stored, to avoid
+`ev.point + ev.vector` -- computed on demand rather than stored, to avoid
 duplicating information already fully determined by `point`/`vector`.
 """
 tip(ev::APEquipollentVector) = ev.point + ev.vector
@@ -42,7 +42,7 @@ direction(ev::APEquipollentVector) = ev.vector
     APVector(ev::APEquipollentVector)
 
 The bare, positionless [`APVector`](@ref) `ev` carries (`ev.vector`,
-discarding `ev.point`) — the same "convert back to the simpler type"
+discarding `ev.point`) -- the same "convert back to the simpler type"
 convention as [`APVector(::APPoint)`](@ref).
 """
 APVector(ev::APEquipollentVector) = ev.vector
@@ -53,7 +53,7 @@ APVector(ev::APEquipollentVector) = ev.vector
 
 The standard linear-algebra functions, acting on `ev.vector` (the
 magnitude/direction it actually carries) while leaving `ev.point`
-untouched by `normalize` — the same "point of application stays fixed"
+untouched by `normalize` -- the same "point of application stays fixed"
 convention every other operation on this type follows. `dot` accepts
 either another `APEquipollentVector` or a bare `APVector` on either side,
 always comparing directions only (a dot product has no notion of "point
@@ -69,7 +69,7 @@ APBoundingBox(ev::APEquipollentVector) = APBoundingBox([ev.point, tip(ev)])
     ev::APEquipollentVector + w::APVector
 
 Adds the free vector `w` to `ev`'s own vector, **keeping the same point of
-application** — the parallelogram-law sum of two vectors applied at the
+application** -- the parallelogram-law sum of two vectors applied at the
 same point, expressed here as "one equipollent vector plus a free one"
 since that's the operation actually needed (summing two
 `APEquipollentVector`s at potentially *different* points has no single
@@ -82,7 +82,7 @@ Base.:-(ev::APEquipollentVector, w::APVector) = APEquipollentVector(ev.vector - 
 """
     p::APPoint + ev::APEquipollentVector
 
-Same as `p + ev.vector` — `ev`'s own point of application is ignored here,
+Same as `p + ev.vector` -- `ev`'s own point of application is ignored here,
 exactly like `p + v::APVector` never looks at where `v` "is" (it isn't
 anywhere). Use [`translate`](@ref)`(p, ev)` instead if what's wanted is to
 move `p`; this method exists only so point arithmetic doesn't have to
@@ -95,7 +95,7 @@ translate(ev::APEquipollentVector, w::APVector) = APEquipollentVector(ev.vector,
     translate(obj::APObject, ev::APEquipollentVector)
 
 Translate `obj` by `ev`'s own displacement (`ev.vector`), ignoring
-`ev.point` — translation only cares about direction and magnitude, not
+`ev.point` -- translation only cares about direction and magnitude, not
 where `ev` happens to be anchored. Lets any of the package's existing
 `translate(obj, ::APVector)` methods be driven by an `APEquipollentVector`
 directly, without unwrapping it by hand first.
@@ -109,7 +109,7 @@ rotate(ev::APEquipollentVector{3}, angle::Real, axis::APLine{3}) =
     homothety(ev::APEquipollentVector, k::Real, center::APPoint=APPoint(0.0,0.0))
 
 Scales `ev.point` about `center` as usual, and `ev.vector` by the literal
-`k` (not `abs(k)`) — a negative `k` correctly flips the vector's direction
+`k` (not `abs(k)`) -- a negative `k` correctly flips the vector's direction
 too, matching how the whole configuration point-reflects through `center`.
 This is exactly the scaling a bare `APVector` can never get inside
 `@to_luxor_picture` (see this type's own docstring for why).

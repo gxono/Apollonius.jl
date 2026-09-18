@@ -143,19 +143,19 @@ end
 """
     homothety(v::APVector, k::Real, center::APPoint=APPoint(0.0, 0.0))
 
-`k * v` — for a free vector, `center` has nothing to act on (there's no
+`k * v` -- for a free vector, `center` has nothing to act on (there's no
 position), so it's accepted purely for signature symmetry with every
 other `homothety` method (points, curves, [`APEquipollentVector`](@ref)).
 Having this defined for a bare `APVector` is what lets
 [`@to_luxor_picture`](@ref) scale one to the picture's own scale factor
-even though it has no [`APBoundingBox`](@ref) to shift into position —
+even though it has no [`APBoundingBox`](@ref) to shift into position --
 see `_place_in_picture`'s own comment for the reasoning.
 """
 homothety(v::APVector{Dim,T}, k::Real, center::APPoint{Dim}=APPoint(ntuple(_ -> zero(T), Dim))) where {Dim,T} = k * v
 """
     reflection(v::APVector, about::APPoint)
 
-Point-reflect the direction `v` — simply `-v`, since a free vector has no
+Point-reflect the direction `v` -- simply `-v`, since a free vector has no
 position for `about` to act on.
 """
 reflection(v::APVector, about::APPoint) = -v
@@ -192,7 +192,7 @@ midpoint(s::APSegment) = midpoint(s.p1, s.p2)
 
 Where a line through `p`, at `angle` radians from `l`'s own direction
 (counterclockwise; the default `pi/2` is the ordinary perpendicular/
-orthogonal projection), meets `l` — the oblique projection of `p` onto
+orthogonal projection), meets `l` -- the oblique projection of `p` onto
 `l` for any other `angle`. `angle` must be strictly between `0` and `π`:
 at either end, the projecting line becomes parallel to `l` itself, so
 there's no longer a single intersection point.
@@ -208,7 +208,7 @@ end
 """
     projection(l::APLine; angle::Real=pi/2)
 
-`p -> projection(p, l; angle=angle)` — for composing with `|>`/`map`/
+`p -> projection(p, l; angle=angle)` -- for composing with `|>`/`map`/
 `filter`, e.g. `map(projection(l), points)` to project a whole collection
 onto `l` at once.
 """
@@ -339,7 +339,7 @@ rotate(r::APRay{2}, angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     rotate(p::APPoint{3}, angle::Real, axis::APLine{3})
 
 Rotate `p` by `angle` radians (right-hand rule around `direction(axis)`)
-about `axis` — the 3D analogue of `rotate(p::APPoint{2}, angle, center)`,
+about `axis` -- the 3D analogue of `rotate(p::APPoint{2}, angle, center)`,
 via the closed-form Rodrigues rotation formula (no quaternions/matrix
 exponential needed): decompose `p - axis.p1` into its component along the
 axis (unchanged) and perpendicular to it (rotated within the plane
@@ -414,9 +414,9 @@ APBoundingBox(s::APSegment) = APBoundingBox([s.p1, s.p2])
 """
     APBoundingBox(shapes::Union{Tuple,NamedTuple})
 
-The [`bbox_union`](@ref) of a fixed-size group of shapes — e.g. the
+The [`bbox_union`](@ref) of a fixed-size group of shapes -- e.g. the
 `(A=..., B=..., C=...)` returned by [`excenters`](@ref)/[`excircles`](@ref)
-or the plain 3-tuple returned by [`euler_points`](@ref) — so these work
+or the plain 3-tuple returned by [`euler_points`](@ref) -- so these work
 directly wherever a single shape would (like inside
 [`@to_luxor_picture`](@ref)) without first calling `collect`.
 """
@@ -427,7 +427,7 @@ end
 """
     APBoundingBox(p::APPoint)
 
-The degenerate box `APBoundingBox(p, p)` — zero-size, but still a real
+The degenerate box `APBoundingBox(p, p)` -- zero-size, but still a real
 position, so `p` grows a [`bbox_union`](@ref) exactly like any other
 shape would.
 """
@@ -435,15 +435,15 @@ APBoundingBox(p::APPoint) = APBoundingBox(p, p)
 """
     APBoundingBox()
 
-The *empty* bounding box: the neutral element for [`bbox_union`](@ref) —
+The *empty* bounding box: the neutral element for [`bbox_union`](@ref) --
 `bbox_union(APBoundingBox(), bb) == bb` for any `bb`. This is what
 `APBoundingBox` returns for values that have no position of their own to
 contribute to a picture's extent: a plain number, an [`APVector`](@ref)
-(a direction, not a location — unlike [`APPoint`](@ref), which *does* get
+(a direction, not a location -- unlike [`APPoint`](@ref), which *does* get
 its own degenerate box above), or an unbounded curve/region
 ([`APLine`](@ref), [`APRay`](@ref), `APAngle2`, `APHalfPlane2`,
 `APStrip2`, which have no finite extent to report). It exists so generic
-code — [`@boundingbox`](@ref), [`@to_luxor_picture`](@ref) — can call
+code -- [`@boundingbox`](@ref), [`@to_luxor_picture`](@ref) -- can call
 `APBoundingBox` on every value named in a block without special-casing the
 ones that aren't meant to be drawn or sized.
 """
@@ -455,13 +455,13 @@ APBoundingBox(::APRay) = APBoundingBox()
 """
     APBoundingBox(v::AbstractVector{<:APObject})
 
-The [`bbox_union`](@ref) of every element's own box — the empty box (see
+The [`bbox_union`](@ref) of every element's own box -- the empty box (see
 [`APBoundingBox()`](@ref) above) for an empty `v`, so this composes
 exactly like a single value would, rather than erroring on "no points"
 the way [`APBoundingBox(::AbstractVector{<:APPoint})`](@ref) does. This is
-what lets a plain `Vector` of shapes — what [`intersection`](@ref)/
+what lets a plain `Vector` of shapes -- what [`intersection`](@ref)/
 [`tangent_points`](@ref) return, since they can give 0, 1 or 2 points
-depending on the geometry — work as a single named item inside a
+depending on the geometry -- work as a single named item inside a
 [`@boundingbox`](@ref)/[`@to_luxor_picture`](@ref) block, without
 unwrapping it by hand first.
 """
@@ -557,7 +557,7 @@ end
     bbox_union(a::APBoundingBox, b::APBoundingBox)
 
 The smallest box containing both `a` and `b`. Unlike
-[`bbox_intersection`](@ref), this always exists — `a`/`b` don't need to
+[`bbox_intersection`](@ref), this always exists -- `a`/`b` don't need to
 overlap. The empty box (see [`APBoundingBox()`](@ref)) is the identity
 element: `bbox_union` with it returns the other box unchanged.
 """
@@ -597,9 +597,9 @@ end
     end
     @boundingbox c             # a single shape/expression also works
 
-The [`bbox_union`](@ref) of every shape named in the block — via
+The [`bbox_union`](@ref) of every shape named in the block -- via
 [`APBoundingBox`](@ref) applied to each, then `reduce`d with `bbox_union`
-— as a single expression. Each top-level line in the block is either:
+-- as a single expression. Each top-level line in the block is either:
 
   - an assignment `name = expr`: `expr` is evaluated and bound to `name`
     exactly as if the `@boundingbox` weren't there (so `name` stays usable
@@ -613,7 +613,7 @@ The [`bbox_union`](@ref) of every shape named in the block — via
     earlier, outside the block or on an earlier line inside it): its
     value is folded into the union, nothing is assigned.
 
-Lines run in order, top to bottom, exactly as written — this is not a new
+Lines run in order, top to bottom, exactly as written -- this is not a new
 scope (no `let`): a bare name refers to whatever `name` already means at
 that point, and an assignment defines `name` in the enclosing scope, so
 mixing "build a new shape here" and "also include this shape from
@@ -621,7 +621,7 @@ earlier" freely on different lines works as expected.
 
 A single expression instead of a `begin ... end` block (`@boundingbox c`,
 or even `@boundingbox c = APCircle2(...)`) works the same way, treated as
-a one-line block — `APBoundingBox(c)` directly is simpler for that case,
+a one-line block -- `APBoundingBox(c)` directly is simpler for that case,
 but this stays consistent rather than requiring `begin`/`end` only
 sometimes.
 """
@@ -716,7 +716,7 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
         names, run_first = _block_stmt_names(stmt)
         if isempty(names)
             if mutating
-                push!(body.args, :(throw(ArgumentError($macroname * ": cannot mutate an unnamed expression — assign it to a variable first"))))
+                push!(body.args, :(throw(ArgumentError($macroname * ": cannot mutate an unnamed expression -- assign it to a variable first"))))
             else
                 push!(body.args, :(push!($shapes, $stmt)))
                 unbounded_here || push!(body.args, :(push!($sizing_shapes, $shapes[end])))
@@ -770,18 +770,18 @@ end
     @unbounded expr
 
 Inside a [`@to_luxor_picture`](@ref)/[`@to_luxor_picture!`](@ref) block,
-marks `expr` as excluded from that picture's fit-to-canvas *sizing* — its
+marks `expr` as excluded from that picture's fit-to-canvas *sizing* -- its
 own [`APBoundingBox`](@ref) is left out of the union that determines the
-canvas size and scale factor — while still binding/transforming it
+canvas size and scale factor -- while still binding/transforming it
 normally, exactly like every other line in the block. Wrap either the
 whole line (`@unbounded aux = APCircle2(...)`) or just the right-hand
 side (`aux = @unbounded APCircle2(...)`); both read the same way.
 
-Outside a picture block, `@unbounded expr` is simply `expr` — a plain,
+Outside a picture block, `@unbounded expr` is simply `expr` -- a plain,
 harmless passthrough, so it's always safe to write regardless of context.
 
 Useful for an auxiliary construction shape that has a real, large extent
-but isn't meant to set the picture's own scale — e.g. a big locus circle
+but isn't meant to set the picture's own scale -- e.g. a big locus circle
 used only to build an intersection point:
 
 ```julia
@@ -795,7 +795,7 @@ end
 If *every* shape in the block ends up marked `@unbounded` (or the block
 otherwise has nothing with a finite bounding box), the same
 `ArgumentError` [`@to_luxor_picture`](@ref) already throws for an empty
-bounding box applies — there's nothing left to size the canvas by.
+bounding box applies -- there's nothing left to size the canvas by.
 """
 macro unbounded(expr)
     return esc(expr)
@@ -817,8 +817,8 @@ end
 Prepares every shape named in the block for drawing at a known, exact
 canvas size: translate/scale them so their combined [`APBoundingBox`](@ref)
 fits centered on the *origin*, always preserving aspect ratio (the scale
-factor is always the same in `x` and `y` — a circle always stays a
-circle). Returns `((width=w, height=h, fct=fct, bb=bb), shapes)` — a
+factor is always the same in `x` and `y` -- a circle always stays a
+circle). Returns `((width=w, height=h, fct=fct, bb=bb), shapes)` -- a
 `NamedTuple` with the exact canvas size to pass to `Drawing` (`w, h = ...`
 still works positionally, same as a plain tuple, alongside
 `sz.width`/`sz.height`), `fct`, the exact same translate/scale/flip
@@ -827,15 +827,15 @@ function applied to every shape in the block, so it can be applied
 picture (e.g. a label position computed after the fact) and still land in
 the same transformed coordinate space, and `bb`, the [`APBoundingBox`](@ref)
 of the drawable area itself (the canvas, centered on the origin, with
-`margin` subtracted from every side) — handy for e.g. `path(sz.bb;
+`margin` subtracted from every side) -- handy for e.g. `path(sz.bb;
 action=:clip)`, independent of what the block's own shapes happen to
 cover. `shapes` are the translated/scaled copies (`c`/`s`/`t` themselves
-are untouched — see [`@to_luxor_picture!`](@ref) for the mutating form),
+are untouched -- see [`@to_luxor_picture!`](@ref) for the mutating form),
 in the same order as the block, as a tuple (or bare, for a single shape).
 
 Centering on `(0, 0)` matches Luxor's own `origin()` convention (device
 `(0, 0)` moved to the center of the canvas), so the result is ready to
-draw right after `origin()` — which `@png`/`@svg`/`@pdf` already call for
+draw right after `origin()` -- which `@png`/`@svg`/`@pdf` already call for
 you. The shapes are also reflected across the x-axis (`flip=true` by
 default): this package's own geometry follows the standard math
 convention (y up, counterclockwise angles positive), but Luxor -- like
@@ -872,15 +872,15 @@ Scaling options (mutually exclusive: `scale` cannot be combined with
 `width`/`height`):
 
   - neither given: scale factor `1.0` (the shapes' own coordinate units
-    become output units directly, no resizing) — the returned canvas size
+    become output units directly, no resizing) -- the returned canvas size
     is exactly the content size (plus `margin`);
-  - `scale`: a literal, uniform multiplier — the returned canvas size is
+  - `scale`: a literal, uniform multiplier -- the returned canvas size is
     *derived* from the scaled content (plus `margin`), same as above;
   - `width` alone (or `height` alone): scaled so that side comes out
     exactly `width` (resp. `height`) minus `margin`, the other side
-    following to preserve the aspect ratio — there's never leftover space
+    following to preserve the aspect ratio -- there's never leftover space
     to center away in this case;
-  - `width` *and* `height` together: a "contain" fit — scaled by whichever
+  - `width` *and* `height` together: a "contain" fit -- scaled by whichever
     of the two is more restrictive, so the content fits inside *both*
     without distortion. The returned canvas is exactly `(width, height)`
     regardless; if the content's aspect ratio doesn't match, it's centered,
@@ -897,7 +897,7 @@ expression works here too since nothing needs to be rebound.
 
 Wrap a line in [`@unbounded`](@ref) (`aux = @unbounded APCircle2(...)`, or
 `@unbounded aux = APCircle2(...)`) to still bind/transform it normally
-*without* its own `APBoundingBox` counting toward the canvas's sizing —
+*without* its own `APBoundingBox` counting toward the canvas's sizing --
 e.g. a large auxiliary construction circle used only to build an
 intersection point, that you don't want forcing the picture to zoom out
 to fit.
@@ -914,9 +914,9 @@ end
 The mutating counterpart of [`@to_luxor_picture`](@ref): rebinds each
 *named* shape (an assignment, or a bare reference to a shape defined
 earlier) to its own translated/scaled image, instead of returning copies.
-Returns just `(width=w, height=h, fct=fct, bb=bb)` — a `NamedTuple` (see
+Returns just `(width=w, height=h, fct=fct, bb=bb)` -- a `NamedTuple` (see
 [`@to_luxor_picture`](@ref) for what `fct`/`bb` give you beyond `width`/
-`height`) — the shapes are already accessible under their own names. A
+`height`) -- the shapes are already accessible under their own names. A
 bare, unnamed expression has nothing to rebind, so this form rejects it
 (same as [`@translate!`](@ref) and the rest of that family).
 """
@@ -938,7 +938,7 @@ function _shape_transform_body(mutating::Bool, make_call, block)
         names, run_first = _block_stmt_names(stmt)
         if isempty(names)
             if mutating
-                push!(body.args, :(throw(ArgumentError("cannot mutate an unnamed expression — assign it to a variable first"))))
+                push!(body.args, :(throw(ArgumentError("cannot mutate an unnamed expression -- assign it to a variable first"))))
             else
                 push!(body.args, :(push!($results, $(make_call(stmt)))))
             end
@@ -967,7 +967,7 @@ end
     @translate v c             # a single shape/expression also works
 
 [`translate`](@ref) every shape named in the block by `v`, returning them
-as a tuple in order (`C, S, T = @translate v begin ... end`) — `c`/`s`/`t`
+as a tuple in order (`C, S, T = @translate v begin ... end`) -- `c`/`s`/`t`
 themselves are untouched, exactly like calling `translate` by hand and
 keeping the result under a new name. Each top-level line is an assignment
 `name = expr` (runs as ordinary code, and its value is translated into the
@@ -981,15 +981,15 @@ rundown of that part, which works identically here.
 The mutating form: instead of leaving `c`/`s`/`t` alone and returning
 copies, it rebinds each *named* one (an assignment or a bare existing
 variable) to its own translated value. `APCircle2`/`APSegment`/... are all
-immutable structs, so nothing is changed in place — the object itself
+immutable structs, so nothing is changed in place -- the object itself
 never mutates, only the *variable* is repointed at a new one (the same
 trick `Setfield.jl`'s `@set!` uses for immutable structs generally). A
 bare *unnamed* expression (nothing to rebind) is an `ArgumentError` in
 this form.
 
 When embedding a call to `@translate`/`@rotate`/`@homothety`/`@reflection`
-directly inside another expression — as an argument to a function, say
-— wrap it in its own parentheses: `f((@rotate angle p), other_arg)`, not
+directly inside another expression -- as an argument to a function, say
+-- wrap it in its own parentheses: `f((@rotate angle p), other_arg)`, not
 `f(@rotate angle p, other_arg)`. Without them, Julia's bare `@macro arg1
 arg2 ...` call syntax swallows the surrounding comma-separated arguments
 into an unwanted tuple; this is a general Julia parsing rule for any
@@ -1003,7 +1003,7 @@ end
     @translate! v begin ... end
     @translate! v c
 
-The mutating counterpart of [`@translate`](@ref) — see its docstring for
+The mutating counterpart of [`@translate`](@ref) -- see its docstring for
 the full rundown (what "mutating" means for immutable shapes, and the
 `ArgumentError` on a bare unnamed expression).
 """
@@ -1017,13 +1017,13 @@ end
 
 [`rotate`](@ref) every shape named in the block by `angle` (about `center`,
 defaulting to the origin exactly like `rotate` itself), returning them as
-a tuple — see [`@translate`](@ref) for the full rundown of how the block
+a tuple -- see [`@translate`](@ref) for the full rundown of how the block
 is read (assignments vs. bare references) and what it returns.
 
     @rotate! angle begin ... end
     @rotate! angle center begin ... end
 
-The mutating form — see [`@translate!`](@ref).
+The mutating form -- see [`@translate!`](@ref).
 """
 macro rotate(angle, block)
     _shape_transform_body(false, x -> :(rotate($x, $angle)), block)
@@ -1036,7 +1036,7 @@ end
     @rotate! angle center begin ... end
     @rotate! angle c
 
-The mutating counterpart of [`@rotate`](@ref) — see [`@translate!`](@ref)
+The mutating counterpart of [`@rotate`](@ref) -- see [`@translate!`](@ref)
 for what "mutating" means for immutable shapes.
 """
 macro rotate!(angle, block)
@@ -1052,13 +1052,13 @@ end
 
 [`homothety`](@ref) every shape named in the block by ratio `k` (about
 `center`, defaulting to the origin exactly like `homothety` itself),
-returning them as a tuple — see [`@translate`](@ref) for the full rundown
+returning them as a tuple -- see [`@translate`](@ref) for the full rundown
 of how the block is read and what it returns.
 
     @homothety! k begin ... end
     @homothety! k center begin ... end
 
-The mutating form — see [`@translate!`](@ref).
+The mutating form -- see [`@translate!`](@ref).
 """
 macro homothety(k, block)
     _shape_transform_body(false, x -> :(homothety($x, $k)), block)
@@ -1071,7 +1071,7 @@ end
     @homothety! k center begin ... end
     @homothety! k c
 
-The mutating counterpart of [`@homothety`](@ref) — see
+The mutating counterpart of [`@homothety`](@ref) -- see
 [`@translate!`](@ref) for what "mutating" means for immutable shapes.
 """
 macro homothety!(k, block)
@@ -1085,12 +1085,12 @@ end
     @reflection about c         # a single shape/expression also works
 
 [`reflection`](@ref) every shape named in the block `about` a point or a
-line, returning them as a tuple — see [`@translate`](@ref) for the full
+line, returning them as a tuple -- see [`@translate`](@ref) for the full
 rundown of how the block is read and what it returns.
 
     @reflection! about begin ... end
 
-The mutating form — see [`@translate!`](@ref).
+The mutating form -- see [`@translate!`](@ref).
 """
 macro reflection(about, block)
     _shape_transform_body(false, x -> :(reflection($x, $about)), block)
@@ -1099,7 +1099,7 @@ end
     @reflection! about begin ... end
     @reflection! about c
 
-The mutating counterpart of [`@reflection`](@ref) — see
+The mutating counterpart of [`@reflection`](@ref) -- see
 [`@translate!`](@ref) for what "mutating" means for immutable shapes.
 """
 macro reflection!(about, block)
@@ -1112,9 +1112,9 @@ end
 
 [`invert`](@ref) every shape named in the block with respect to the
 circle centered at `center` (radius `k`, defaulting to `1.0` exactly like
-`invert` itself) — see [`@translate`](@ref) for the full rundown of how
+`invert` itself) -- see [`@translate`](@ref) for the full rundown of how
 the block is read and what it returns. `invert` can change a shape's own
-type (an `APLine` inverts to an `APCircle2` and vice versa) — no
+type (an `APLine` inverts to an `APCircle2` and vice versa) -- no
 different here.
 """
 macro invert(center, block)
@@ -1127,7 +1127,7 @@ end
     @invert! center begin ... end
     @invert! center k begin ... end
 
-The mutating counterpart of [`@invert`](@ref) — see [`@translate!`](@ref)
+The mutating counterpart of [`@invert`](@ref) -- see [`@translate!`](@ref)
 for what "mutating" means for immutable shapes.
 """
 macro invert!(center, block)
@@ -1141,7 +1141,7 @@ end
     @invert_neg center k begin ... end
     @invert_neg center c
 
-[`invert_neg`](@ref) every shape named in the block — the negative-ratio
+[`invert_neg`](@ref) every shape named in the block -- the negative-ratio
 counterpart of [`@invert`](@ref); see [`@translate`](@ref) for the full
 rundown of how the block is read and what it returns.
 """
@@ -1155,7 +1155,7 @@ end
     @invert_neg! center begin ... end
     @invert_neg! center k begin ... end
 
-The mutating counterpart of [`@invert_neg`](@ref) — see
+The mutating counterpart of [`@invert_neg`](@ref) -- see
 [`@translate!`](@ref) for what "mutating" means for immutable shapes.
 """
 macro invert_neg!(center, block)
@@ -1168,7 +1168,7 @@ end
     @affinemap m begin ... end
     @affinemap m c                # a single shape/expression also works
 
-Apply the [`APAffineMap`](@ref) `m` to every shape named in the block —
+Apply the [`APAffineMap`](@ref) `m` to every shape named in the block --
 see [`@translate`](@ref) for the full rundown of how the block is read
 and what it returns.
 """
@@ -1178,7 +1178,7 @@ end
 """
     @affinemap! m begin ... end
 
-The mutating counterpart of [`@affinemap`](@ref) — see
+The mutating counterpart of [`@affinemap`](@ref) -- see
 [`@translate!`](@ref) for what "mutating" means for immutable shapes.
 """
 macro affinemap!(m, block)

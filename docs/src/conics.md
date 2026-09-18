@@ -69,15 +69,19 @@ directrix = APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0))
 par = APParabola2(focus, directrix)
 ```
 
-A parabola only has one natural constructor (the focus/directrix
-definition itself), since (unlike the ellipse/hyperbola) there's no
-second, equally standard center/axis parametrization to offer as an
-alternative.
-
 ```@example geo
 vertex(par)            # midpoint of focus and its foot on the directrix
 vertices(par)          # (vertex(par),): a 1-tuple, so vertices() works uniformly across every conic
 focal_parameter(par)   # distance(focus, directrix), often called p
+```
+
+`APParabola2(vertex, focus)` is the point-based alternative, the same
+idea as [`APCircle2`](@ref)`(center, through)` or the bifocal
+`APEllipse2`/`APHyperbola2` constructors: vertex and focus alone pin down
+the axis, the focal parameter, and so the directrix too.
+
+```@example geo
+APParabola2(vertex(par), focus) ≈ par
 ```
 
 [`point_on_parabola`](@ref) parametrizes by the signed distance `s` from
@@ -246,6 +250,15 @@ arc_length(parc) > distance(parc.p1, parc.p2)   # the arc is always longer than 
 ```@example geo
 harc = APHyperbolicArc2(h, point_on_hyperbola(h, -0.5), point_on_hyperbola(h, 0.5))
 harc isa APHyperbolicArc2
+```
+
+Each also builds directly from the underlying conic's own raw parameters,
+without an `APEllipse2`/`APHyperbola2`/`APParabola2` in hand first (the
+same idea as [`APCircularArc2`](@ref)`(center, r, p1, p2)` in
+[Circles](@ref)):
+
+```@example geo
+APEllipticArc2(e.center, e.a, e.b, earc.p1, earc.p2; angle=e.angle) == earc
 ```
 
 Unlike a circular or elliptic arc (where "the arc from `p1` to `p2`" means

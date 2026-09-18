@@ -364,6 +364,15 @@ point_on_arc(arc, 0.0) ≈ p1   # t=0 is p1, t=1 is p2
 midpoint(arc)                   # point_on_arc(arc, 0.5)
 ```
 
+`APCircularArc2(center, r, p1, p2)` builds the same arc straight from the
+circle's raw center and radius, without an `APCircle2` in hand first
+(`APCircularArc2(center, p1, p2)`, with no `r`, is the same thing again
+with `r` taken to be `distance(center, p1)`):
+
+```@example geo
+APCircularArc2(c.center, c.r, p1, p2) == arc
+```
+
 ```@raw html
 <img src="../assets/img/circles/arc.svg" alt="" style="width:100%; max-width: 700px;">
 ```
@@ -420,7 +429,8 @@ the arc itself. [`APCircularSector2`](@ref), [`APCircularSegment2`](@ref)
 and [`APAnnularSector2`](@ref) are the three classical ways to do this
 (`APCircularSector2(circle, p1, p2)` is shorthand for
 `APCircularSector2(APCircularArc2(circle, p1, p2))`, and likewise for the
-other two):
+other two -- each also takes the circle's raw `center`/`r` directly
+instead, e.g. `APCircularSector2(center, r, p1, p2)`):
 
 * **[`APCircularSector2`](@ref)**, the "pie slice": bounded by the two
   radii `circle.center -> p1`, `circle.center -> p2`, and the arc between
@@ -592,6 +602,7 @@ side, useful when the side count isn't fixed ahead of time:
 
 ```@example geo
 cn = APCurvilinearNgon2([rad1, arc, rad2])   # the same 3 sides as ct above
+cn == APCurvilinearNgon2(rad1, arc, rad2)   # one side per argument also works, same as the vector form
 area(cn) ≈ area(ct), perimeter(cn) ≈ perimeter(ct)   # same sides, same region either way
 ```
 

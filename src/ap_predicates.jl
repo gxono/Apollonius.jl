@@ -9,7 +9,7 @@ is_collinear(a::APPoint, b::APPoint, c::APPoint; atol=1e-9) =
     is_coplanar(a::APPoint{3}, b::APPoint{3}, c::APPoint{3}, d::APPoint{3}; atol=1e-9)
 
 Whether the four 3D points lie on a common plane (via the scalar triple
-product `(b-a, c-a, d-a)`, which vanishes exactly when they're coplanar —
+product `(b-a, c-a, d-a)`, which vanishes exactly when they're coplanar --
 the 3D analogue of [`is_collinear`](@ref)).
 """
 function is_coplanar(a::APPoint{3}, b::APPoint{3}, c::APPoint{3}, d::APPoint{3}; atol=1e-9)
@@ -22,7 +22,7 @@ end
 
 How two 3D lines relate: `:coincident` (the same line), `:parallel`
 (same direction, distinct), `:intersecting` (coplanar, cross at a single
-point), or `:skew` (not coplanar at all — the genuinely 3D case that never
+point), or `:skew` (not coplanar at all -- the genuinely 3D case that never
 arises for `APLine{2}`, where two non-parallel lines always meet).
 """
 function line_line_position(l1::APLine{3}, l2::APLine{3}; atol=1e-9)
@@ -42,7 +42,7 @@ on_line(p::APPoint, l::APLine; atol=1e-9) = distance(p, l) <= sqrt(atol)
 """
     on_line(l::APLine; atol=1e-9)
 
-`p -> on_line(p, l; atol=atol)` — for composing with `filter`/`map`, e.g.
+`p -> on_line(p, l; atol=atol)` -- for composing with `filter`/`map`, e.g.
 `filter(on_line(l), points)`.
 """
 on_line(l::APLine; atol=1e-9) = p -> on_line(p, l; atol=atol)
@@ -62,7 +62,7 @@ end
 """
     on_segment(s::APSegment; atol=1e-9)
 
-`p -> on_segment(p, s; atol=atol)` — see the single-argument [`on_line`](@ref).
+`p -> on_segment(p, s; atol=atol)` -- see the single-argument [`on_line`](@ref).
 """
 on_segment(s::APSegment; atol=1e-9) = p -> on_segment(p, s; atol=atol)
 """
@@ -81,7 +81,7 @@ end
 """
     on_ray(r::APRay; atol=1e-9)
 
-`p -> on_ray(p, r; atol=atol)` — see the single-argument [`on_line`](@ref).
+`p -> on_ray(p, r; atol=atol)` -- see the single-argument [`on_line`](@ref).
 """
 on_ray(r::APRay; atol=1e-9) = p -> on_ray(p, r; atol=atol)
 Base.in(p::APPoint, s::APSegment) = on_segment(p, s)

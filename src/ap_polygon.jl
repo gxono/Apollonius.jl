@@ -14,7 +14,7 @@ end
     vertices(p::APPolygon)
 
 The corner points of `p`, in order. Default: the starting point of each of
-`p`'s [`sides`](@ref) — the counterpart of `sides`'s own default above, for
+`p`'s [`sides`](@ref) -- the counterpart of `sides`'s own default above, for
 any curved-region subtype that defines `sides` directly instead of
 `vertices` (see the protocol note above).
 """
@@ -51,7 +51,7 @@ end
     area(p::APPolygon)
 
 Unsigned area of `p`, via the Green's-theorem line integral `(1/2)|∮(x dy
-- y dx)|` around [`sides`](@ref) — correct whether every side is straight
+- y dx)|` around [`sides`](@ref) -- correct whether every side is straight
 or some are [`APCircularArc2`](@ref)s.
 """
 function area(p::APPolygon)
@@ -64,13 +64,13 @@ end
 """
     area(p::APPolygon{3})
 
-Area of the (assumed planar) 3D-embedded polygon `p` — [`APTriangle`](@ref)/
+Area of the (assumed planar) 3D-embedded polygon `p` -- [`APTriangle`](@ref)/
 [`APQuadrilateral`](@ref)/[`APStraightNgon`](@ref) built from `APPoint{3}`
 vertices, as `APPolyhedron` faces typically are. Via **Newell's method**,
 `(1/2)|Σᵢ vᵢ × vᵢ₊₁|` using the true 3D cross product: the direct
 generalization of the 2D shoelace formula above (which only reads 2 of a
 3D vertex's 3 coordinates, silently projecting onto the xy-plane instead
-of computing the true planar area — a dedicated `Dim`-specific method is
+of computing the true planar area -- a dedicated `Dim`-specific method is
 needed here, not a fallback, for exactly that reason).
 """
 function area(p::APPolygon{3})
@@ -82,7 +82,7 @@ end
 """
     is_planar(pg::APPolygon{3}; atol=1e-9)
 
-Whether all of `pg`'s vertices lie in a common plane — worth checking
+Whether all of `pg`'s vertices lie in a common plane -- worth checking
 before trusting `area`/`centroid`/`is_convex`/`point_in_polygon` on a
 hand-built `APStraightNgon{3}`/`APQuadrilateral{3}` (all four assume
 planarity; none of them validate it, the same "assumed correct"
@@ -102,7 +102,7 @@ end
 Area-weighted centroid of the (assumed planar) 3D-embedded polygon `p`,
 via the same fan-triangulation (from `p`'s own first vertex, weighted by
 each triangle's signed area relative to `p`'s own Newell normal) that
-[`area(::APPolygon{3})`](@ref) is built on — the 3D generalization of
+[`area(::APPolygon{3})`](@ref) is built on -- the 3D generalization of
 `centroid(::APPolygon)`'s shoelace-based formula above.
 """
 function centroid(p::APPolygon{3})
@@ -236,7 +236,7 @@ end
     _ray_crossings(p::APPoint, s::APSegment)
 
 How many times the rightward horizontal ray from `p` (fixed height
-`p[2]`, heading toward `+∞` in `x`) crosses `s` transversally — `0` or
+`p[2]`, heading toward `+∞` in `x`) crosses `s` transversally -- `0` or
 `1`. The building block [`point_in_polygon`](@ref) sums over every side
 of [`sides`](@ref)`(pg)` to apply the even-odd rule generically, whether
 those sides are straight or (see `ap_conic.jl`) conic arcs.
@@ -252,7 +252,7 @@ end
     point_in_polygon(p::APPoint, pg::APPolygon)
 
 Whether `p` lies inside `pg`, via ray-casting (even-odd rule) along
-[`sides`](@ref)`(pg)` — works uniformly whether every side is straight or
+[`sides`](@ref)`(pg)` -- works uniformly whether every side is straight or
 some are conic arcs, so it needs no separate case for curved regions.
 Points exactly on the boundary may return either `true` or `false`.
 """
@@ -264,7 +264,7 @@ Base.in(p::APPoint, pg::APPolygon) = point_in_polygon(p, pg)
     distance(p::APPoint, pg::APPolygon; mode::Symbol=:region)
 
 Distance from `p` to `pg`, defined once for the whole [`APPolygon`](@ref)
-family via [`sides`](@ref) — straight or curved alike. With `mode =
+family via [`sides`](@ref) -- straight or curved alike. With `mode =
 :region` (the default), `0.0` whenever `p` lies inside or on the boundary
 of `pg`, otherwise the distance to the nearest point on `sides(pg)`. With
 `mode = :boundary`, always the distance to the boundary itself, even from
@@ -320,7 +320,7 @@ translate(t::APTriangle, v::APVector) = APTriangle(translate(t.a, v), translate(
 """
     APQuadrilateral(a, b, c, d)
 
-Consecutive vertices `a, b, c, d` — not assumed convex, cyclic, or of any
+Consecutive vertices `a, b, c, d` -- not assumed convex, cyclic, or of any
 special kind.
 """
 struct APQuadrilateral{Dim,T<:Real} <: APPolygon{Dim,T}
@@ -366,7 +366,7 @@ Where the two diagonals `[a,c]` and `[b,d]` cross, or `nothing` if
 they're parallel (a degenerate quadrilateral).
 
 Uses `intersection(::APLine, ::APLine)`, defined later in
-`ap_intersections.jl` — referenced here only inside a function body, so
+`ap_intersections.jl` -- referenced here only inside a function body, so
 the include order doesn't matter.
 """
 function diagonal_intersection(q::APQuadrilateral; atol=1e-9)
@@ -379,7 +379,7 @@ end
 
 Whether the four vertices of `q` lie on a common circle. Uses
 `is_concyclic`, which in turn needs `circumcenter`/`circumradius(::APTriangle)`
-from `ap_triangle.jl` — referenced here only inside a function body, so
+from `ap_triangle.jl` -- referenced here only inside a function body, so
 the include order (this file comes well before `ap_triangle.jl`) doesn't
 matter.
 """
@@ -387,7 +387,7 @@ is_cyclic(q::APQuadrilateral; atol=1e-9) = is_concyclic(q.a, q.b, q.c, q.d; atol
 """
     centroid(q::APQuadrilateral)
 
-The plain (equal-weight) average of the four vertices — *not*
+The plain (equal-weight) average of the four vertices -- *not*
 area-weighted (that's [`centroid(::APPolygon)`](@ref), which
 `APStraightNgon`/`APTriangle` use instead).
 """
@@ -406,7 +406,7 @@ translate(q::APQuadrilateral, v::APVector) =
     APStraightNgon(vertices::AbstractVector{<:APPoint})
 
 A simple polygon with an arbitrary number of straight sides (assumed
-simple — edges don't cross themselves), given as an ordered list of
+simple -- edges don't cross themselves), given as an ordered list of
 vertices (no repeated closing point). The straight-sided analogue of
 [`APCurvilinearNgon2`](@ref).
 """

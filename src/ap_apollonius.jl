@@ -102,7 +102,7 @@ end
     tangent_circles_through_point(c1::APCircle2, c2::APCircle2, p::APPoint; atol=1e-9)
     tangent_circles_through_point(l::APLine, c::APCircle2, p::APPoint; atol=1e-9)
 
-Circle(s) tangent to `c1`/`c2` (or to `l`/`c`), passing through `p` — the
+Circle(s) tangent to `c1`/`c2` (or to `l`/`c`), passing through `p` -- the
 `CCP`/`CLP` Apollonius cases, solved by inverting about `p`. `p` must not
 lie on `c1`/`c2` (or `l`/`c`). Returns a `Vector{APCircle2{Float64}}`
 with up to 4 solutions.
@@ -179,7 +179,7 @@ tangent_circles(l::APLine, c1::APCircle2, c2::APCircle2; atol=1e-9) = tangent_ci
 """
     tangent_circles(c1::APCircle2, c2::APCircle2, c3::APCircle2; atol=1e-9)
 
-Circle(s) tangent to `c1`, `c2` and `c3` — the classical Apollonius
+Circle(s) tangent to `c1`, `c2` and `c3` -- the classical Apollonius
 problem. Returns a `Vector{APCircle2{Float64}}` with up to 8 solutions.
 """
 function tangent_circles(c1::APCircle2, c2::APCircle2, c3::APCircle2; atol=1e-9)
@@ -231,7 +231,7 @@ end
     interstices(c1::APCircle2, c2::APCircle2, c3::APCircle2; atol=1e-9)
 
 The curvilinear-triangle gap(s) of three mutually tangent circles, as a
-`Vector{APInterstice2}` — length `1` when the three are an externally
+`Vector{APInterstice2}` -- length `1` when the three are an externally
 tangent chain (none contains another), or `2` when one contains the other
 two (each internally tangent to it, and externally tangent to each
 other). Independent of the order `c1`, `c2`, `c3` are given in.
@@ -251,6 +251,6 @@ function interstices(c1::APCircle2, c2::APCircle2, c3::APCircle2; atol=1e-9)
     seeds = filter(s -> !_encloses(s, c1; atol=atol) && !_encloses(s, c2; atol=atol) && !_encloses(s, c3; atol=atol),
         tangent_circles(c1, c2, c3; atol=atol))
     isempty(seeds) &&
-        error("interstices: found no interstice-filling circle — is this a genuine mutually tangent triple?")
+        error("interstices: found no interstice-filling circle -- is this a genuine mutually tangent triple?")
     return [_build_interstice(c1, c2, c3, s.center) for s in seeds]
 end

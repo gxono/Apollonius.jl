@@ -22,6 +22,14 @@ pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 3.0), AP
 vertices(pg)
 ```
 
+One vertex per argument works too, instead of wrapping them in a
+`Vector` (the same pair of forms [`APPolyline2`](@ref) has, see
+[Points, Lines & Rays](@ref)):
+
+```@example geo
+pg == APStraightNgon(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 3.0), APPoint(1.0, 3.0))
+```
+
 ```@example geo
 area(pg)       # 10.5, shoelace formula
 perimeter(pg)  # sum of edge lengths

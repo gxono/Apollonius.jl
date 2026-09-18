@@ -210,7 +210,7 @@ lemoine_axis(t::APTriangle) = polar_line(circumcircle(t), symmedian_point(t))
 The Steiner line of `p` with respect to `t`: the line through the
 reflections of `p` across the three side-lines of `t`. These reflections
 are only guaranteed to be collinear (and the line only guaranteed to pass
-through the orthocenter) when `p` lies on the circumcircle of `t` — compare
+through the orthocenter) when `p` lies on the circumcircle of `t` -- compare
 [`simson_line`](@ref), whose feet of perpendiculars are the midpoints of
 `p` and each of these reflections.
 """
@@ -230,7 +230,7 @@ barycentric_point(t::APTriangle, wA::Real, wB::Real, wC::Real) =
 """
     barycentric_point(t::APTriangle)
 
-[`barycentric_point`](@ref) with equal weights `(1, 1, 1)` — the centroid.
+[`barycentric_point`](@ref) with equal weights `(1, 1, 1)` -- the centroid.
 """
 barycentric_point(t::APTriangle) = barycentric_point(t, 1.0, 1.0, 1.0)
 """
@@ -251,7 +251,7 @@ end
     trilinear_point(t::APTriangle, x, y, z)
 
 The point with trilinear coordinates `(x:y:z)` relative to `t` (the values
-need not be normalized — trilinear coordinates are only meaningful up to a
+need not be normalized -- trilinear coordinates are only meaningful up to a
 common scale factor, unlike the actual distances [`trilinear_coordinates`](@ref)
 returns). Converts to barycentric via `(a*x : b*y : c*z)`, `a`/`b`/`c`
 being the side lengths opposite `t[1]`/`t[2]`/`t[3]`.
@@ -400,7 +400,7 @@ end
 
 The three points where the nine-point circle of `t` is (externally)
 tangent to each of the three excircles, as an `(A=..., B=..., C=...)`
-named tuple matching [`excircles`](@ref) — the excircle analogue of
+named tuple matching [`excircles`](@ref) -- the excircle analogue of
 [`feuerbach_point`](@ref) (which is the nine-point circle's tangency with
 the *incircle*, an internal tangency instead).
 """
@@ -447,7 +447,7 @@ end
 The second Fermat point of `t` (Kimberling center X(14), also called the
 second isogonic center): constructed like [`fermat_point`](@ref) but with
 the three equilateral triangles erected *inward* instead of outward. Equal
-to the isogonal conjugate of one of the two [`isodynamic_points`](@ref) —
+to the isogonal conjugate of one of the two [`isodynamic_points`](@ref) --
 and, like them, degenerate for an equilateral triangle.
 """
 function second_fermat_point(t::APTriangle)
@@ -478,7 +478,7 @@ end
 """
     napoleon_point(t::APTriangle; outward::Bool=true)
 
-The center of the (outer, by default) Napoleon triangle of `t` — which, by
+The center of the (outer, by default) Napoleon triangle of `t` -- which, by
 Napoleon's theorem, coincides with the centroid of `t` itself.
 """
 napoleon_point(t::APTriangle; outward::Bool=true) = centroid(napoleon_triangle(t; outward=outward))
@@ -488,7 +488,7 @@ napoleon_point(t::APTriangle; outward::Bool=true) = centroid(napoleon_triangle(t
 The square inscribed in `t` with one side on `[t[j], t[k]]` (the side
 opposite `t[i]`) and its other two vertices on the sides through `t[i]`.
 Returns an `APQuadrilateral`, its 4 vertices in order starting from `t[j]`.
-There are 3 such squares (one per side, hence the index `i ∈ 1:3`) —
+There are 3 such squares (one per side, hence the index `i ∈ 1:3`) --
 their common side length is `a*h / (a+h)`, `a` the base length and `h` the
 corresponding height, independent of how oblique the triangle is.
 """
@@ -593,7 +593,7 @@ medial_triangle(t::APTriangle) = APTriangle(midpoint(t[2], t[3]), midpoint(t[1],
     anticomplementary_triangle(t::APTriangle)
 
 The anticomplementary (antimedial) triangle of `t`: vertices `B+C-A`,
-`C+A-B`, `A+B-C` — the inverse of [`medial_triangle`](@ref) (`t` is the
+`C+A-B`, `A+B-C` -- the inverse of [`medial_triangle`](@ref) (`t` is the
 medial triangle of this one). Each vertex is the [`anticomplement`](@ref)
 of the opposite one.
 """
@@ -713,7 +713,7 @@ complement(t::APTriangle, p::APPoint) = homothety(p, -0.5, centroid(t))
     anticomplement(t::APTriangle, p::APPoint)
 
 The anticomplement of `p` with respect to `t`: `p` homothetically expanded
-by `-2` about the [`centroid`](@ref) — the inverse of [`complement`](@ref).
+by `-2` about the [`centroid`](@ref) -- the inverse of [`complement`](@ref).
 Sends each vertex to the corresponding vertex of the
 [`anticomplementary_triangle`](@ref).
 """
@@ -788,7 +788,7 @@ end
 The two Thébault circles of `t` for a point `p` on side `[t[2], t[3]]`
 (the side opposite `t[1]`): each is tangent to the cevian `t[1] -> p`, to
 the side `[t[2], t[3]]`, and internally tangent to the circumcircle of
-`t` — one nestled against `t[2]`, the other against `t[3]`. Returned as a
+`t` -- one nestled against `t[2]`, the other against `t[3]`. Returned as a
 named tuple `(near_b=..., near_c=...)`. By the Sawayama–Thébault theorem,
 the incenter of `t` always lies on the segment joining their two centers.
 Built the same way as [`mixtilinear_incircle`](@ref), by reusing
@@ -1015,7 +1015,7 @@ end
 The 6 circumcenters of the sub-triangles that the three medians of `t` cut
 it into (each an area formed by one vertex, one non-adjacent side midpoint,
 and the [`centroid`](@ref)), as a 6-tuple. A classical theorem states these
-6 points are always concyclic — see [`van_lamoen_circle`](@ref).
+6 points are always concyclic -- see [`van_lamoen_circle`](@ref).
 """
 function van_lamoen_points(t::APTriangle)
     A, B, C = t[1], t[2], t[3]
@@ -1063,7 +1063,7 @@ symmedial_circle(t::APTriangle) = circumcircle(cevian_triangle(t, symmedian_poin
 The three circles centered at the vertices of `t`, each with radius equal
 to the tangent length from that vertex to the incircle (`s - a` at the
 vertex opposite side `a`, etc., `s` the semiperimeter). Every pair is
-externally tangent — e.g. `distance(A, B) == (s-a) + (s-b) == c` — meeting
+externally tangent -- e.g. `distance(A, B) == (s-a) + (s-b) == c` -- meeting
 exactly at the point where the incircle touches the side between them.
 These are the starting configuration [`soddy_circles`](@ref) is built from.
 """
@@ -1081,7 +1081,7 @@ mutually tangent circles centered at the vertices with radii `s-a`, `s-b`,
 `s-c` (`s` the semiperimeter, see [`three_tangent_circles`](@ref)), then
 find their common tangent circles (the classical Apollonius `CCC` problem,
 [`tangent_circles`](@ref)) other than the three vertex circles themselves
-— the smaller one nestled between them is `inner`, the larger one
+-- the smaller one nestled between them is `inner`, the larger one
 enclosing them is `outer`.
 """
 function soddy_circles(t::APTriangle; atol=1e-9)
@@ -1177,7 +1177,7 @@ The Kiepert hyperbola of `t`: the unique **rectangular** hyperbola through
 `t`'s three vertices, its [`centroid`](@ref) and its [`orthocenter`](@ref)
 (centered at Kimberling center X(115)). Built via [`conic_through_points`](@ref)
 on those 5 points directly, since a conic is uniquely determined by 5
-points and this one is already known to pass through all 5 — no need to
+points and this one is already known to pass through all 5 -- no need to
 construct its axes/asymptotes by hand first.
 """
 kiepert_hyperbola(t::APTriangle) = conic_through_points(t[1], t[2], t[3], centroid(t), orthocenter(t))
