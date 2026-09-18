@@ -612,19 +612,27 @@ function APCircularArc2(circle::APCircle2, p1::APPoint, p2::APPoint)
     return APCircularArc2{T}(APCircle2{T}(APPoint{2,T}(circle.center.coords), T(circle.r)), APPoint{2,T}(p1.coords), APPoint{2,T}(p2.coords))
 end
 """
-    APCircularArc2(center::APPoint, p1::APPoint, p2::APPoint; ccw::Bool=true)
+    APCircularArc2(center::APPoint, r::Real, p1::APPoint, p2::APPoint; ccw::Bool=true)
 
-The arc of the circle centered at `center` with radius `distance(center,
-p1)`, from `p1` to `p2` (`p2`'s own distance from `center` doesn't
-matter, only its angle -- same projection rule as the `circle`-based
-constructor above). `ccw=true` (the default) sweeps counterclockwise from
-`p1` to `p2`; `ccw=false` builds the complementary arc instead (as if
-`p1`/`p2` were swapped).
+The arc of the circle centered at `center` with radius `r`, from `p1` to
+`p2` (neither point's own distance from `center` has to be `r` -- same
+projection rule as the `circle`-based constructor above, only their angle
+matters). `ccw=true` (the default) sweeps counterclockwise from `p1` to
+`p2`; `ccw=false` builds the complementary arc instead (as if `p1`/`p2`
+were swapped).
 """
-function APCircularArc2(center::APPoint, p1::APPoint, p2::APPoint; ccw::Bool=true)
-    circle = APCircle2(center, distance(center, p1))
+function APCircularArc2(center::APPoint, r::Real, p1::APPoint, p2::APPoint; ccw::Bool=true)
+    circle = APCircle2(center, r)
     return ccw ? APCircularArc2(circle, p1, p2) : APCircularArc2(circle, p2, p1)
 end
+"""
+    APCircularArc2(center::APPoint, p1::APPoint, p2::APPoint; ccw::Bool=true)
+
+Same as [`APCircularArc2(::APPoint, ::Real, ::APPoint, ::APPoint)`](@ref)
+above, with `r` taken to be `distance(center, p1)`.
+"""
+APCircularArc2(center::APPoint, p1::APPoint, p2::APPoint; ccw::Bool=true) =
+    APCircularArc2(center, distance(center, p1), p1, p2; ccw=ccw)
 Base.:(==)(x::APCircularArc2, y::APCircularArc2) = x.circle == y.circle && x.p1 == y.p1 && x.p2 == y.p2
 Base.convert(::Type{APCircularArc2{T}}, a::APCircularArc2) where {T} = APCircularArc2{T}(a.circle, a.p1, a.p2)
 Base.isapprox(x::APCircularArc2, y::APCircularArc2; kwargs...) =

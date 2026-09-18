@@ -445,6 +445,16 @@ using Base.MathConstants: golden
                 far_p2 = circ.center + APVector(0.0, 30.0)   # same angle as p2, far outside circ.r
                 @test APCircularArc2(circ.center, p1, far_p2) == arc
             end
+            @testset "APCircularArc2(center, r, p1, p2; ccw)" begin
+                from_center_r = APCircularArc2(circ.center, circ.r, p1, p2)
+                @test from_center_r == arc
+                @test APCircularArc2(circ.center, p1, p2) == APCircularArc2(circ.center, distance(circ.center, p1), p1, p2)
+                cw = APCircularArc2(circ.center, circ.r, p1, p2; ccw=false)
+                @test cw == APCircularArc2(circ, p2, p1)
+                bigger = APCircularArc2(circ.center, 2 * circ.r, p1, p2)   # p1/p2 projected onto the r=2*circ.r circle
+                @test distance(circ.center, bigger.p1) ≈ 2 * circ.r
+                @test bigger.p1 ≈ circ.center + 2 * (p1 - circ.center)
+            end
         end
         @testset "APEllipticArc2 (new)" begin
             e2 = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0, 0.2)

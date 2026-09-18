@@ -126,6 +126,10 @@ APObject{Dim,T}
 │   │   ├── APLine{Dim,T}
 │   │   ├── APRay{Dim,T}
 │   │   ├── APSegment{Dim,T}
+│   │   ├── APPolyline2{T}                    -- an open chain of straight sides
+│   │   ├── APCurvilinearPolyline2{T}         -- an open chain of straight/curved sides
+│   │   ├── APEquipollentVector{Dim,T}        -- a free vector, tied to a point of application
+│   │   ├── APParametricCurve2{T}             -- an arbitrary f(t), for anything outside this list
 │   │   ├── APConic2{T}                       -- circle, ellipse, parabola, hyperbola
 │   │   │   ├── APCircle2{T}
 │   │   │   ├── APEllipse2{T}

@@ -600,3 +600,39 @@ side independently and reassemble the result, the same generic,
 sides-based machinery every [`APPolygon`](@ref) shares (see
 [`APCurvilinearNgon2`](@ref)'s own worked example above, via `invert`,
 for the *n*-sided case built from an arbitrary vector of sides).
+
+## Open chains: `APPolyline2` and `APCurvilinearPolyline2`
+
+[`APPolyline2`](@ref) is [`APSegment`](@ref) generalized to any number of
+points: an open chain through a list of vertices, joined by straight
+sides. It's the open counterpart of [`APStraightNgon`](@ref) (which
+always closes back to its first vertex; this never does), so it's an
+[`APCurve`](@ref), not an [`APPolygon`](@ref) -- no area, no interior:
+
+```@example geo
+zigzag = APPolyline2(APPoint(0.0, 0.0), APPoint(2.0, 3.0), APPoint(4.0, 0.0), APPoint(6.0, 3.0))
+length(zigzag), arc_length(zigzag)
+```
+
+[`APCurvilinearPolyline2`](@ref) is the curved-sided counterpart, built
+from a plain vector of sides the same way [`APCurvilinearNgon2`](@ref)
+is, except it stays open (the last side doesn't have to close back to the
+first) and its sides are taken in the order given rather than
+auto-reordered: each side's own endpoint must match the next side's own
+start, or the constructor throws:
+
+```@example geo
+open_chain = APCurvilinearPolyline2([reverse(rad1), arc])   # a straight side into a curved one
+arc_length(open_chain) ≈ distance(rad1[1], rad1[2]) + arc_length(arc)
+```
+
+Both support the usual `rotate`/`homothety`/`reflection`/`translate`
+quartet (each vertex or side transformed independently and reassembled),
+[`reverse`](@ref) (runs the chain back to front), `p in pl`/
+`distance(p, pl)` (nearest-side membership/distance, not "inside a
+region" the way [`APPolygon`](@ref)'s `in` works), and indexing/length/
+iteration the same as [`APSegment`](@ref)/[`APLine`](@ref):
+
+```@example geo
+reverse(zigzag)[1] == vertices(zigzag)[end]
+```
