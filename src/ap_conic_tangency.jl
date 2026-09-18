@@ -1,8 +1,3 @@
-# -------------------------------------------------------------------------
-# `intersection(::APLine, _)`, `polar_line`, `tangent_points` and
-# `tangent_lines` for APEllipse2/APHyperbola2/APParabola2.
-# -------------------------------------------------------------------------
-
 """
     intersection(l::APLine, e::APEllipse2; atol=1e-9)
 
@@ -13,16 +8,17 @@ function intersection(l::APLine, e::APEllipse2; atol=1e-9)
     ax, ay = _to_ellipse_local(l.p1, e)
     bx, by = _to_ellipse_local(l.p2, e)
     dx, dy = bx - ax, by - ay
-
     aa = (dx / e.a)^2 + (dy / e.b)^2
     bb = 2 * (ax * dx / e.a^2 + ay * dy / e.b^2)
     cc = (ax / e.a)^2 + (ay / e.b)^2 - 1
-
     ts = _solve_quadratic(aa, bb, cc; atol=atol)
     return [(p = _from_ellipse_local(ax + t * dx, ay + t * dy, e); APPoint(p[1], p[2])) for t in ts]
 end
 intersection(e::APEllipse2, l::APLine; atol=1e-9) = intersection(l, e; atol=atol)
-
+intersection(s::APSegment, e::APEllipse2; atol=1e-9) = filter(p -> on_segment(p, s; atol=atol), intersection(APLine(s), e; atol=atol))
+intersection(e::APEllipse2, s::APSegment; atol=1e-9) = intersection(s, e; atol=atol)
+intersection(r::APRay, e::APEllipse2; atol=1e-9) = filter(p -> on_ray(p, r; atol=atol), intersection(APLine(r), e; atol=atol))
+intersection(e::APEllipse2, r::APRay; atol=1e-9) = intersection(r, e; atol=atol)
 """
     polar_line(e::APEllipse2, p::APPoint; atol=1e-9)
 
@@ -43,7 +39,6 @@ function polar_line(e::APEllipse2, p::APPoint; atol=1e-9)
     p2 = _from_ellipse_local(p0x - s * B / dirlen, p0y + s * A / dirlen, e)
     return APLine(APPoint(p1[1], p1[2]), APPoint(p2[1], p2[2]))
 end
-
 """
     tangent_points(e::APEllipse2, p::APPoint; atol=1e-9)
 
@@ -58,15 +53,11 @@ function tangent_points(e::APEllipse2, p::APPoint; atol=1e-9)
     return intersection(pl, e; atol=atol)
 end
 tangent_points(p::APPoint, e::APEllipse2; atol=1e-9) = tangent_points(e, p; atol=atol)
-
-# Shared implementation of `tangent_lines(conic, p)` for any AP-typed
-# conic that defines `tangent_points` and `polar_line`.
 function _tangent_lines_via_polar(conic, p::APPoint; atol=1e-9)
     tps = tangent_points(conic, p; atol=atol)
     any(tp -> isapprox(tp, p; atol=sqrt(atol) * max(norm(p), 1.0)), tps) && return [polar_line(conic, p; atol=atol)]
     return [APLine(p, tp) for tp in tps]
 end
-
 """
     tangent_lines(e::APEllipse2, p::APPoint; atol=1e-9)
 
@@ -76,7 +67,6 @@ rather than the degenerate `APLine(p, p)`.
 """
 tangent_lines(e::APEllipse2, p::APPoint; atol=1e-9) = _tangent_lines_via_polar(e, p; atol=atol)
 tangent_lines(p::APPoint, e::APEllipse2; atol=1e-9) = tangent_lines(e, p; atol=atol)
-
 """
     intersection(l::APLine, h::APHyperbola2; atol=1e-9)
 
@@ -87,11 +77,9 @@ function intersection(l::APLine, h::APHyperbola2; atol=1e-9)
     ax, ay = _to_hyperbola_local(l.p1, h)
     bx, by = _to_hyperbola_local(l.p2, h)
     dx, dy = bx - ax, by - ay
-
     qa = (dx / h.a)^2 - (dy / h.b)^2
     qb = 2 * (ax * dx / h.a^2 - ay * dy / h.b^2)
     qc = (ax / h.a)^2 - (ay / h.b)^2 - 1
-
     ts = _solve_quadratic(qa, qb, qc; atol=atol)
     pts = APPoint{2,Float64}[]
     for t in ts
@@ -102,7 +90,10 @@ function intersection(l::APLine, h::APHyperbola2; atol=1e-9)
     return pts
 end
 intersection(h::APHyperbola2, l::APLine; atol=1e-9) = intersection(l, h; atol=atol)
-
+intersection(s::APSegment, h::APHyperbola2; atol=1e-9) = filter(p -> on_segment(p, s; atol=atol), intersection(APLine(s), h; atol=atol))
+intersection(h::APHyperbola2, s::APSegment; atol=1e-9) = intersection(s, h; atol=atol)
+intersection(r::APRay, h::APHyperbola2; atol=1e-9) = filter(p -> on_ray(p, r; atol=atol), intersection(APLine(r), h; atol=atol))
+intersection(h::APHyperbola2, r::APRay; atol=1e-9) = intersection(r, h; atol=atol)
 """
     polar_line(h::APHyperbola2, p::APPoint; atol=1e-9)
 
@@ -122,7 +113,6 @@ function polar_line(h::APHyperbola2, p::APPoint; atol=1e-9)
     p2 = _from_hyperbola_local(p0x - s * B / dirlen, p0y + s * A / dirlen, h)
     return APLine(APPoint(p1[1], p1[2]), APPoint(p2[1], p2[2]))
 end
-
 """
     tangent_points(h::APHyperbola2, p::APPoint; atol=1e-9)
 
@@ -136,7 +126,6 @@ function tangent_points(h::APHyperbola2, p::APPoint; atol=1e-9)
     return intersection(pl, h; atol=atol)
 end
 tangent_points(p::APPoint, h::APHyperbola2; atol=1e-9) = tangent_points(h, p; atol=atol)
-
 """
     tangent_lines(h::APHyperbola2, p::APPoint; atol=1e-9)
 
@@ -146,7 +135,6 @@ rather than the degenerate `APLine(p, p)`.
 """
 tangent_lines(h::APHyperbola2, p::APPoint; atol=1e-9) = _tangent_lines_via_polar(h, p; atol=atol)
 tangent_lines(p::APPoint, h::APHyperbola2; atol=1e-9) = tangent_lines(h, p; atol=atol)
-
 """
     intersection(l::APLine, par::APParabola2; atol=1e-9)
 
@@ -155,18 +143,19 @@ with 0, 1 or 2 points.
 """
 function intersection(l::APLine, par::APParabola2; atol=1e-9)
     p = focal_parameter(par)
-    p <= sqrt(atol) * max(norm(par.focus), 1.0) && return APPoint{2,Float64}[]  # degenerate: focus on the directrix
+    p <= sqrt(atol) * max(norm(par.focus), 1.0) && return APPoint{2,Float64}[]
     V, u, w = _parabola_frame(par)
-
     Ax, Ay = _to_local_frame(l.p1, V, u, w)
     Bx, By = _to_local_frame(l.p2, V, u, w)
     dx, dy = Bx - Ax, By - Ay
-
     ts = _solve_quadratic(dy^2, 2Ay * dy - 2p * dx, Ay^2 - 2p * Ax; atol=atol)
     return [(q = _from_local_frame(Ax + t * dx, Ay + t * dy, V, u, w); APPoint(q[1], q[2])) for t in ts]
 end
 intersection(par::APParabola2, l::APLine; atol=1e-9) = intersection(l, par; atol=atol)
-
+intersection(s::APSegment, par::APParabola2; atol=1e-9) = filter(p -> on_segment(p, s; atol=atol), intersection(APLine(s), par; atol=atol))
+intersection(par::APParabola2, s::APSegment; atol=1e-9) = intersection(s, par; atol=atol)
+intersection(r::APRay, par::APParabola2; atol=1e-9) = filter(p -> on_ray(p, r; atol=atol), intersection(APLine(r), par; atol=atol))
+intersection(par::APParabola2, r::APRay; atol=1e-9) = intersection(r, par; atol=atol)
 """
     polar_line(par::APParabola2, p::APPoint; atol=1e-9)
 
@@ -179,14 +168,12 @@ function polar_line(par::APParabola2, p::APPoint; atol=1e-9)
     pfoc <= sqrt(atol) * max(norm(par.focus), 1.0) && return nothing
     V, u, w = _parabola_frame(par)
     X0, Y0 = _to_local_frame(p, V, u, w)
-
     Ax, Ay, K = -pfoc, Y0, -pfoc * X0
     step = pfoc
     p1 = _from_local_frame(-K / Ax, 0.0, V, u, w)
     p2 = _from_local_frame(-(K + Ay * step) / Ax, step, V, u, w)
     return APLine(APPoint(p1[1], p1[2]), APPoint(p2[1], p2[2]))
 end
-
 """
     tangent_points(par::APParabola2, p::APPoint; atol=1e-9)
 
@@ -200,7 +187,6 @@ function tangent_points(par::APParabola2, p::APPoint; atol=1e-9)
     return intersection(pl, par; atol=atol)
 end
 tangent_points(p::APPoint, par::APParabola2; atol=1e-9) = tangent_points(par, p; atol=atol)
-
 """
     tangent_lines(par::APParabola2, p::APPoint; atol=1e-9)
 

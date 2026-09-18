@@ -1,11 +1,3 @@
-# -------------------------------------------------------------------------
-# APSegment/APLine/APRay (<: APCurve) and APBoundingBox, built on
-# APPoint/APVector.
-# -------------------------------------------------------------------------
-
-# --- Point-level transforms (needed before Segment/Line/Ray can define
-# their own pointwise versions) ---------------------------------------
-
 """
     rotate(p::APPoint{2}, angle, center=APPoint(0.0, 0.0))
 
@@ -16,21 +8,18 @@ function rotate(p::APPoint{2}, angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)
     c, s = cos(angle), sin(angle)
     return center + APVector(c * v[1] - s * v[2], s * v[1] + c * v[2])
 end
-
 """
     homothety(p::APPoint, k, center=APPoint(0.0, 0.0))
 
 Scale `p` by ratio `k` about `center`.
 """
 homothety(p::APPoint, k::Real, center::APPoint=APPoint(0.0, 0.0)) = center + k * (p - center)
-
 """
     reflection(p::APPoint, about::APPoint)
 
 Reflect `p` through the point `about` (point symmetry).
 """
 reflection(p::APPoint, about::APPoint) = about + (about - p)
-
 """
     translate(p::APPoint, v::APVector)
 
@@ -39,31 +28,21 @@ Translate `p` by `v`. The fourth member of the `rotate`/`homothety`/
 unlike the other three, it takes no `center` (a translation has none).
 """
 translate(p::APPoint, v::APVector) = p + v
-
 """
     midpoint(p1::APPoint, p2::APPoint)
 """
 midpoint(p1::APPoint, p2::APPoint) = p1 + (p2 - p1) / 2
-
 """
     distance(p1::APPoint, p2::APPoint)
 """
 distance(p1::APPoint, p2::APPoint) = norm(p2 - p1)
-
 """
     orthogonal(v::APVector)
 
 `v` rotated by +90 degrees (counterclockwise). 2D only.
 """
 orthogonal(v::APVector{2}) = APVector(-v[2], v[1])
-
-#Ver si queda o no... Se usa en muchos lugares. La aritmetica es muy permisiva.
 orthogonal(p::APPoint{2}) = APVector(-p[2], p[1])
-
-
-
-# --- APSegment, APLine, APRay ------------------------------------------
-
 """
     APSegment(p1::APPoint, p2::APPoint)
 
@@ -77,8 +56,6 @@ function APSegment(p1::APPoint{Dim}, p2::APPoint{Dim}) where {Dim}
     T = promote_type(eltype(p1), eltype(p2))
     return APSegment(convert(APPoint{Dim,T}, p1), convert(APPoint{Dim,T}, p2))
 end
-
-
 """
     APLine(p1::APPoint, p2::APPoint)
 
@@ -93,9 +70,7 @@ function APLine(p1::APPoint{Dim}, p2::APPoint{Dim}) where {Dim}
     T = promote_type(eltype(p1), eltype(p2))
     return APLine(convert(APPoint{Dim,T}, p1), convert(APPoint{Dim,T}, p2))
 end
-
 APLine(s::APSegment) = APLine(s.p1, s.p2)
-
 """
     APRay(origin::APPoint, through::APPoint)
 
@@ -110,41 +85,22 @@ function APRay(origin::APPoint{Dim}, through::APPoint{Dim}) where {Dim}
     T = promote_type(eltype(origin), eltype(through))
     return APRay(convert(APPoint{Dim,T}, origin), convert(APPoint{Dim,T}, through))
 end
-
+APLine(r::APRay) = APLine(r.origin, r.through)
 Base.getindex(s::APSegment, i::Integer) = i == 1 ? s.p1 : s.p2
 Base.length(::APSegment) = 2
 Base.iterate(s::APSegment, i::Int=1) = i > 2 ? nothing : (s[i], i + 1)
 Base.eltype(::Type{<:APSegment{Dim,T}}) where {Dim,T} = APPoint{Dim,T}
-
-# Same `[i]`/iteration/destructuring protocol as APSegment above (`p1, p2 =
-# l`, `l[1]`, `for p in l`, `collect(Iterators.flatten(lines))` to flatten
-# a collection of lines into their defining points, ...). Safe to add
-# despite APLine/APRay being used throughout as single "shape" values --
-# `Broadcast.broadcastable(x::APObject) = Ref(x)` (ap_point.jl) already
-# keeps them from being mistaken for a collection under broadcasting.
-# `eltype` (not just `iterate`/`length`) is what lets `collect`/
-# `Iterators.flatten` infer `Vector{APPoint{Dim,T}}` instead of falling
-# back to `Vector{Any}`.
 Base.getindex(l::APLine, i::Integer) = i == 1 ? l.p1 : l.p2
 Base.length(::APLine) = 2
 Base.iterate(l::APLine, i::Int=1) = i > 2 ? nothing : (l[i], i + 1)
 Base.eltype(::Type{<:APLine{Dim,T}}) where {Dim,T} = APPoint{Dim,T}
-
 Base.getindex(r::APRay, i::Integer) = i == 1 ? r.origin : r.through
 Base.length(::APRay) = 2
 Base.iterate(r::APRay, i::Int=1) = i > 2 ? nothing : (r[i], i + 1)
 Base.eltype(::Type{<:APRay{Dim,T}}) where {Dim,T} = APPoint{Dim,T}
-
 Base.:(==)(a::APSegment, b::APSegment) = a.p1 == b.p1 && a.p2 == b.p2
 Base.:(==)(a::APLine, b::APLine) = a.p1 == b.p1 && a.p2 == b.p2
 Base.:(==)(a::APRay, b::APRay) = a.origin == b.origin && a.through == b.through
-
-# Lets these convert like APPoint/APVector do (see the comment there) when
-# nested as a field inside another struct with a different element type —
-# e.g. APStrip2 holding two APLines, or APParabola2 holding an APLine
-# directrix. Delegating to the type-parameterized inner constructor is
-# enough: it already converts each field itself (that's what needed the
-# APPoint/APVector fix in the first place).
 Base.convert(::Type{APSegment{Dim,T}}, s::APSegment{Dim}) where {Dim,T} = APSegment{Dim,T}(s.p1, s.p2)
 Base.convert(::Type{APLine{Dim,T}}, l::APLine{Dim}) where {Dim,T} = APLine{Dim,T}(l.p1, l.p2)
 Base.convert(::Type{APRay{Dim,T}}, r::APRay{Dim}) where {Dim,T} = APRay{Dim,T}(r.origin, r.through)
@@ -159,7 +115,6 @@ function Base.isapprox(a::APRay, b::APRay; atol=1e-9, kwargs...)
     abs(cross2(d1, d2)) <= atol * norm(d1) * norm(d2) && dot(d1, d2) > 0
 end
 Base.show(io::IO, s::APSegment) = print(io, "APSegment(", s.p1, " -> ", s.p2, ")")
-
 """
     reverse(s::APSegment)
 
@@ -168,7 +123,6 @@ Base.show(io::IO, s::APSegment) = print(io, "APSegment(", s.p1, " -> ", s.p2, ")
 Base.reverse(s::APSegment) = APSegment(s.p2, s.p1)
 Base.show(io::IO, l::APLine) = print(io, "APLine(", l.p1, " -> ", l.p2, ")")
 Base.show(io::IO, r::APRay) = print(io, "APRay(", r.origin, " -> ", r.through, ")")
-
 """
     direction(obj)
 
@@ -177,18 +131,6 @@ The direction of a `APLine`, `APRay` or `APSegment`, as an [`APVector`](@ref).
 direction(l::APLine) = l.p2 - l.p1
 direction(r::APRay) = r.through - r.origin
 direction(s::APSegment) = s.p2 - s.p1
-
-# --- APVector transforms --------------------------------------------------
-#
-# A free vector has no position, only direction and magnitude, so it gets
-# just the transforms that are actually meaningful for that: `rotate`
-# (turns the direction) and `reflection` (mirrors the direction, about a
-# point or a line — either way position-independent, since there's no
-# anchor to reflect). No `center` argument, unlike `rotate`/`homothety`
-# on `APPoint`. `homothety(v, k)` is just `k * v` (already supported via
-# `*`) and `translate` would be the identity (translating a positionless
-# vector changes nothing) — neither adds anything, so neither is defined.
-
 """
     rotate(v::APVector{2}, angle::Real)
 
@@ -198,7 +140,6 @@ function rotate(v::APVector{2}, angle::Real)
     c, s = cos(angle), sin(angle)
     return APVector(c * v[1] - s * v[2], s * v[1] + c * v[2])
 end
-
 """
     homothety(v::APVector, k::Real, center::APPoint=APPoint(0.0, 0.0))
 
@@ -211,7 +152,6 @@ even though it has no [`APBoundingBox`](@ref) to shift into position —
 see `_place_in_picture`'s own comment for the reasoning.
 """
 homothety(v::APVector{Dim,T}, k::Real, center::APPoint{Dim}=APPoint(ntuple(_ -> zero(T), Dim))) where {Dim,T} = k * v
-
 """
     reflection(v::APVector, about::APPoint)
 
@@ -219,7 +159,6 @@ Point-reflect the direction `v` — simply `-v`, since a free vector has no
 position for `about` to act on.
 """
 reflection(v::APVector, about::APPoint) = -v
-
 """
     reflection(v::APVector{2}, about::APLine)
 
@@ -230,7 +169,6 @@ function reflection(v::APVector{2}, about::APLine)
     d = direction(about)
     return 2 * (dot(v, d) / dot(d, d)) * d - v
 end
-
 """
     rotate(v::APVector{3}, angle::Real, axis::APLine{3})
 
@@ -247,14 +185,8 @@ function rotate(v::APVector{3}, angle::Real, axis::APLine{3})
     c, s = cos(angle), sin(angle)
     return v_par + c * v_perp + s * cross3(k, v_perp)
 end
-
-# `slope_angle` is already defined, untyped, in primitives.jl
-# (`atan(direction(obj)[2], direction(obj)[1])`) — works here for free
-# since it just calls `direction`, already overloaded above.
-
 distance(s::APSegment) = distance(s.p1, s.p2)
 midpoint(s::APSegment) = midpoint(s.p1, s.p2)
-
 """
     projection(p::APPoint, l::APLine; angle::Real=pi/2)
 
@@ -273,7 +205,6 @@ function projection(p::APPoint, l::APLine; angle::Real=pi / 2)
     t = cross2(u, p - l.p1) / cross2(u, d)
     return l.p1 + t * d
 end
-
 """
     projection(l::APLine; angle::Real=pi/2)
 
@@ -282,10 +213,8 @@ end
 onto `l` at once.
 """
 projection(l::APLine; angle::Real=pi / 2) = p -> projection(p, l; angle=angle)
-
 distance(p::APPoint{2}, l::APLine{2}) = abs(cross2(direction(l), p - l.p1)) / norm(direction(l))
 distance(l::APLine{2}, p::APPoint{2}) = distance(p, l)
-
 """
     distance(p::APPoint{3}, l::APLine{3})
 
@@ -297,7 +226,6 @@ fallback).
 """
 distance(p::APPoint{3}, l::APLine{3}) = norm(cross3(direction(l), p - l.p1)) / norm(direction(l))
 distance(l::APLine{3}, p::APPoint{3}) = distance(p, l)
-
 """
     distance(p::APPoint, s::APSegment)
 
@@ -313,7 +241,6 @@ function distance(p::APPoint, s::APSegment)
     return distance(p, s.p1 + t * d)
 end
 distance(s::APSegment, p::APPoint) = distance(p, s)
-
 """
     distance(p::APPoint, r::APRay)
 
@@ -328,15 +255,6 @@ function distance(p::APPoint, r::APRay)
     return distance(p, r.origin + t * d)
 end
 distance(r::APRay, p::APPoint) = distance(p, r)
-
-# Whether the infinite lines through (origin1,dir1) and (origin2,dir2) cross
-# at parameters (t1,t2) landing inside [t1min,t1max] and [t2min,t2max] —
-# shared by every APLine/APRay/APSegment pairwise `distance` below, since
-# for any two of these "clipped line" curves, either they genuinely cross
-# within both curves' own valid ranges (distance 0), or — because each is
-# an affine (straight, unclamped-slope) parametrization — the minimum
-# distance is always achieved at one of the finite endpoints among the two
-# curves (a Line contributes none, a Ray one, a Segment two).
 function _clipped_lines_cross(origin1, dir1, t1min, t1max, origin2, dir2, t2min, t2max; atol=1e-9)
     denom = cross2(dir1, dir2)
     abs(denom) <= atol * norm(dir1) * norm(dir2) && return false
@@ -347,7 +265,6 @@ function _clipped_lines_cross(origin1, dir1, t1min, t1max, origin2, dir2, t2min,
     tol2 = sqrt(atol) * max(norm(dir2), 1.0)
     return (t1min - tol1 <= t1 <= t1max + tol1) && (t2min - tol2 <= t2 <= t2max + tol2)
 end
-
 """
     distance(l1::APLine, l2::APLine; atol=1e-9)
 
@@ -358,7 +275,6 @@ function distance(l1::APLine, l2::APLine; atol=1e-9)
     _clipped_lines_cross(l1.p1, direction(l1), -Inf, Inf, l2.p1, direction(l2), -Inf, Inf; atol=atol) && return 0.0
     return distance(l1.p1, l2)
 end
-
 """
     distance(l::APLine, r::APRay; atol=1e-9)
 """
@@ -367,7 +283,6 @@ function distance(l::APLine, r::APRay; atol=1e-9)
     return distance(r.origin, l)
 end
 distance(r::APRay, l::APLine; atol=1e-9) = distance(l, r; atol=atol)
-
 """
     distance(l::APLine, s::APSegment; atol=1e-9)
 """
@@ -376,7 +291,6 @@ function distance(l::APLine, s::APSegment; atol=1e-9)
     return min(distance(s.p1, l), distance(s.p2, l))
 end
 distance(s::APSegment, l::APLine; atol=1e-9) = distance(l, s; atol=atol)
-
 """
     distance(r1::APRay, r2::APRay; atol=1e-9)
 """
@@ -384,7 +298,6 @@ function distance(r1::APRay, r2::APRay; atol=1e-9)
     _clipped_lines_cross(r1.origin, direction(r1), 0.0, Inf, r2.origin, direction(r2), 0.0, Inf; atol=atol) && return 0.0
     return min(distance(r1.origin, r2), distance(r2.origin, r1))
 end
-
 """
     distance(r::APRay, s::APSegment; atol=1e-9)
 """
@@ -393,7 +306,6 @@ function distance(r::APRay, s::APSegment; atol=1e-9)
     return min(distance(r.origin, s), distance(s.p1, r), distance(s.p2, r))
 end
 distance(s::APSegment, r::APRay; atol=1e-9) = distance(r, s; atol=atol)
-
 """
     distance(s1::APSegment, s2::APSegment; atol=1e-9)
 """
@@ -401,7 +313,6 @@ function distance(s1::APSegment, s2::APSegment; atol=1e-9)
     _clipped_lines_cross(s1.p1, direction(s1), 0.0, 1.0, s2.p1, direction(s2), 0.0, 1.0; atol=atol) && return 0.0
     return min(distance(s1.p1, s2), distance(s1.p2, s2), distance(s2.p1, s1), distance(s2.p2, s1))
 end
-
 """
     reflection(p::APPoint{2}, l::APLine{2})
 
@@ -415,18 +326,15 @@ to reflect across. The true 3D mirror would be `reflection(::APPoint{3},
 ::APPlane3)` (3D geometry is currently paused).
 """
 reflection(p::APPoint{2}, l::APLine{2}) = (foot = projection(p, l); foot + (foot - p))
-
 reflection(s::APSegment, about) = APSegment(reflection(s.p1, about), reflection(s.p2, about))
 reflection(l::APLine, about) = APLine(reflection(l.p1, about), reflection(l.p2, about))
 reflection(r::APRay, about) = APRay(reflection(r.origin, about), reflection(r.through, about))
-
 rotate(s::APSegment{2}, angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     APSegment(rotate(s.p1, angle, center), rotate(s.p2, angle, center))
 rotate(l::APLine{2}, angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     APLine(rotate(l.p1, angle, center), rotate(l.p2, angle, center))
 rotate(r::APRay{2}, angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     APRay(rotate(r.origin, angle, center), rotate(r.through, angle, center))
-
 """
     rotate(p::APPoint{3}, angle::Real, axis::APLine{3})
 
@@ -445,7 +353,6 @@ function rotate(p::APPoint{3}, angle::Real, axis::APLine{3})
     c, s = cos(angle), sin(angle)
     return axis.p1 + v_par + c * v_perp + s * cross3(k, v_perp)
 end
-
 """
     rotate(s::APSegment{3}, angle::Real, axis::APLine{3})
     rotate(l::APLine{3}, angle::Real, axis::APLine{3})
@@ -460,20 +367,15 @@ rotate(l::APLine{3}, angle::Real, axis::APLine{3}) =
     APLine(rotate(l.p1, angle, axis), rotate(l.p2, angle, axis))
 rotate(r::APRay{3}, angle::Real, axis::APLine{3}) =
     APRay(rotate(r.origin, angle, axis), rotate(r.through, angle, axis))
-
 homothety(s::APSegment, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APSegment(homothety(s.p1, k, center), homothety(s.p2, k, center))
 homothety(l::APLine, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APLine(homothety(l.p1, k, center), homothety(l.p2, k, center))
 homothety(r::APRay, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APRay(homothety(r.origin, k, center), homothety(r.through, k, center))
-
 translate(s::APSegment, v::APVector) = APSegment(translate(s.p1, v), translate(s.p2, v))
 translate(l::APLine, v::APVector) = APLine(translate(l.p1, v), translate(l.p2, v))
 translate(r::APRay, v::APVector) = APRay(translate(r.origin, v), translate(r.through, v))
-
-# --- APBoundingBox --------------------------------------------------------
-
 """
     APBoundingBox(min::APPoint, max::APPoint)
 
@@ -492,34 +394,23 @@ function APBoundingBox(min::APPoint{Dim}, max::APPoint{Dim}) where {Dim}
     T = promote_type(eltype(min), eltype(max))
     return APBoundingBox(convert(APPoint{Dim,T}, min), convert(APPoint{Dim,T}, max))
 end
-
 APBoundingBox(bb::APBoundingBox) = bb
-
 function homothety(bb::APBoundingBox, k::Real, center::APPoint=APPoint(0.0, 0.0))
     p1 = homothety(bb.min, k, center)
     p2 = homothety(bb.max, k, center)
-
     if k < 0
         p1, p2 = p2, p1
     end
     return APBoundingBox(p1, p2)
 end
-
-
-
 function APBoundingBox(points::AbstractVector{<:APPoint{Dim}}) where {Dim}
     isempty(points) && throw(ArgumentError("APBoundingBox requires at least one point"))
     lo = APPoint(ntuple(i -> minimum(p[i] for p in points), Dim))
     hi = APPoint(ntuple(i -> maximum(p[i] for p in points), Dim))
     return APBoundingBox(lo, hi)
 end
-
-# Any other array shape (e.g. the `Matrix{APPoint}` that
-# `reduce(hcat, intersection.(...))` produces) reduces to the vector case.
 APBoundingBox(points::AbstractArray{<:APPoint}) = APBoundingBox(vec(points))
-
 APBoundingBox(s::APSegment) = APBoundingBox([s.p1, s.p2])
-
 """
     APBoundingBox(shapes::Union{Tuple,NamedTuple})
 
@@ -533,7 +424,6 @@ function APBoundingBox(shapes::Union{Tuple,NamedTuple})
     isempty(shapes) && throw(ArgumentError("APBoundingBox requires at least one shape"))
     return reduce(bbox_union, APBoundingBox.(values(shapes)))
 end
-
 """
     APBoundingBox(p::APPoint)
 
@@ -542,7 +432,6 @@ position, so `p` grows a [`bbox_union`](@ref) exactly like any other
 shape would.
 """
 APBoundingBox(p::APPoint) = APBoundingBox(p, p)
-
 """
     APBoundingBox()
 
@@ -559,12 +448,10 @@ code — [`@boundingbox`](@ref), [`@to_luxor_picture`](@ref) — can call
 ones that aren't meant to be drawn or sized.
 """
 APBoundingBox() = APBoundingBox(APPoint(Inf, Inf), APPoint(-Inf, -Inf))
-
 APBoundingBox(::APVector) = APBoundingBox()
 APBoundingBox(::Real) = APBoundingBox()
 APBoundingBox(::APLine) = APBoundingBox()
 APBoundingBox(::APRay) = APBoundingBox()
-
 """
     APBoundingBox(v::AbstractVector{<:APObject})
 
@@ -579,14 +466,12 @@ depending on the geometry — work as a single named item inside a
 unwrapping it by hand first.
 """
 APBoundingBox(v::AbstractVector{<:APObject}) = reduce(bbox_union, APBoundingBox.(v); init=APBoundingBox())
-
 """
     isempty(bb::APBoundingBox)
 
 Whether `bb` is the empty box (see [`APBoundingBox()`](@ref)).
 """
 Base.isempty(bb::APBoundingBox) = bb.min[1] > bb.max[1]
-
 Base.:(==)(a::APBoundingBox, b::APBoundingBox) = a.min == b.min && a.max == b.max
 Base.isapprox(a::APBoundingBox, b::APBoundingBox; kwargs...) =
     isapprox(a.min, b.min; kwargs...) && isapprox(a.max, b.max; kwargs...)
@@ -600,22 +485,14 @@ function Base.:*(bb::APBoundingBox{Dim}, k::Real) where {Dim}
     return APBoundingBox(lo, hi)
 end
 Base.show(io::IO, bb::APBoundingBox) = print(io, "APBoundingBox(", bb.min, " .. ", bb.max, ")")
-
 """
     p in bb::APBoundingBox
 """
 Base.in(p::APPoint{Dim}, bb::APBoundingBox{Dim}) where {Dim} = all(i -> bb.min[i] <= p[i] <= bb.max[i], 1:Dim)
-
-# Shared by every `distance(p, region; mode)` method (APBoundingBox here;
-# APPolygon in ap_polygon.jl; APHalfPlane2/APStrip2/APAngle2 in
-# ap_unbounded.jl): `mode = :region` (default) is the standard "distance to
-# a closed set" convention (0 exactly when p belongs to it); `mode =
-# :boundary` always measures to the boundary itself, even from inside.
 function _check_distance_mode(mode::Symbol)
     mode in (:region, :boundary) ||
         throw(ArgumentError("distance: mode must be :region or :boundary, got $(repr(mode))"))
 end
-
 """
     distance(p::APPoint, bb::APBoundingBox; mode::Symbol=:region)
 
@@ -634,36 +511,30 @@ function distance(p::APPoint{2}, bb::APBoundingBox{2}; mode::Symbol=:region)
     return sqrt(dx^2 + dy^2)
 end
 distance(bb::APBoundingBox{2}, p::APPoint{2}; mode::Symbol=:region) = distance(p, bb; mode=mode)
-
 """
     bbox_width(bb::APBoundingBox)
 """
 bbox_width(bb::APBoundingBox) = bb.max[1] - bb.min[1]
-
 """
     bbox_height(bb::APBoundingBox)
 """
 bbox_height(bb::APBoundingBox) = bb.max[2] - bb.min[2]
-
 """
     bbox_center(bb::APBoundingBox)
 """
 bbox_center(bb::APBoundingBox) = midpoint(bb.min, bb.max)
-
 """
     bbox_diagonal(bb::APBoundingBox)
 
 The distance between `bb.min` and `bb.max`.
 """
 bbox_diagonal(bb::APBoundingBox) = distance(bb.min, bb.max)
-
 """
     bbox_aspect_ratio(bb::APBoundingBox)
 
 `bbox_width(bb) / bbox_height(bb)`.
 """
 bbox_aspect_ratio(bb::APBoundingBox) = bbox_width(bb) / bbox_height(bb)
-
 """
     bboxes_intersect(a::APBoundingBox, b::APBoundingBox)
 
@@ -671,7 +542,6 @@ Whether `a` and `b` overlap (touching counts as intersecting).
 """
 bboxes_intersect(a::APBoundingBox{2}, b::APBoundingBox{2}) =
     !(a.max[1] < b.min[1] || b.max[1] < a.min[1] || a.max[2] < b.min[2] || b.max[2] < a.min[2])
-
 """
     bbox_intersection(a::APBoundingBox, b::APBoundingBox)
 
@@ -683,7 +553,6 @@ function bbox_intersection(a::APBoundingBox{2}, b::APBoundingBox{2})
     hi = APPoint(min(a.max[1], b.max[1]), min(a.max[2], b.max[2]))
     return APBoundingBox(lo, hi)
 end
-
 """
     bbox_union(a::APBoundingBox, b::APBoundingBox)
 
@@ -699,40 +568,17 @@ function bbox_union(a::APBoundingBox{2}, b::APBoundingBox{2})
     hi = APPoint(max(a.max[1], b.max[1]), max(a.max[2], b.max[2]))
     return APBoundingBox(lo, hi)
 end
-
-# Classifies one top-level statement from a "shapes block" the way every
-# macro in this family reads one -- shared by @boundingbox,
-# _shape_transform_body (@translate/@rotate/@homothety/@reflection/
-# @invert/@invert_neg/@affinemap) and _picture_body (@to_luxor_picture).
-# A bare name, `name = expr`, or a destructuring `name1, name2, ... =
-# expr` (a plain tuple of symbols on the left, e.g. what
-# `external_tangent_lines`/`tangent_points`/`intersection` naturally
-# return) all introduce one or more names to fold into the result/rebind;
-# anything else -- a bare expression, or an assignment whose left side
-# isn't a plain symbol or tuple-of-symbols (a splat, a nested pattern) --
-# is an unnamed expression, same as before this handled destructuring.
-# Returns `(names, run_first)`: `names` is the list of symbols introduced
-# (empty for an unnamed expression); `run_first` is whether the statement
-# itself needs to run before those names exist (true for any assignment,
-# false for a bare existing name).
 function _block_stmt_names(stmt)
-    stmt isa Symbol && return ([stmt], false)
+    stmt isa Symbol && return (stmt === :_ ? Symbol[] : [stmt], false)
     if stmt isa Expr && stmt.head === :(=)
         lhs = stmt.args[1]
-        lhs isa Symbol && return ([lhs], true)
+        lhs isa Symbol && return (lhs === :_ ? Symbol[] : [lhs], true)
         if lhs isa Expr && lhs.head === :tuple && all(a -> a isa Symbol, lhs.args)
-            return (Vector{Symbol}(lhs.args), true)
+            return (filter(!=(:_), Vector{Symbol}(lhs.args)), true)
         end
     end
     return (Symbol[], false)
 end
-
-# Used only by _picture_body: recognizes a statement wrapped in @unbounded
-# -- either the whole statement (`@unbounded aux = APCircle2(...)`) or just
-# its right-hand side (`aux = @unbounded APCircle2(...)`) -- and strips the
-# wrapper off, returning the plain statement underneath plus whether it was
-# marked. `_block_stmt_names` never needs to know @unbounded exists: by the
-# time it sees the statement, the wrapper is already gone.
 function _strip_unbounded(stmt)
     if stmt isa Expr && stmt.head === :macrocall && stmt.args[1] === Symbol("@unbounded")
         return (stmt.args[end], true)
@@ -743,7 +589,6 @@ function _strip_unbounded(stmt)
     end
     return (stmt, false)
 end
-
 """
     @boundingbox begin
         c = APCircle2(...)
@@ -782,7 +627,6 @@ sometimes.
 """
 macro boundingbox(block)
     block isa Expr && block.head === :block || (block = Expr(:block, block))
-
     shapes = gensym(:boundingbox_shapes)
     body = Expr(:block, :($shapes = Any[]))
     for stmt in block.args
@@ -806,32 +650,6 @@ macro boundingbox(block)
     end)
     return esc(body)
 end
-
-# --- @to_luxor_picture / @to_luxor_picture! ---------------------------------
-#
-# Turns a set of shapes into a ready-to-draw "picture": translate/scale them
-# so their combined APBoundingBox lands inside a known, exact canvas size,
-# always preserving aspect ratio (scaling is always uniform in x and y).
-# Despite the name, this is plain geometry with no Luxor dependency at all
-# -- it only computes where things should go; `path(...)` (the Luxor
-# extension) is what actually draws them. Kept alongside
-# @boundingbox/@translate!/etc. for the same reason those live here rather
-# than in the extension.
-
-# The uniform scale factor `s` and final canvas size `(W, H)` for a content
-# bounding box of size `(bw, bh)`:
-#   - `scale` given: canvas hugs the scaled content exactly (plus margin on
-#     every side) -- W/H are *derived*, not requested.
-#   - only `width` (or only `height`) given: scaled so that side comes out
-#     exactly `width` (resp. `height`) minus the margin; the other side
-#     follows to preserve the aspect ratio, so there's never leftover space
-#     to center away.
-#   - both `width` and `height` given: a "contain" fit -- scaled by
-#     whichever of the two is more restrictive, so the content fits inside
-#     *both* (never distorted, never cropped); W/H are exactly the
-#     requested values, and any leftover space on the less-restrictive axis
-#     is later split evenly on both sides (see `_place_in_picture`).
-#   - neither given: scale factor `1.0`.
 function _picture_layout(bw::Real, bh::Real, width, height, scale, margin::Real)
     if scale !== nothing
         s = Float64(scale)
@@ -855,63 +673,11 @@ function _picture_layout(bw::Real, bh::Real, width, height, scale, margin::Real)
     end
     return s, W, H
 end
-
-# Shift `shape` so `bb`'s own center lands on the origin, then scale
-# uniformly by `s` about the origin (so e.g. a circle always stays a
-# circle). This matches Luxor's `origin()` convention -- (0,0) at the
-# canvas center -- so the result is ready to draw right after `origin()`
-# (which `@png`/`@svg`/`@pdf` already call for you). Centering on (0,0)
-# also handles the "contain fit" leftover-space centering for free: since
-# the canvas itself is centered on (0,0) too (`_picture_layout` always
-# splits `margin`/leftover space evenly), no separate centering offset is
-# needed here.
-#
-# `flip`: reflect across the x-axis (negate y) after shifting/scaling.
-# This package's own geometry uses the standard math convention (y up,
-# counterclockwise angles positive), but Luxor -- like most 2D graphics
-# APIs -- draws with y increasing *downward*. Left uncorrected, that
-# mismatch renders everything as a vertical mirror image of how it reads
-# on paper (what's "above" the origin ends up drawn below it). `flip`
-# defaults to `true` so the common case (draw once, look right) needs no
-# extra thought; pass `flip=false` to see the raw, un-mirrored
-# coordinates instead (e.g. if you're deliberately working in screen/y-down
-# coordinates already).
-#
-# A `shape` with no position of its own -- a plain number, an APVector --
-# can't be shifted (`translate` has no method for either: there's nothing
-# to move; for a number especially, it isn't even the kind of value it
-# knows how to transform). These typically reach here as construction
-# helpers named earlier in the block (e.g. `radio = 5` before
-# `APCircle2(centro, radio)`), not shapes meant to be drawn/sized
-# themselves -- except a bare APVector, which very much IS meant to be
-# drawn, just without a position of its own to place. Scale and flip are
-# both *linear* (unlike shift, they don't need a position to act relative
-# to), so a shape that can't be shifted can still be scaled/flipped if it
-# supports `homothety` -- this is exactly what lets a free direction
-# come out at the picture's own scale, matching whatever anchor point
-# it's drawn from (itself placed normally, since it's an APPoint) --
-# see APVector's own `homothety` method. Anything that supports neither
-# (a plain number) is left completely untouched.
-#
-# This is deliberately NOT the same test as "does this have a finite
-# APBoundingBox" -- an unbounded shape (APLine, APRay, APAngle2,
-# APHalfPlane2, APStrip2) has no finite extent to contribute to the
-# picture's *size*, but it very much has a position, and does support
-# translate/homothety like anything else, so it still needs to move
-# along with everything else in the picture. Checking `applicable`
-# directly (rather than `APBoundingBox`'s emptiness) gets both right: a
-# type that supports the transform is always transformed, regardless of
-# whether it has a finite bbox; one that doesn't is left alone only if
-# its bbox is *also* empty (confirming it was never meant to be
-# positioned) -- if a shape claims a real bbox but doesn't support
-# translate, that's a bug in its own definition and should still surface
-# as a MethodError, not be silently swallowed here.
 function _scale_and_flip(shape, s::Real, flip::Bool)
     scaled = homothety(shape, s, APPoint(0.0, 0.0))
     flip || return scaled
     return reflection(scaled, APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
 end
-
 function _place_in_picture(shape, bb::APBoundingBox, s::Real, flip::Bool)
     center = APVector((bb.min[1] + bb.max[1]) / 2, (bb.min[2] + bb.max[2]) / 2)
     if !applicable(translate, shape, center)
@@ -920,14 +686,7 @@ function _place_in_picture(shape, bb::APBoundingBox, s::Real, flip::Bool)
     end
     return _scale_and_flip(translate(shape, -center), s, flip)
 end
-
 const _PICTURE_KWNAMES = (:width, :height, :scale, :margin, :flip)
-
-# Reads the trailing `key = value` arguments a macro call was given before
-# its final (block) argument -- e.g. `@to_luxor_picture width=400 begin ... end`
-# -- and returns the 4 option expressions in a fixed order, still
-# unevaluated (they're spliced into the generated code and evaluated in the
-# caller's scope, same as the block itself).
 function _parse_picture_kwargs(macroname, exprs)
     given = Dict{Symbol,Any}()
     for e in exprs
@@ -941,14 +700,12 @@ function _parse_picture_kwargs(macroname, exprs)
     getval(k, default) = get(given, k, default)
     return (getval(:width, nothing), getval(:height, nothing), getval(:scale, nothing), getval(:margin, 0.0), getval(:flip, true))
 end
-
 function _picture_body(mutating::Bool, block, width, height, scale, margin, flip)
     block isa Expr && block.head === :block || (block = Expr(:block, block))
     macroname = mutating ? "@to_luxor_picture!" : "@to_luxor_picture"
-
     shapes = gensym(:picture_shapes)
     sizing_shapes = gensym(:picture_sizing_shapes)
-    slots = Union{Symbol,Nothing}[]   # nothing = anonymous result slot; Symbol = rebind target (mutating only)
+    slots = Union{Symbol,Nothing}[]
     body = Expr(:block, :($shapes = Any[]), :($sizing_shapes = Any[]))
     for stmt in block.args
         if stmt isa LineNumberNode
@@ -974,10 +731,8 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
             push!(slots, mutating ? name : nothing)
         end
     end
-
     picture_layout = GlobalRef(@__MODULE__, :_picture_layout)
     place_in_picture = GlobalRef(@__MODULE__, :_place_in_picture)
-
     bb = gensym(:bb)
     s = gensym(:s)
     W = gensym(:W)
@@ -990,7 +745,6 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
         $s, $W, $H = $picture_layout(bbox_width($bb), bbox_height($bb), $width, $height, $scale, $margin)
         $fct = shape -> $place_in_picture(shape, $bb, $s, $flip)
     end)
-
     results = gensym(:picture_results)
     push!(body.args, :($results = Any[]))
     for (i, slot) in enumerate(slots)
@@ -1001,7 +755,6 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
             push!(body.args, :($slot = $transformed), :(push!($results, $slot)))
         end
     end
-
     size_expr = :((width=$W, height=$H, fct=$fct))
     if mutating
         push!(body.args, size_expr)
@@ -1011,7 +764,6 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
     end
     return esc(body)
 end
-
 """
     @unbounded expr
 
@@ -1046,7 +798,6 @@ bounding box applies — there's nothing left to size the canvas by.
 macro unbounded(expr)
     return esc(expr)
 end
-
 """
     @to_luxor_picture begin
         c = APCircle2(...)
@@ -1150,7 +901,6 @@ macro to_luxor_picture(args...)
     width, height, scale, margin, flip = _parse_picture_kwargs("@to_luxor_picture", args[1:end-1])
     return _picture_body(false, args[end], width, height, scale, margin, flip)
 end
-
 """
     @to_luxor_picture! begin ... end
     @to_luxor_picture! width=400 begin ... end
@@ -1169,25 +919,8 @@ macro to_luxor_picture!(args...)
     width, height, scale, margin, flip = _parse_picture_kwargs("@to_luxor_picture!", args[1:end-1])
     return _picture_body(true, args[end], width, height, scale, margin, flip)
 end
-
-# Shared codegen for the @translate/@rotate/@homothety/@reflection family
-# (and their `!` counterparts) below: walk a `begin...end` block (or a
-# single expression, treated as a one-line block) the same way
-# `@boundingbox` does, but instead of folding everything into one value,
-# apply `make_call` (a closure building `transform_fn(x, args...)` for a
-# given value-expression `x`) to each named item and collect the results
-# into a returned tuple.
-#
-# `mutating`: for an assignment `name = expr` or a bare `name`, whether to
-# also rebind `name` to its own transformed value — the closest Julia gets
-# to "mutating" an immutable shape in place (the object itself never
-# changes; the *variable* is repointed at a new one, same trick
-# `Setfield.jl`'s `@set!` uses). An unnamed bare expression (no variable to
-# rebind) is fine for the non-mutating form but an error for the mutating
-# one — there's nothing for `!` to rebind.
 function _shape_transform_body(mutating::Bool, make_call, block)
     block isa Expr && block.head === :block || (block = Expr(:block, block))
-
     results = gensym(:transformed)
     body = Expr(:block, :($results = Any[]))
     n_items = 0
@@ -1206,7 +939,7 @@ function _shape_transform_body(mutating::Bool, make_call, block)
             n_items += 1
             continue
         end
-        run_first && push!(body.args, stmt) # run the assignment itself first
+        run_first && push!(body.args, stmt)
         for name in names
             if mutating
                 push!(body.args, :($name = $(make_call(name))), :(push!($results, $name)))
@@ -1216,12 +949,9 @@ function _shape_transform_body(mutating::Bool, make_call, block)
             n_items += 1
         end
     end
-    # a single item returns its bare value, not a 1-tuple — same ergonomics
-    # as `@boundingbox`'s "a single shape/expression also works"
     push!(body.args, n_items == 1 ? :($results[1]) : :(($results...,)))
     return esc(body)
 end
-
 """
     @translate v begin
         c = APCircle2(...)
@@ -1263,7 +993,6 @@ multi-argument macro call, not specific to these. A bare statement
 macro translate(v, block)
     _shape_transform_body(false, x -> :(translate($x, $v)), block)
 end
-
 """
     @translate! v begin ... end
     @translate! v c
@@ -1275,7 +1004,6 @@ the full rundown (what "mutating" means for immutable shapes, and the
 macro translate!(v, block)
     _shape_transform_body(true, x -> :(translate($x, $v)), block)
 end
-
 """
     @rotate angle begin ... end
     @rotate angle center begin ... end
@@ -1297,7 +1025,6 @@ end
 macro rotate(angle, center, block)
     _shape_transform_body(false, x -> :(rotate($x, $angle, $center)), block)
 end
-
 """
     @rotate! angle begin ... end
     @rotate! angle center begin ... end
@@ -1312,7 +1039,6 @@ end
 macro rotate!(angle, center, block)
     _shape_transform_body(true, x -> :(rotate($x, $angle, $center)), block)
 end
-
 """
     @homothety k begin ... end
     @homothety k center begin ... end
@@ -1334,7 +1060,6 @@ end
 macro homothety(k, center, block)
     _shape_transform_body(false, x -> :(homothety($x, $k, $center)), block)
 end
-
 """
     @homothety! k begin ... end
     @homothety! k center begin ... end
@@ -1349,7 +1074,6 @@ end
 macro homothety!(k, center, block)
     _shape_transform_body(true, x -> :(homothety($x, $k, $center)), block)
 end
-
 """
     @reflection about begin ... end
     @reflection about c         # a single shape/expression also works
@@ -1365,7 +1089,6 @@ The mutating form — see [`@translate!`](@ref).
 macro reflection(about, block)
     _shape_transform_body(false, x -> :(reflection($x, $about)), block)
 end
-
 """
     @reflection! about begin ... end
     @reflection! about c
@@ -1376,7 +1099,6 @@ The mutating counterpart of [`@reflection`](@ref) — see
 macro reflection!(about, block)
     _shape_transform_body(true, x -> :(reflection($x, $about)), block)
 end
-
 """
     @invert center begin ... end
     @invert center k begin ... end
@@ -1395,7 +1117,6 @@ end
 macro invert(center, k, block)
     _shape_transform_body(false, x -> :(invert($x, $center; k=$k)), block)
 end
-
 """
     @invert! center begin ... end
     @invert! center k begin ... end
@@ -1409,7 +1130,6 @@ end
 macro invert!(center, k, block)
     _shape_transform_body(true, x -> :(invert($x, $center; k=$k)), block)
 end
-
 """
     @invert_neg center begin ... end
     @invert_neg center k begin ... end
@@ -1425,7 +1145,6 @@ end
 macro invert_neg(center, k, block)
     _shape_transform_body(false, x -> :(invert_neg($x, $center; k=$k)), block)
 end
-
 """
     @invert_neg! center begin ... end
     @invert_neg! center k begin ... end
@@ -1439,7 +1158,6 @@ end
 macro invert_neg!(center, k, block)
     _shape_transform_body(true, x -> :(invert_neg($x, $center; k=$k)), block)
 end
-
 """
     @affinemap m begin ... end
     @affinemap m c                # a single shape/expression also works
@@ -1451,7 +1169,6 @@ and what it returns.
 macro affinemap(m, block)
     _shape_transform_body(false, x -> :($m($x)), block)
 end
-
 """
     @affinemap! m begin ... end
 

@@ -9,12 +9,8 @@ using Luxor: @drawsvg, @svg,
     gsave, grestore,
     label
 import Luxor
-
 setpoint(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
-
 end
-
-
 macro svg_doc(sz, file, content)
     return quote
         local _subfolder = basename(dirname($(esc(file))))

@@ -1,25 +1,16 @@
 include("../default_config.jl")
-
-
-
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
     t =  APTriangle(A, B, C)
     l1, l2, l3 = APLine.(sides(t))
     oa = orthic_axis(t)
-
     h1, h2, h3 = projection.([C, A, B], [l1, l2, l3])
     lh1, lh2, lh3 = APLine(h2, h3), APLine(h3, h1), APLine(h1, h2)
     ih1 = intersection(lh1, l1)
     ih2 = intersection(lh2, l2)
     ih3 = intersection(lh3, l3)
 end
-
-
-
-
 @svg_doc(sz, @__FILE__, begin
-
 sethue("gray80")
 setdash(:dash)
 gsave()
@@ -31,20 +22,14 @@ sethue(julia_green)
 path([lh1, lh2, lh3], action=:stroke)
 grestore()
 setdash(:solid)
-
 sethue(julia_purple)
 path(oa, action=:stroke)
-
 sethue(julia_blue)
 path(t, action=:stroke)
-
 path([h1,h2,h3])
 setpoint(julia_green)
-
 path([ih1 ih2 ih3])
 setpoint(julia_purple)
-
 path(vertices(t))
 setpoint(julia_red)
-
 end)

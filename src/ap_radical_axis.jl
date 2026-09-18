@@ -1,8 +1,3 @@
-# -------------------------------------------------------------------------
-# Radical axis/center/circle for APPoint/APCircle2; `_radical_foot` is
-# defined for APCircle2 in ap_intersections.jl.
-# -------------------------------------------------------------------------
-
 """
     power_of_point(p::APPoint, c::APCircle2)
 
@@ -10,7 +5,6 @@ The power of `p` with respect to `c`: `distance(p, c.center)^2 - c.r^2`.
 Negative inside `c`, zero on `c`, positive outside.
 """
 power_of_point(p::APPoint, c::APCircle2) = dot(p - c.center, p - c.center) - c.r^2
-
 """
     radical_axis(c1::APCircle2, c2::APCircle2; atol=1e-9)
 
@@ -26,7 +20,6 @@ function radical_axis(c1::APCircle2, c2::APCircle2; atol=1e-9)
     m, _, _, _ = _radical_foot(c1, c2)
     return perpendicular_through(APLine(c1.center, c2.center), m)
 end
-
 """
     radical_center(c1::APCircle2, c2::APCircle2, c3::APCircle2)
 
@@ -36,7 +29,6 @@ collinear).
 """
 radical_center(c1::APCircle2, c2::APCircle2, c3::APCircle2) =
     only(intersection(radical_axis(c1, c2), radical_axis(c2, c3)))
-
 """
     radical_circle(c1::APCircle2, c2::APCircle2, c3::APCircle2)
 

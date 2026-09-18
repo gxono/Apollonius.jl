@@ -1,7 +1,3 @@
-# -------------------------------------------------------------------------
-# Circle inversion for APPoint/APLine/APSegment/APCircle2/APCircularArc2.
-# -------------------------------------------------------------------------
-
 """
     inversion(p::APPoint, c::APCircle2)
 
@@ -14,7 +10,6 @@ function inversion(p::APPoint, c::APCircle2)
     d2 <= 0 && throw(ArgumentError("inversion: p coincides with the center of c"))
     return c.center + (c.r^2 / d2) * v
 end
-
 """
     invert(p::APPoint, center::APPoint; k::Real=1.0, atol=1e-9)
 
@@ -30,7 +25,6 @@ instead (built for `p |> invert(center)`), returning a *function* rather
 than the inverted point.
 """
 invert(p::APPoint, center::APPoint; k::Real=1.0, atol=1e-9) = inversion(p, APCircle2(center, k))
-
 """
     invert(l::APLine, center::APPoint; k::Real=1.0, atol=1e-9)
 
@@ -46,7 +40,6 @@ function invert(l::APLine, center::APPoint; k::Real=1.0, atol=1e-9)
     finv = inversion(f, APCircle2(center, k))
     return APCircle2(midpoint(center, finv), distance(center, finv) / 2)
 end
-
 """
     invert(c::APCircle2, center::APPoint; k::Real=1.0, atol=1e-9)
 
@@ -59,7 +52,7 @@ other circle inverts to another `APCircle2` — so this returns a
 function invert(c::APCircle2, center::APPoint; k::Real=1.0, atol=1e-9)
     center == c.center && return APCircle2(center, k^2 / c.r)
     if abs(distance(center, c.center) - c.r) <= sqrt(atol) * max(c.r, norm(center), norm(c.center), 1.0)
-        antipode = c.center + (c.center - center)  # the point of c diametrically opposite center
+        antipode = c.center + (c.center - center)
         antipode_inv = inversion(antipode, APCircle2(center, k))
         return perpendicular_through(APLine(center, c.center), antipode_inv)
     end
@@ -68,15 +61,11 @@ function invert(c::APCircle2, center::APPoint; k::Real=1.0, atol=1e-9)
     ainv, binv = inversion(a, APCircle2(center, k)), inversion(b, APCircle2(center, k))
     return APCircle2(midpoint(ainv, binv), distance(ainv, binv) / 2)
 end
-
-# Whether `p` (assumed to lie on `arc.circle`) falls within `arc`'s own
-# counterclockwise sweep from `arc.p1` to `arc.p2`.
 function _arc_sweep_contains(arc::APCircularArc2, p::APPoint)
     a1 = atan(arc.p1[2] - arc.circle.center[2], arc.p1[1] - arc.circle.center[1])
     ap = atan(p[2] - arc.circle.center[2], p[1] - arc.circle.center[1])
     return mod(ap - a1, 2π) <= measure(arc)
 end
-
 """
     invert(s::APSegment, center::APPoint; k::Real=1.0, atol=1e-9)
 
@@ -101,7 +90,6 @@ function invert(s::APSegment, center::APPoint; k::Real=1.0, atol=1e-9)
     candidate = APCircularArc2(circ, ip1, ip2)
     return _arc_sweep_contains(candidate, center) ? APCircularArc2(circ, ip2, ip1) : candidate
 end
-
 """
     invert(t::APTriangle, center::APPoint; k::Real=1.0, atol=1e-9)
     invert(pg::APStraightNgon, center::APPoint; k::Real=1.0, atol=1e-9)
@@ -117,7 +105,6 @@ invert(t::APTriangle, center::APPoint; k::Real=1.0, atol=1e-9) =
     APCurvilinearNgon2([invert(s, center; k=k, atol=atol) for s in sides(t)])
 invert(pg::APStraightNgon, center::APPoint; k::Real=1.0, atol=1e-9) =
     APCurvilinearNgon2([invert(s, center; k=k, atol=atol) for s in sides(pg)])
-
 """
     inversion_neg(p::APPoint, c::APCircle2)
 
@@ -127,7 +114,6 @@ the ordinary (positive) [`inversion`](@ref), point-reflected through
 `r^2/|Op|` from `O`.
 """
 inversion_neg(p::APPoint, c::APCircle2) = reflection(inversion(p, c), c.center)
-
 """
     invert_neg(l::APLine, center::APPoint; k::Real=1.0, atol=1e-9)
     invert_neg(c::APCircle2, center::APPoint; k::Real=1.0, atol=1e-9)
@@ -138,7 +124,6 @@ the circle centered at `center` with radius `k`: the ordinary
 """
 invert_neg(l::APLine, center::APPoint; k::Real=1.0, atol=1e-9) = reflection(invert(l, center; k=k, atol=atol), center)
 invert_neg(c::APCircle2, center::APPoint; k::Real=1.0, atol=1e-9) = reflection(invert(c, center; k=k, atol=atol), center)
-
 """
     invert(center::APPoint; k::Real=1.0, atol=1e-9)
 
@@ -149,7 +134,6 @@ isn't affine), so it's a plain closure rather than a reusable, inspectable
 value.
 """
 invert(center::APPoint; k::Real=1.0, atol=1e-9) = shape -> invert(shape, center; k=k, atol=atol)
-
 """
     invert_neg(center::APPoint; k::Real=1.0, atol=1e-9)
 
@@ -157,7 +141,6 @@ invert(center::APPoint; k::Real=1.0, atol=1e-9) = shape -> invert(shape, center;
 [`invert`](@ref).
 """
 invert_neg(center::APPoint; k::Real=1.0, atol=1e-9) = shape -> invert_neg(shape, center; k=k, atol=atol)
-
 """
     invert(v::AbstractVector{<:APObject}, center::APPoint; k::Real=1.0, atol=1e-9)
     invert_neg(v::AbstractVector{<:APObject}, center::APPoint; k::Real=1.0, atol=1e-9)
@@ -169,7 +152,6 @@ for why this exists (a plain `Vector` of shapes, e.g. from
 """
 invert(v::AbstractVector{<:APObject}, center::APPoint; k::Real=1.0, atol=1e-9) = invert.(v, center; k=k, atol=atol)
 invert_neg(v::AbstractVector{<:APObject}, center::APPoint; k::Real=1.0, atol=1e-9) = invert_neg.(v, center; k=k, atol=atol)
-
 """
     polar_line(c::APCircle2, p::APPoint; atol=1e-9)
 
@@ -185,7 +167,6 @@ function polar_line(c::APCircle2, p::APPoint; atol=1e-9)
     distance(p, c.center) <= sqrt(atol) * max(c.r, norm(p), norm(c.center), 1.0) && return nothing
     return perpendicular_through(APLine(c.center, p), inversion(p, c))
 end
-
 """
     pole(c::APCircle2, l::APLine)
 

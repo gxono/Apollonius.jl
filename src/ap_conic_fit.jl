@@ -1,7 +1,3 @@
-# -------------------------------------------------------------------------
-# Fitting an APEllipse2/APHyperbola2 through five points.
-# -------------------------------------------------------------------------
-
 """
     conic_through_points(p1::APPoint, p2::APPoint, p3::APPoint, p4::APPoint, p5::APPoint; atol=1e-9)
 
@@ -15,7 +11,6 @@ function conic_through_points(p1::APPoint, p2::APPoint, p3::APPoint, p4::APPoint
     pts = (p1, p2, p3, p4, p5)
     centroid = p1 + sum(p - p1 for p in pts) / 5
     scale = max(sum(distance(p, centroid) for p in pts) / 5, 1.0)
-
     M = zeros(Float64, 5, 6)
     for (i, p) in enumerate(pts)
         x, y = (Float64(p[1]) - centroid[1]) / scale, (Float64(p[2]) - centroid[2]) / scale
@@ -25,20 +20,16 @@ function conic_through_points(p1::APPoint, p2::APPoint, p3::APPoint, p4::APPoint
     size(ns, 2) != 1 && throw(ArgumentError(
         "conic_through_points: the 5 points don't determine a unique conic (degenerate configuration)"))
     A, B, C, D, E, F = ns[:, 1]
-
     disc = B^2 - 4A * C
     abs(disc) <= atol && throw(ArgumentError(
         "conic_through_points: the points lie on (or near) a parabola, which this function can't return"))
-
     x0, y0 = [2A B; B 2C] \ [-D, -E]
     center = centroid + scale * APVector(x0, y0)
     F0 = A * x0^2 + B * x0 * y0 + C * y0^2 + D * x0 + E * y0 + F
-
     lam1 = (A + C + sqrt((A - C)^2 + B^2)) / 2
     lam2 = (A + C - sqrt((A - C)^2 + B^2)) / 2
     theta = atan(B, A - C) / 2
     s1, s2 = -F0 / lam1, -F0 / lam2
-
     if disc < 0
         (s1 <= atol || s2 <= atol) && throw(ArgumentError("conic_through_points: no real ellipse fits these points"))
         return APEllipse2(center, scale * sqrt(s1), scale * sqrt(s2), theta)

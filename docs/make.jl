@@ -1,8 +1,6 @@
 using Apollonius
 using Documenter
-
 DocMeta.setdocmeta!(Apollonius, :DocTestSetup, :(using Apollonius); recursive=true)
-
 makedocs(;
     modules=[Apollonius],
     authors="Jonatan Perren",
@@ -25,18 +23,10 @@ makedocs(;
         "Unbounded Regions" => "unbounded_sets.md",
         "Affine Maps" => "affine_maps.md",
         "Transforming in Bulk: Macros" => "macros.md",
-        # 3D Geometry pages -- paused along with the rest of 3D (the source
-        # files are untracked, see .gitignore), so left out of the nav here.
-        # "3D Geometry" => [
-        #     "Points, Lines & Planes" => "geometry_3d_foundation.md",
-        #     "Conics & Quadric Surfaces" => "geometry_3d_conics.md",
-        #     "Polyhedra & Solids" => "geometry_3d_solids.md",
-        #     "Unbounded Sets" => "geometry_3d_unbounded.md",
-        # ],
+        "Examples" => "examples.md",
         "API Reference" => "api.md",
     ],
 )
-
 deploydocs(;
     repo="github.com/gxono/Apollonius.jl",
     devbranch="master",

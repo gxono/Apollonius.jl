@@ -1,14 +1,3 @@
-# -------------------------------------------------------------------------
-# APAngle2, APHalfPlane2, APStrip2 (<: APSet, not <: APRegion — all three
-# are unbounded regions of the plane).
-# -------------------------------------------------------------------------
-
-# `side_of_line(p::APPoint, l::APLine)` is defined in the later-included
-# ap_predicates.jl — used here only inside function bodies (`Base.in` for
-# APHalfPlane2/APStrip2), so the include order doesn't matter: Julia only
-# needs the method to exist by call time, not by the time this file is
-# parsed.
-
 """
     angle_at(vertex, p1, p2)
 
@@ -19,9 +8,6 @@ carrying the three points around instead of just the number.
 """
 angle_at(vertex::APPoint, p1::APPoint, p2::APPoint) =
     acos(clamp(dot(p1 - vertex, p2 - vertex) / (norm(p1 - vertex) * norm(p2 - vertex)), -1.0, 1.0))
-
-# --- APAngle2 ---------------------------------------------------------------
-
 """
     APAngle2(vertex::APPoint, a::APPoint, b::APPoint)
 
@@ -41,12 +27,10 @@ function APAngle2(vertex::APPoint, a::APPoint, b::APPoint)
     T = promote_type(eltype(vertex), eltype(a), eltype(b))
     return APAngle2{T}(vertex, a, b)
 end
-
 Base.:(==)(x::APAngle2, y::APAngle2) = x.vertex == y.vertex && x.a == y.a && x.b == y.b
 Base.isapprox(x::APAngle2, y::APAngle2; kwargs...) =
     isapprox(x.vertex, y.vertex; kwargs...) && isapprox(x.a, y.a; kwargs...) && isapprox(x.b, y.b; kwargs...)
 Base.show(io::IO, ang::APAngle2) = print(io, "APAngle2(vertex=", ang.vertex, ", a=", ang.a, ", b=", ang.b, ")")
-
 """
     reverse(ang::APAngle2)
 
@@ -66,7 +50,6 @@ already-mirrored points, silently picks up the reversed sense instead —
 `reverse` is the manual fix for that second case.
 """
 Base.reverse(ang::APAngle2) = APAngle2(ang.vertex, ang.b, ang.a)
-
 """
     measure(ang::APAngle2)
 
@@ -74,7 +57,6 @@ The signed measure of `ang` (radians, in `(-π, π]`, counterclockwise from
 ray `vertex -> a` to ray `vertex -> b`) — see [`angle_between`](@ref).
 """
 measure(ang::APAngle2) = angle_between(ang.a - ang.vertex, ang.b - ang.vertex)
-
 """
     rotate(obj::APObject, ang::APAngle2, args...; kwargs...)
 
@@ -87,7 +69,6 @@ unwrapping it by hand first. Not to be confused with
 `obj`, via its `measure`.
 """
 rotate(obj::APObject, ang::APAngle2, args...; kwargs...) = rotate(obj, measure(ang), args...; kwargs...)
-
 """
     normalized_measure(ang::APAngle2)
 
@@ -97,21 +78,18 @@ function normalized_measure(ang::APAngle2)
     m = measure(ang)
     return m < 0 ? m + 2 * pi : m
 end
-
 """
     abs(ang::APAngle2)
 
 The unsigned measure of `ang` (radians, in `[0, π]`) — see [`angle_at`](@ref).
 """
 Base.abs(ang::APAngle2) = angle_at(ang.vertex, ang.a, ang.b)
-
 """
     is_direct(ang::APAngle2)
 
 Whether `ang` is oriented counterclockwise (its signed [`measure`](@ref) is positive).
 """
 is_direct(ang::APAngle2) = measure(ang) > 0
-
 """
     p in ang::APAngle2
 
@@ -124,7 +102,6 @@ function Base.in(p::APPoint, ang::APAngle2)
     ap = atan(p[2] - ang.vertex[2], p[1] - ang.vertex[1])
     return mod(ap - a1, 2 * pi) <= normalized_measure(ang)
 end
-
 """
     rotate(ang::APAngle2, angle, center=APPoint(0.0, 0.0))
     homothety(ang::APAngle2, k, center=APPoint(0.0, 0.0))
@@ -140,7 +117,6 @@ homothety(ang::APAngle2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APAngle2(homothety(ang.vertex, k, center), homothety(ang.a, k, center), homothety(ang.b, k, center))
 translate(ang::APAngle2, v::APVector) =
     APAngle2(translate(ang.vertex, v), translate(ang.a, v), translate(ang.b, v))
-
 """
     distance(p::APPoint, ang::APAngle2; mode::Symbol=:region)
 
@@ -159,7 +135,6 @@ function distance(p::APPoint, ang::APAngle2; mode::Symbol=:region)
     return p in ang ? zero(d) : d
 end
 distance(ang::APAngle2, p::APPoint; mode::Symbol=:region) = distance(p, ang; mode=mode)
-
 """
     reflection(ang::APAngle2, about::APPoint)
     reflection(ang::APAngle2, about::APLine)
@@ -180,13 +155,7 @@ reflection(ang::APAngle2, about::APPoint) =
     APAngle2(reflection(ang.vertex, about), reflection(ang.a, about), reflection(ang.b, about))
 reflection(ang::APAngle2, about::APLine) =
     APAngle2(reflection(ang.vertex, about), reflection(ang.b, about), reflection(ang.a, about))
-
-# The empty box (not its own bbox): `ang` is an infinite wedge with no
-# finite extent to report -- see `APBoundingBox()` in ap_primitives.jl.
 APBoundingBox(::APAngle2) = APBoundingBox()
-
-# --- APHalfPlane2 -------------------------------------------------------------
-
 """
     APHalfPlane2(boundary::APLine, side::Int)
     APHalfPlane2(boundary::APLine, interior_point::APPoint)
@@ -206,19 +175,16 @@ function APHalfPlane2(boundary::APLine{2}, p::APPoint{2})
     s == 0 && throw(ArgumentError("APHalfPlane2: interior_point must not lie on boundary"))
     return APHalfPlane2(boundary, s)
 end
-
 Base.:(==)(x::APHalfPlane2, y::APHalfPlane2) = x.boundary == y.boundary && x.side == y.side
 Base.isapprox(x::APHalfPlane2, y::APHalfPlane2; kwargs...) =
     isapprox(x.boundary, y.boundary; kwargs...) && x.side == y.side
 Base.show(io::IO, hp::APHalfPlane2) = print(io, "APHalfPlane2(", hp.boundary, ", side=", hp.side, ")")
-
 """
     p in hp::APHalfPlane2
 
 Whether `p` lies in the closed half-plane `hp` (on `hp.boundary` counts as inside).
 """
 Base.in(p::APPoint, hp::APHalfPlane2) = side_of_line(p, hp.boundary) in (0, hp.side)
-
 """
     rotate(hp::APHalfPlane2, angle, center=APPoint(0.0, 0.0))
     homothety(hp::APHalfPlane2, k, center=APPoint(0.0, 0.0))
@@ -233,7 +199,6 @@ rotate(hp::APHalfPlane2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
 homothety(hp::APHalfPlane2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APHalfPlane2(homothety(hp.boundary, k, center), hp.side)
 translate(hp::APHalfPlane2, v::APVector) = APHalfPlane2(translate(hp.boundary, v), hp.side)
-
 """
     reflection(hp::APHalfPlane2, about::APPoint)
     reflection(hp::APHalfPlane2, about::APLine)
@@ -246,7 +211,6 @@ own (also reflected) boundary.
 """
 reflection(hp::APHalfPlane2, about::APPoint) = APHalfPlane2(reflection(hp.boundary, about), hp.side)
 reflection(hp::APHalfPlane2, about::APLine) = APHalfPlane2(reflection(hp.boundary, about), -hp.side)
-
 """
     distance(p::APPoint, hp::APHalfPlane2; mode::Symbol=:region)
 
@@ -262,12 +226,7 @@ function distance(p::APPoint, hp::APHalfPlane2; mode::Symbol=:region)
     return p in hp ? zero(d) : d
 end
 distance(hp::APHalfPlane2, p::APPoint; mode::Symbol=:region) = distance(p, hp; mode=mode)
-
-# The empty box: `hp` is unbounded on both sides of its own boundary line.
 APBoundingBox(::APHalfPlane2) = APBoundingBox()
-
-# --- APStrip2 -----------------------------------------------------------------
-
 """
     APStrip2(line1::APLine, line2::APLine; atol=1e-9)
 
@@ -278,13 +237,6 @@ parallel.
 struct APStrip2{T<:Real} <: APSet{2,T}
     line1::APLine{2,T}
     line2::APLine{2,T}
-    # An inner constructor is defined here specifically to suppress Julia's
-    # auto-generated default outer constructor `APStrip2(line1::APLine{T},
-    # line2::APLine{T}) where T` — without this, that unconstrained default
-    # is MORE specific than (and silently wins over) the validating outer
-    # constructor below whenever line1/line2 already share the same T,
-    # letting non-parallel lines slip through with no ArgumentError (the
-    # exact bug already hit once this phase with APAnnularSector2).
     function APStrip2{T}(line1::APLine{2,T}, line2::APLine{2,T}; atol=1e-9) where {T<:Real}
         d1, d2 = direction(line1), direction(line2)
         abs(cross2(d1, d2)) <= atol * norm(d1) * norm(d2) ||
@@ -296,12 +248,10 @@ function APStrip2(line1::APLine{2,T1}, line2::APLine{2,T2}; atol=1e-9) where {T1
     T = promote_type(T1, T2)
     return APStrip2{T}(convert(APLine{2,T}, line1), convert(APLine{2,T}, line2); atol=atol)
 end
-
 Base.:(==)(x::APStrip2, y::APStrip2) = x.line1 == y.line1 && x.line2 == y.line2
 Base.isapprox(x::APStrip2, y::APStrip2; kwargs...) =
     isapprox(x.line1, y.line1; kwargs...) && isapprox(x.line2, y.line2; kwargs...)
 Base.show(io::IO, s::APStrip2) = print(io, "APStrip2(", s.line1, ", ", s.line2, ")")
-
 """
     p in s::APStrip2
 
@@ -312,14 +262,12 @@ function Base.in(p::APPoint, s::APStrip2)
     side2, ref2 = side_of_line(p, s.line2), side_of_line(s.line1.p1, s.line2)
     return (side1 == 0 || side1 == ref1) && (side2 == 0 || side2 == ref2)
 end
-
 """
     strip_width(s::APStrip2)
 
 The perpendicular distance between `s`'s two boundary lines.
 """
 strip_width(s::APStrip2) = distance(s.line2.p1, s.line1)
-
 """
     rotate(s::APStrip2, angle, center=APPoint(0.0, 0.0))
     homothety(s::APStrip2, k, center=APPoint(0.0, 0.0))
@@ -336,7 +284,6 @@ homothety(s::APStrip2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APStrip2(homothety(s.line1, k, center), homothety(s.line2, k, center))
 reflection(s::APStrip2, about) = APStrip2(reflection(s.line1, about), reflection(s.line2, about))
 translate(s::APStrip2, v::APVector) = APStrip2(translate(s.line1, v), translate(s.line2, v))
-
 """
     distance(p::APPoint, s::APStrip2; mode::Symbol=:region)
 
@@ -351,6 +298,4 @@ function distance(p::APPoint, s::APStrip2; mode::Symbol=:region)
     return p in s ? zero(d) : d
 end
 distance(s::APStrip2, p::APPoint; mode::Symbol=:region) = distance(p, s; mode=mode)
-
-# The empty box: `s` is unbounded along both lines' own direction.
 APBoundingBox(::APStrip2) = APBoundingBox()

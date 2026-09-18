@@ -1,5 +1,4 @@
 include("../default_config.jl")
-
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
     triangle =  APTriangle(A, B, C)
@@ -17,10 +16,7 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     ep = collect(euler_points(triangle))
     ips = reduce(vcat, intersection.(npc, lados))
 end
-
-
 @svg_doc(sz, @__FILE__, begin
-
 sethue("gray80")
 gsave()
 setline(1)
@@ -29,18 +25,14 @@ path([cc, ic], action=:stroke)
 path(APSegment(O, A), action=:stroke)
 path(APSegment(I, iv[2]), action=:stroke)
 grestore()
-
 sethue(julia_purple)
 path([l, npc], action=:stroke)
 path([G,O,I,H])
 setpoint(julia_purple)
-
 sethue(julia_blue)
 path(triangle, action=:stroke)
-
 path([A,B,C])
 setpoint(julia_red)
-
 path(iv)
 path(ips)
 newsubpath()
@@ -48,5 +40,4 @@ path(npc_c)
 setpoint("gray80")
 path(ep)
 setpoint(julia_purple)
-
 end)

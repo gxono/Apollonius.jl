@@ -1,6 +1,4 @@
 include("../default_config.jl")
-
-
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     c1 = APCircle2(APPoint(0.0, 0.0), 40.0)
     c2 = APCircle2(APPoint(90.0, 0.0), 50.0)
@@ -8,15 +6,9 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     c3 = APCircle2(c3_center, 35.0)
     gaps = interstices(c1, c2, c3)
 end
-
-
-
 @svg_doc(sz, @__FILE__, begin
-
 sethue(julia_purple)
 path(gaps, action=:fill)
-
 sethue(julia_blue)
 path([c1,c2,c3], action=:stroke)
-
 end)

@@ -1,8 +1,3 @@
-# -------------------------------------------------------------------------
-# APAffineMap (<: APTransform), built on APPoint/APVector and callable on
-# every AP-typed curve/polygon.
-# -------------------------------------------------------------------------
-
 """
     APAffineMap(a11, a12, a21, a22, tx, ty)
 
@@ -20,7 +15,6 @@ struct APAffineMap{T<:Real} <: APTransform{T}
 end
 APAffineMap(a11::Real, a12::Real, a21::Real, a22::Real, tx::Real, ty::Real) =
     APAffineMap(promote(a11, a12, a21, a22, tx, ty)...)
-
 Base.:(==)(x::APAffineMap, y::APAffineMap) =
     x.a11 == y.a11 && x.a12 == y.a12 && x.a21 == y.a21 && x.a22 == y.a22 && x.tx == y.tx && x.ty == y.ty
 Base.isapprox(x::APAffineMap, y::APAffineMap; kwargs...) =
@@ -29,9 +23,7 @@ Base.isapprox(x::APAffineMap, y::APAffineMap; kwargs...) =
     isapprox(x.tx, y.tx; kwargs...) && isapprox(x.ty, y.ty; kwargs...)
 Base.show(io::IO, m::APAffineMap) =
     print(io, "APAffineMap([", m.a11, " ", m.a12, "; ", m.a21, " ", m.a22, "], t=(", m.tx, ", ", m.ty, "))")
-
 (m::APAffineMap)(p::APPoint{2}) = APPoint(m.a11 * p[1] + m.a12 * p[2] + m.tx, m.a21 * p[1] + m.a22 * p[2] + m.ty)
-
 """
     (m::APAffineMap)(v::APVector)
 
@@ -39,7 +31,6 @@ The image of the free vector `v` under `m`'s *linear* part only — a
 vector has no position, so the translation `(tx, ty)` is not applied.
 """
 (m::APAffineMap)(v::APVector{2}) = APVector(m.a11 * v[1] + m.a12 * v[2], m.a21 * v[1] + m.a22 * v[2])
-
 (m::APAffineMap)(s::APSegment) = APSegment(m(s.p1), m(s.p2))
 (m::APAffineMap)(l::APLine) = APLine(m(l.p1), m(l.p2))
 (m::APAffineMap)(r::APRay) = APRay(m(r.origin), m(r.through))
@@ -47,7 +38,6 @@ vector has no position, so the translation `(tx, ty)` is not applied.
 (m::APAffineMap)(pg::APStraightNgon) = APStraightNgon([m(v) for v in pg.vertices])
 (m::APAffineMap)(q::APQuadrilateral) = APQuadrilateral(m(q.a), m(q.b), m(q.c), m(q.d))
 (m::APAffineMap)(ang::APAngle2) = APAngle2(m(ang.vertex), m(ang.a), m(ang.b))
-
 """
     (m::APAffineMap)(hp::APHalfPlane2)
 
@@ -63,7 +53,6 @@ function (m::APAffineMap)(hp::APHalfPlane2)
     interior_pt = hp.boundary.p1 + hp.side * orthogonal(direction(hp.boundary))
     return APHalfPlane2(new_boundary, side_of_line(m(interior_pt), new_boundary))
 end
-
 """
     (m::APAffineMap)(s::APStrip2)
 
@@ -71,7 +60,6 @@ The image of `s` under `m`. Affine maps preserve parallelism, so the two
 transformed boundary lines are still parallel.
 """
 (m::APAffineMap)(s::APStrip2) = APStrip2(m(s.line1), m(s.line2))
-
 """
     (m::APAffineMap)(s::APCircularSector2)
     (m::APAffineMap)(s::APCircularSegment2)
@@ -104,7 +92,6 @@ end
 function (m::APAffineMap)(g::APInterstice2)
     return APCurvilinearTriangle2((m(g.arc1), m(g.arc2), m(g.arc3)))
 end
-
 """
     (m::APAffineMap)(t::APCurvilinearTriangle2)
     (m::APAffineMap)(q::APCurvilinearQuadrilateral2)
@@ -117,7 +104,6 @@ conic arcs — already knows how to transform itself under `m`).
 (m::APAffineMap)(t::APCurvilinearTriangle2) = APCurvilinearTriangle2(map(m, t.sides))
 (m::APAffineMap)(q::APCurvilinearQuadrilateral2) = APCurvilinearQuadrilateral2(map(m, q.sides))
 (m::APAffineMap)(pg::APCurvilinearNgon2) = APCurvilinearNgon2([m(side) for side in pg.sides])
-
 """
     (m::APAffineMap)(c::APCircle2)
 
@@ -140,27 +126,14 @@ function (m::APAffineMap)(c::APCircle2)
     ang = 0.5 * atan(2q, p - s)
     return APEllipse2(m(c.center), c.r * sqrt(λmax), c.r * sqrt(λmin), ang)
 end
-
-# The affine image of an APEllipse2/APHyperbola2's quadratic form. Conic
-# TYPE is an affine invariant: an ellipse always maps to an ellipse, a
-# hyperbola always to a hyperbola (never to each other, or to a
-# parabola), by Sylvester's law of inertia — the map acts on the conic's
-# quadratic form Q (relative to its own center, so (p-center)ᵀQ(p-center)
-# = 1) as the congruence Q' = M⁻ᵀ Q M⁻¹, which preserves how many of Q's
-# eigenvalues are positive/negative/zero. `ε` is +1 for an ellipse's form
-# diag(1/a², 1/b²), -1 for a hyperbola's diag(1/a², -1/b²); for either,
-# the larger eigenvalue of Q' always ends up on the "a" (1/a²) axis (for
-# a hyperbola, Sylvester's law guarantees it's the positive one).
 function _affine_map_conic_quadratic_form(m::APAffineMap, a::Real, b::Real, angle::Real, ε::Real)
     c, s = cos(angle), sin(angle)
     Q11 = c^2 / a^2 + ε * s^2 / b^2
     Q12 = c * s * (1 / a^2 - ε / b^2)
     Q22 = s^2 / a^2 + ε * c^2 / b^2
-
     a11, a12, a21, a22 = m.a11, m.a12, m.a21, m.a22
     det = a11 * a22 - a12 * a21
     ia11, ia12, ia21, ia22 = a22 / det, -a12 / det, -a21 / det, a11 / det
-
     T11 = Q11 * ia11 + Q12 * ia21
     T12 = Q11 * ia12 + Q12 * ia22
     T21 = Q12 * ia11 + Q22 * ia21
@@ -168,14 +141,12 @@ function _affine_map_conic_quadratic_form(m::APAffineMap, a::Real, b::Real, angl
     Qp11 = ia11 * T11 + ia21 * T21
     Qp12 = ia11 * T12 + ia21 * T22
     Qp22 = ia12 * T12 + ia22 * T22
-
     tr, dt = Qp11 + Qp22, Qp11 * Qp22 - Qp12^2
     disc = sqrt(max(tr^2 / 4 - dt, 0.0))
     λ1, λ2 = tr / 2 + disc, tr / 2 - disc
     θ = atan(2Qp12, Qp11 - Qp22) / 2
     return λ1, λ2, θ
 end
-
 """
     (m::APAffineMap)(e::APEllipse2)
 
@@ -187,7 +158,6 @@ function (m::APAffineMap)(e::APEllipse2)
     λ1, λ2, θ = _affine_map_conic_quadratic_form(m, e.a, e.b, e.angle, 1.0)
     return APEllipse2(m(e.center), 1 / sqrt(λ1), 1 / sqrt(λ2), θ)
 end
-
 """
     (m::APAffineMap)(h::APHyperbola2)
 
@@ -197,7 +167,6 @@ function (m::APAffineMap)(h::APHyperbola2)
     λ1, λ2, θ = _affine_map_conic_quadratic_form(m, h.a, h.b, h.angle, -1.0)
     return APHyperbola2(m(h.center), 1 / sqrt(λ1), 1 / sqrt(-λ2), θ)
 end
-
 """
     (m::APAffineMap)(par::APParabola2)
 
@@ -217,27 +186,22 @@ function (m::APAffineMap)(par::APParabola2)
     V, u, w = _parabola_frame(par)
     pf = focal_parameter(par)
     A, B, C = m(V), m(w), m(u) / (2pf)
-
     κ = norm(C)
     u2 = C / κ
     w2 = orthogonal(u2)
     X0, Y0 = dot(APVector(A), u2), dot(APVector(A), w2)
     bu, bw = dot(B, u2), dot(B, w2)
-
     C2 = κ / bw^2
     slope = bu / bw
     Xvertex = X0 - slope^2 / (4C2)
     Yvertex = Y0 - slope / (2C2)
     pf2 = 1 / (2C2)
-
     vertex2 = _from_local_frame(Xvertex, Yvertex, APPoint(0.0, 0.0), u2, w2)
     focus2 = vertex2 + (pf2 / 2) * u2
     foot2 = vertex2 - (pf2 / 2) * u2
     return APParabola2(focus2, APLine(foot2, foot2 + w2))
 end
-
 _affine_map_det(m::APAffineMap) = m.a11 * m.a22 - m.a12 * m.a21
-
 """
     (m::APAffineMap)(arc::APCircularArc2)
 
@@ -257,7 +221,6 @@ function (m::APAffineMap)(arc::APCircularArc2)
     e2 = m(arc.circle)
     return _affine_map_det(m) >= 0 ? APEllipticArc2(e2, m(arc.p1), m(arc.p2)) : APEllipticArc2(e2, m(arc.p2), m(arc.p1))
 end
-
 """
     (m::APAffineMap)(arc::APEllipticArc2)
 
@@ -271,7 +234,6 @@ function (m::APAffineMap)(arc::APEllipticArc2)
     e2 = m(arc.ellipse)
     return _affine_map_det(m) >= 0 ? APEllipticArc2(e2, m(arc.p1), m(arc.p2)) : APEllipticArc2(e2, m(arc.p2), m(arc.p1))
 end
-
 """
     (m::APAffineMap)(arc::APHyperbolicArc2)
     (m::APAffineMap)(arc::APParabolicArc2)
@@ -284,7 +246,6 @@ no swap is needed even when `m` reverses orientation (matching
 """
 (m::APAffineMap)(arc::APHyperbolicArc2) = APHyperbolicArc2(m(arc.hyperbola), m(arc.p1), m(arc.p2))
 (m::APAffineMap)(arc::APParabolicArc2) = APParabolicArc2(m(arc.parabola), m(arc.p1), m(arc.p2))
-
 """
     affine_map(src::NTuple{3,APPoint}, dst::NTuple{3,APPoint})
 
@@ -296,10 +257,8 @@ function affine_map(src::NTuple{3,<:APPoint{2}}, dst::NTuple{3,<:APPoint{2}}; at
     q1, q2, q3 = dst
     u, v = p2 - p1, p3 - p1
     du, dv = q2 - q1, q3 - q1
-
     det = cross2(u, v)
     abs(det) <= atol * norm(u) * norm(v) && throw(ArgumentError("affine_map: source points must not be collinear"))
-
     a11 = (du[1] * v[2] - dv[1] * u[2]) / det
     a12 = (dv[1] * u[1] - du[1] * v[1]) / det
     a21 = (du[2] * v[2] - dv[2] * u[2]) / det
@@ -308,7 +267,6 @@ function affine_map(src::NTuple{3,<:APPoint{2}}, dst::NTuple{3,<:APPoint{2}}; at
     ty = q1[2] - (a21 * p1[1] + a22 * p1[2])
     return APAffineMap(a11, a12, a21, a22, tx, ty)
 end
-
 """
     translation_map(v::APVector)
     translation_map(v::APPoint)
@@ -330,7 +288,6 @@ object, but chains of direct, exact `translate(shape, v)` calls instead.
 Reach for whichever tradeoff the situation calls for.
 """
 translation_map(v::APPointOrVector{2}) = APAffineMap(one(v[1]), zero(v[1]), zero(v[1]), one(v[1]), v[1], v[2])
-
 """
     rotation_map(angle::Real, center::APPoint)
 
@@ -351,7 +308,6 @@ function rotation_map(angle::Real, center::APPoint{2})
     ty = center[2] - (s * center[1] + c * center[2])
     return APAffineMap(c, -s, s, c, tx, ty)
 end
-
 """
     homothety_map(k::Real, center::APPoint)
 
@@ -365,7 +321,6 @@ function homothety_map(k::Real, center::APPoint{2})
     tx, ty = center[1] * (1 - k), center[2] * (1 - k)
     return APAffineMap(k, zero(k), zero(k), k, tx, ty)
 end
-
 """
     reflection_map(l::APLine)
 
@@ -378,7 +333,6 @@ function reflection_map(l::APLine{2})
     n = orthogonal(direction(l))
     return affine_map((l.p1, l.p2, l.p1 + n), (l.p1, l.p2, l.p1 - n))
 end
-
 """
     reflection_map(about::APPoint)
 
@@ -388,7 +342,6 @@ equivalent to `p -> reflection(p, about)`, as a genuine, composable
 against [`reflection`](@ref)'s own type-preserving one-argument form).
 """
 reflection_map(about::APPoint{2}) = APAffineMap(-one(about[1]), zero(about[1]), zero(about[1]), -one(about[1]), 2about[1], 2about[2])
-
 """
     translate(v::APVector)
 
@@ -409,7 +362,6 @@ map(translate(v), [c1, c2])            # c1/c2 stay APCircle2, not APEllipse2
 ```
 """
 translate(v::APVector{2}) = shape -> translate(shape, v)
-
 """
     rotate(angle::Real, center::APPoint=APPoint(0.0, 0.0))
 
@@ -420,7 +372,6 @@ the full tradeoff). Unlike `rotation_map`, `center` here defaults to the
 origin, same as the direct, shape-taking `rotate` itself.
 """
 rotate(angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) = shape -> rotate(shape, angle, center)
-
 """
     homothety(k::Real, center::APPoint=APPoint(0.0, 0.0))
 
@@ -431,7 +382,6 @@ full tradeoff). Unlike `homothety_map`, `center` here defaults to the
 origin, same as the direct, shape-taking `homothety` itself.
 """
 homothety(k::Real, center::APPoint{2}=APPoint(0.0, 0.0)) = shape -> homothety(shape, k, center)
-
 """
     reflection(about::APPoint)
     reflection(about::APLine)
@@ -442,7 +392,6 @@ the type-preserving counterpart of [`reflection_map`](@ref)`(about)` (see
 """
 reflection(about::APPoint{2}) = shape -> reflection(shape, about)
 reflection(about::APLine{2}) = shape -> reflection(shape, about)
-
 function Base.:∘(m2::APAffineMap, m1::APAffineMap)
     a11 = m2.a11 * m1.a11 + m2.a12 * m1.a21
     a12 = m2.a11 * m1.a12 + m2.a12 * m1.a22

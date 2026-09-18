@@ -1,10 +1,4 @@
 include("../default_config.jl")
-
-
-
-
-
-
 P = APPoint(0.0, 0.0)
 inv5 = invert(P; k=5.0)
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
@@ -14,28 +8,19 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     l2 = APLine(APPoint(-3.0, 0.0), APPoint(-3.0, 1.0))
     t1, t2 = map(inv5, [l1, l2])
 end
-
-
-
 @svg_doc(sz, @__FILE__, begin
-
 sethue("gray80")
 setdash(:dash)
 path(circ, action=:stroke)
-
 sethue(julia_blue)
 path(t1, action=:stroke)
 setdash(:solid)
 path(l1, action=:stroke)
-
-
 sethue(julia_green)
 path(l2, action=:stroke)
 setdash(:dash)
 path(t2, action=:stroke)
 setdash(:solid)
-
 path(P)
 setpoint(julia_red)
-
 end)

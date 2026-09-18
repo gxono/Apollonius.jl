@@ -45,6 +45,7 @@ the ellipse through a known point `p` instead of a known `a`, computing
 area(e)        # π·a·b
 perimeter(e)   # Ramanujan's 2nd approximation (exact when a == b)
 foci(e)        # the two focus points, as a 2-tuple
+vertices(e)    # the two endpoints of the major axis, as a 2-tuple
 ```
 
 ```@example geo
@@ -75,6 +76,7 @@ alternative.
 
 ```@example geo
 vertex(par)            # midpoint of focus and its foot on the directrix
+vertices(par)          # (vertex(par),): a 1-tuple, so vertices() works uniformly across every conic
 focal_parameter(par)   # distance(focus, directrix), often called p
 ```
 
@@ -119,6 +121,7 @@ opposite inequality from the ellipse, since here `c > a`).
 ```@example geo
 foci(h)         # the two foci, at distance sqrt(a²+b²) from the center
 asymptotes(h)   # the two asymptote lines, through the center
+vertices(h)     # the two points where each branch meets the transverse axis, at distance a from the center
 ```
 
 [`orthoptic`](@ref) (the director circle) exists for a hyperbola only when

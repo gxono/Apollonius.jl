@@ -1,12 +1,8 @@
 include("../default_config.jl")
-
-
-
 sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
     circ = APCircle2(APPoint(0.0, 0.0), 30.0)
     p1, p2 = APPoint(30.0, 0.0), APPoint(0.0, 30.0)
     arc = APCircularArc2(circ, p1, p2)
-
     c1 = APCircle2(APPoint(0.0, 0.0), 40.0)
     c2 = APCircle2(APPoint(90.0, 0.0), 50.0)
     c3_center = intersection(APCircle2(c1.center, c1.r + 35.0), APCircle2(c2.center, c2.r + 35.0))[1]
@@ -14,34 +10,21 @@ sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
     tinv = invert(APTriangle(APPoint(50.0, 20.0), APPoint(90.0, 30.0), APPoint(60.0, 80.0)), APPoint(0.0, 0.0), k = 100)
     gap = interstices(c1, c2, c3)
 end
-
-
-
 @svg_doc(sz, @__FILE__, begin
-
 sethue("steelblue"); setopacity(0.4)
 path(APCircularSector2(arc); action=:fill)
 path(APCircularSegment2(arc); action=:fill)
-
 setopacity(1)
-
 sethue(julia_blue)
 path(circ, action=:stroke)
-
 sethue(julia_green)
 path(arc, action=:stroke)
-
 path([c1, c2, c3], action=:stroke)
-
 sethue("red"); setopacity(0.5)
 path(gap; action=:fill)
-
-
 sethue("purple"); setopacity(0.5)
 path(tinv, action=:fill)
-
 setopacity(1)
 path([p1 p2])
 setpoint(julia_green)
-
 end)

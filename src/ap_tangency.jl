@@ -1,7 +1,3 @@
-# -------------------------------------------------------------------------
-# Tangency and Apollonius-problem constructions on APPoint/APLine/APCircle2.
-# -------------------------------------------------------------------------
-
 """
     tangent_length(c::APCircle2, p::APPoint)
 
@@ -9,7 +5,6 @@ Length of the tangent segment from `p` to `c` (`0` if `p` is inside `c`).
 """
 tangent_length(c::APCircle2, p::APPoint) = sqrt(max(distance(c.center, p)^2 - c.r^2, 0.0))
 tangent_length(p::APPoint, c::APCircle2) = tangent_length(c, p)
-
 """
     tangent_points(c::APCircle2, p::APPoint; atol=1e-9)
 
@@ -21,10 +16,8 @@ function tangent_points(c::APCircle2, p::APPoint; atol=1e-9)
     d = distance(c.center, p)
     r = c.r
     tol = sqrt(atol) * max(r, norm(c.center), 1.0)
-
     d < r - tol && return APPoint{2,Float64}[]
     abs(d - r) <= tol && return [APPoint(p[1], p[2])]
-
     u = (p - c.center) / d
     base = c.center + r * u
     alpha = acos(clamp(r / d, -1.0, 1.0))
@@ -32,7 +25,6 @@ function tangent_points(c::APCircle2, p::APPoint; atol=1e-9)
         APPoint(rotate(base, -alpha, c.center)[1], rotate(base, -alpha, c.center)[2])]
 end
 tangent_points(p::APPoint, c::APCircle2; atol=1e-9) = tangent_points(c, p; atol=atol)
-
 """
     tangent_lines(c::APCircle2, p::APPoint; atol=1e-9)
 
@@ -46,7 +38,6 @@ function tangent_lines(c::APCircle2, p::APPoint; atol=1e-9)
     return [APLine(p, t) for t in tps]
 end
 tangent_lines(p::APPoint, c::APCircle2; atol=1e-9) = tangent_lines(c, p; atol=atol)
-
 """
     tangent_parallel(c::APCircle2, l::APLine)
 
@@ -59,7 +50,6 @@ function tangent_parallel(c::APCircle2, l::APLine)
     tangent_at(p) = perpendicular_through(APLine(c.center, p), p)
     return (tangent_at(p1), tangent_at(p2))
 end
-
 """
     external_similitude_center(c1::APCircle2, c2::APCircle2; atol=1e-9)
 
@@ -75,7 +65,6 @@ function external_similitude_center(c1::APCircle2, c2::APCircle2; atol=1e-9)
         throw(ArgumentError("external_similitude_center: c1 and c2 have equal radii (no finite external center)"))
     return c1.center - (c1.r / (c2.r - c1.r)) * (c2.center - c1.center)
 end
-
 """
     internal_similitude_center(c1::APCircle2, c2::APCircle2; atol=1e-9)
 
@@ -88,7 +77,6 @@ function internal_similitude_center(c1::APCircle2, c2::APCircle2; atol=1e-9)
     s <= atol && throw(ArgumentError("internal_similitude_center: c1 and c2 have zero total radius"))
     return c1.center + (c1.r / s) * (c2.center - c1.center)
 end
-
 """
     external_tangent_lines(c1::APCircle2, c2::APCircle2; atol=1e-9)
 
@@ -106,17 +94,10 @@ function external_tangent_lines(c1::APCircle2, c2::APCircle2; atol=1e-9)
         return [APLine(c1.center + c1.r * n, c2.center + c1.r * n),
             APLine(c1.center - c1.r * n, c2.center - c1.r * n)]
     end
-
-    # The external similitude center is the fixed point of the homothety
-    # (ratio c2.r/c1.r) that sends c1 onto c2, so it maps each tangent
-    # point on c1 to the matching tangent point on the *same* common
-    # tangent line, on c2 -- giving both endpoints on their own circle
-    # instead of one of them being the (off-circle) similitude center.
     center_e = external_similitude_center(c1, c2; atol=atol)
     k = c2.r / c1.r
     return [APLine(t, homothety(t, k, center_e)) for t in tangent_points(c1, center_e; atol=atol)]
 end
-
 """
     internal_tangent_lines(c1::APCircle2, c2::APCircle2; atol=1e-9)
 
@@ -132,12 +113,6 @@ function internal_tangent_lines(c1::APCircle2, c2::APCircle2; atol=1e-9)
     k = -c2.r / c1.r
     return [APLine(t, homothety(t, k, center_i)) for t in tangent_points(c1, center_i; atol=atol)]
 end
-
-# -------------------------------------------------------------------------
-# Circles of a *given* radius tangent to two lines / a line and a circle /
-# two circles.
-# -------------------------------------------------------------------------
-
 """
     offset_line(l::APLine, d::Real)
 
@@ -148,12 +123,10 @@ function offset_line(l::APLine, d::Real)
     n = orthogonal(direction(l) / norm(direction(l)))
     return APLine(l.p1 + d * n, l.p2 + d * n)
 end
-
 function _circles_coincide(a::APCircle2, b::APCircle2; atol=1e-9)
     tol = sqrt(atol) * max(norm(a.center), norm(b.center), a.r, b.r, 1.0)
     distance(a.center, b.center) <= tol && abs(a.r - b.r) <= tol
 end
-
 function _dedupe_circles(cs::Vector{APCircle2{Float64}}; atol=1e-9)
     out = APCircle2{Float64}[]
     for c in cs
@@ -161,15 +134,8 @@ function _dedupe_circles(cs::Vector{APCircle2{Float64}}; atol=1e-9)
     end
     return out
 end
-
-# Drop solutions that coincide with one of the given circles: a circle is
-# technically (degenerately) "tangent" to itself under `_tangent_ok`'s
-# formula, so highly symmetric inputs (e.g. three mutually tangent circles)
-# can otherwise return one of the given circles back as a spurious solution.
-# Untyped — works via `_circles_coincide`, overloaded per circle type above.
 _exclude_given(sols, given...; atol=1e-9) =
     filter(s -> !any(g -> _circles_coincide(s, g; atol=atol), given), sols)
-
 """
     tangent_circles_with_radius(l1::APLine, l2::APLine, r::Real; atol=1e-9)
     tangent_circles_with_radius(l::APLine, c::APCircle2, r::Real; atol=1e-9)
@@ -192,7 +158,6 @@ function tangent_circles_with_radius(l1::APLine, l2::APLine, r::Real; atol=1e-9)
     end
     return _dedupe_circles(results; atol=atol)
 end
-
 function tangent_circles_with_radius(l::APLine, c::APCircle2, r::Real; atol=1e-9)
     results = APCircle2{Float64}[]
     for s in (1, -1), R in (c.r + r, abs(c.r - r))
@@ -206,7 +171,29 @@ function tangent_circles_with_radius(l::APLine, c::APCircle2, r::Real; atol=1e-9
     return _dedupe_circles(results; atol=atol)
 end
 tangent_circles_with_radius(c::APCircle2, l::APLine, r::Real; atol=1e-9) = tangent_circles_with_radius(l, c, r; atol=atol)
+"""
+    tangent_circles_with_center(center::APPoint, l::APLine)
+    tangent_circles_with_center(center::APPoint, c::APCircle2; atol=1e-9)
 
+The circle(s) centered at `center`, tangent to `l`/`c`. Always exactly one
+solution for a line (`r = distance(center, l)`, the perpendicular
+distance); up to two for a circle (external tangency, `r = d + c.r`, and
+internal tangency, `r = |d - c.r|`, where `d = distance(center,
+c.center)`) -- collapsing to one when `center` sits exactly on `c`, and
+none at all when `center` coincides with `c`'s own center (every circle
+there is concentric with `c`, never tangent to it). Returns a
+`Vector{APCircle2{Float64}}`, matching the rest of this tangent-circle
+family.
+"""
+tangent_circles_with_center(center::APPoint, l::APLine) = [APCircle2(center, distance(center, l))]
+function tangent_circles_with_center(center::APPoint, c::APCircle2; atol=1e-9)
+    d = distance(center, c.center)
+    d <= atol * max(c.r, 1.0) && return APCircle2{Float64}[]
+    r_big = d + c.r
+    r_small = abs(d - c.r)
+    r_small <= atol * max(c.r, 1.0) && return [APCircle2(center, Float64(r_big))]
+    return [APCircle2(center, Float64(r_small)), APCircle2(center, Float64(r_big))]
+end
 function tangent_circles_with_radius(c1::APCircle2, c2::APCircle2, r::Real; atol=1e-9)
     results = APCircle2{Float64}[]
     for R1 in (c1.r + r, abs(c1.r - r)), R2 in (c2.r + r, abs(c2.r - r))

@@ -1,21 +1,3 @@
-# -------------------------------------------------------------------------
-# APEquipollentVector (<: APCurve{Dim,T}): a free APVector applied at a
-# specific APPoint -- the classical "vector equipolente" (a representative
-# of a free vector, tied to a point of application). A bare APVector is
-# deliberately positionless, so APBoundingBox(::APVector) is empty and it
-# never contributes to @to_luxor_picture's fit-to-canvas *sizing*, and it
-# can't be shifted into position either (nowhere to shift it *to*) -- but
-# it CAN be scaled/flipped to the picture's own scale (see its own
-# `homothety` method and `_place_in_picture`'s comment), which composes
-# correctly with a separately-placed anchor APPoint. APEquipollentVector
-# is still the more robust choice for anything meant to be drawn/reasoned
-# about as one piece: it has a real APBoundingBox of its own (so it
-# contributes to the picture's sizing even if it's the only thing in the
-# block), and transforms fully as a single object via translate/rotate/
-# homothety/reflection, without needing a second, separately-tracked
-# anchor point alongside it.
-# -------------------------------------------------------------------------
-
 """
     APEquipollentVector(vector::APVector, point::APPoint)
 
@@ -38,19 +20,16 @@ function APEquipollentVector(vector::APVector, p::APPoint)
     T = promote_type(eltype(p), eltype(vector))
     return APEquipollentVector{length(p),T}(convert(APVector{length(p),T}, vector), convert(APPoint{length(p),T}, p))
 end
-
 """
     APEquipollentVector(vector::APVector)
 
 `vector`, applied at the origin.
 """
 APEquipollentVector(vector::APVector{Dim,T}) where {Dim,T} = APEquipollentVector(vector, APPoint(ntuple(_ -> zero(T), Dim)))
-
 Base.:(==)(x::APEquipollentVector, y::APEquipollentVector) = x.vector == y.vector && x.point == y.point
 Base.isapprox(x::APEquipollentVector, y::APEquipollentVector; kwargs...) =
     isapprox(x.vector, y.vector; kwargs...) && isapprox(x.point, y.point; kwargs...)
 Base.show(io::IO, ev::APEquipollentVector) = print(io, "APEquipollentVector(", ev.vector, ", ", ev.point, ")")
-
 """
     tip(ev::APEquipollentVector)
 
@@ -58,9 +37,7 @@ Base.show(io::IO, ev::APEquipollentVector) = print(io, "APEquipollentVector(", e
 duplicating information already fully determined by `point`/`vector`.
 """
 tip(ev::APEquipollentVector) = ev.point + ev.vector
-
 direction(ev::APEquipollentVector) = ev.vector
-
 """
     APVector(ev::APEquipollentVector)
 
@@ -69,7 +46,6 @@ discarding `ev.point`) — the same "convert back to the simpler type"
 convention as [`APVector(::APPoint)`](@ref).
 """
 APVector(ev::APEquipollentVector) = ev.vector
-
 """
     norm(ev::APEquipollentVector)
     normalize(ev::APEquipollentVector)
@@ -88,9 +64,7 @@ LinearAlgebra.normalize(ev::APEquipollentVector) = APEquipollentVector(normalize
 LinearAlgebra.dot(ev::APEquipollentVector, w::APVector) = dot(ev.vector, w)
 LinearAlgebra.dot(w::APVector, ev::APEquipollentVector) = dot(w, ev.vector)
 LinearAlgebra.dot(x::APEquipollentVector, y::APEquipollentVector) = dot(x.vector, y.vector)
-
 APBoundingBox(ev::APEquipollentVector) = APBoundingBox([ev.point, tip(ev)])
-
 """
     ev::APEquipollentVector + w::APVector
 
@@ -105,7 +79,6 @@ translate them to, so it's deliberately not defined).
 Base.:+(ev::APEquipollentVector, w::APVector) = APEquipollentVector(ev.vector + w, ev.point)
 Base.:+(w::APVector, ev::APEquipollentVector) = ev + w
 Base.:-(ev::APEquipollentVector, w::APVector) = APEquipollentVector(ev.vector - w, ev.point)
-
 """
     p::APPoint + ev::APEquipollentVector
 
@@ -117,9 +90,7 @@ unwrap `ev` by hand first.
 """
 Base.:+(p::APPoint, ev::APEquipollentVector) = p + ev.vector
 Base.:+(ev::APEquipollentVector, p::APPoint) = p + ev
-
 translate(ev::APEquipollentVector, w::APVector) = APEquipollentVector(ev.vector, translate(ev.point, w))
-
 """
     translate(obj::APObject, ev::APEquipollentVector)
 
@@ -130,12 +101,10 @@ where `ev` happens to be anchored. Lets any of the package's existing
 directly, without unwrapping it by hand first.
 """
 translate(obj::APObject, ev::APEquipollentVector) = translate(obj, ev.vector)
-
 rotate(ev::APEquipollentVector{2}, angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     APEquipollentVector(rotate(ev.vector, angle), rotate(ev.point, angle, center))
 rotate(ev::APEquipollentVector{3}, angle::Real, axis::APLine{3}) =
     APEquipollentVector(rotate(ev.vector, angle, axis), rotate(ev.point, angle, axis))
-
 """
     homothety(ev::APEquipollentVector, k::Real, center::APPoint=APPoint(0.0,0.0))
 
@@ -149,5 +118,4 @@ homothety(ev::APEquipollentVector{2}, k::Real, center::APPoint{2}=APPoint(0.0, 0
     APEquipollentVector(k * ev.vector, homothety(ev.point, k, center))
 homothety(ev::APEquipollentVector{3}, k::Real, center::APPoint{3}=APPoint(0.0, 0.0, 0.0)) =
     APEquipollentVector(k * ev.vector, homothety(ev.point, k, center))
-
 reflection(ev::APEquipollentVector, about) = APEquipollentVector(reflection(ev.vector, about), reflection(ev.point, about))

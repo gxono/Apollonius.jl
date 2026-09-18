@@ -1,11 +1,4 @@
 include("../default_config.jl")
-
-
-
-
-
-
-
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
     c2 = APCircle2(APPoint(8.0, 0.0), 2.0)
@@ -14,22 +7,13 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     ext = external_tangent_lines(c1, c2)
     int = internal_tangent_lines(c1, c2)
 end
-
-
-
-
 @svg_doc(sz, @__FILE__, begin
-
 sethue(julia_purple)
 path([ext..., int...], action=:stroke)
-
 sethue(julia_blue)
 path([c1,c2], action=:stroke)
-
 path([c1.center, c2.center])
 setpoint(julia_red)
-
 path([ec, ic])
 setpoint(julia_purple)
-
 end)

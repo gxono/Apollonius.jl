@@ -1,8 +1,3 @@
-# -------------------------------------------------------------------------
-# Derived-line/point constructions on APPoint/APLine: parallels,
-# perpendiculars, bisectors, the golden ratio point, apollonius_circle, etc.
-# -------------------------------------------------------------------------
-
 """
     polar_point(r, angle, center::APPoint)
 
@@ -17,7 +12,6 @@ default would collide with it): pass `center` explicitly.
 polar_point(r::Real, angle::Real, center::APPoint{2}) =
     center + APVector(r * cos(angle), r * sin(angle))
 polar_point(r::Real, angle::Real) = polar_point(r, angle, APPoint(0.0,0.0))
-
 """
     polar_point_deg(r, angle, center::APPoint)
 
@@ -26,7 +20,6 @@ Like [`polar_point`](@ref), but `angle` is given in degrees.
 polar_point_deg(r::Real, angle::Real, center::APPoint{2}) =
     polar_point(r, deg2rad(angle), center)
 polar_point_deg(r::Real, angle::Real) = polar_point_deg(r, angle, APPoint(0.0,0.0))
-
 """
     barycenter(points, weights)
 
@@ -44,21 +37,18 @@ function barycenter(points::Union{AbstractVector{<:APPoint},NTuple{N,<:APPoint} 
     p0 = first(points)
     return p0 + sum(w * (p - p0) for (w, p) in zip(weights, points)) / W
 end
-
 """
     parallel_through(l::APLine, p::APPoint)
 
 The line through `p` parallel to `l`.
 """
 parallel_through(l::APLine, p::APPoint) = APLine(p, p + direction(l))
-
 """
     perpendicular_through(l::APLine, p::APPoint)
 
 The line through `p` perpendicular to `l`.
 """
 perpendicular_through(l::APLine, p::APPoint) = APLine(p, p + orthogonal(direction(l)))
-
 """
     perpendicular_bisector(a::APPoint, b::APPoint)
     perpendicular_bisector(s::APSegment)
@@ -67,7 +57,6 @@ The perpendicular bisector (mediatrix) of segment `[a, b]`.
 """
 perpendicular_bisector(a::APPoint, b::APPoint) = perpendicular_through(APLine(a, b), midpoint(a, b))
 perpendicular_bisector(s::APSegment) = perpendicular_bisector(s[1], s[2])
-
 """
     angle_bisectors(l1::APLine, l2::APLine; atol=1e-9)
 
@@ -87,7 +76,6 @@ function angle_bisectors(l1::APLine, l2::APLine; atol=1e-9)
     u2 = direction(l2) / norm(direction(l2))
     return [APLine(x, x + (u1 + u2)), APLine(x, x + (u1 - u2))]
 end
-
 """
     angle_trisectors(vertex::APPoint, p1::APPoint, p2::APPoint)
 
@@ -102,7 +90,6 @@ function angle_trisectors(vertex::APPoint, p1::APPoint, p2::APPoint)
     θ = angle_between(p1 - vertex, p2 - vertex)
     return (APRay(vertex, rotate(p1, θ / 3, vertex)), APRay(vertex, rotate(p1, 2θ / 3, vertex)))
 end
-
 """
     angle_bisectors(ang::APAngle2)
 
@@ -113,7 +100,6 @@ function angle_bisectors(ang::APAngle2)
     bis = rotate(ang.a, measure(ang) / 2, ang.vertex)
     return (APAngle2(ang.vertex, ang.a, bis), APAngle2(ang.vertex, bis, ang.b))
 end
-
 """
     angle_trisectors(ang::APAngle2)
 
@@ -127,7 +113,6 @@ function angle_trisectors(ang::APAngle2)
     r2 = rotate(ang.a, 2θ / 3, ang.vertex)
     return (APAngle2(ang.vertex, ang.a, r1), APAngle2(ang.vertex, r1, r2), APAngle2(ang.vertex, r2, ang.b))
 end
-
 """
     golden_ratio_point(a::APPoint, b::APPoint)
     golden_ratio_point(l::APLine)
@@ -137,7 +122,6 @@ ratio from `a`, i.e. `a + (b - a) / φ`.
 """
 golden_ratio_point(a::APPoint, b::APPoint) = a + (b - a) / golden
 golden_ratio_point(l::APLine) = golden_ratio_point(l.p1, l.p2)
-
 """
     harmonic_conjugate(a::APPoint, b::APPoint, p::APPoint; atol=1e-9)
     harmonic_conjugate(l::APLine, p::APPoint; atol=1e-9)
@@ -156,7 +140,6 @@ function harmonic_conjugate(a::APPoint, b::APPoint, p::APPoint; atol=1e-9)
     return a + (t / denom) * d
 end
 harmonic_conjugate(l::APLine, p::APPoint; atol=1e-9) = harmonic_conjugate(l.p1, l.p2, p; atol=atol)
-
 """
     apollonius_circle(a::APPoint, b::APPoint, k::Real; atol=1e-9)
 

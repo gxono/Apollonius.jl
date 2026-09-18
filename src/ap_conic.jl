@@ -1,16 +1,3 @@
-# -------------------------------------------------------------------------
-# APCircle2, APEllipse2, APParabola2, APHyperbola2 (<: APConic2), and
-# APCircularArc2, APEllipticArc2, APParabolicArc2, APHyperbolicArc2
-# (<: APConicArc2).
-#
-# `intersection(::APLine, _)`, `polar_line`, `tangent_points`,
-# `tangent_lines`, and everything Circle-specific about tangency/Apollonius
-# problems/inversion/radical axes live in the later-included
-# ap_intersections.jl/ap_tangency.jl/ap_apollonius.jl/ap_radical_axis.jl/
-# ap_inversion.jl instead, since those need machinery (quadratic-solving,
-# tangency helpers) defined there.
-# -------------------------------------------------------------------------
-
 """
     APConic2{T} <: APCurve{2,T}
 
@@ -22,7 +9,6 @@ different (simpler, one-parameter) struct rather than an `APEllipse2`
 with equal axes.
 """
 abstract type APConic2{T} <: APCurve{2,T} end
-
 """
     APConicArc2{T} <: APCurve{2,T}
 
@@ -36,7 +22,6 @@ curves (parabola, a single hyperbola branch) have no such ambiguity, so
 their `reflection` never swaps.
 """
 abstract type APConicArc2{T} <: APCurve{2,T} end
-
 _to_local_frame(p::APPoint, origin::APPoint, u::APVector, w::APVector) = (dot(p - origin, u), dot(p - origin, w))
 function _to_local_frame(p::APPoint, origin::APPoint, angle::Real)
     c, s = cos(angle), sin(angle)
@@ -47,12 +32,6 @@ function _from_local_frame(x::Real, y::Real, origin::APPoint, angle::Real)
     c, s = cos(angle), sin(angle)
     return _from_local_frame(x, y, origin, APVector(c, s), APVector(-s, c))
 end
-
-# Composite Simpson's rule, used for `arc_length` on the three conic-arc
-# types with no elementary closed form for arc length (unlike
-# `APCircularArc2`): the integrand (parametrization speed) is smooth and
-# non-singular on a bounded arc, so a fixed, moderately fine rule already
-# converges to machine precision — no adaptivity needed.
 function _simpson_integrate(f, t0::Real, t1::Real; n::Int=128)
     n = isodd(n) ? n + 1 : n
     h = (t1 - t0) / n
@@ -62,9 +41,6 @@ function _simpson_integrate(f, t0::Real, t1::Real; n::Int=128)
     end
     return total * h / 3
 end
-
-# --- APCircle2 --------------------------------------------------------------
-
 """
     APCircle2(center, r)
 """
@@ -73,7 +49,6 @@ struct APCircle2{T<:Real} <: APConic2{T}
     r::T
 end
 APCircle2(center::APPoint{2,T1}, r::T2) where {T1,T2<:Real} = APCircle2{promote_type(T1, T2)}(center, promote_type(T1, T2)(r))
-
 """
     APCircle2(center::APPoint, through::APPoint)
 
@@ -83,7 +58,6 @@ circle is more natural to give than the radius itself.
 """
 APCircle2(center::APPoint, through::APPoint) =
     APCircle2(center, distance(center, through))
-
 """
     APCircle2(p1::APPoint, p2::APPoint, p3::APPoint; atol=1e-9)
 
@@ -106,7 +80,6 @@ function APCircle2(p1::APPoint, p2::APPoint, p3::APPoint; atol=1e-9)
     center = APPoint(ux, uy)
     return APCircle2(center, distance(center, p1))
 end
-
 Base.:(==)(a::APCircle2, b::APCircle2) = a.center == b.center && a.r == b.r
 Base.convert(::Type{APCircle2{T}}, c::APCircle2) where {T} = APCircle2{T}(c.center, T(c.r))
 Base.isapprox(a::APCircle2, b::APCircle2; kwargs...) = isapprox(a.center, b.center; kwargs...) && isapprox(a.r, b.r; kwargs...)
@@ -114,12 +87,10 @@ Base.show(io::IO, c::APCircle2) = print(io, "APCircle2(", c.center, ", ", c.r, "
 Base.in(p::APPoint, c::APCircle2) = distance(p, c.center) <= c.r
 area(c::APCircle2) = pi * c.r^2
 perimeter(c::APCircle2) = 2 * pi * c.r
-
 rotate(c::APCircle2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) = APCircle2(rotate(c.center, angle, center), c.r)
 homothety(c::APCircle2, k::Real, center::APPoint=APPoint(0.0, 0.0)) = APCircle2(homothety(c.center, k, center), abs(k) * c.r)
 reflection(c::APCircle2, about) = APCircle2(reflection(c.center, about), c.r)
 translate(c::APCircle2, v::APVector) = APCircle2(translate(c.center, v), c.r)
-
 """
     distance(p::APPoint, c::APCircle2)
 
@@ -128,7 +99,6 @@ to the filled disk `Base.in` tests membership of).
 """
 distance(p::APPoint, c::APCircle2) = abs(distance(p, c.center) - c.r)
 distance(c::APCircle2, p::APPoint) = distance(p, c)
-
 """
     distance(c::APCircle2, l::APLine)
 
@@ -136,7 +106,6 @@ distance(c::APCircle2, p::APPoint) = distance(p, c)
 """
 distance(c::APCircle2, l::APLine) = max(distance(c.center, l) - c.r, 0.0)
 distance(l::APLine, c::APCircle2) = distance(c, l)
-
 """
     distance(c1::APCircle2, c2::APCircle2)
 
@@ -151,11 +120,7 @@ function distance(c1::APCircle2, c2::APCircle2)
     d = distance(c1.center, c2.center)
     return max(d - c1.r - c2.r, abs(c1.r - c2.r) - d, 0.0)
 end
-
 APBoundingBox(c::APCircle2) = APBoundingBox(c.center - APVector(c.r, c.r), c.center + APVector(c.r, c.r))
-
-# --- APEllipse2 --------------------------------------------------------------
-
 """
     APEllipse2(center, a, b, angle=0.0)
     APEllipse2(f1::APPoint, f2::APPoint, a::Real)
@@ -180,27 +145,22 @@ end
 function APEllipse2(f1::APPoint, f2::APPoint, p::APPoint)
     return APEllipse2(f1, f2, (distance(p, f1) + distance(p, f2)) / 2)
 end
-
 Base.:(==)(x::APEllipse2, y::APEllipse2) = x.center == y.center && x.a == y.a && x.b == y.b && x.angle == y.angle
 Base.convert(::Type{APEllipse2{T}}, e::APEllipse2) where {T} = APEllipse2{T}(e.center, T(e.a), T(e.b), T(e.angle))
 Base.isapprox(x::APEllipse2, y::APEllipse2; kwargs...) =
     isapprox(x.center, y.center; kwargs...) && isapprox(x.a, y.a; kwargs...) &&
     isapprox(x.b, y.b; kwargs...) && isapprox(x.angle, y.angle; kwargs...)
 Base.show(io::IO, e::APEllipse2) = print(io, "APEllipse2(center=", e.center, ", a=", e.a, ", b=", e.b, ", angle=", e.angle, ")")
-
 _to_ellipse_local(p::APPoint, e::APEllipse2) = _to_local_frame(p, e.center, e.angle)
 _from_ellipse_local(x, y, e::APEllipse2) = _from_local_frame(x, y, e.center, e.angle)
-
 Base.in(p::APPoint, e::APEllipse2) = begin
     lx, ly = _to_ellipse_local(p, e)
     (lx / e.a)^2 + (ly / e.b)^2 <= 1
 end
-
 """
     point_on_ellipse(e::APEllipse2, t::Real)
 """
 point_on_ellipse(e::APEllipse2, t::Real) = _from_ellipse_local(e.a * cos(t), e.b * sin(t), e)
-
 """
     is_on_ellipse(p::APPoint, e::APEllipse2; atol=1e-9)
 """
@@ -208,14 +168,12 @@ function is_on_ellipse(p::APPoint, e::APEllipse2; atol=1e-9)
     lx, ly = _to_ellipse_local(p, e)
     return abs((lx / e.a)^2 + (ly / e.b)^2 - 1) <= atol
 end
-
 area(e::APEllipse2) = pi * e.a * e.b
 function perimeter(e::APEllipse2)
     a, b = e.a, e.b
     h = ((a - b) / (a + b))^2
     return pi * (a + b) * (1 + 3h / (10 + sqrt(4 - 3h)))
 end
-
 """
     orthoptic(e::APEllipse2)
 
@@ -224,7 +182,6 @@ two tangent lines to `e` are perpendicular. Always a real circle, of
 radius `sqrt(a^2 + b^2)` centered at `e.center`.
 """
 orthoptic(e::APEllipse2) = APCircle2(e.center, sqrt(e.a^2 + e.b^2))
-
 """
     foci(e::APEllipse2)
 
@@ -235,7 +192,16 @@ function foci(e::APEllipse2)
     dir = e.a >= e.b ? APVector(cos(e.angle), sin(e.angle)) : APVector(-sin(e.angle), cos(e.angle))
     return (e.center + c * dir, e.center - c * dir)
 end
+"""
+    vertices(e::APEllipse2)
 
+The two vertices of `e`: the endpoints of its major axis, as a 2-tuple.
+"""
+function vertices(e::APEllipse2)
+    r = max(e.a, e.b)
+    dir = e.a >= e.b ? APVector(cos(e.angle), sin(e.angle)) : APVector(-sin(e.angle), cos(e.angle))
+    return (e.center + r * dir, e.center - r * dir)
+end
 """
     APBoundingBox(e::APEllipse2)
 
@@ -249,7 +215,6 @@ function APBoundingBox(e::APEllipse2)
     dy = sqrt((e.a * s)^2 + (e.b * c)^2)
     return APBoundingBox(e.center - APVector(dx, dy), e.center + APVector(dx, dy))
 end
-
 rotate(e::APEllipse2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APEllipse2(rotate(e.center, angle, center), e.a, e.b, e.angle + angle)
 homothety(e::APEllipse2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
@@ -260,12 +225,6 @@ function reflection(e::APEllipse2, about::APLine)
     return APEllipse2(reflection(e.center, about), e.a, e.b, 2 * φ - e.angle)
 end
 translate(e::APEllipse2, v::APVector) = APEllipse2(translate(e.center, v), e.a, e.b, e.angle)
-
-# A single Newton run, from starting angle t0, towards a critical point of
-# D(t)^2 = (a*cos(t)-lx)^2 + (b*sin(t)-ly)^2 — i.e. a root of
-# g(t) = sin(t)cos(t)(b^2-a^2) + a*lx*sin(t) - b*ly*cos(t), the
-# stationarity condition (no closed form exists for the closest point on
-# an ellipse, unlike every other conic formula in this package).
 function _newton_ellipse_t(t0::Real, lx::Real, ly::Real, a::Real, b::Real; atol=1e-12, maxiter=100)
     t = t0
     for _ in 1:maxiter
@@ -279,15 +238,6 @@ function _newton_ellipse_t(t0::Real, lx::Real, ly::Real, a::Real, b::Real; atol=
     end
     return t
 end
-
-# The parameter t (in point_on_ellipse's own convention) of the closest
-# point on the FULL ellipse to a point given in the ellipse's local
-# (lx, ly) coordinates. g (see `_newton_ellipse_t`) has up to 4 roots (the
-# ellipse's 4 axis-aligned critical points, for a point near the center)
-# and Newton from a single start can converge to the wrong one (a local
-# max, or the farther of two local minima) — so this tries several
-# evenly-spread starting angles and keeps whichever converged root gives
-# the smallest actual distance, rather than trusting the first one found.
 function _closest_ellipse_local_param(lx::Real, ly::Real, a::Real, b::Real; atol=1e-12, maxiter=100)
     best_t, best_d2 = 0.0, Inf
     for t0 in (atan(ly / b, lx / a), 0.0, pi / 4, pi / 2, 3pi / 4, pi, 5pi / 4, 3pi / 2, 7pi / 4)
@@ -301,16 +251,6 @@ function _closest_ellipse_local_param(lx::Real, ly::Real, a::Real, b::Real; atol
     end
     return best_t
 end
-
-# The smallest distance from (lx,ly) to the point of the FULL ellipse
-# whose own parameter lands within [t1, t1+m] (m = the arc's own
-# `measure`), or `Inf` if no critical point does — used by
-# `distance(::APPoint, ::APEllipticArc2)`. Restricting an unconstrained
-# closest-point search to an arc isn't just "check whether the global
-# minimum happens to land in range": the *restricted* problem can have its
-# own local minimum, elsewhere in the range, that the global search never
-# needed to find — so this seeds Newton with starting angles spread across
-# the arc's own range instead of fixed absolute angles.
 function _closest_ellipse_local_param_in_range(lx::Real, ly::Real, a::Real, b::Real, t1::Real, m::Real; atol=1e-12, maxiter=100)
     best_d2 = Inf
     nstarts = max(8, ceil(Int, m / (pi / 6)))
@@ -324,7 +264,6 @@ function _closest_ellipse_local_param_in_range(lx::Real, ly::Real, a::Real, b::R
     end
     return sqrt(best_d2)
 end
-
 """
     distance(p::APPoint, e::APEllipse2)
 
@@ -342,9 +281,6 @@ function distance(p::APPoint, e::APEllipse2)
     return sqrt((lx - cx)^2 + (ly - cy)^2)
 end
 distance(e::APEllipse2, p::APPoint) = distance(p, e)
-
-# --- APHyperbola2 ------------------------------------------------------------
-
 """
     APHyperbola2(center, a, b, angle=0.0)
     APHyperbola2(f1::APPoint, f2::APPoint, a::Real)
@@ -369,22 +305,18 @@ end
 function APHyperbola2(f1::APPoint, f2::APPoint, p::APPoint)
     return APHyperbola2(f1, f2, abs(distance(p, f1) - distance(p, f2)) / 2)
 end
-
 Base.:(==)(x::APHyperbola2, y::APHyperbola2) = x.center == y.center && x.a == y.a && x.b == y.b && x.angle == y.angle
 Base.convert(::Type{APHyperbola2{T}}, h::APHyperbola2) where {T} = APHyperbola2{T}(h.center, T(h.a), T(h.b), T(h.angle))
 Base.isapprox(x::APHyperbola2, y::APHyperbola2; kwargs...) =
     isapprox(x.center, y.center; kwargs...) && isapprox(x.a, y.a; kwargs...) &&
     isapprox(x.b, y.b; kwargs...) && isapprox(x.angle, y.angle; kwargs...)
 Base.show(io::IO, h::APHyperbola2) = print(io, "APHyperbola2(center=", h.center, ", a=", h.a, ", b=", h.b, ", angle=", h.angle, ")")
-
 _to_hyperbola_local(p::APPoint, h::APHyperbola2) = _to_local_frame(p, h.center, h.angle)
 _from_hyperbola_local(x, y, h::APHyperbola2) = _from_local_frame(x, y, h.center, h.angle)
-
 Base.in(p::APPoint, h::APHyperbola2) = begin
     lx, ly = _to_hyperbola_local(p, h)
     (lx / h.a)^2 - (ly / h.b)^2 >= 1
 end
-
 """
     point_on_hyperbola(h::APHyperbola2, t::Real; branch::Int=1)
 """
@@ -392,7 +324,6 @@ function point_on_hyperbola(h::APHyperbola2, t::Real; branch::Int=1)
     x, y = branch * h.a * cosh(t), h.b * sinh(t)
     return _from_hyperbola_local(x, y, h)
 end
-
 """
     is_on_hyperbola(p::APPoint, h::APHyperbola2; atol=1e-9)
 """
@@ -400,7 +331,6 @@ function is_on_hyperbola(p::APPoint, h::APHyperbola2; atol=1e-9)
     lx, ly = _to_hyperbola_local(p, h)
     return abs((lx / h.a)^2 - (ly / h.b)^2 - 1) <= atol
 end
-
 """
     foci(h::APHyperbola2)
 
@@ -411,7 +341,16 @@ function foci(h::APHyperbola2)
     dir = APVector(cos(h.angle), sin(h.angle))
     return (h.center + c * dir, h.center - c * dir)
 end
+"""
+    vertices(h::APHyperbola2)
 
+The two vertices of `h`: the points where each branch meets its own
+transverse axis, as a 2-tuple.
+"""
+function vertices(h::APHyperbola2)
+    dir = APVector(cos(h.angle), sin(h.angle))
+    return (h.center + h.a * dir, h.center - h.a * dir)
+end
 """
     orthoptic(h::APHyperbola2)
 
@@ -424,7 +363,6 @@ function orthoptic(h::APHyperbola2)
     h.a <= h.b && throw(ArgumentError("orthoptic: no real orthoptic circle exists when a <= b"))
     return APCircle2(h.center, sqrt(h.a^2 - h.b^2))
 end
-
 """
     asymptotes(h::APHyperbola2)
 
@@ -435,7 +373,6 @@ function asymptotes(h::APHyperbola2)
     p2 = _from_hyperbola_local(h.a, -h.b, h)
     return (APLine(h.center, p1), APLine(h.center, p2))
 end
-
 rotate(h::APHyperbola2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APHyperbola2(rotate(h.center, angle, center), h.a, h.b, h.angle + angle)
 homothety(h::APHyperbola2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
@@ -446,12 +383,6 @@ function reflection(h::APHyperbola2, about::APLine)
     return APHyperbola2(reflection(h.center, about), h.a, h.b, 2 * φ - h.angle)
 end
 translate(h::APHyperbola2, v::APVector) = APHyperbola2(translate(h.center, v), h.a, h.b, h.angle)
-
-# A single Newton run, from starting parameter t0, towards a critical
-# point of D(t)^2 = (branch*a*cosh(t)-lx)^2 + (b*sinh(t)-ly)^2 on the
-# given branch — i.e. a root of g(t) = sinh(t)cosh(t)(a^2+b^2) -
-# branch*a*lx*sinh(t) - b*ly*cosh(t), the stationarity condition (no
-# closed form exists for the closest point on a hyperbola).
 function _newton_hyperbola_t(t0::Real, lx::Real, ly::Real, a::Real, b::Real, branch::Int; atol=1e-12, maxiter=100)
     t = t0
     for _ in 1:maxiter
@@ -465,13 +396,6 @@ function _newton_hyperbola_t(t0::Real, lx::Real, ly::Real, a::Real, b::Real, bra
     end
     return t
 end
-
-# The parameter t (in point_on_hyperbola's own convention, on the given
-# branch) of the closest point on that one branch to a point given in the
-# hyperbola's local (lx, ly) coordinates. Same idea as
-# `_closest_ellipse_local_param`: several starting points are tried (a
-# single Newton start isn't always in the right basin of attraction),
-# keeping whichever converged root gives the smallest actual distance.
 function _closest_hyperbola_local_param(lx::Real, ly::Real, a::Real, b::Real, branch::Int; atol=1e-12, maxiter=100)
     best_t, best_d2 = 0.0, Inf
     for t0 in (asinh(ly / b), 0.0, 1.0, -1.0, 2.0, -2.0, 4.0, -4.0)
@@ -485,15 +409,6 @@ function _closest_hyperbola_local_param(lx::Real, ly::Real, a::Real, b::Real, br
     end
     return best_t
 end
-
-# The smallest distance from (lx,ly) to the point of the given branch
-# whose own parameter lands within [min(t1,t2), max(t1,t2)], or `Inf` if
-# no critical point does — used by
-# `distance(::APPoint, ::APHyperbolicArc2)`, for the same reason
-# `_closest_ellipse_local_param_in_range` exists: the range-restricted
-# problem can have its own local minimum that the global search never
-# needed to find, so Newton is seeded with starts spread across the arc's
-# own range instead of fixed absolute values.
 function _closest_hyperbola_local_param_in_range(lx::Real, ly::Real, a::Real, b::Real, branch::Int, tmin::Real, tmax::Real; atol=1e-12, maxiter=100, nstarts=12)
     best_d2 = Inf
     for k in 0:nstarts
@@ -505,7 +420,6 @@ function _closest_hyperbola_local_param_in_range(lx::Real, ly::Real, a::Real, b:
     end
     return sqrt(best_d2)
 end
-
 """
     distance(p::APPoint, h::APHyperbola2)
 
@@ -524,9 +438,6 @@ function distance(p::APPoint, h::APHyperbola2)
     return best
 end
 distance(h::APHyperbola2, p::APPoint) = distance(p, h)
-
-# --- APParabola2 -------------------------------------------------------------
-
 """
     APParabola2(focus::APPoint, directrix::APLine)
 """
@@ -538,15 +449,12 @@ function APParabola2(focus::APPoint{2,T1}, directrix::APLine{2,T2}) where {T1,T2
     T = promote_type(T1, T2)
     return APParabola2{T}(APPoint{2,T}(focus.coords), APLine{2,T}(directrix.p1, directrix.p2))
 end
-
 Base.:(==)(x::APParabola2, y::APParabola2) = x.focus == y.focus && x.directrix == y.directrix
 Base.convert(::Type{APParabola2{T}}, p::APParabola2) where {T} = APParabola2{T}(p.focus, p.directrix)
 Base.isapprox(x::APParabola2, y::APParabola2; kwargs...) =
     isapprox(x.focus, y.focus; kwargs...) && isapprox(x.directrix, y.directrix; kwargs...)
 Base.show(io::IO, par::APParabola2) = print(io, "APParabola2(focus=", par.focus, ", directrix=", par.directrix, ")")
-
 Base.in(p::APPoint, par::APParabola2) = distance(p, par.focus) <= distance(p, par.directrix)
-
 """
     vertex(par::APParabola2)
 
@@ -554,14 +462,19 @@ The vertex of `par`: the midpoint between its focus and the foot of the
 perpendicular from the focus to the directrix.
 """
 vertex(par::APParabola2) = midpoint(par.focus, projection(par.focus, par.directrix))
+"""
+    vertices(par::APParabola2)
 
+`(vertex(par),)`: a 1-tuple, for the same `vertices` name to work
+uniformly across every conic that has one.
+"""
+vertices(par::APParabola2) = (vertex(par),)
 """
     focal_parameter(par::APParabola2)
 
 The distance between the focus and the directrix of `par` (often denoted `p`).
 """
 focal_parameter(par::APParabola2) = distance(par.focus, par.directrix)
-
 """
     orthoptic(par::APParabola2)
 
@@ -570,13 +483,11 @@ tangent lines to `par` are perpendicular. For a parabola this is,
 somewhat surprisingly, exactly its own directrix.
 """
 orthoptic(par::APParabola2) = par.directrix
-
 function _parabola_frame(par::APParabola2)
     foot = projection(par.focus, par.directrix)
     u = (par.focus - foot) / norm(par.focus - foot)
     return midpoint(par.focus, foot), APVector(u), orthogonal(APVector(u))
 end
-
 """
     point_on_parabola(par::APParabola2, s::Real)
 """
@@ -585,26 +496,18 @@ function point_on_parabola(par::APParabola2, s::Real)
     p = focal_parameter(par)
     return _from_local_frame(s^2 / (2p), s, V, u, w)
 end
-
 """
     is_on_parabola(p::APPoint, par::APParabola2; atol=1e-9)
 """
 is_on_parabola(p::APPoint, par::APParabola2; atol=1e-9) =
     abs(distance(p, par.focus) - distance(p, par.directrix)) <=
     sqrt(atol) * max(norm(p), norm(par.focus), 1.0)
-
 rotate(par::APParabola2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APParabola2(rotate(par.focus, angle, center), rotate(par.directrix, angle, center))
 reflection(par::APParabola2, about) = APParabola2(reflection(par.focus, about), reflection(par.directrix, about))
 homothety(par::APParabola2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APParabola2(homothety(par.focus, k, center), homothety(par.directrix, k, center))
 translate(par::APParabola2, v::APVector) = APParabola2(translate(par.focus, v), translate(par.directrix, v))
-
-# A single Newton run, from starting local-y value y0, towards a root of
-# f(y) = y^3/pf^2 + y*(2 - 2*X0/pf) - 2*Y0 = 0 — the stationarity
-# condition of the squared-distance function from (X0,Y0) to the point
-# (y^2/(2pf), y) of the parabola y^2 = 2*pf*x (no closed form exists for
-# the closest point on a parabola either, despite f being "only" a cubic).
 function _newton_parabola_y(y0::Real, X0::Real, Y0::Real, pf::Real; atol=1e-12, maxiter=100)
     y = y0
     for _ in 1:maxiter
@@ -617,14 +520,6 @@ function _newton_parabola_y(y0::Real, X0::Real, Y0::Real, pf::Real; atol=1e-12, 
     end
     return y
 end
-
-# The parameter s (in point_on_parabola's own convention: the local
-# y-coordinate) of the closest point on the full parabola to a point given
-# in the parabola's local (X0, Y0) coordinates. A cubic can have up to 3
-# real roots, so — same reasoning as the ellipse/hyperbola cases —
-# several starting points are tried, keeping whichever converged root
-# gives the smallest actual distance rather than trusting the first one
-# found.
 function _closest_parabola_local_param(X0::Real, Y0::Real, pf::Real; atol=1e-12, maxiter=100)
     best_y, best_d2 = 0.0, Inf
     scale = max(abs(X0), abs(Y0), pf, 1.0)
@@ -639,12 +534,6 @@ function _closest_parabola_local_param(X0::Real, Y0::Real, pf::Real; atol=1e-12,
     end
     return best_y
 end
-
-# The smallest distance from (X0,Y0) to the point of the parabola whose
-# own parameter (local y) lands within [min(s1,s2), max(s1,s2)], or `Inf`
-# if no critical point does — used by
-# `distance(::APPoint, ::APParabolicArc2)`, for the same reason
-# `_closest_ellipse_local_param_in_range` exists.
 function _closest_parabola_local_param_in_range(X0::Real, Y0::Real, pf::Real, smin::Real, smax::Real; atol=1e-12, maxiter=100, nstarts=12)
     best_d2 = Inf
     for k in 0:nstarts
@@ -656,7 +545,6 @@ function _closest_parabola_local_param_in_range(X0::Real, Y0::Real, pf::Real, sm
     end
     return sqrt(best_d2)
 end
-
 """
     distance(p::APPoint, par::APParabola2)
 
@@ -671,17 +559,12 @@ function distance(p::APPoint, par::APParabola2)
     return distance(p, point_on_parabola(par, s))
 end
 distance(par::APParabola2, p::APPoint) = distance(p, par)
-
-# --- APCircularArc2 -----------------------------------------------------------
-
-# p, snapped onto circle (same angle from circle.center, radius circle.r).
 function _project_onto_circle2(circle::APCircle2, p::APPoint)
     v = p - circle.center
     d2 = dot(v, v)
     d2 <= 0 && throw(ArgumentError("APCircularArc2: p1/p2 must not coincide with the circle's own center"))
     return circle.center + (circle.r / sqrt(d2)) * v
 end
-
 """
     APCircularArc2(circle::APCircle2, p1::APPoint, p2::APPoint)
 
@@ -701,13 +584,6 @@ struct APCircularArc2{T<:Real} <: APConicArc2{T}
     circle::APCircle2{T}
     p1::APPoint{2,T}
     p2::APPoint{2,T}
-    # An explicit inner constructor, projecting onto the circle here, is
-    # required for the projection to actually apply universally -- without
-    # one, Julia's own auto-generated default inner constructor for this
-    # exact-type signature would still exist alongside it and, being more
-    # specific than the promoting outer constructor below, would win (and
-    # skip the projection) for any call already passing matching APPoint{2,T}
-    # arguments -- silently the common case, not a rare corner one.
     function APCircularArc2{T}(circle::APCircle2, p1::APPoint{2}, p2::APPoint{2}) where {T<:Real}
         return new{T}(circle, _project_onto_circle2(circle, p1), _project_onto_circle2(circle, p2))
     end
@@ -716,13 +592,25 @@ function APCircularArc2(circle::APCircle2, p1::APPoint, p2::APPoint)
     T = promote_type(eltype(circle.center), eltype(p1), eltype(p2))
     return APCircularArc2{T}(APCircle2{T}(APPoint{2,T}(circle.center.coords), T(circle.r)), APPoint{2,T}(p1.coords), APPoint{2,T}(p2.coords))
 end
+"""
+    APCircularArc2(center::APPoint, p1::APPoint, p2::APPoint; ccw::Bool=true)
 
+The arc of the circle centered at `center` with radius `distance(center,
+p1)`, from `p1` to `p2` (`p2`'s own distance from `center` doesn't
+matter, only its angle -- same projection rule as the `circle`-based
+constructor above). `ccw=true` (the default) sweeps counterclockwise from
+`p1` to `p2`; `ccw=false` builds the complementary arc instead (as if
+`p1`/`p2` were swapped).
+"""
+function APCircularArc2(center::APPoint, p1::APPoint, p2::APPoint; ccw::Bool=true)
+    circle = APCircle2(center, distance(center, p1))
+    return ccw ? APCircularArc2(circle, p1, p2) : APCircularArc2(circle, p2, p1)
+end
 Base.:(==)(x::APCircularArc2, y::APCircularArc2) = x.circle == y.circle && x.p1 == y.p1 && x.p2 == y.p2
 Base.convert(::Type{APCircularArc2{T}}, a::APCircularArc2) where {T} = APCircularArc2{T}(a.circle, a.p1, a.p2)
 Base.isapprox(x::APCircularArc2, y::APCircularArc2; kwargs...) =
     isapprox(x.circle, y.circle; kwargs...) && isapprox(x.p1, y.p1; kwargs...) && isapprox(x.p2, y.p2; kwargs...)
 Base.show(io::IO, arc::APCircularArc2) = print(io, "APCircularArc2(", arc.circle, ", ", arc.p1, " -> ", arc.p2, ")")
-
 """
     reverse(arc::APCircularArc2)
 
@@ -732,25 +620,18 @@ See [`reverse(::APAngle2)`](@ref) for why this exists — the same
 already-mirrored-coordinates gotcha applies here.
 """
 Base.reverse(arc::APCircularArc2) = APCircularArc2(arc.circle, arc.p2, arc.p1)
-
 _arc_angle(arc::APCircularArc2, p::APPoint) = atan(p[2] - arc.circle.center[2], p[1] - arc.circle.center[1])
-
-# Shared by `APBoundingBox` for APCircularArc2/APEllipticArc2: whether angle
-# `θ` falls within the arc's own sweep `[θ1, θ1+Δθ]` (mod 2π).
 _angle_in_arc_range(θ::Real, θ1::Real, Δθ::Real) = mod(θ - θ1, 2π) <= Δθ
-
 """
     measure(arc::APCircularArc2)
 """
 measure(arc::APCircularArc2) = mod(_arc_angle(arc, arc.p2) - _arc_angle(arc, arc.p1), 2π)
-
 """
     arc_length(arc::APCircularArc2)
 
 The length of `arc`: `circle.r * measure(arc)`.
 """
 arc_length(arc::APCircularArc2) = arc.circle.r * measure(arc)
-
 """
     point_on_arc(arc, t::Real)
 
@@ -763,7 +644,6 @@ function point_on_arc(arc::APCircularArc2, t::Real)
     return arc.circle.center + arc.circle.r * APVector(cos(a), sin(a))
 end
 midpoint(arc::APCircularArc2) = point_on_arc(arc, 0.5)
-
 """
     APBoundingBox(arc::APCircularArc2)
 
@@ -782,7 +662,6 @@ function APBoundingBox(arc::APCircularArc2)
     _angle_in_arc_range(3π / 2, θ1, Δθ) && push!(ys, c.center[2] - c.r)
     return APBoundingBox(APPoint(minimum(xs), minimum(ys)), APPoint(maximum(xs), maximum(ys)))
 end
-
 """
     distance(p::APPoint, arc::APCircularArc2)
 
@@ -799,7 +678,6 @@ function distance(p::APPoint, arc::APCircularArc2)
     return min(distance(p, arc.p1), distance(p, arc.p2))
 end
 distance(arc::APCircularArc2, p::APPoint) = distance(p, arc)
-
 """
     _ray_crossings(p::APPoint, arc::APCircularArc2)
 
@@ -819,7 +697,6 @@ function _ray_crossings(p::APPoint, arc::APCircularArc2)
     end
     return count
 end
-
 """
     p in arc::APCircularArc2
 
@@ -831,7 +708,6 @@ function Base.in(p::APPoint, arc::APCircularArc2; atol=1e-9)
     abs(distance(p, c.center) - c.r) <= sqrt(atol) * max(c.r, norm(c.center), 1.0) || return false
     return _angle_in_arc_range(_arc_angle(arc, p), _arc_angle(arc, arc.p1), measure(arc))
 end
-
 rotate(arc::APCircularArc2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APCircularArc2(rotate(arc.circle, angle, center), rotate(arc.p1, angle, center), rotate(arc.p2, angle, center))
 homothety(arc::APCircularArc2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
@@ -842,9 +718,6 @@ reflection(arc::APCircularArc2, about::APLine) =
     APCircularArc2(reflection(arc.circle, about), reflection(arc.p2, about), reflection(arc.p1, about))
 translate(arc::APCircularArc2, v::APVector) =
     APCircularArc2(translate(arc.circle, v), translate(arc.p1, v), translate(arc.p2, v))
-
-# --- APEllipticArc2 -----------------------------------------------------------
-
 """
     APEllipticArc2(ellipse::APEllipse2, p1::APPoint, p2::APPoint)
 
@@ -862,7 +735,6 @@ function APEllipticArc2(ellipse::APEllipse2, p1::APPoint, p2::APPoint)
     return APEllipticArc2{T}(convert(APEllipse2{T}, ellipse), convert(APPoint{2,T}, p1), convert(APPoint{2,T}, p2))
 end
 Base.convert(::Type{APEllipticArc2{T}}, a::APEllipticArc2) where {T} = APEllipticArc2{T}(a.ellipse, a.p1, a.p2)
-
 """
     reverse(arc::APEllipticArc2)
 
@@ -871,13 +743,11 @@ rest of the way around. See [`reverse(::APAngle2)`](@ref) for why this
 exists — the same already-mirrored-coordinates gotcha applies here.
 """
 Base.reverse(arc::APEllipticArc2) = APEllipticArc2(arc.ellipse, arc.p2, arc.p1)
-
 function _ellipse_param(e::APEllipse2, p::APPoint)
     lx, ly = _to_ellipse_local(p, e)
     return atan(ly / e.b, lx / e.a)
 end
 _ellipse_param(arc::APEllipticArc2, p::APPoint) = _ellipse_param(arc.ellipse, p)
-
 """
     measure(arc::APEllipticArc2)
 
@@ -885,13 +755,11 @@ The swept parameter range from `p1` to `p2`, counterclockwise, in
 `[0, 2π)` (the ellipse's own angular parameter, not true arc angle).
 """
 measure(arc::APEllipticArc2) = mod(_ellipse_param(arc, arc.p2) - _ellipse_param(arc, arc.p1), 2π)
-
 function point_on_arc(arc::APEllipticArc2, t::Real)
     a = _ellipse_param(arc, arc.p1) + t * measure(arc)
     return point_on_ellipse(arc.ellipse, a)
 end
 midpoint(arc::APEllipticArc2) = point_on_arc(arc, 0.5)
-
 """
     APBoundingBox(arc::APEllipticArc2)
 
@@ -920,7 +788,6 @@ function APBoundingBox(arc::APEllipticArc2)
     end
     return APBoundingBox(APPoint(minimum(xs), minimum(ys)), APPoint(maximum(xs), maximum(ys)))
 end
-
 """
     arc_length(arc::APEllipticArc2)
 
@@ -937,7 +804,6 @@ function arc_length(arc::APEllipticArc2)
     speed(t) = abs(Δθ) * sqrt((e.a * sin(θ1 + t * Δθ))^2 + (e.b * cos(θ1 + t * Δθ))^2)
     return _simpson_integrate(speed, 0.0, 1.0)
 end
-
 """
     distance(p::APPoint, arc::APEllipticArc2)
 
@@ -955,7 +821,6 @@ function distance(p::APPoint, arc::APEllipticArc2)
     return min(d, distance(p, arc.p1), distance(p, arc.p2))
 end
 distance(arc::APEllipticArc2, p::APPoint) = distance(p, arc)
-
 function _ray_crossings(p::APPoint, arc::APEllipticArc2)
     horiz = APLine(p, APPoint(p[1] + 1.0, p[2]))
     θ1, Δθ = _ellipse_param(arc, arc.p1), measure(arc)
@@ -966,7 +831,6 @@ function _ray_crossings(p::APPoint, arc::APEllipticArc2)
     end
     return count
 end
-
 """
     p in arc::APEllipticArc2
 
@@ -977,7 +841,6 @@ function Base.in(p::APPoint, arc::APEllipticArc2; atol=1e-9)
     is_on_ellipse(p, arc.ellipse; atol=atol) || return false
     return _angle_in_arc_range(_ellipse_param(arc, p), _ellipse_param(arc, arc.p1), measure(arc))
 end
-
 rotate(arc::APEllipticArc2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APEllipticArc2(rotate(arc.ellipse, angle, center), rotate(arc.p1, angle, center), rotate(arc.p2, angle, center))
 homothety(arc::APEllipticArc2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
@@ -988,9 +851,6 @@ reflection(arc::APEllipticArc2, about::APLine) =
     APEllipticArc2(reflection(arc.ellipse, about), reflection(arc.p2, about), reflection(arc.p1, about))
 translate(arc::APEllipticArc2, v::APVector) =
     APEllipticArc2(translate(arc.ellipse, v), translate(arc.p1, v), translate(arc.p2, v))
-
-# --- APParabolicArc2 ----------------------------------------------------------
-
 """
     APParabolicArc2(parabola::APParabola2, p1::APPoint, p2::APPoint)
 
@@ -1011,7 +871,6 @@ function APParabolicArc2(parabola::APParabola2, p1::APPoint, p2::APPoint)
     return APParabolicArc2{T}(convert(APParabola2{T}, parabola), convert(APPoint{2,T}, p1), convert(APPoint{2,T}, p2))
 end
 Base.convert(::Type{APParabolicArc2{T}}, a::APParabolicArc2) where {T} = APParabolicArc2{T}(a.parabola, a.p1, a.p2)
-
 """
     reverse(arc::APParabolicArc2)
 
@@ -1022,20 +881,17 @@ there's no complementary-arc ambiguity to resolve here. Provided mainly
 for consistency with the closed-conic arcs' `reverse`.
 """
 Base.reverse(arc::APParabolicArc2) = APParabolicArc2(arc.parabola, arc.p2, arc.p1)
-
 function _parabola_param(par::APParabola2, p::APPoint)
     V, u, w = _parabola_frame(par)
     _, y = _to_local_frame(p, V, u, w)
     return y
 end
 _parabola_param(arc::APParabolicArc2, p::APPoint) = _parabola_param(arc.parabola, p)
-
 function point_on_arc(arc::APParabolicArc2, t::Real)
     s1, s2 = _parabola_param(arc, arc.p1), _parabola_param(arc, arc.p2)
     return point_on_parabola(arc.parabola, s1 + t * (s2 - s1))
 end
 midpoint(arc::APParabolicArc2) = point_on_arc(arc, 0.5)
-
 """
     APBoundingBox(arc::APParabolicArc2)
 
@@ -1062,7 +918,6 @@ function APBoundingBox(arc::APParabolicArc2)
     end
     return APBoundingBox(APPoint(minimum(xs), minimum(ys)), APPoint(maximum(xs), maximum(ys)))
 end
-
 """
     arc_length(arc::APParabolicArc2)
 
@@ -1077,7 +932,6 @@ function arc_length(arc::APParabolicArc2)
     speed(t) = abs(s2 - s1) * sqrt(((s1 + t * (s2 - s1)) / pf)^2 + 1)
     return _simpson_integrate(speed, 0.0, 1.0)
 end
-
 """
     distance(p::APPoint, arc::APParabolicArc2)
 
@@ -1097,7 +951,6 @@ function distance(p::APPoint, arc::APParabolicArc2)
     return min(d, distance(p, arc.p1), distance(p, arc.p2))
 end
 distance(arc::APParabolicArc2, p::APPoint) = distance(p, arc)
-
 function _ray_crossings(p::APPoint, arc::APParabolicArc2)
     horiz = APLine(p, APPoint(p[1] + 1.0, p[2]))
     smin, smax = minmax(_parabola_param(arc, arc.p1), _parabola_param(arc, arc.p2))
@@ -1109,7 +962,6 @@ function _ray_crossings(p::APPoint, arc::APParabolicArc2)
     end
     return count
 end
-
 """
     p in arc::APParabolicArc2
 
@@ -1121,7 +973,6 @@ function Base.in(p::APPoint, arc::APParabolicArc2; atol=1e-9)
     smin, smax = minmax(_parabola_param(arc, arc.p1), _parabola_param(arc, arc.p2))
     return smin <= _parabola_param(arc, p) <= smax
 end
-
 rotate(arc::APParabolicArc2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APParabolicArc2(rotate(arc.parabola, angle, center), rotate(arc.p1, angle, center), rotate(arc.p2, angle, center))
 homothety(arc::APParabolicArc2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
@@ -1130,9 +981,6 @@ reflection(arc::APParabolicArc2, about) =
     APParabolicArc2(reflection(arc.parabola, about), reflection(arc.p1, about), reflection(arc.p2, about))
 translate(arc::APParabolicArc2, v::APVector) =
     APParabolicArc2(translate(arc.parabola, v), translate(arc.p1, v), translate(arc.p2, v))
-
-# --- APHyperbolicArc2 ---------------------------------------------------------
-
 """
     APHyperbolicArc2(hyperbola::APHyperbola2, p1::APPoint, p2::APPoint)
 
@@ -1151,7 +999,6 @@ function APHyperbolicArc2(hyperbola::APHyperbola2, p1::APPoint, p2::APPoint)
     return APHyperbolicArc2{T}(convert(APHyperbola2{T}, hyperbola), convert(APPoint{2,T}, p1), convert(APPoint{2,T}, p2))
 end
 Base.convert(::Type{APHyperbolicArc2{T}}, a::APHyperbolicArc2) where {T} = APHyperbolicArc2{T}(a.hyperbola, a.p1, a.p2)
-
 """
     reverse(arc::APHyperbolicArc2)
 
@@ -1160,26 +1007,17 @@ Base.convert(::Type{APHyperbolicArc2{T}}, a::APHyperbolicArc2) where {T} = APHyp
 — see [`reverse(::APParabolicArc2)`](@ref) for the same reasoning.
 """
 Base.reverse(arc::APHyperbolicArc2) = APHyperbolicArc2(arc.hyperbola, arc.p2, arc.p1)
-
 function _hyperbola_param(h::APHyperbola2, p::APPoint)
     lx, ly = _to_hyperbola_local(p, h)
     return asinh(ly / h.b), (lx >= 0 ? 1 : -1)
 end
 _hyperbola_param(arc::APHyperbolicArc2, p::APPoint) = _hyperbola_param(arc.hyperbola, p)
-
 function point_on_arc(arc::APHyperbolicArc2, t::Real)
     t1, branch = _hyperbola_param(arc, arc.p1)
     t2, _ = _hyperbola_param(arc, arc.p2)
     return point_on_hyperbola(arc.hyperbola, t1 + t * (t2 - t1); branch=branch)
 end
 midpoint(arc::APHyperbolicArc2) = point_on_arc(arc, 0.5)
-
-# Critical parameter(s) (within [tmin,tmax]) of f(t) = P·cosh(t) + Q·sinh(t)
-# — used by `APBoundingBox(::APHyperbolicArc2)` for each of x(t)/y(t)
-# separately. f'(t) = P·sinh(t) + Q·cosh(t) = 0 ⟺ tanh(t) = -Q/P, which
-# has a real solution only when |Q/P| < 1 (tanh's range) — otherwise f is
-# monotonic on the whole real line and the arc's extremes are just its
-# endpoints.
 function _hyperbola_axis_critical_t(P::Real, Q::Real, tmin::Real, tmax::Real)
     P == 0 && return Float64[]
     r = -Q / P
@@ -1187,7 +1025,6 @@ function _hyperbola_axis_critical_t(P::Real, Q::Real, tmin::Real, tmax::Real)
     t = atanh(r)
     return tmin <= t <= tmax ? [t] : Float64[]
 end
-
 """
     APBoundingBox(arc::APHyperbolicArc2)
 
@@ -1213,7 +1050,6 @@ function APBoundingBox(arc::APHyperbolicArc2)
     end
     return APBoundingBox(APPoint(minimum(xs), minimum(ys)), APPoint(maximum(xs), maximum(ys)))
 end
-
 """
     arc_length(arc::APHyperbolicArc2)
 
@@ -1228,7 +1064,6 @@ function arc_length(arc::APHyperbolicArc2)
     speed(t) = abs(t2 - t1) * sqrt((h.a * sinh(t1 + t * (t2 - t1)))^2 + (h.b * cosh(t1 + t * (t2 - t1)))^2)
     return _simpson_integrate(speed, 0.0, 1.0)
 end
-
 """
     distance(p::APPoint, arc::APHyperbolicArc2)
 
@@ -1248,7 +1083,6 @@ function distance(p::APPoint, arc::APHyperbolicArc2)
     return min(d, distance(p, arc.p1), distance(p, arc.p2))
 end
 distance(arc::APHyperbolicArc2, p::APPoint) = distance(p, arc)
-
 function _ray_crossings(p::APPoint, arc::APHyperbolicArc2)
     horiz = APLine(p, APPoint(p[1] + 1.0, p[2]))
     t1, branch = _hyperbola_param(arc, arc.p1)
@@ -1262,7 +1096,6 @@ function _ray_crossings(p::APPoint, arc::APHyperbolicArc2)
     end
     return count
 end
-
 """
     p in arc::APHyperbolicArc2
 
@@ -1278,7 +1111,6 @@ function Base.in(p::APPoint, arc::APHyperbolicArc2; atol=1e-9)
     tmin, tmax = minmax(t1, t2)
     return tmin <= t <= tmax
 end
-
 rotate(arc::APHyperbolicArc2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APHyperbolicArc2(rotate(arc.hyperbola, angle, center), rotate(arc.p1, angle, center), rotate(arc.p2, angle, center))
 homothety(arc::APHyperbolicArc2, k::Real, center::APPoint=APPoint(0.0, 0.0)) =

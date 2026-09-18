@@ -1,32 +1,19 @@
 include("../default_config.jl")
-
-
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
     t = APTriangle(A, B, C)
     tp = trilinear_point(t, 1.0, 1.0, 1.0)
 end
-
-
-
-
 @svg_doc(sz, @__FILE__, begin
-
 gsave()
 sethue(julia_green)
 setdash(:dash); setline(1)
 path(bisector.(t, 1:3), action=:stroke)
 grestore()
-
 sethue(julia_blue)
 path([t], action=:stroke)
-
 path(vertices(t))
 setpoint(julia_red)
-
 path(tp)
 setpoint(julia_purple)
-
-
-
 end)

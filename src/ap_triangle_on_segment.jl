@@ -1,10 +1,3 @@
-# -------------------------------------------------------------------------
-# Classical named triangles built on a base segment: equilateral,
-# isosceles, 30-60-90, golden, etc.
-# -------------------------------------------------------------------------
-#[🆗] 
-#   -> posible cambio en un metodo.
-
 """
     equilateral_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
 
@@ -14,14 +7,12 @@ The equilateral triangle with side `[a, b]`, built counterclockwise from
 function equilateral_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
     return APTriangle(a, b, rotate(b, ccw ? pi / 3 : -pi / 3, a))
 end
-
 """
     equilateral_triangle_on_segment(s::APSegment; ccw::Bool=true)
 """
 function equilateral_triangle_on_segment(s::APSegment; ccw::Bool=true)
     return equilateral_triangle_on_segment(s.p1, s.p2; ccw=ccw)
 end
-
 """
     isosceles_triangle_on_segment(a::APPoint, b::APPoint, leg::Real; ccw::Bool=true)
 
@@ -31,22 +22,19 @@ The isosceles triangle with base `[a, b]` and the given equal leg length
 `ArgumentError` if `leg` is too short to reach across the base.
 """
 function isosceles_triangle_on_segment(a::APPoint, b::APPoint, leg::Real; ccw::Bool=true)
-    #quiza validar con distancias antes que con intersecciones sea mas barato. 
     pts = intersection(APCircle2(a, leg), APCircle2(b, leg))
-    length(pts) != 2 && #<-- distance(a,b) >= 2leg
+    length(pts) != 2 &&
         throw(ArgumentError("isosceles_triangle_on_segment: leg is too short to reach across [a, b]"))
     p1, p2 = pts
     on_ccw_side = cross2(b - a, p1 - a) > 0
     return APTriangle(a, b, on_ccw_side == ccw ? p1 : p2)
 end
-
 """
     isosceles_triangle_on_segment(s::APSegment, leg::Real; ccw::Bool=true)
 """
 function isosceles_triangle_on_segment(s::APSegment, leg::Real; ccw::Bool=true)
     return isosceles_triangle_on_segment(s.p1, s.p2, leg; ccw=ccw)
 end
-
 """
     triangle_30_60_90_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
 
@@ -60,14 +48,12 @@ function triangle_30_60_90_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
     ray_b = APLine(b, rotate(a, -s * pi / 3, b))
     return APTriangle(a, b, only(intersection(ray_a, ray_b)))
 end
-
 """
     triangle_30_60_90_on_segment(s::APSegment; ccw::Bool=true)
 """
 function triangle_30_60_90_on_segment(s::APSegment; ccw::Bool=true)
     return triangle_30_60_90_on_segment(s.p1, s.p2; ccw=ccw)
 end
-
 """
     isosceles_right_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
 
@@ -79,14 +65,12 @@ function isosceles_right_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=t
     x = midpoint(a, b)
     return APTriangle(a, b, rotate(b, ccw ? pi / 2 : -pi / 2, x))
 end
-
 """
     isosceles_right_triangle_on_segment(s::APSegment; ccw::Bool=true)
 """
 function isosceles_right_triangle_on_segment(s::APSegment; ccw::Bool=true)
     return isosceles_right_triangle_on_segment(s.p1, s.p2; ccw=ccw)
 end
-
 """
     golden_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
 
@@ -100,15 +84,12 @@ function golden_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
     ray_b = APLine(b, rotate(a, -s * 2pi / 5, b))
     return APTriangle(a, b, only(intersection(ray_a, ray_b)))
 end
-
 """
     golden_triangle_on_segment(s::APSegment; ccw::Bool=true)
 """
 function golden_triangle_on_segment(s::APSegment; ccw::Bool=true)
     return golden_triangle_on_segment(s.p1, s.p2; ccw=ccw)
 end
-
-
 """
     golden_gnomon_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
 
@@ -122,14 +103,12 @@ function golden_gnomon_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
     ray_b = APLine(b, rotate(a, -s * pi / 5, b))
     return APTriangle(a, b, only(intersection(ray_a, ray_b)))
 end
-
 """
     golden_gnomon_on_segment(s::APSegment; ccw::Bool=true)
 """
 function golden_gnomon_on_segment(s::APSegment; ccw::Bool=true)
     return golden_gnomon_on_segment(s.p1, s.p2; ccw=ccw)
 end
-
 """
     egyptian_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
 
@@ -145,7 +124,6 @@ function egyptian_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
     dir = (n - b) / norm(n - b)
     return APTriangle(a, b, b + dir * 0.75 * distance(a, b))
 end
-
 """
     egyptian_triangle_on_segment(s::APSegment; ccw::Bool=true)
 """

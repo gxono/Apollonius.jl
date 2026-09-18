@@ -1,22 +1,3 @@
-# -------------------------------------------------------------------------
-# APTriangle, APQuadrilateral, APStraightNgon, all <: APPolygon, with
-# area/perimeter/centroid/is_convex/point_in_polygon implemented ONCE,
-# generically, via a `vertices(p)` protocol — instead of once per concrete
-# type.
-# -------------------------------------------------------------------------
-
-# --- APPolygon generic protocol -----------------------------------------
-#
-# Every concrete subtype implements EITHER `vertices(p)` (a straight-sided
-# polygon: Triangle/Quadrilateral/StraightNgon) OR `sides(p)` directly (a
-# region with at least one curved side — a Segment side, or an
-# APCircularArc2 side). `sides(p::APPolygon)` below is the generic
-# *default*, built from `vertices`, so straight-sided types don't need to
-# define it themselves; `area`/`perimeter` are then written ONCE, purely
-# in terms of `sides`, via a shared Green's-theorem line-integral walk
-# (mathematically identical to the plain shoelace formula when every side
-# happens to be straight).
-
 """
     sides(p::APPolygon)
 
@@ -29,7 +10,6 @@ function sides(p::APPolygon)
     n = length(v)
     return [APSegment(v[i], v[mod1(i + 1, n)]) for i in 1:n]
 end
-
 """
     vertices(p::APPolygon)
 
@@ -39,20 +19,11 @@ any curved-region subtype that defines `sides` directly instead of
 `vertices` (see the protocol note above).
 """
 vertices(pg::APPolygon) = [_side_p1(s) for s in sides(pg)]
-
 _side_p1(s::APSegment) = s.p1
 _side_p2(s::APSegment) = s.p2
 _side_length(s::APSegment) = distance(s.p1, s.p2)
 _side_greens_term(s::APSegment) = (s.p1[1] * s.p2[2] - s.p2[1] * s.p1[2]) / 2
 _side_scale(s::APSegment) = norm(s.p1)
-# `_side_p1`/`_side_p2`/`_side_length`/`_side_greens_term`/`_side_scale`
-# for APCircularArc2 sides are added in ap_curved_region.jl, which is
-# included after APCircularArc2 itself is defined.
-
-# Chains `sides` into a single closed walk, starting from `sides[1]`'s own
-# p1->p2 direction, reporting for each whether it must be walked reversed
-# to continue the chain — mirrors `Interstice`'s `_interstice_walk`/
-# `CurvilinearPolygon`'s `_curvilinear_walk`, generalized to any polygon.
 function _polygon_walk(theSides; atol=1e-9)
     n = length(theSides)
     scale = max(1.0, maximum(_side_scale, theSides))
@@ -76,7 +47,6 @@ function _polygon_walk(theSides; atol=1e-9)
     end
     return order
 end
-
 """
     area(p::APPolygon)
 
@@ -91,7 +61,6 @@ function area(p::APPolygon)
     end
     return abs(total)
 end
-
 """
     area(p::APPolygon{3})
 
@@ -110,7 +79,6 @@ function area(p::APPolygon{3})
     s = sum(cross3(vs[i], vs[mod1(i + 1, n)]) for i in 1:n)
     return norm(s) / 2
 end
-
 """
     is_planar(pg::APPolygon{3}; atol=1e-9)
 
@@ -122,13 +90,12 @@ convention as `APStraightNgon`'s "assumed simple").
 """
 function is_planar(pg::APPolygon{3}; atol=1e-9)
     vs = vertices(pg)
-    length(vs) <= 3 && return true # any 3 points are trivially coplanar
+    length(vs) <= 3 && return true
     for i in 4:length(vs)
         is_coplanar(vs[1], vs[2], vs[3], vs[i]; atol=atol) || return false
     end
     return true
 end
-
 """
     centroid(p::APPolygon{3})
 
@@ -159,7 +126,6 @@ function centroid(p::APPolygon{3})
     abs(A) <= sqrt(eps(Float64)) * max(nn, 1.0) && return v1 + sum(vi - v1 for vi in vs) / n
     return APPoint(cx / A, cy / A, cz / A)
 end
-
 """
     is_convex(p::APPolygon{3}; atol=1e-9)
 
@@ -190,7 +156,6 @@ function is_convex(p::APPolygon{3}; atol=1e-9)
     end
     return true
 end
-
 """
     point_in_polygon(p::APPoint{3}, pg::APPolygon{3})
 
@@ -214,12 +179,10 @@ function point_in_polygon(p::APPoint{3}, pg::APPolygon{3})
     pg2 = APStraightNgon([to2d(v) for v in vs])
     return point_in_polygon(to2d(p), pg2)
 end
-
 """
     perimeter(p::APPolygon)
 """
 perimeter(p::APPolygon) = sum(_side_length, sides(p))
-
 """
     centroid(p::APPolygon)
 
@@ -246,7 +209,6 @@ function centroid(p::APPolygon)
     abs(A) <= 1e-12 && return v[1] + sum(vi - v[1] for vi in v) / n
     return APPoint(cx / (6A), cy / (6A))
 end
-
 """
     is_convex(p::APPolygon; atol=1e-9)
 """
@@ -270,7 +232,6 @@ function is_convex(p::APPolygon; atol=1e-9)
     end
     return true
 end
-
 """
     _ray_crossings(p::APPoint, s::APSegment)
 
@@ -287,7 +248,6 @@ function _ray_crossings(p::APPoint, s::APSegment)
     xcross = (x2 - x1) * (p[2] - y1) / (y2 - y1) + x1
     return xcross > p[1] ? 1 : 0
 end
-
 """
     point_in_polygon(p::APPoint, pg::APPolygon)
 
@@ -300,7 +260,6 @@ function point_in_polygon(p::APPoint, pg::APPolygon)
     return isodd(sum(s -> _ray_crossings(p, s), sides(pg)))
 end
 Base.in(p::APPoint, pg::APPolygon) = point_in_polygon(p, pg)
-
 """
     distance(p::APPoint, pg::APPolygon; mode::Symbol=:region)
 
@@ -324,11 +283,7 @@ function distance(p::APPoint, pg::APPolygon; mode::Symbol=:region)
     return p in pg ? zero(d) : d
 end
 distance(pg::APPolygon, p::APPoint; mode::Symbol=:region) = distance(p, pg; mode=mode)
-
 APBoundingBox(p::APPolygon) = APBoundingBox(collect(vertices(p)))
-
-# --- APTriangle -----------------------------------------------------------
-
 """
     APTriangle(a, b, c)
 """
@@ -340,7 +295,6 @@ end
 function APTriangle(a::APPoint, b::APPoint, c::APPoint)
     return APTriangle{length(a),promote_type(eltype(a), eltype(b), eltype(c))}(a, b, c)
 end
-
 """
     vertices(p)
 
@@ -355,7 +309,6 @@ Base.:(==)(x::APTriangle, y::APTriangle) = x.a == y.a && x.b == y.b && x.c == y.
 Base.isapprox(x::APTriangle, y::APTriangle; kwargs...) =
     isapprox(x.a, y.a; kwargs...) && isapprox(x.b, y.b; kwargs...) && isapprox(x.c, y.c; kwargs...)
 Base.show(io::IO, t::APTriangle) = print(io, "APTriangle(", t.a, ", ", t.b, ", ", t.c, ")")
-
 rotate(t::APTriangle{2}, angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     APTriangle(rotate(t.a, angle, center), rotate(t.b, angle, center), rotate(t.c, angle, center))
 rotate(t::APTriangle{3}, angle::Real, axis::APLine{3}) =
@@ -364,9 +317,6 @@ reflection(t::APTriangle, about) = APTriangle(reflection(t.a, about), reflection
 homothety(t::APTriangle, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APTriangle(homothety(t.a, k, center), homothety(t.b, k, center), homothety(t.c, k, center))
 translate(t::APTriangle, v::APVector) = APTriangle(translate(t.a, v), translate(t.b, v), translate(t.c, v))
-
-# --- APQuadrilateral --------------------------------------------------------
-
 """
     APQuadrilateral(a, b, c, d)
 
@@ -382,16 +332,12 @@ end
 function APQuadrilateral(a::APPoint, b::APPoint, c::APPoint, d::APPoint)
     return APQuadrilateral{length(a),promote_type(eltype(a), eltype(b), eltype(c), eltype(d))}(a, b, c, d)
 end
-
-
 function APQuadrilateral(bb::APBoundingBox)
     return APQuadrilateral(
         bb.min, APPoint(bb.max[1],bb.min[2]),
         bb.max, APPoint(bb.min[1],bb.max[2])
     )
 end
-
-
 vertices(q::APQuadrilateral) = (q.a, q.b, q.c, q.d)
 Base.getindex(q::APQuadrilateral, i::Integer) = vertices(q)[i]
 Base.length(::APQuadrilateral) = 4
@@ -401,21 +347,18 @@ Base.isapprox(x::APQuadrilateral, y::APQuadrilateral; kwargs...) =
     isapprox(x.a, y.a; kwargs...) && isapprox(x.b, y.b; kwargs...) &&
     isapprox(x.c, y.c; kwargs...) && isapprox(x.d, y.d; kwargs...)
 Base.show(io::IO, q::APQuadrilateral) = print(io, "APQuadrilateral(", q.a, ", ", q.b, ", ", q.c, ", ", q.d, ")")
-
 """
     sides(q::APQuadrilateral)
 
 The four side segments `[a,b]`, `[b,c]`, `[c,d]`, `[d,a]`.
 """
 sides(q::APQuadrilateral) = (APSegment(q.a, q.b), APSegment(q.b, q.c), APSegment(q.c, q.d), APSegment(q.d, q.a))
-
 """
     diagonals(q::APQuadrilateral)
 
 The two diagonal segments `[a,c]` and `[b,d]`.
 """
 diagonals(q::APQuadrilateral) = (APSegment(q.a, q.c), APSegment(q.b, q.d))
-
 """
     diagonal_intersection(q::APQuadrilateral; atol=1e-9)
 
@@ -431,7 +374,6 @@ function diagonal_intersection(q::APQuadrilateral; atol=1e-9)
     isempty(pts) && return nothing
     return pts[1]
 end
-
 """
     is_cyclic(q::APQuadrilateral; atol=1e-9)
 
@@ -442,7 +384,6 @@ the include order (this file comes well before `ap_triangle.jl`) doesn't
 matter.
 """
 is_cyclic(q::APQuadrilateral; atol=1e-9) = is_concyclic(q.a, q.b, q.c, q.d; atol=atol)
-
 """
     centroid(q::APQuadrilateral)
 
@@ -451,7 +392,6 @@ area-weighted (that's [`centroid(::APPolygon)`](@ref), which
 `APStraightNgon`/`APTriangle` use instead).
 """
 centroid(q::APQuadrilateral) = q.a + ((q.b - q.a) + (q.c - q.a) + (q.d - q.a)) / 4
-
 rotate(q::APQuadrilateral{2}, angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     APQuadrilateral(rotate(q.a, angle, center), rotate(q.b, angle, center), rotate(q.c, angle, center), rotate(q.d, angle, center))
 rotate(q::APQuadrilateral{3}, angle::Real, axis::APLine{3}) =
@@ -462,9 +402,6 @@ homothety(q::APQuadrilateral, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APQuadrilateral(homothety(q.a, k, center), homothety(q.b, k, center), homothety(q.c, k, center), homothety(q.d, k, center))
 translate(q::APQuadrilateral, v::APVector) =
     APQuadrilateral(translate(q.a, v), translate(q.b, v), translate(q.c, v), translate(q.d, v))
-
-# --- APStraightNgon ---------------------------------------------------------
-
 """
     APStraightNgon(vertices::AbstractVector{<:APPoint})
 
@@ -481,15 +418,12 @@ function APStraightNgon(vs::AbstractVector{<:APPoint{Dim}}) where {Dim}
     return APStraightNgon(APPoint{Dim,T}[convert(APPoint{Dim,T}, v) for v in vs])
 end
 APStraightNgon(vs::AbstractVector) = APStraightNgon([v for v in vs])
-
 function APStraightNgon(bb::APBoundingBox)
     return APStraightNgon([
         bb.min, APPoint(bb.max[1],bb.min[2]),
         bb.max, APPoint(bb.min[1],bb.max[2])
     ])
 end
-
-
 vertices(pg::APStraightNgon) = pg.vertices
 Base.getindex(pg::APStraightNgon, i::Integer) = pg.vertices[i]
 Base.length(pg::APStraightNgon) = length(pg.vertices)
@@ -498,7 +432,6 @@ Base.:(==)(x::APStraightNgon, y::APStraightNgon) = x.vertices == y.vertices
 Base.isapprox(x::APStraightNgon, y::APStraightNgon; kwargs...) =
     length(x) == length(y) && all(isapprox(a, b; kwargs...) for (a, b) in zip(x.vertices, y.vertices))
 Base.show(io::IO, pg::APStraightNgon) = print(io, "APStraightNgon(", pg.vertices, ")")
-
 rotate(pg::APStraightNgon{2}, angle::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     APStraightNgon([rotate(v, angle, center) for v in pg.vertices])
 rotate(pg::APStraightNgon{3}, angle::Real, axis::APLine{3}) =
@@ -507,7 +440,6 @@ reflection(pg::APStraightNgon, about) = APStraightNgon([reflection(v, about) for
 homothety(pg::APStraightNgon, k::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APStraightNgon([homothety(v, k, center) for v in pg.vertices])
 translate(pg::APStraightNgon, v::APVector) = APStraightNgon([translate(vt, v) for vt in pg.vertices])
-
 """
     convex_hull(points::AbstractVector{<:APPoint})
 
@@ -518,9 +450,7 @@ function convex_hull(points::AbstractVector{<:APPoint})
     pts = sort(unique(points); by=p -> (p[1], p[2]))
     n = length(pts)
     n <= 2 && return APStraightNgon(pts)
-
     cross3(o, a, b) = cross2(a - o, b - o)
-
     lower = eltype(pts)[]
     for p in pts
         while length(lower) >= 2 && cross3(lower[end-1], lower[end], p) <= 0
@@ -528,7 +458,6 @@ function convex_hull(points::AbstractVector{<:APPoint})
         end
         push!(lower, p)
     end
-
     upper = eltype(pts)[]
     for p in Iterators.reverse(pts)
         while length(upper) >= 2 && cross3(upper[end-1], upper[end], p) <= 0
@@ -536,6 +465,5 @@ function convex_hull(points::AbstractVector{<:APPoint})
         end
         push!(upper, p)
     end
-
     return APStraightNgon(vcat(lower[1:end-1], upper[1:end-1]))
 end

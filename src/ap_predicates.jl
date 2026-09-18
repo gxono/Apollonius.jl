@@ -1,16 +1,3 @@
-# -------------------------------------------------------------------------
-# Boolean/classification predicates on APPoint/APLine/APSegment/APCircle2/
-# APTriangle.
-#
-# `is_parallel`/`is_perpendicular` need no methods here — they dispatch
-# purely via `direction(...)`, duck-typed, so they already work on
-# APLine/APSegment/APRay for free.
-#
-# `is_concyclic` (below) needs `circumcenter`/`circumradius(::APTriangle)`,
-# defined in ap_triangle.jl (included after this file; fine, since it's
-# only referenced inside a function body, not a type signature).
-# -------------------------------------------------------------------------
-
 """
     is_collinear(a::APPoint, b::APPoint, c::APPoint; atol=1e-9)
 
@@ -18,7 +5,6 @@ Whether points `a`, `b` and `c` lie on a common line.
 """
 is_collinear(a::APPoint, b::APPoint, c::APPoint; atol=1e-9) =
     abs(cross2(b - a, c - a)) <= atol * norm(b - a) * norm(c - a)
-
 """
     is_coplanar(a::APPoint{3}, b::APPoint{3}, c::APPoint{3}, d::APPoint{3}; atol=1e-9)
 
@@ -31,7 +17,6 @@ function is_coplanar(a::APPoint{3}, b::APPoint{3}, c::APPoint{3}, d::APPoint{3};
     scale = max(norm(u) * norm(v), norm(u) * norm(w), norm(v) * norm(w), 1.0)
     return abs(dot(cross3(u, v), w)) <= atol * scale
 end
-
 """
     line_line_position(l1::APLine{3}, l2::APLine{3}; atol=1e-9)
 
@@ -48,7 +33,6 @@ function line_line_position(l1::APLine{3}, l2::APLine{3}; atol=1e-9)
     end
     return is_coplanar(l1.p1, l1.p2, l2.p1, l2.p2; atol=atol) ? :intersecting : :skew
 end
-
 """
     on_line(p::APPoint, l::APLine; atol=1e-9)
 
@@ -56,8 +40,6 @@ Whether point `p` lies on the infinite line `l`.
 """
 on_line(p::APPoint, l::APLine; atol=1e-9) =
     distance(p, l) <= sqrt(atol) * max(norm(p), norm(l.p1), norm(l.p2), 1.0)
-#NO USAR is_collinear(p, l.p1, l.p2; atol=atol)
-
 """
     on_line(l::APLine; atol=1e-9)
 
@@ -65,7 +47,6 @@ on_line(p::APPoint, l::APLine; atol=1e-9) =
 `filter(on_line(l), points)`.
 """
 on_line(l::APLine; atol=1e-9) = p -> on_line(p, l; atol=atol)
-
 """
     on_segment(p::APPoint, s::APSegment; atol=1e-9)
 
@@ -79,14 +60,12 @@ function on_segment(p::APPoint, s::APSegment; atol=1e-9)
     t = dot(p - a, b - a) / ab2
     return -atol <= t <= 1 + atol
 end
-
 """
     on_segment(s::APSegment; atol=1e-9)
 
 `p -> on_segment(p, s; atol=atol)` — see the single-argument [`on_line`](@ref).
 """
 on_segment(s::APSegment; atol=1e-9) = p -> on_segment(p, s; atol=atol)
-
 """
     on_ray(p::APPoint, r::APRay; atol=1e-9)
 
@@ -100,20 +79,15 @@ function on_ray(p::APPoint, r::APRay; atol=1e-9)
     t = dot(p - a, b - a) / ab2
     return t >= -atol
 end
-
 """
     on_ray(r::APRay; atol=1e-9)
 
 `p -> on_ray(p, r; atol=atol)` — see the single-argument [`on_line`](@ref).
 """
 on_ray(r::APRay; atol=1e-9) = p -> on_ray(p, r; atol=atol)
-
-
-
 Base.in(p::APPoint, s::APSegment) = on_segment(p, s)
 Base.in(p::APPoint, l::APLine) = on_line(p, l)
 Base.in(p::APPoint, r::APRay) = on_ray(p, r)
-
 """
     side_of_line(p::APPoint, l::APLine)
 
@@ -124,14 +98,12 @@ function side_of_line(p::APPoint, l::APLine)
     v = cross2(direction(l), p - l.p1)
     return v > 0 ? 1 : (v < 0 ? -1 : 0)
 end
-
 """
     is_degenerate(t::APTriangle; atol=1e-9)
 
 Whether the three vertices of `t` are collinear (zero area).
 """
 is_degenerate(t::APTriangle; atol=1e-9) = is_collinear(t.a, t.b, t.c; atol=atol)
-
 """
     line_circle_position(l::APLine, c::APCircle2; atol=1e-9)
 
@@ -145,7 +117,6 @@ function line_circle_position(l::APLine, c::APCircle2; atol=1e-9)
     abs(d - c.r) <= tol && return :tangent
     return :secant
 end
-
 """
     circles_position(c1::APCircle2, c2::APCircle2; atol=1e-9)
 
@@ -168,7 +139,6 @@ function circles_position(c1::APCircle2, c2::APCircle2; atol=1e-9)
     abs(d - rdiff) <= tol && return :tangent_int
     return :secant
 end
-
 """
     is_concyclic(a::APPoint, b::APPoint, c::APPoint, d::APPoint; atol=1e-9)
 

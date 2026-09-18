@@ -1,11 +1,4 @@
 include("../default_config.jl")
-
-
-
-
-
-
-
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     o = APPoint(0, 0)
     s1 = APSegment(APPoint(1.0, 0.5), APPoint(2.0, 1.0))
@@ -14,25 +7,15 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     t2 = invert(s2, o)
     circ = APCircle2(o, 1)
 end
-
-
-
-
 @svg_doc(sz, @__FILE__, begin
-
 sethue("gray80")
 setdash(:dash)
 path(circ, action=:stroke)
 setdash(:solid)
-
 sethue(julia_blue)
 path([s1,s2], action=:stroke)
-
 sethue(julia_purple)
 path([t1, t2], action=:stroke)
-
-
 path(o)
 setpoint(julia_red)
-
 end)

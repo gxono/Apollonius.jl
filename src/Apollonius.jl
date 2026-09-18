@@ -1,108 +1,32 @@
 module Apollonius
-
 using LinearAlgebra: norm, dot, normalize, nullspace
 import LinearAlgebra
 import Random
-
-# The APPoint/APVector primitives and the abstract type hierarchy
-# (APObject/APLocus/APCurve/APSet/APRegion/APPolygon/APTransform) that
-# everything else in the package builds on.
 include("ap_point.jl")
 export APObject, APLocus, APCurve, APSet, APRegion, APPolygon, APPolyhedron, APSurface, APTransform
 export APPoint, APVector
-
 include("ap_primitives.jl")
 export APSegment, APLine, APRay, APBoundingBox
-
-# APEquipollentVector: a free APVector applied at a point -- unlike a bare
-# APVector (deliberately positionless), this one has a real
-# APBoundingBox and transforms fully (including being scaled by
-# homothety), so it's the type to reach for whenever a vector needs to be
-# drawn correctly inside @to_luxor_picture.
 include("ap_equipollent_vector.jl")
 export APEquipollentVector, tip
-
-# 3D geometry (APPlane3/APSphere3, 3D unbounded sets, APPolyhedron and its
-# concrete solids, 3D conics, quadric surfaces, 3D curved regions,
-# APAffineMap3) is PAUSED -- see PLAN/ARCHITECTURE.md. The focus for now
-# is 2D only; the files themselves are untracked (see .gitignore) rather
-# than deleted, so this whole block is commented out instead of removed.
-# Re-enable by uncommenting once 3D work resumes.
-# include("ap_plane.jl")
-# export APPlane3, APSphere3, APCircle3
-# export on_plane, on_sphere, side_of_plane, volume, surface_area, plane
-#
-# include("ap_unbounded3.jl")
-# export APHalfSpace3, APSlab3, APDihedralAngle3, APPolyhedralAngle3
-# export slab_width, solid_angle
-
 include("ap_polygon.jl")
 export APTriangle, APQuadrilateral, APStraightNgon
-
-# APPolyhedron: the flat-faced-solid sibling of APPolygon, one dimension
-# up -- needs APTriangle/APQuadrilateral/APStraightNgon above (its
-# concrete faces) already defined. Paused along with the rest of 3D.
-# include("ap_polyhedron.jl")
-# export APTetrahedron3, APParallelepiped3, APPyramid3, APPrism3, APGeneralPolyhedron3
-# export faces, box3, cube3
-#
-# include("ap_named_polyhedra.jl")
-# export regular_tetrahedron3, regular_octahedron3
-#
-# include("ap_curved_solid.jl")
-# export APCylinder3, APCone3
-# export height, slant_height, caps, base
-
 include("ap_conic.jl")
 export APCircle2, APEllipse2, APParabola2, APHyperbola2
 export APCircularArc2, APEllipticArc2, APParabolicArc2, APHyperbolicArc2
-
-# 3D conics/quadrics/curved regions -- paused along with the rest of 3D.
-# include("ap_conic3.jl")
-# export APEllipse3, APParabola3, APHyperbola3
-# export APCircularArc3, APEllipticArc3, APParabolicArc3, APHyperbolicArc3
-# export point_on_circle3, is_on_circle3
-# export point_on_ellipse3, is_on_ellipse3
-# export point_on_hyperbola3, is_on_hyperbola3
-# export point_on_parabola3, is_on_parabola3
-#
-# include("ap_quadric.jl")
-# export APEllipsoid3, APParaboloid3, APHyperboloid3, APHyperbolicParaboloid3
-# export point_on_ellipsoid3, is_on_ellipsoid3
-# export point_on_paraboloid3, is_on_paraboloid3
-# export point_on_hyperboloid3, is_on_hyperboloid3
-# export point_on_hyperbolic_paraboloid3, is_on_hyperbolic_paraboloid3
-#
-# include("ap_curved_region3.jl")
-# export APCircularSector3, APCircularSegment3, APAnnularSector3
-
-# intersection/polar_line/tangent_points/tangent_lines for
-# APEllipse2/APHyperbola2/APParabola2 — split out from ap_conic.jl since
-# they need `intersection` on lines/circles, defined later in this file.
 include("ap_conic_tangency.jl")
-
 include("ap_curved_region.jl")
 export APCircularSector2, APCircularSegment2, APAnnularSector2, APInterstice2
 export APCurvilinearTriangle2, APCurvilinearQuadrilateral2, APCurvilinearNgon2
-
 include("ap_polyline.jl")
 export APPolyline2, APCurvilinearPolyline2
-
 include("ap_unbounded.jl")
 export APAngle2, APHalfPlane2, APStrip2, strip_width
-
 include("ap_transform.jl")
 export APAffineMap
-
-# APAffineMap3 -- paused along with the rest of 3D.
-# include("ap_transform3.jl")
-# export APAffineMap3
-
 include("ap_predicates.jl")
 include("ap_intersections.jl")
-
 using Base.MathConstants: golden
-
 include("ap_constructions.jl")
 include("ap_tangency.jl")
 include("ap_radical_axis.jl")
@@ -111,14 +35,9 @@ include("ap_apollonius.jl")
 include("ap_named_polygons.jl")
 include("ap_triangle_on_segment.jl")
 include("ap_conic_fit.jl")
-
-# Every named triangle center, axis, circle and derived
-# triangle/inellipse/circumellipse.
 include("ap_triangle.jl")
-
 include("utils.jl")
 include("ap_rand.jl")
-
 export sides, diagonals, diagonal_intersection, is_cyclic
 export direction, slope_angle, midpoint, distance, polar_point, polar_point_deg
 export norm, dot, normalize, angle_between, angle_at
@@ -170,7 +89,7 @@ export @translate, @translate!, @rotate, @rotate!, @homothety, @homothety!, @ref
 export @invert, @invert!, @invert_neg, @invert_neg!, @affinemap, @affinemap!
 export inversion, invert, inversion_neg, invert_neg, polar_line, pole
 export parallelogram, square_on_segment, rectangle_on_segment, regular_polygon
-export offset_line, tangent_circles_with_radius
+export offset_line, tangent_circles_with_radius, tangent_circles_with_center
 export affine_map, translation_map, rotation_map, homothety_map, reflection_map
 export point_on_ellipse, is_on_ellipse, foci, orthoptic
 export tangent_circles_through_points, tangent_circles_through_point, tangent_circles
@@ -178,7 +97,6 @@ export vertex, focal_parameter, point_on_parabola, is_on_parabola
 export point_on_hyperbola, is_on_hyperbola, asymptotes
 export conic_through_points
 export path
-
 """
     path(obj; action=:path, kwargs...)
 
@@ -215,9 +133,7 @@ Note: `APBoundingBox` is ambiguous when both packages are loaded with
 `Apollonius.APBoundingBox` explicitly when you mean this package's.
 """
 function path end
-
 export current_path_bbox
-
 """
     current_path_bbox()
 
@@ -239,5 +155,4 @@ as most of Luxor's own shape functions, so `current_path_bbox()` reads as
 an empty (all-zero) box afterward.
 """
 function current_path_bbox end
-
-end # module Apollonius
+end
