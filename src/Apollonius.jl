@@ -58,7 +58,7 @@ export excenters, exradii, excircles, euler_line, nine_point_center, nine_point_
 export orthic_axis, brocard_axis, lemoine_axis, steiner_line, apollonius_point_of_triangle
 export barycentric_point, barycentric_coordinates, trilinear_point, trilinear_coordinates,
        altitude, median, bisector, bisector_ext, mediator, trisector,
-       nagel_point, gergonne_point, spieker_center, symmedian_point, mittenpunkt, simson_line,
+       nagel_point, gergonne_point, spieker_center, symmedian_point, mittenpunkt, clawson_point, simson_line,
        de_longchamps_point, bevan_point, feuerbach_point, fermat_point, second_fermat_point, fermat_axis,
        napoleon_point, spieker_circle, kenmotu_point, kenmotu_circle, macbeath_point,
        steiner_inellipse, steiner_circumellipse,

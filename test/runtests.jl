@@ -1104,6 +1104,12 @@ using Base.MathConstants: golden
         isc = internal_similitude_center(c1, c2)
         @test on_segment(isc, APSegment(c1.center, c2.center))
         @test_throws ArgumentError external_similitude_center(APCircle2(APPoint(0.0, 0.0), 3.0), APCircle2(APPoint(1.0, 0.0), 3.0))
+        tk = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(2.0, 4.0))
+        ak, bk, ck = distance(tk[2], tk[3]), distance(tk[1], tk[3]), distance(tk[1], tk[2])
+        x55 = trilinear_point(tk, ak * (bk + ck - ak), bk * (ck + ak - bk), ck * (ak + bk - ck))
+        x56 = trilinear_point(tk, ak / (bk + ck - ak), bk / (ck + ak - bk), ck / (ak + bk - ck))
+        @test internal_similitude_center(circumcircle(tk), incircle(tk)) ≈ x55 atol = 1e-6   # Kimberling X(55)
+        @test external_similitude_center(circumcircle(tk), incircle(tk)) ≈ x56 atol = 1e-6   # Kimberling X(56)
         etl = external_tangent_lines(c1, c2)
         @test length(etl) == 2
         @test all(l -> line_circle_position(l, c1) == :tangent && line_circle_position(l, c2) == :tangent, etl)
@@ -1483,6 +1489,11 @@ using Base.MathConstants: golden
         lA = APLine(ec.A, midpoint(t[2], t[3]))
         lB = APLine(ec.B, midpoint(t[1], t[3]))
         @test only(intersection(lA, lB)) ≈ mittenpunkt(t)
+        A, B, C = angle_at(t[1], t[2], t[3]), angle_at(t[2], t[1], t[3]), angle_at(t[3], t[1], t[2])
+        cw = clawson_point(t)
+        wA, wB, wC = barycentric_coordinates(t, cw)
+        @test wA / tan(A) ≈ wB / tan(B) atol = 1e-9
+        @test wB / tan(B) ≈ wC / tan(C) atol = 1e-9
         eq = APTriangle(APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(1.0, sqrt(3.0)))
         g = centroid(eq)
         for center in (circumcenter(eq), incenter(eq), orthocenter(eq),

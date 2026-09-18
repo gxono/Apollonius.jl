@@ -369,6 +369,16 @@ function mittenpunkt(t::APTriangle)
     return barycentric_point(t, a * (s - a), b * (s - b), c * (s - c))
 end
 """
+    clawson_point(t::APTriangle)
+
+The Clawson point of `t` (Kimberling X(19)): trilinear coordinates
+`tan(A) : tan(B) : tan(C)`, the angles of `t` at each vertex.
+"""
+function clawson_point(t::APTriangle)
+    A, B, C = angle_at(t[1], t[2], t[3]), angle_at(t[2], t[1], t[3]), angle_at(t[3], t[1], t[2])
+    return barycentric_point(t, tan(A), tan(B), tan(C))
+end
+"""
     de_longchamps_point(t::APTriangle)
 
 The de Longchamps point of `t`: the reflection of the orthocenter across

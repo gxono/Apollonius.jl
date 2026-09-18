@@ -58,7 +58,8 @@ segment of centers *externally* in ratio `c1.r : c2.r` (the common
 intersection of the external tangent lines, and of any line through both
 centers' "same-direction" homothety images). Throws an `ArgumentError` if
 the radii are equal (the external tangents are then parallel, with no
-finite center).
+finite center). For a triangle `t`, `external_similitude_center(circumcircle(t),
+incircle(t))` is Kimberling X(56).
 """
 function external_similitude_center(c1::APCircle2, c2::APCircle2; atol=1e-9)
     abs(c1.r - c2.r) <= atol * max(c1.r, c2.r, 1.0) &&
@@ -70,7 +71,9 @@ end
 
 The internal center of similitude of `c1` and `c2`: the point dividing the
 segment of centers *internally* in ratio `c1.r : c2.r`. Throws an
-`ArgumentError` if both radii are (near) zero.
+`ArgumentError` if both radii are (near) zero. For a triangle `t`,
+`internal_similitude_center(circumcircle(t), incircle(t))` is Kimberling
+X(55).
 """
 function internal_similitude_center(c1::APCircle2, c2::APCircle2; atol=1e-9)
     s = c1.r + c2.r
