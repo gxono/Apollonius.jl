@@ -530,3 +530,33 @@ Q1, Q2, Q3, Q4 = (polar_point_deg(5.0, ang, APPoint(0.0, 0.0)) for ang in (0.0, 
 is_concyclic(Q1, Q2, Q3, Q4)                       # true: all 4 on the same circle
 is_concyclic(Q1, Q2, Q3, APPoint(1.0, 1.0))        # false: this last point isn't on circ
 ```
+
+## Random points on a boundary
+
+`rand(s)` (and `rand(s, n)`, `rand(rng, s)`, the usual `Base.rand` forms)
+draws a random point on `s`'s own boundary or perimeter, never its
+interior. It's defined once, generically, via Julia's `Random.Sampler`
+protocol, so it works the same way for `APSegment` here and for most
+other shapes in this package:
+
+| Type | Uniform in |
+|:-----|:-----------|
+| `APSegment` | arc length (exact) |
+| `APCircle2`, `APCircularArc2` | arc length (exact) |
+| `APEllipse2`, `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | the curve's own parameter (slightly denser near the flatter parts) |
+| `APTriangle`/`APQuadrilateral`/`APStraightNgon`, curved regions, `APBoundingBox` | the whole perimeter (each side chosen with probability proportional to its own length, then a point on it by the rule above) |
+
+Not defined for `APLine`/`APRay` (infinite: no uniform distribution
+exists) or `APParabola2`/`APHyperbola2` as full curves (also infinite).
+
+```@example geo
+s = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+p = rand(s)
+on_segment(p, s)          # true: always exactly on the segment, by construction
+pts = rand(s, 5)          # the dims... form: a Vector of 5 independent draws
+length(pts) == 5 && all(q -> on_segment(q, s), pts)
+```
+
+Every other page repeats this for its own types where it matters: see
+[Circles](@ref), [Conics: Ellipse, Parabola & Hyperbola](@ref) and
+[Polygons & Bounding Boxes](@ref).

@@ -261,6 +261,40 @@ those shifted lines/circles directly:
 offset_line(l1, 3.0) == APLine(APPoint(-3.0, 0.0), APPoint(-3.0, 1.0))   # shifted left of p1->p2
 ```
 
+## Fixing the center in advance
+
+[`tangent_circles_with_center`](@ref)`(center, obj)` is the mirror
+question: instead of fixing the radius, it fixes the *center* and asks for
+the radius (or radii) that make a circle there tangent to a line or
+another circle. A line has exactly one answer, the perpendicular distance
+from `center` to the line:
+
+```@example geo
+center = APPoint(0.0, 0.0)
+l = APLine(APPoint(5.0, -5.0), APPoint(5.0, 5.0))
+tangent_circles_with_center(center, l)
+```
+
+A circle has up to two: external tangency (`r = d + c.r`, wrapping
+around the outside) and internal tangency (`r = |d - c.r|`, fitting
+between `center` and the far side of `c`), where `d` is the distance
+between the two centers:
+
+```@example geo
+c = APCircle2(APPoint(10.0, 0.0), 3.0)
+sols = tangent_circles_with_center(center, c)
+length(sols), sols[1].r, sols[2].r   # internal (7.0) then external (13.0)
+```
+
+```@raw html
+<img src="../assets/img/tangency/center_fixed.svg" alt="" style="width:100%;">
+```
+
+The two solutions merge into one when `center` sits exactly on `c` (only
+external tangency survives, at `r = 2*c.r`), and there are none at all
+when `center` coincides with `c`'s own center: every circle centered
+there is concentric with `c`, never tangent to it.
+
 ## Related helpers
 
 * [`external_similitude_center`](@ref) / [`internal_similitude_center`](@ref)

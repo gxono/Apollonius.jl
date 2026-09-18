@@ -286,6 +286,32 @@ end
 sz.fct(centroid(t))   # matches where `centroid(t2)` would land -- t was never re-transformed itself
 ```
 
+### The drawable area itself: `sz.bb`
+
+Both macros' returned size `NamedTuple` also carries `bb`: the
+[`APBoundingBox`](@ref) of the canvas's own drawable area, centered on the
+origin the same way `origin()` centers it, with `margin` already
+subtracted from every side. It depends only on `width`/`height`/`margin`,
+never on the block's own shapes, so it's there even when nothing in the
+block reaches anywhere near the canvas edges.
+
+The typical use is clipping: something that legitimately extends past the
+canvas on purpose, most often an unbounded region or a large auxiliary
+shape marked [`@unbounded`](@ref), can be clipped to `sz.bb` before
+stroking or filling it, instead of letting Cairo render (and spend time
+on) geometry that falls outside the printable area anyway:
+
+```julia
+sz, (t2, circ2) = @to_luxor_picture width=300.0 height=200.0 margin=10.0 begin
+    t
+    circ
+end
+bbox_width(sz.bb) == sz.width - 20.0    # true: margin subtracted from both sides
+bbox_height(sz.bb) == sz.height - 20.0  # true
+path(sz.bb; action=:clip)
+path(t2; action=:stroke)   # now clipped to the margin-adjusted drawable area
+```
+
 ### Known limitation: plain numbers never scale
 
 A bare number gets a well-defined empty [`APBoundingBox`](@ref) (it

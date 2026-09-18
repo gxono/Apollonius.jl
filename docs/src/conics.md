@@ -161,10 +161,20 @@ of `APEllipse2`, `APParabola2` or `APHyperbola2` you're using):
 |:---------|:--------|
 | `point_on_conic(conic, param)` | a point on the curve at the given parameter |
 | `is_on_conic(p, conic)` | is `p` exactly on the curve? |
-| `intersection(l, conic)` | 0, 1 or 2 points where an `APLine` crosses the curve |
+| `intersection(l, conic)` | 0, 1 or 2 points where an `APLine`/`APSegment`/`APRay` crosses the curve |
 | `polar_line(conic, p)` | the polar line of `p` (see below) |
 | `tangent_points(conic, p)` | the point(s) of tangency of the line(s) from `p` |
 | `tangent_lines(conic, p)` | the tangent line(s) themselves |
+
+`intersection` reduces `APSegment`/`APRay` to the underlying `APLine`
+case and then keeps only the points that actually fall on the
+segment/ray, so a segment that stops short of the curve correctly returns
+nothing, and a ray only ever reports points ahead of its origin:
+
+```@example geo
+intersection(APSegment(APPoint(-10.0, 0.0), APPoint(0.0, 0.0)), e)   # reaches the near vertex
+intersection(APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), e)         # the far vertex, not the near one
+```
 
 The **polar line** of a point `p` with respect to a conic is the
 projective-duality construction that makes all of `tangent_points` and
@@ -242,6 +252,49 @@ t)` becomes `point_on_arc(reverse(arc), 1 - t)`):
 
 ```@example geo
 reverse(reverse(parc)) == parc, point_on_arc(reverse(parc), 0.0) ≈ parc.p2
+```
+
+### Intersecting an arc
+
+`intersection` works on an arc the same way it works on the full conic:
+against `APLine`/`APSegment`/`APRay`, it intersects the underlying curve
+and keeps only the points that also fall within the arc's own sweep
+(the same idea as [`in`](@ref)`(p, arc)`, used internally):
+
+```@example geo
+l = APLine(APPoint(-10.0, 1.0), APPoint(10.0, 1.0))
+intersection(l, earc)   # only one of the two ellipse crossings is on this short arc
+```
+
+For `APCircularArc2` specifically, intersection also works against a full
+`APCircle2` or another circular arc, since circle-circle intersection
+already exists to build on:
+
+```@example geo
+circ = APCircle2(APPoint(0.0, 0.0), 5.0)
+carc = APCircularArc2(circ, APPoint(5.0, 0.0), APPoint(0.0, 5.0))
+intersection(APCircle2(APPoint(5.0, 5.0), 5.0), carc)
+```
+
+This doesn't extend to an arc against a *different* conic type it isn't
+cut from (an elliptic arc against a circle, two elliptic arcs from
+different ellipses, ...): that needs general conic-vs-conic intersection,
+which this package doesn't implement yet, so it raises a `MethodError`
+rather than silently doing the wrong thing.
+
+### Random points
+
+[`rand`](@ref) draws a random point on an `APEllipse2` or any of these
+three arc types (see [Points, Lines & Rays](@ref) for the general story
+across every shape in the package). Unlike a circle or circular arc, this
+is uniform in the curve's own parameter, *not* in arc length: exact
+arc-length sampling would need elliptic integrals for these three, so
+points cluster slightly more densely near the flatter parts of the curve
+(near an ellipse's minor axis, for instance):
+
+```@example geo
+is_on_ellipse(rand(e), e)   # true, but not uniformly spread along the perimeter
+in(rand(earc), earc), in(rand(parc), parc), in(rand(harc), harc)
 ```
 
 ## Transforming conics

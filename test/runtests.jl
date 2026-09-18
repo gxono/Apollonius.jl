@@ -958,6 +958,48 @@ using Base.MathConstants: golden
             @test intersection(r_up, rpar) == [APPoint(0.0, 0.0)]
             @test intersection(rpar, r_up) == intersection(r_up, rpar)
         end
+        @testset "conic arcs against APLine/APSegment/APRay/APCircle2/APCircularArc2" begin
+            circ = APCircle2(APPoint(0.0, 0.0), 5.0)
+            arc = APCircularArc2(circ, APPoint(5.0, 0.0), APPoint(0.0, 5.0))   # first-quadrant quarter
+            l = APLine(APPoint(-10.0, 2.5), APPoint(10.0, 2.5))
+            expected = APPoint(sqrt(25 - 2.5^2), 2.5)
+            @test isapprox(only(intersection(l, arc)), expected; atol=1e-9)
+            @test intersection(arc, l) == intersection(l, arc)
+            @test isempty(intersection(APLine(APPoint(-10.0, -2.5), APPoint(10.0, -2.5)), arc))   # wrong quadrant
+            s = APSegment(APPoint(-10.0, 2.5), APPoint(10.0, 2.5))
+            @test isapprox(only(intersection(s, arc)), expected; atol=1e-9)
+            @test intersection(arc, s) == intersection(s, arc)
+            r = APRay(APPoint(0.0, 2.5), APPoint(10.0, 2.5))
+            @test isapprox(only(intersection(r, arc)), expected; atol=1e-9)
+            @test intersection(arc, r) == intersection(r, arc)
+            @test isempty(intersection(APRay(APPoint(0.0, 2.5), APPoint(-10.0, 2.5)), arc))   # points away from arc
+            c2 = APCircle2(APPoint(5.0, 5.0), 5.0)
+            c2pts = intersection(c2, arc)
+            @test length(c2pts) == 2
+            @test all(p -> isapprox(distance(p, circ.center), 5.0; atol=1e-6), c2pts)
+            @test intersection(arc, c2) == c2pts
+            other_circ = APCircle2(APPoint(5.0, 0.0), 5.0)   # p1/p2 are opposite ends of a diameter -> lower half
+            other_arc = APCircularArc2(other_circ, APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+            @test isempty(intersection(arc, other_arc))   # the two circle-circle points land in disjoint quadrants
+            e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+            earc = APEllipticArc2(e, APPoint(5.0, 0.0), APPoint(0.0, 3.0))
+            el = APLine(APPoint(-10.0, 1.5), APPoint(10.0, 1.5))
+            epts = intersection(el, earc)
+            @test length(epts) == 1 && is_on_ellipse(epts[1], e; atol=1e-9) && epts[1][1] > 0
+            @test intersection(earc, el) == epts
+            h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0)
+            harc = APHyperbolicArc2(h, point_on_hyperbola(h, -1.0), point_on_hyperbola(h, 1.0))
+            hl = APLine(APPoint(0.0, -10.0), APPoint(0.0, 10.0))
+            @test isempty(intersection(hl, harc))   # the branch never crosses x=0
+            par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
+            parc = APParabolicArc2(par, point_on_parabola(par, -3.0), point_on_parabola(par, 3.0))
+            pl = APLine(APPoint(-10.0, 1.0), APPoint(10.0, 1.0))
+            ppts = intersection(pl, parc)
+            @test length(ppts) == 2 && all(p -> is_on_parabola(p, par; atol=1e-9), ppts)
+            @test intersection(parc, pl) == ppts
+            far_line = APLine(APPoint(-10.0, 5.0), APPoint(10.0, 5.0))   # meets the full parabola outside the arc's own sweep
+            @test isempty(intersection(far_line, parc))
+        end
         c1 = APCircle2(APPoint(0.0, 0.0), 5.0)
         c2 = APCircle2(APPoint(8.0, 0.0), 5.0)
         cpts = intersection(c1, c2)
@@ -3119,15 +3161,24 @@ using Base.MathConstants: golden
                 c
                 s
             end
-            @test sz isa NamedTuple{(:width, :height, :fct)}
+            @test sz isa NamedTuple{(:width, :height, :fct, :bb)}
             @test sz.width == 10.0 && sz.height == 10.0
+            @test sz.bb == APBoundingBox(APPoint(-5.0, -5.0), APPoint(5.0, 5.0))
             c, s = fresh()
             sz2 = @to_luxor_picture! width = 50.0 begin
                 c
                 s
             end
-            @test sz2 isa NamedTuple{(:width, :height, :fct)}
+            @test sz2 isa NamedTuple{(:width, :height, :fct, :bb)}
             @test sz2.width == 50.0 && sz2.height == 50.0
+            @test sz2.bb == APBoundingBox(APPoint(-25.0, -25.0), APPoint(25.0, 25.0))
+            c, s = fresh()
+            sz2m = @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+                c
+                s
+            end
+            @test sz2m.bb == APBoundingBox(APPoint(-230.0, -100.0), APPoint(230.0, 100.0))
+            @test bbox_width(sz2m.bb) == sz2m.width - 40.0 && bbox_height(sz2m.bb) == sz2m.height - 40.0
             c, s = fresh()
             sz3, c2 = @to_luxor_picture begin
                 c

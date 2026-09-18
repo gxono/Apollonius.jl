@@ -195,4 +195,44 @@ When `p` is on `par`, this is the single tangent line *at* `p` (its polar
 line) rather than the degenerate `APLine(p, p)`.
 """
 tangent_lines(par::APParabola2, p::APPoint; atol=1e-9) = _tangent_lines_via_polar(par, p; atol=atol)
+_conic(arc::APCircularArc2) = arc.circle
+_conic(arc::APEllipticArc2) = arc.ellipse
+_conic(arc::APParabolicArc2) = arc.parabola
+_conic(arc::APHyperbolicArc2) = arc.hyperbola
+"""
+    intersection(l::APLine, arc::APConicArc2; atol=1e-9)
+    intersection(s::APSegment, arc::APConicArc2; atol=1e-9)
+    intersection(r::APRay, arc::APConicArc2; atol=1e-9)
+
+Intersection points of `l`/`s`/`r` with `arc` itself, not the full conic
+it's cut from: found by intersecting against `arc`'s own circle/ellipse/
+parabola/hyperbola and keeping only the points that also fall within
+`arc`'s own angular/parameter sweep (via `in`). Returns a
+`Vector{APPoint{2,Float64}}`, same convention as every other
+`intersection` method.
+"""
+intersection(l::APLine, arc::APConicArc2; atol=1e-9) = filter(p -> in(p, arc; atol=atol), intersection(l, _conic(arc); atol=atol))
+intersection(arc::APConicArc2, l::APLine; atol=1e-9) = intersection(l, arc; atol=atol)
+intersection(s::APSegment, arc::APConicArc2; atol=1e-9) = filter(p -> in(p, arc; atol=atol), intersection(s, _conic(arc); atol=atol))
+intersection(arc::APConicArc2, s::APSegment; atol=1e-9) = intersection(s, arc; atol=atol)
+intersection(r::APRay, arc::APConicArc2; atol=1e-9) = filter(p -> in(p, arc; atol=atol), intersection(r, _conic(arc); atol=atol))
+intersection(arc::APConicArc2, r::APRay; atol=1e-9) = intersection(r, arc; atol=atol)
+"""
+    intersection(c::APCircle2, arc::APCircularArc2; atol=1e-9)
+    intersection(arc::APCircularArc2, c::APCircle2; atol=1e-9)
+    intersection(a1::APCircularArc2, a2::APCircularArc2; atol=1e-9)
+
+The circular-arc-specific overloads: since circle-vs-circle intersection
+already exists, a circular arc can also intersect a full `APCircle2` or
+another circular arc the same way -- intersect the underlying circles,
+then keep only the points within each arc's own sweep. There is no
+general `intersection` between an arc and a *different* conic type it
+isn't cut from (an elliptic arc against a circle, two elliptic arcs from
+different ellipses, ...): that needs general conic-vs-conic intersection,
+which this package doesn't implement yet.
+"""
+intersection(c::APCircle2, arc::APCircularArc2; atol=1e-9) = filter(p -> in(p, arc; atol=atol), intersection(c, arc.circle; atol=atol))
+intersection(arc::APCircularArc2, c::APCircle2; atol=1e-9) = intersection(c, arc; atol=atol)
+intersection(a1::APCircularArc2, a2::APCircularArc2; atol=1e-9) =
+    filter(p -> in(p, a1; atol=atol) && in(p, a2; atol=atol), intersection(a1.circle, a2.circle; atol=atol))
 tangent_lines(p::APPoint, par::APParabola2; atol=1e-9) = tangent_lines(par, p; atol=atol)

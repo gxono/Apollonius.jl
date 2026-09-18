@@ -330,6 +330,22 @@ exact same convention (`reverse` included); see
 [Tangency & Apollonius Problems](@ref)) builds a curvilinear triangle's
 three sides out of.
 
+[`rand`](@ref) draws a uniformly random point on a circle or a circular
+arc's own boundary (see [Points, Lines & Rays](@ref) for the general
+story across every shape); for a full circle or a circular arc this is
+exact, uniform in arc length, not just in angle or parameter:
+
+```@example geo
+p = rand(c)
+isapprox(distance(p, c.center), c.r; atol=1e-9)   # exactly on the circle, every time
+in(rand(arc), arc)                                # exactly on this arc, not just the full circle
+```
+
+An `APCircularArc2` also intersects `APLine`/`APSegment`/`APRay`, a full
+`APCircle2`, or another circular arc; see
+[Intersecting an arc](@ref) for the general story (including the arc
+types below).
+
 ## Circular sectors, segments and annuli
 
 An arc alone is just a curve; closing it up gives a genuine region: a

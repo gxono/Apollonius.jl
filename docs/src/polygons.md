@@ -196,6 +196,23 @@ This is what lets [`@boundingbox`](@ref)/[`@to_luxor_picture`](@ref) (see
 value named in a block (construction helpers included) without needing
 to special-case the ones that were never meant to be drawn or sized.
 
+## Random points on a perimeter
+
+[`rand`](@ref) draws a uniformly random point on a polygon's or a
+bounding box's own perimeter, never its interior (see
+[Points, Lines & Rays](@ref) for the general story across every shape in
+the package): each side is picked with probability proportional to its
+own length, then a point on that side uniformly, so the result is uniform
+along the whole boundary, not just uniform-per-side:
+
+```@example geo
+p = rand(pg)
+point_in_polygon(p, pg)   # true: on the boundary, which counts as "in" by default
+
+pb = rand(bb)
+pb in bb                  # same idea for a bounding box's own edge
+```
+
 ## Named polygon constructors
 
 A handful of constructors build common quadrilaterals and regular polygons
