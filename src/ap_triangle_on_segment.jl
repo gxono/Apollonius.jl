@@ -179,10 +179,8 @@ The isosceles right triangle with hypotenuse `[a, b]`, built via Thales'
 theorem (the right-angle vertex lies on the circle with diameter `[a, b]`),
 counterclockwise from `a` to `b` (`ccw=false` builds it on the other side).
 """
-function isosceles_right_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
-    x = midpoint(a, b)
-    return APTriangle(a, b, rotate(b, ccw ? pi / 2 : -pi / 2, x))
-end
+isosceles_right_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
+    triangle_on_segment(a, b, pi / 4, pi / 4; ccw=ccw)
 """
     isosceles_right_triangle_on_segment(s::APSegment; ccw::Bool=true)
 """
@@ -196,12 +194,8 @@ The golden triangle with base `[a, b]`: isosceles with base angles `72°`
 and apex angle `36°`, built counterclockwise from `a` to `b` (`ccw=false`
 builds it on the other side).
 """
-function golden_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
-    s = ccw ? 1 : -1
-    ray_a = APLine(a, rotate(b, s * 2pi / 5, a))
-    ray_b = APLine(b, rotate(a, -s * 2pi / 5, b))
-    return APTriangle(a, b, only(intersection(ray_a, ray_b)))
-end
+golden_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
+    triangle_on_segment(a, b, 2pi / 5, 2pi / 5; ccw=ccw)
 """
     golden_triangle_on_segment(s::APSegment; ccw::Bool=true)
 """
@@ -215,12 +209,8 @@ The golden gnomon with base `[a, b]`: isosceles with base angles `36°` and
 apex angle `108°`, built counterclockwise from `a` to `b` (`ccw=false`
 builds it on the other side).
 """
-function golden_gnomon_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
-    s = ccw ? 1 : -1
-    ray_a = APLine(a, rotate(b, s * pi / 5, a))
-    ray_b = APLine(b, rotate(a, -s * pi / 5, b))
-    return APTriangle(a, b, only(intersection(ray_a, ray_b)))
-end
+golden_gnomon_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
+    triangle_on_segment(a, b, pi / 5, pi / 5; ccw=ccw)
 """
     golden_gnomon_on_segment(s::APSegment; ccw::Bool=true)
 """
@@ -232,16 +222,12 @@ end
 
 The `3-4-5` right triangle with `[a, b]` as its "4" side: the right angle
 is at `b`, and the "3" side `[b, c]` is perpendicular to `[a, b]` with
-length `0.75 * distance(a, b)` — giving hypotenuse `[a, c]` the remaining
+length `0.75 * distance(a, b)`, giving hypotenuse `[a, c]` the remaining
 "5" side automatically. Built counterclockwise from `a` to `b` (`ccw=false`
 builds it on the other side).
 """
-function egyptian_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
-    s = ccw ? 1 : -1
-    n = rotate(a, -s * pi / 2, b)
-    dir = (n - b) / norm(n - b)
-    return APTriangle(a, b, b + dir * 0.75 * distance(a, b))
-end
+egyptian_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
+    triangle_on_segment_sas(a, b, pi / 2, 0.75 * distance(a, b); at=:b, ccw=ccw)
 """
     egyptian_triangle_on_segment(s::APSegment; ccw::Bool=true)
 """

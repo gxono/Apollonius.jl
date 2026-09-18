@@ -769,10 +769,9 @@ function mixtilinear_incircle(t::APTriangle, i::Integer; atol=1e-9)
     l1, l2 = APLine(vertex, other1), APLine(vertex, other2)
     cc = circumcircle(t)
     for s in tangent_circles(l1, l2, cc; atol=atol)
-        scale = max(s.r, cc.r, 1.0)
         side_of_line(s.center, l1) == side_of_line(other2, l1) &&
             side_of_line(s.center, l2) == side_of_line(other1, l2) &&
-            abs(distance(s.center, cc.center) - (cc.r - s.r)) <= sqrt(atol) * scale &&
+            _encloses(cc, s; atol=atol) &&
             return s
     end
     error("mixtilinear_incircle: no valid solution found")
@@ -795,9 +794,8 @@ function thebault_circles(t::APTriangle, p::APPoint; atol=1e-9)
     cc = circumcircle(t)
     near_b, near_c = nothing, nothing
     for s in tangent_circles(cevian, side_line, cc; atol=atol)
-        scale = max(s.r, cc.r, 1.0)
         (side_of_line(s.center, side_line) == side_of_line(A, side_line) &&
-         abs(distance(s.center, cc.center) - (cc.r - s.r)) <= sqrt(atol) * scale) || continue
+         _encloses(cc, s; atol=atol)) || continue
         if side_of_line(s.center, cevian) == side_of_line(C, cevian)
             near_c = s
         elseif side_of_line(s.center, cevian) == side_of_line(B, cevian)
@@ -851,9 +849,7 @@ Not to be confused with [`apollonius_circle`](@ref)/
 function apollonius_circle_of_triangle(t::APTriangle; atol=1e-9)
     ec = excircles(t)
     sols = tangent_circles(ec.A, ec.B, ec.C; atol=atol)
-    encloses(big, small) = big.r > small.r &&
-                            isapprox(distance(big.center, small.center), big.r - small.r; atol=sqrt(atol) * max(big.r, 1.0))
-    idx = findfirst(s -> encloses(s, ec.A) && encloses(s, ec.B) && encloses(s, ec.C), sols)
+    idx = findfirst(s -> _encloses(s, ec.A; atol=atol) && _encloses(s, ec.B; atol=atol) && _encloses(s, ec.C; atol=atol), sols)
     idx === nothing && error("apollonius_circle_of_triangle: no circle enclosing all three excircles was found")
     return sols[idx]
 end
@@ -869,9 +865,8 @@ lines meet at this point.
 function apollonius_point_of_triangle(t::APTriangle; atol=1e-9)
     ec = excircles(t)
     E = apollonius_circle_of_triangle(t; atol=atol)
-    tangency(small) = small.center + small.r * normalize(small.center - E.center)
-    lA = APLine(t[1], tangency(ec.A))
-    lB = APLine(t[2], tangency(ec.B))
+    lA = APLine(t[1], _tangency_point(E, ec.A))
+    lB = APLine(t[2], _tangency_point(E, ec.B))
     return only(intersection(lA, lB; atol=atol))
 end
 """
