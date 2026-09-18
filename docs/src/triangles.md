@@ -155,7 +155,16 @@ trilinear_point(t, 1.0, 1.0, 1.0) ≈ incenter(t)
 Many named centers found in a reference like the *Encyclopedia of Triangle
 Centers* are given as trilinears rather than barycentrics ([`kenmotu_point`](@ref)
 below is one example), so having both conversions on hand avoids
-rederiving one from the other by hand.
+rederiving one from the other by hand. [`clawson_point`](@ref) (Kimberling
+X(19)) is exactly this: it has no simpler description than its own
+trilinears, `tan(A) : tan(B) : tan(C)`, so it's built with
+`trilinear_point` directly rather than from some other geometric
+construction:
+
+```@example geo
+angA, angB, angC = angle_at(t[1], t[2], t[3]), angle_at(t[2], t[1], t[3]), angle_at(t[3], t[1], t[2])
+clawson_point(t) ≈ trilinear_point(t, tan(angA), tan(angB), tan(angC))
+```
 
 ## Vertex-indexed lines
 
@@ -274,14 +283,15 @@ The rest, grouped by what they're built from:
 | Conjugates of a point | [`isogonal_conjugate`](@ref), [`isotomic_conjugate`](@ref) |
 | Complement/anticomplement of a point | [`complement`](@ref), [`anticomplement`](@ref) |
 | Built from the incenter/excenters | [`mittenpunkt`](@ref), [`spieker_center`](@ref), [`spieker_circle`](@ref), [`bevan_point`](@ref), [`de_longchamps_point`](@ref) |
+| Trilinear/barycentric formula, no simpler description | [`clawson_point`](@ref) |
 | On the circumcircle or Euler line | [`feuerbach_point`](@ref), [`feuerbach_points`](@ref), [`isodynamic_points`](@ref) |
 | Brocard configuration | [`first_brocard_point`](@ref), [`second_brocard_point`](@ref), [`brocard_angle`](@ref), [`brocard_circle`](@ref), [`brocard_midpoint`](@ref) |
 | Congruent-squares / conjugate-of-classical-center points | [`kenmotu_point`](@ref)/[`kenmotu_circle`](@ref), [`macbeath_point`](@ref) |
 | A 4th point's common nine-point-circle point | [`poncelet_point`](@ref) |
-| Pedal-type constructions | [`simson_line`](@ref), [`steiner_line`](@ref), [`orthopole`](@ref), [`pedal_triangle`](@ref) |
-| Named auxiliary circles | [`conway_points`](@ref)/[`conway_circle`](@ref), [`taylor_points`](@ref)/[`taylor_circle`](@ref), [`first_lemoine_points`](@ref)/[`first_lemoine_circle`](@ref)/[`second_lemoine_circle`](@ref), [`van_lamoen_points`](@ref)/[`van_lamoen_circle`](@ref) |
-| Mutually tangent circle systems | [`mixtilinear_incircle`](@ref), [`three_tangent_circles`](@ref)/[`soddy_circles`](@ref)/[`soddy_line`](@ref), [`thebault_circles`](@ref) |
-| Apollonius circles of a triangle | [`three_apollonius_circles`](@ref) (one per vertex; their common points are the [`isodynamic_points`](@ref)) |
+| Pedal-type constructions | [`simson_line`](@ref), [`steiner_line`](@ref), [`orthopole`](@ref), [`pedal_triangle`](@ref)/[`pedal_circle`](@ref) |
+| Named auxiliary circles | [`conway_points`](@ref)/[`conway_circle`](@ref), [`taylor_points`](@ref)/[`taylor_circle`](@ref), [`first_lemoine_points`](@ref)/[`first_lemoine_circle`](@ref)/[`second_lemoine_circle`](@ref)/[`symmedial_circle`](@ref), [`van_lamoen_points`](@ref)/[`van_lamoen_circle`](@ref), [`adams_points`](@ref)/[`adams_circle`](@ref) |
+| Mutually tangent circle systems | [`mixtilinear_incircle`](@ref), [`three_tangent_circles`](@ref)/[`soddy_circles`](@ref)/[`soddy_line`](@ref)/[`soddy_center`](@ref)/[`soddy_points`](@ref), [`thebault_circles`](@ref) |
+| Apollonius circles of a triangle | [`three_apollonius_circles`](@ref) (one per vertex; their common points are the [`isodynamic_points`](@ref)); [`apollonius_circle_of_triangle`](@ref)/[`apollonius_point_of_triangle`](@ref) (one circle, tangent to the three excircles instead) |
 | Axis-like lines | [`fermat_axis`](@ref) (through [`fermat_point`](@ref) and [`second_fermat_point`](@ref)); see also [`orthic_axis`](@ref)/[`brocard_axis`](@ref)/[`lemoine_axis`](@ref) above and [`soddy_line`](@ref) |
 
 All of these take the `APTriangle` as their (only, or first) argument and
@@ -312,6 +322,13 @@ pedal triangles of the orthocenter/incenter:
 ```@example geo
 orthopole(APLine(t[2], t[3]), t) isa APPoint
 pedal_triangle(t, incenter(t)) ≈ contact_triangle(t)
+```
+
+[`pedal_circle`](@ref)`(t, p)` is just the circumcircle of that pedal
+triangle:
+
+```@example geo
+pedal_circle(t, incenter(t)) ≈ incircle(t)   # the incircle is the pedal circle of the incenter
 ```
 
 ```@example geo
@@ -376,6 +393,23 @@ iso1, iso2 = isodynamic_points(t)
 all(c -> distance(c.center, iso1) ≈ c.r, apo), all(c -> distance(c.center, iso2) ≈ c.r, apo)
 ```
 
+Despite the shared name, [`apollonius_circle_of_triangle`](@ref) is a
+different construction: the circle tangent to and enclosing all three
+excircles of `t`. Take that circle's point of tangency with each excircle,
+draw the line from the excircle's own vertex (the one it sits opposite)
+through that tangency point, and the three lines meet at
+[`apollonius_point_of_triangle`](@ref) (Kimberling X(181)):
+
+```@example geo
+ap_circle = apollonius_circle_of_triangle(t)
+ex = excircles(t)
+distance(ap_circle.center, ex.A.center) ≈ ap_circle.r - ex.A.r  # internally tangent
+```
+
+```@example geo
+apollonius_point_of_triangle(t)
+```
+
 The Brocard configuration: [`first_brocard_point`](@ref)/
 [`second_brocard_point`](@ref) are the two points seeing all three sides at
 the same [`brocard_angle`](@ref); [`brocard_circle`](@ref) passes through
@@ -393,8 +427,11 @@ opposite side; all 6 endpoints lie on a circle centered at the incenter),
 [`taylor_circle`](@ref) (through the 6 [`taylor_points`](@ref)),
 [`first_lemoine_points`](@ref)/[`first_lemoine_circle`](@ref) and
 [`second_lemoine_circle`](@ref) (both centered differently, both built
-from the symmedian point), and [`van_lamoen_circle`](@ref) (through the 6
-[`van_lamoen_points`](@ref)):
+from the symmedian point), [`symmedial_circle`](@ref) (circumcircle of
+the cevian triangle of the symmedian point, a third circle built from the
+same point), [`van_lamoen_circle`](@ref) (through the 6
+[`van_lamoen_points`](@ref)), and [`adams_circle`](@ref) (through the 6
+[`adams_points`](@ref), centered at the incenter):
 
 ```@example geo
 on_circ(p, c) = distance(p, c.center) ≈ c.r   # "p is exactly on c", not just inside the disk
@@ -403,7 +440,9 @@ all(p -> on_circ(p, conway_circle(t)), conway_points(t)),
     all(p -> on_circ(p, taylor_circle(t)), taylor_points(t)),
     all(p -> on_circ(p, first_lemoine_circle(t)), first_lemoine_points(t)),
     symmedian_point(t) ≈ second_lemoine_circle(t).center,
-    all(p -> on_circ(p, van_lamoen_circle(t)), van_lamoen_points(t))
+    all(v -> on_circ(v, symmedial_circle(t)), cevian_triangle(t, symmedian_point(t))),
+    all(p -> on_circ(p, van_lamoen_circle(t)), van_lamoen_points(t)),
+    all(p -> on_circ(p, adams_circle(t)), adams_points(t))
 ```
 
 [`mixtilinear_incircle`](@ref)`(t, i)` is tangent to the two sides through
@@ -415,6 +454,16 @@ all(p -> on_circ(p, conway_circle(t)), conway_points(t)),
 mixt = mixtilinear_incircle(t, 1)
 sc = soddy_circles(t)
 on_line(sc.inner.center, soddy_line(t)), on_line(sc.outer.center, soddy_line(t))
+```
+
+[`soddy_center`](@ref)`(t; outer=false)` is just the center of one of
+those two circles, as a point on its own (Kimberling X(176) for the
+inner one, the default, and X(175) for `outer=true`); [`soddy_points`](@ref)
+gives both at once, as `(inner=..., outer=...)`:
+
+```@example geo
+soddy_center(t) == sc.inner.center
+soddy_points(t) == (inner=sc.inner.center, outer=sc.outer.center)
 ```
 
 [`second_fermat_point`](@ref) is built exactly like [`fermat_point`](@ref)
@@ -686,8 +735,17 @@ keyword picking which side of `[a, b]` the third vertex falls on.
 | [`golden_triangle_on_segment`](@ref) | isosceles `72°-72°-36°`, base `[a, b]` |
 | [`golden_gnomon_on_segment`](@ref) | isosceles `36°-36°-108°` (the golden gnomon), base `[a, b]` |
 | [`egyptian_triangle_on_segment`](@ref) | `3-4-5` right triangle, `[a, b]` the "4" side, right angle at `b` |
+| [`triangle_on_segment`](@ref) | generic ASA: base `[a, b]`, given angle at `a` and at `b` |
+| [`triangle_on_segment_sas`](@ref) | generic SAS: base `[a, b]`, given angle and side length at one vertex |
+| [`triangle_on_segment_ssa`](@ref) | generic SSA: base `[a, b]`, an angle at one vertex, and the length of the opposite side (0/1/2 solutions) |
+| [`triangle_on_segment_sss`](@ref) | generic SSS: base `[a, b]` and both new side lengths |
 
-
+Every fixed-shape constructor above is really just a named call into one
+of these four: `golden_triangle_on_segment(a, b)` is
+`triangle_on_segment(a, b, 2pi/5, 2pi/5)`, `isosceles_triangle_on_segment(a,
+b, leg)` is `triangle_on_segment_sss(a, b, leg, leg)`, and so on. Reach for
+the generic form directly whenever the triangle you want isn't one of the
+named ones.
 
 ```@example geo
 p1, p2 = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
@@ -751,4 +809,38 @@ rad2deg(angle_at(isr[3], isr[1], isr[2]))   # 90°: the right angle sits opposit
 
 ```@raw html
 <img src="../assets/img/triangles/tronseg_isor.svg" alt="" style="width:100%;">
+```
+
+The four generic constructors behind all of the above, named after which
+three measurements pin the triangle down. ASA, given both base angles:
+
+```@example geo
+asa = triangle_on_segment(p1, p2, deg2rad(50), deg2rad(70))
+rad2deg(angle_at(asa[1], asa[2], asa[3])), rad2deg(angle_at(asa[2], asa[1], asa[3]))
+```
+
+SAS, given a side length and the angle it makes with the base at one
+vertex (`at=:a` or `at=:b`):
+
+```@example geo
+sas = triangle_on_segment_sas(p1, p2, deg2rad(60), 4.0; at=:b)
+distance(sas[2], sas[3]), rad2deg(angle_at(sas[2], sas[1], sas[3]))
+```
+
+SSS, given both new side lengths:
+
+```@example geo
+sss = triangle_on_segment_sss(p1, p2, 5.0, 7.0)
+distance(sss[1], sss[3]), distance(sss[2], sss[3])
+```
+
+SSA, given an angle at one vertex and the length of the side opposite it,
+is the classically ambiguous case: depending on the numbers, 0, 1 or 2
+triangles satisfy it. With 2 solutions, `second_solution=false` (the
+default) picks the one with the larger angle at the other base vertex:
+
+```@example geo
+ssa1 = triangle_on_segment_ssa(p1, p2, deg2rad(40), 4.5; at=:a)
+ssa2 = triangle_on_segment_ssa(p1, p2, deg2rad(40), 4.5; at=:a, second_solution=true)
+distance(ssa1[2], ssa1[3]) ≈ 4.5, distance(ssa2[2], ssa2[3]) ≈ 4.5, ssa1[3] ≈ ssa2[3]
 ```

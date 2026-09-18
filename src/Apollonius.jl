@@ -1,5 +1,5 @@
 module Apollonius
-using LinearAlgebra: norm, dot, normalize, nullspace
+using LinearAlgebra: norm, dot, normalize, nullspace, eigvals
 import LinearAlgebra
 import Random
 include("ap_point.jl")
@@ -17,6 +17,7 @@ export APCircularArc2, APEllipticArc2, APParabolicArc2, APHyperbolicArc2
 include("ap_parametric_curve.jl")
 export APParametricCurve2, point_on_curve
 include("ap_conic_tangency.jl")
+include("ap_conic_intersection.jl")
 include("ap_curved_region.jl")
 export APCircularSector2, APCircularSegment2, APAnnularSector2, APInterstice2
 export APCurvilinearTriangle2, APCurvilinearQuadrilateral2, APCurvilinearNgon2

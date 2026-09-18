@@ -27,8 +27,6 @@ listed, rather than applying a transform.
 | [`@invert_neg`](@ref) | [`invert_neg`](@ref) | [`@invert_neg!`](@ref) |
 | [`@affinemap`](@ref) | any [`APAffineMap`](@ref) | [`@affinemap!`](@ref) |
 
-![Several shapes rotated together by one @rotate block](assets/img/placeholder.png)
-
 ## Reading the block
 
 Every one of these macros reads its `begin ... end` block the same way,

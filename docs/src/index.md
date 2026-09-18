@@ -4,12 +4,6 @@ CurrentModule = Apollonius
 
 # Apollonius.jl
 
-!!! note "Illustrations are still on their way"
-    Several pages on this site have a placeholder image (labeled "TODO:
-    diagram") standing in for a real illustration. The text and code
-    examples around them are complete and verified; the actual diagrams
-    will be filled in over time.
-
 Apollonius.jl is a Julia toolkit for planar Euclidean geometry, and a
 system for illustrating it. It gives you real geometric objects (points,
 segments, lines, circles, triangles, conics, and the constructions you

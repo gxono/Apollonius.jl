@@ -42,6 +42,15 @@ It throws an `ArgumentError` if the three points are (or are too close
 to) collinear, same as [`affine_map`](@ref) does for its three source
 points. There's no finite circle through them in that case.
 
+[`antipode`](@ref)`(p, c)` is the point of `c` diametrically opposite
+`p`: `c.center` is the midpoint of `p` and its antipode, which is just
+`reflection(p, c.center)` under the hood.
+
+```@example geo
+c0 = APCircle2(APPoint(0.0, 0.0), 5.0)
+antipode(APPoint(5.0, 0.0), c0)   # (-5.0, 0.0), on the far side of c0.center
+```
+
 ## Power of a point and tangent lines
 
 The [`power_of_point`](@ref) of `p` with respect to a circle `c` is
@@ -102,6 +111,30 @@ rcirc = radical_circle(c1, c2, c3)
 <img src="../assets/img/circles/circle_radical.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
+[`radical_circle`](@ref) is itself one instance of a more general idea:
+[`orthogonal_circle`](@ref) builds a circle orthogonal to a given one,
+either centered at a chosen point outside it, or passing through two
+chosen points. Two circles are orthogonal when the tangent lines at
+either of their crossing points are perpendicular, equivalently when
+`distance(c1.center, c2.center)^2 == c1.r^2 + c2.r^2`:
+
+```@example geo
+oc1 = orthogonal_circle(c1, APPoint(13.0, 0.0))   # centered at that point, radius = tangent length
+distance(c1.center, oc1.center)^2 ≈ c1.r^2 + oc1.r^2
+```
+
+```@example geo
+oc2 = orthogonal_circle(c1, APPoint(8.0, 3.0), APPoint(-4.0, 6.0))   # through both points instead
+distance(c1.center, oc2.center)^2 ≈ c1.r^2 + oc2.r^2
+```
+
+The two-point form builds on the classical inversive-geometry fact that
+the circle through `p1`, `p2` and the [`inversion`](@ref) of `p1` in `c1`
+is orthogonal to `c1`. It throws an `ArgumentError` for the two
+configurations that fact can't resolve on its own (`p1`/`p2` sitting
+exactly on `c1`, or forming an exact inverse pair): those have genuine
+solutions too, just not from this one construction.
+
 ## Inversion, polar lines and poles
 
 Inversion in a circle `c` sends a point `p` to the point on ray `c.center
@@ -142,6 +175,36 @@ map(inv5, [APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0)), APLine(APPoint(-3.0, 0.
 ```@raw html
 <img src="../assets/img/circles/inversion_line.svg" alt="" style="width:100%; max-width: 700px;">
 ```
+
+## Midcircles: swapping two circles by inversion
+
+A **midcircle** of `c1` and `c2` is a circle `M` such that inverting in
+`M` sends `c1` to `c2` (and, since inversion is its own inverse, `c2`
+back to `c1`). [`midcircle`](@ref) builds it, for two circles or for a
+circle and a line (a line is the "infinite-radius" case: inverting a
+circle in a midcircle centered on it always gives back a line, never a
+circle):
+
+```@example geo
+c4 = APCircle2(APPoint(8.0, 0.0), 2.0)
+m1 = only(midcircle(c1, c4))
+invert(c1, m1.center; k=m1.r) ≈ c4
+```
+
+```@example geo
+l4 = APLine(APPoint(-10.0, 5.0), APPoint(10.0, 5.0))
+m2 = only(midcircle(c1, l4))
+invert(c1, m2.center; k=m2.r) ≈ l4
+```
+
+How many midcircles there are, and where, depends on how `c1` and `c2`
+relate ([`circles_position`](@ref)): one when they're externally disjoint
+or tangent (centered at the [`external_similitude_center`](@ref)), two
+when they cross (one at each similitude center, both through the two
+crossing points), and one when one sits properly inside the other
+(centered at the [`internal_similitude_center`](@ref)). A circle and a
+line follow the same three-way split (disjoint, tangent, secant), read
+against the line instead of a second circle.
 
 ## Inverting a segment, triangle or polygon
 
@@ -247,7 +310,10 @@ These similitude centers are also exactly the points used by the
 Apollonius/tangent-circle constructions (see
 [Tangency & Apollonius Problems](@ref)), since a circle tangent to two
 given circles is related to them by a homothety centered at one of these
-two points.
+two points. Applied to a triangle's own circumcircle and incircle, they
+land on two more named triangle centers: `external_similitude_center(circumcircle(t),
+incircle(t))` is Kimberling X(56), and `internal_similitude_center(circumcircle(t),
+incircle(t))` is X(55) (see [Triangles & Triangle Centers](@ref)).
 
 [`tangent_parallel`](@ref) gives the two tangent lines to a circle parallel to a given line: the tangents at the two ends of the diameter perpendicular to it. In each returned line, the first point is the point of tangency:
 

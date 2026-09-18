@@ -207,6 +207,23 @@ ellipse. It depends on which side of which branch `p` sits on;
 `tangent_points`/`tangent_lines` still return an empty vector rather than
 erroring when there are none.
 
+### Intersecting two conics
+
+`intersection` also works between two full conics of any kind, straight
+or mixed (an ellipse against a hyperbola, two different ellipses, a
+circle against a parabola, ...), returning up to 4 real points:
+
+```@example geo
+intersection(e, h)
+```
+
+Two circles are the one pairing with its own dedicated, exact method
+(finding two circles' intersection reduces to a single quadratic); every
+other pairing goes through a general elimination method instead, since
+two conics can meet in up to 4 points, one degree too many for that
+shortcut. Both give a `Vector{APPoint{2,Float64}}`, so nothing about
+calling `intersection` changes based on which two types you hand it.
+
 ## Arcs of a conic
 
 [`APEllipticArc2`](@ref), [`APParabolicArc2`](@ref) and
@@ -266,21 +283,20 @@ l = APLine(APPoint(-10.0, 1.0), APPoint(10.0, 1.0))
 intersection(l, earc)   # only one of the two ellipse crossings is on this short arc
 ```
 
-For `APCircularArc2` specifically, intersection also works against a full
-`APCircle2` or another circular arc, since circle-circle intersection
-already exists to build on:
+An arc also intersects a full conic of any kind, not just the one it's
+cut from, and another arc of any kind, the same way: intersect the two
+underlying full conics, then keep only the points within every arc's own
+sweep.
 
 ```@example geo
 circ = APCircle2(APPoint(0.0, 0.0), 5.0)
 carc = APCircularArc2(circ, APPoint(5.0, 0.0), APPoint(0.0, 5.0))
-intersection(APCircle2(APPoint(5.0, 5.0), 5.0), carc)
+intersection(APCircle2(APPoint(5.0, 5.0), 5.0), carc)   # circle against a circular arc
 ```
 
-This doesn't extend to an arc against a *different* conic type it isn't
-cut from (an elliptic arc against a circle, two elliptic arcs from
-different ellipses, ...): that needs general conic-vs-conic intersection,
-which this package doesn't implement yet, so it raises a `MethodError`
-rather than silently doing the wrong thing.
+```@example geo
+intersection(APCircle2(APPoint(5.0, 5.0), 5.0), earc)   # same idea, an elliptic arc this time
+```
 
 ### Random points
 

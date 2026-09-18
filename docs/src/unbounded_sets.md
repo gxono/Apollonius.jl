@@ -13,8 +13,6 @@ none of them is an [`APRegion`](@ref)/[`APPolygon`](@ref) and none has an
 see [Angles](@ref) on the [Points, Lines & Rays](@ref) page. This page
 covers the other two.
 
-![A half-plane and a strip, shaded](assets/img/placeholder.png)
-
 | Type | Represents | Bounded by |
 |:-----|:-----------|:-----------|
 | [`APHalfPlane2`](@ref) | everything on one side of a line (that line included) | one [`APLine`](@ref) |

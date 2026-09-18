@@ -1022,6 +1022,73 @@ using Base.MathConstants: golden
             far_line = APLine(APPoint(-10.0, 5.0), APPoint(10.0, 5.0))   # meets the full parabola outside the arc's own sweep
             @test isempty(intersection(far_line, parc))
         end
+        @testset "general conic-vs-conic intersection (ellipse/hyperbola/parabola, any pair)" begin
+            # hand-verifiable: circle r=5 and axis-aligned ellipse a=4,b=3, both centered at the origin -- no real solution
+            cc0 = APCircle2(APPoint(0.0, 0.0), 5.0)
+            ee0 = APEllipse2(APPoint(0.0, 0.0), 4.0, 3.0)
+            @test isempty(intersection(cc0, ee0))
+            @test isempty(intersection(ee0, cc0))
+            # hand-verifiable, and a repeated-root case (both curves share the y-axis as an axis of symmetry):
+            # circle r=5, ellipse a=6,b=2, both centered at the origin -> y^2 = 11/8 exactly, each with 2 x-values
+            ee1 = APEllipse2(APPoint(0.0, 0.0), 6.0, 2.0)
+            pts1 = intersection(cc0, ee1)
+            @test length(pts1) == 4
+            @test all(p -> isapprox(abs(p[2]), sqrt(11 / 8); atol=1e-6), pts1)
+            @test all(p -> isapprox(distance(p, cc0.center), 5.0; atol=1e-6) && is_on_ellipse(p, ee1; atol=1e-6), pts1)
+            pts1_swapped = intersection(ee1, cc0)
+            @test length(pts1_swapped) == length(pts1) &&
+                  all(p -> any(q -> isapprox(p, q; atol=1e-6), pts1_swapped), pts1)
+            # generic ellipse-ellipse, ellipse-hyperbola, hyperbola-hyperbola, ellipse-parabola,
+            # hyperbola-parabola, parabola-parabola, circle-hyperbola, circle-parabola: every point
+            # returned must lie on both curves (checked via each curve's own independent `is_on_*`)
+            e1 = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+            e2 = APEllipse2(APPoint(2.0, 1.0), 4.0, 2.0, 0.4)
+            pe = intersection(e1, e2)
+            @test length(pe) == 2
+            @test all(p -> is_on_ellipse(p, e1; atol=1e-6) && is_on_ellipse(p, e2; atol=1e-6), pe)
+            h1 = APHyperbola2(APPoint(2.0, 0.0), 2.0, 1.5, 0.3)
+            peh = intersection(e1, h1)
+            @test length(peh) == 4
+            @test all(p -> is_on_ellipse(p, e1; atol=1e-6) && is_on_hyperbola(p, h1; atol=1e-6), peh)
+            h2 = APHyperbola2(APPoint(-1.0, 1.0), 3.0, 2.0, 1.1)
+            phh = intersection(h1, h2)
+            @test all(p -> is_on_hyperbola(p, h1; atol=1e-6) && is_on_hyperbola(p, h2; atol=1e-6), phh)
+            par1 = APParabola2(APPoint(0.0, 3.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
+            pep = intersection(e1, par1)
+            @test all(p -> is_on_ellipse(p, e1; atol=1e-6) && is_on_parabola(p, par1; atol=1e-6), pep)
+            phhp = intersection(h1, par1)
+            @test all(p -> is_on_hyperbola(p, h1; atol=1e-6) && is_on_parabola(p, par1; atol=1e-6), phhp)
+            par2 = APParabola2(APPoint(1.0, -2.0), APLine(APPoint(-4.0, 2.0), APPoint(4.0, 2.0)))
+            ppp = intersection(par1, par2)
+            @test all(p -> is_on_parabola(p, par1; atol=1e-6) && is_on_parabola(p, par2; atol=1e-6), ppp)
+            pch = intersection(cc0, h1)
+            @test all(p -> isapprox(distance(p, cc0.center), cc0.r; atol=1e-6) && is_on_hyperbola(p, h1; atol=1e-6), pch)
+            pcp = intersection(cc0, par1)
+            @test all(p -> isapprox(distance(p, cc0.center), cc0.r; atol=1e-6) && is_on_parabola(p, par1; atol=1e-6), pcp)
+        end
+        @testset "general conic intersection reaches conic arcs of any type" begin
+            e1 = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+            h1 = APHyperbola2(APPoint(2.0, 0.0), 2.0, 1.5, 0.3)
+            circ = APCircle2(APPoint(0.0, 0.0), 5.0)
+            earc = APEllipticArc2(e1, point_on_ellipse(e1, -0.5), point_on_ellipse(e1, 1.5))
+            # elliptic arc against a full circle (previously impossible: different conic types)
+            pts_ec = intersection(earc, circ)
+            full_ec = intersection(e1, circ)
+            expected_ec = filter(p -> in(p, earc; atol=1e-9), full_ec)
+            @test length(pts_ec) == length(expected_ec) && all(p -> any(q -> isapprox(p, q; atol=1e-6), expected_ec), pts_ec)
+            pts_ce = intersection(circ, earc)
+            @test length(pts_ce) == length(pts_ec) && all(p -> any(q -> isapprox(p, q; atol=1e-6), pts_ec), pts_ce)
+            # elliptic arc against a hyperbolic arc (different conic types entirely)
+            harc = APHyperbolicArc2(h1, point_on_hyperbola(h1, -1.0), point_on_hyperbola(h1, 1.0))
+            pts_eh = intersection(earc, harc)
+            full_eh = intersection(e1, h1)
+            expected_eh = filter(p -> in(p, earc; atol=1e-9) && in(p, harc; atol=1e-9), full_eh)
+            @test length(pts_eh) == length(expected_eh) && all(p -> any(q -> isapprox(p, q; atol=1e-6), expected_eh), pts_eh)
+            @test !isempty(pts_eh)   # this specific pair genuinely shares points, not just a vacuous check
+            pts_he = intersection(harc, earc)
+            @test length(pts_he) == length(pts_eh) &&
+                  all(p -> any(q -> isapprox(p, q; atol=1e-6), pts_he), pts_eh)
+        end
         c1 = APCircle2(APPoint(0.0, 0.0), 5.0)
         c2 = APCircle2(APPoint(8.0, 0.0), 5.0)
         cpts = intersection(c1, c2)

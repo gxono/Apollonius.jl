@@ -560,3 +560,37 @@ length(pts) == 5 && all(q -> on_segment(q, s), pts)
 Every other page repeats this for its own types where it matters: see
 [Circles](@ref), [Conics: Ellipse, Parabola & Hyperbola](@ref) and
 [Polygons & Bounding Boxes](@ref).
+
+## Arbitrary parametric curves
+
+Every curve so far has a closed analytic form (a line, a circle, an
+ellipse...). [`APParametricCurve2`](@ref) is the escape hatch for anything
+outside those fixed families: it wraps a function `f(t)::APPoint` over a
+range `t ∈ (tmin, tmax)`. An ordinary `y = f(x)` curve is just
+`APParametricCurve2(x -> APPoint(x, f(x)), (xmin, xmax))`:
+
+```@example geo
+sine_curve = APParametricCurve2(x -> APPoint(x, sin(x)), (0.0, 2pi))
+point_on_curve(sine_curve, pi / 2)   # (π/2, 1.0): the peak
+```
+
+`translate`/`rotate`/`homothety`/`reflection` all wrap `f` in a new
+closure rather than sampling it, so a transformed `APParametricCurve2`
+stays exact regardless of what `f` computes:
+
+```@example geo
+shifted = translate(sine_curve, APVector(0.0, 2.0))
+point_on_curve(shifted, pi / 2)   # (π/2, 3.0): same curve, raised by 2
+```
+
+`f` has no closed form the package can inspect, so
+[`APBoundingBox`](@ref) falls back to sampling it at `n` (default `200`)
+evenly spaced points over `trange` and taking the union of their boxes.
+Unlike every other `APBoundingBox` method in this package, this one is an
+approximation, not exact: a sharply curving `f` between sample points can
+poke outside the box it returns.
+
+```@example geo
+box = APBoundingBox(sine_curve)
+box.min[2], box.max[2]   # ≈ (-1.0, 1.0), the true range of sin, already tight at the default n
+```
