@@ -1289,6 +1289,35 @@ using Base.MathConstants: golden
         @test_throws ArgumentError triangle_on_segment(p1, p2, deg2rad(100.0), deg2rad(100.0))   # sum >= π
         @test_throws ArgumentError triangle_on_segment(p1, p2, 0.0, deg2rad(60.0))
         @test_throws ArgumentError triangle_on_segment(p1, p2, deg2rad(40.0), pi)
+        tsss = triangle_on_segment_sss(p1, p2, 3.0, 4.0)
+        @test isapprox(distance(p1, tsss.c), 3.0; atol=1e-9) && isapprox(distance(p2, tsss.c), 4.0; atol=1e-9)
+        @test tsss.c[2] > 0
+        @test triangle_on_segment_sss(p1, p2, 3.0, 4.0; ccw=false).c[2] < 0
+        @test triangle_on_segment_sss(APSegment(p1, p2), 3.0, 4.0) == tsss
+        @test_throws ArgumentError triangle_on_segment_sss(p1, p2, 0.5, 0.5)   # too short to reach
+        tsas_a = triangle_on_segment_sas(p1, p2, deg2rad(40.0), 3.0)
+        @test isapprox(angle_at(p1, p2, tsas_a.c), deg2rad(40.0); atol=1e-9)
+        @test isapprox(distance(p1, tsas_a.c), 3.0; atol=1e-9)
+        tsas_b = triangle_on_segment_sas(p1, p2, deg2rad(40.0), 3.0; at=:b)
+        @test isapprox(angle_at(p2, p1, tsas_b.c), deg2rad(40.0); atol=1e-9)
+        @test isapprox(distance(p2, tsas_b.c), 3.0; atol=1e-9)
+        @test tsas_a.c[2] > 0 && tsas_b.c[2] > 0
+        @test triangle_on_segment_sas(APSegment(p1, p2), deg2rad(40.0), 3.0) == tsas_a
+        @test_throws ArgumentError triangle_on_segment_sas(p1, p2, deg2rad(40.0), 3.0; at=:c)
+        @test_throws ArgumentError triangle_on_segment_sas(p1, p2, pi, 3.0)
+        tssa1 = triangle_on_segment_ssa(p1, p2, deg2rad(30.0), 3.0)
+        tssa2 = triangle_on_segment_ssa(p1, p2, deg2rad(30.0), 3.0; second_solution=true)
+        @test isapprox(angle_at(p1, p2, tssa1.c), deg2rad(30.0); atol=1e-9)
+        @test isapprox(distance(p2, tssa1.c), 3.0; atol=1e-9)
+        @test isapprox(angle_at(p1, p2, tssa2.c), deg2rad(30.0); atol=1e-9)
+        @test isapprox(distance(p2, tssa2.c), 3.0; atol=1e-9)
+        @test !(tssa1 ≈ tssa2)
+        @test angle_at(p2, p1, tssa1.c) >= angle_at(p2, p1, tssa2.c)   # primary has the larger base angle
+        @test triangle_on_segment_ssa(APSegment(p1, p2), deg2rad(30.0), 3.0) == tssa1
+        @test_throws ArgumentError triangle_on_segment_ssa(p1, p2, deg2rad(30.0), 0.1)   # too short to reach
+        h = distance(p1, p2) * sin(deg2rad(30.0))
+        tssa_tangent = triangle_on_segment_ssa(p1, p2, deg2rad(30.0), h)
+        @test isapprox(angle_at(tssa_tangent.c, p1, p2), pi / 2; atol=1e-6)
         isoright = isosceles_right_triangle_on_segment(p1, p2)
         @test isapprox(distance(p1, isoright.c), distance(p2, isoright.c); atol=1e-6)
         @test isapprox(angle_at(isoright.c, p1, p2), pi / 2; atol=1e-6)
@@ -1516,9 +1545,6 @@ using Base.MathConstants: golden
         bax = brocard_axis(t)
         @test on_line(circumcenter(t), bax; atol=1e-9)
         @test on_line(symmedian_point(t), bax; atol=1e-9)
-        apt = apollonius_point_of_triangle(t)
-        @test on_line(apt, bax; atol=1e-9)
-        @test on_line(apt, APLine(nine_point_center(t), spieker_center(t)); atol=1e-9)
         @test lemoine_axis(t) ≈ polar_line(cc, symmedian_point(t))
         r1 = reflection(p_on_circ, APLine(t[1], t[2]))
         r2 = reflection(p_on_circ, APLine(t[2], t[3]))
@@ -1726,6 +1752,30 @@ using Base.MathConstants: golden
         for tri in (APTriangle(B, C, D), APTriangle(A, C, D), APTriangle(A, B, D), t)
             npc = nine_point_circle(tri)
             @test distance(pp, npc.center) ≈ npc.r atol = 1e-6
+        end
+    end
+    @testset "apollonius_circle_of_triangle / apollonius_point_of_triangle (Kimberling X181)" begin
+        for t in (APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(2.0, 4.0)),
+            APTriangle(APPoint(0.0, 0.0), APPoint(10.0, 0.0), APPoint(1.0, 2.0)),
+            APTriangle(APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(1.0, sqrt(3.0))),
+            APTriangle(APPoint(1.0, 1.0), APPoint(9.0, 2.0), APPoint(4.0, 8.0)))
+            ec = excircles(t)
+            E = apollonius_circle_of_triangle(t)
+            for c in (ec.A, ec.B, ec.C)
+                @test E.r > c.r
+                @test distance(E.center, c.center) ≈ E.r - c.r atol = 1e-6   # internally tangent, c inside E
+            end
+            tangency(small) = small.center + small.r * normalize(small.center - E.center)
+            lA = APLine(t[1], tangency(ec.A))
+            lB = APLine(t[2], tangency(ec.B))
+            lC = APLine(t[3], tangency(ec.C))
+            apt = apollonius_point_of_triangle(t)
+            @test on_line(apt, lA; atol=1e-6)
+            @test on_line(apt, lB; atol=1e-6)
+            @test on_line(apt, lC; atol=1e-6)
+            a, b, c = distance(t[2], t[3]), distance(t[1], t[3]), distance(t[1], t[2])
+            x181 = trilinear_point(t, (a * (b + c)^2) / (b + c - a), (b * (c + a)^2) / (c + a - b), (c * (a + b)^2) / (a + b - c))
+            @test apt ≈ x181 atol = 1e-6
         end
     end
     @testset "Kenmotu and MacBeath points" begin

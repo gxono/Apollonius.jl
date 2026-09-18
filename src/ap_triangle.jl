@@ -198,19 +198,6 @@ symmedian (Lemoine) point.
 """
 brocard_axis(t::APTriangle) = APLine(circumcenter(t), symmedian_point(t))
 """
-    apollonius_point_of_triangle(t::APTriangle)
-
-The Apollonius point of `t` (Kimberling X(181)): the intersection of the
-[`brocard_axis`](@ref) with the line through the [`nine_point_center`](@ref)
-and the [`spieker_center`](@ref). Not to be confused with
-[`apollonius_circle`](@ref)/[`three_apollonius_circles`](@ref) (the
-classical two-point/three-circle Apollonius *problem*) -- this is a single
-named triangle center with no direct relation to those beyond sharing
-Apollonius' name.
-"""
-apollonius_point_of_triangle(t::APTriangle) =
-    only(intersection(brocard_axis(t), APLine(nine_point_center(t), spieker_center(t))))
-"""
     lemoine_axis(t::APTriangle)
 
 The Lemoine axis of `t`: the polar line of the symmedian point with
@@ -849,6 +836,43 @@ function isodynamic_points(t::APTriangle)
     circ_a, circ_b, _ = three_apollonius_circles(t)
     pts = intersection(circ_a, circ_b)
     return (pts[1], pts[2])
+end
+"""
+    apollonius_circle_of_triangle(t::APTriangle; atol=1e-9)
+
+The Apollonius circle of `t`: the circle tangent to and enclosing all
+three [`excircles`](@ref) of `t` -- one of up to 8 solutions to the
+classical Apollonius `CCC` problem ([`tangent_circles`](@ref)) applied to
+the three excircles, picked out as the one with all three inside it.
+Not to be confused with [`apollonius_circle`](@ref)/
+[`three_apollonius_circles`](@ref) (the two-point/three-vertex Apollonius
+*problem*, unrelated beyond sharing Apollonius' name).
+"""
+function apollonius_circle_of_triangle(t::APTriangle; atol=1e-9)
+    ec = excircles(t)
+    sols = tangent_circles(ec.A, ec.B, ec.C; atol=atol)
+    encloses(big, small) = big.r > small.r &&
+                            isapprox(distance(big.center, small.center), big.r - small.r; atol=sqrt(atol) * max(big.r, 1.0))
+    idx = findfirst(s -> encloses(s, ec.A) && encloses(s, ec.B) && encloses(s, ec.C), sols)
+    idx === nothing && error("apollonius_circle_of_triangle: no circle enclosing all three excircles was found")
+    return sols[idx]
+end
+"""
+    apollonius_point_of_triangle(t::APTriangle; atol=1e-9)
+
+The Apollonius point of `t` (Kimberling X(181)): let `E` be
+[`apollonius_circle_of_triangle`](@ref)`(t)`. For each excircle, the line
+from its *own* vertex (the one it's opposite, e.g. [`excircles`](@ref)`(t).A`
+and `t[1]`) through its point of tangency with `E` -- all three such
+lines meet at this point.
+"""
+function apollonius_point_of_triangle(t::APTriangle; atol=1e-9)
+    ec = excircles(t)
+    E = apollonius_circle_of_triangle(t; atol=atol)
+    tangency(small) = small.center + small.r * normalize(small.center - E.center)
+    lA = APLine(t[1], tangency(ec.A))
+    lB = APLine(t[2], tangency(ec.B))
+    return only(intersection(lA, lB; atol=atol))
 end
 """
     orthopole(l::APLine, t::APTriangle)

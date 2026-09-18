@@ -21,19 +21,37 @@ The isosceles triangle with base `[a, b]` and the given equal leg length
 `a` to `b` (`ccw=false` builds it on the other side). Throws an
 `ArgumentError` if `leg` is too short to reach across the base.
 """
-function isosceles_triangle_on_segment(a::APPoint, b::APPoint, leg::Real; ccw::Bool=true)
-    pts = intersection(APCircle2(a, leg), APCircle2(b, leg))
-    length(pts) != 2 &&
-        throw(ArgumentError("isosceles_triangle_on_segment: leg is too short to reach across [a, b]"))
-    p1, p2 = pts
-    on_ccw_side = cross2(b - a, p1 - a) > 0
-    return APTriangle(a, b, on_ccw_side == ccw ? p1 : p2)
-end
+isosceles_triangle_on_segment(a::APPoint, b::APPoint, leg::Real; ccw::Bool=true) =
+    triangle_on_segment_sss(a, b, leg, leg; ccw=ccw)
 """
     isosceles_triangle_on_segment(s::APSegment, leg::Real; ccw::Bool=true)
 """
 function isosceles_triangle_on_segment(s::APSegment, leg::Real; ccw::Bool=true)
     return isosceles_triangle_on_segment(s.p1, s.p2, leg; ccw=ccw)
+end
+"""
+    triangle_on_segment_sss(a::APPoint, b::APPoint, len_a::Real, len_b::Real; ccw::Bool=true)
+
+The triangle with base `[a, b]` and two new side lengths, `len_a` from
+`a` and `len_b` from `b` (SSS: all three sides then known), built
+counterclockwise from `a` to `b` (`ccw=false` builds it on the other
+side). Generalizes [`isosceles_triangle_on_segment`](@ref) (`len_a ==
+len_b`). Throws an `ArgumentError` if `len_a`/`len_b` can't reach across
+`[a, b]` (triangle inequality).
+"""
+function triangle_on_segment_sss(a::APPoint, b::APPoint, len_a::Real, len_b::Real; ccw::Bool=true)
+    pts = intersection(APCircle2(a, len_a), APCircle2(b, len_b))
+    length(pts) != 2 &&
+        throw(ArgumentError("triangle_on_segment_sss: len_a and len_b can't reach across [a, b] (triangle inequality)"))
+    p1, p2 = pts
+    on_ccw_side = cross2(b - a, p1 - a) > 0
+    return APTriangle(a, b, on_ccw_side == ccw ? p1 : p2)
+end
+"""
+    triangle_on_segment_sss(s::APSegment, len_a::Real, len_b::Real; ccw::Bool=true)
+"""
+function triangle_on_segment_sss(s::APSegment, len_a::Real, len_b::Real; ccw::Bool=true)
+    return triangle_on_segment_sss(s.p1, s.p2, len_a, len_b; ccw=ccw)
 end
 """
     triangle_on_segment(a::APPoint, b::APPoint, angle_a::Real, angle_b::Real; ccw::Bool=true)
@@ -60,6 +78,84 @@ end
 """
 function triangle_on_segment(s::APSegment, angle_a::Real, angle_b::Real; ccw::Bool=true)
     return triangle_on_segment(s.p1, s.p2, angle_a, angle_b; ccw=ccw)
+end
+"""
+    triangle_on_segment_sas(a::APPoint, b::APPoint, angle::Real, len::Real; at::Symbol=:a, ccw::Bool=true)
+
+The triangle with base `[a, b]` and a new side of length `len` from
+vertex `at` (`:a` or `:b`), making `angle` (radians) with the base at
+that same vertex (SAS: two sides and the angle between them then known),
+built counterclockwise from `a` to `b` (`ccw=false` builds it on the
+other side). Throws an `ArgumentError` unless `angle` is in `(0, π)` and
+`at` is `:a` or `:b`.
+"""
+function triangle_on_segment_sas(a::APPoint, b::APPoint, angle::Real, len::Real; at::Symbol=:a, ccw::Bool=true)
+    0 < angle < pi || throw(ArgumentError("triangle_on_segment_sas: angle must be in (0, π)"))
+    s = ccw ? 1 : -1
+    if at === :a
+        c = a + len * normalize(rotate(b, s * angle, a) - a)
+    elseif at === :b
+        c = b + len * normalize(rotate(a, -s * angle, b) - b)
+    else
+        throw(ArgumentError("triangle_on_segment_sas: at must be :a or :b, got $(repr(at))"))
+    end
+    return APTriangle(a, b, c)
+end
+"""
+    triangle_on_segment_sas(s::APSegment, angle::Real, len::Real; at::Symbol=:a, ccw::Bool=true)
+"""
+function triangle_on_segment_sas(s::APSegment, angle::Real, len::Real; at::Symbol=:a, ccw::Bool=true)
+    return triangle_on_segment_sas(s.p1, s.p2, angle, len; at=at, ccw=ccw)
+end
+"""
+    triangle_on_segment_ssa(a::APPoint, b::APPoint, angle::Real, opposite_len::Real;
+                            at::Symbol=:a, ccw::Bool=true, second_solution::Bool=false)
+
+The triangle with base `[a, b]`, an angle at vertex `at` (`:a` or `:b`),
+and the length `opposite_len` of the side *not* touching `at` (SSA: the
+classically ambiguous case). Built via a ray from `at` (at `angle` from
+the base) intersected with the circle of radius `opposite_len` centered
+at the other base vertex ([`intersection`](@ref)`(::APRay,
+::APCircle2)`), which can have 0, 1 or 2 real solutions:
+
+  - none: throws an `ArgumentError` (`opposite_len` too short to reach
+    the ray at all);
+  - one (the ray is tangent to the circle): that triangle, `swap` has no
+    effect;
+  - two: returns the one with the larger angle at the *other* base
+    vertex by default; pass `second_solution=true` for the other one.
+
+`ccw=false` builds on the other side of the base, same as every other
+`*_on_segment` constructor in this file.
+"""
+function triangle_on_segment_ssa(a::APPoint, b::APPoint, angle::Real, opposite_len::Real;
+    at::Symbol=:a, ccw::Bool=true, second_solution::Bool=false)
+    0 < angle < pi || throw(ArgumentError("triangle_on_segment_ssa: angle must be in (0, π)"))
+    s = ccw ? 1 : -1
+    if at === :a
+        ray = APRay(a, rotate(b, s * angle, a))
+        opp_center, base_vertex, other_vertex = b, b, a
+    elseif at === :b
+        ray = APRay(b, rotate(a, -s * angle, b))
+        opp_center, base_vertex, other_vertex = a, a, b
+    else
+        throw(ArgumentError("triangle_on_segment_ssa: at must be :a or :b, got $(repr(at))"))
+    end
+    pts = intersection(ray, APCircle2(opp_center, opposite_len))
+    isempty(pts) &&
+        throw(ArgumentError("triangle_on_segment_ssa: opposite_len is too short to reach the ray from $at"))
+    length(pts) == 1 && return APTriangle(a, b, pts[1])
+    primary = angle_at(base_vertex, other_vertex, pts[1]) >= angle_at(base_vertex, other_vertex, pts[2]) ? pts[1] : pts[2]
+    secondary = primary === pts[1] ? pts[2] : pts[1]
+    return APTriangle(a, b, second_solution ? secondary : primary)
+end
+"""
+    triangle_on_segment_ssa(s::APSegment, angle::Real, opposite_len::Real;
+                            at::Symbol=:a, ccw::Bool=true, second_solution::Bool=false)
+"""
+function triangle_on_segment_ssa(s::APSegment, angle::Real, opposite_len::Real;
+    at::Symbol=:a, ccw::Bool=true, second_solution::Bool=false)
+    return triangle_on_segment_ssa(s.p1, s.p2, angle, opposite_len; at=at, ccw=ccw, second_solution=second_solution)
 end
 """
     triangle_30_60_90_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)

@@ -55,7 +55,7 @@ export intersection
 export centroid, circumcenter, circumradius, circumcircle,
        incenter, inradius, incircle, orthocenter, area, perimeter, is_degenerate
 export excenters, exradii, excircles, euler_line, nine_point_center, nine_point_circle, euler_points
-export orthic_axis, brocard_axis, lemoine_axis, steiner_line, apollonius_point_of_triangle
+export orthic_axis, brocard_axis, lemoine_axis, steiner_line, apollonius_point_of_triangle, apollonius_circle_of_triangle
 export barycentric_point, barycentric_coordinates, trilinear_point, trilinear_coordinates,
        altitude, median, bisector, bisector_ext, mediator, trisector,
        nagel_point, gergonne_point, spieker_center, symmedian_point, mittenpunkt, clawson_point, simson_line,
@@ -77,7 +77,8 @@ export medial_triangle, orthic_triangle, excentral_triangle, contact_triangle,
        extouch_triangle, tangential_triangle, napoleon_triangle, morley_triangle,
        pedal_triangle, pedal_circle, cevian_triangle, circumcevian_triangle, square_inscribed,
        anticomplementary_triangle, reflection_triangle
-export equilateral_triangle_on_segment, isosceles_triangle_on_segment, triangle_on_segment, triangle_30_60_90_on_segment,
+export equilateral_triangle_on_segment, isosceles_triangle_on_segment, triangle_on_segment,
+       triangle_on_segment_sss, triangle_on_segment_sas, triangle_on_segment_ssa, triangle_30_60_90_on_segment,
        isosceles_right_triangle_on_segment, golden_triangle_on_segment, golden_gnomon_on_segment,
        egyptian_triangle_on_segment
 export tangent_length, tangent_points, tangent_lines, external_tangent_lines, internal_tangent_lines,
