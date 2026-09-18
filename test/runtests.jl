@@ -2271,6 +2271,23 @@ using Base.MathConstants: golden
         inside2 = APCircle2(APPoint(1.0, 0.0), 5.0)
         inside3 = APCircle2(APPoint(0.0, 1.0), 5.0)
         @test_throws ArgumentError radical_circle(inside1, inside2, inside3)
+        @testset "orthogonal_circle" begin
+            oc0 = APCircle2(APPoint(0.0, 0.0), 5.0)
+            p = APPoint(13.0, 0.0)
+            oc1 = orthogonal_circle(oc0, p)
+            @test oc1.center == p
+            @test distance(oc0.center, oc1.center)^2 ≈ oc0.r^2 + oc1.r^2 atol = 1e-9
+            @test_throws ArgumentError orthogonal_circle(oc0, APPoint(3.0, 0.0))
+            @test_throws ArgumentError orthogonal_circle(oc0, APPoint(5.0, 0.0))
+            p1, p2 = APPoint(8.0, 3.0), APPoint(-4.0, 6.0)
+            oc2 = orthogonal_circle(oc0, p1, p2)
+            @test distance(oc0.center, oc2.center)^2 ≈ oc0.r^2 + oc2.r^2 atol = 1e-9
+            @test isapprox(distance(p1, oc2.center), oc2.r; atol=1e-9)
+            @test isapprox(distance(p2, oc2.center), oc2.r; atol=1e-9)
+            @test_throws ArgumentError orthogonal_circle(oc0, APPoint(5.0, 0.0), APPoint(-4.0, 6.0))
+            pinv = APPoint(10.0, 0.0)
+            @test_throws ArgumentError orthogonal_circle(oc0, pinv, inversion(pinv, oc0))
+        end
     end
     @testset "apollonius: circle through 2 points tangent to a line/circle" begin
         a, b = APPoint(1.0, 3.0), APPoint(5.0, 4.0)

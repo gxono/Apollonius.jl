@@ -44,3 +44,41 @@ function radical_circle(c1::APCircle2, c2::APCircle2, c3::APCircle2)
     p < 0 && throw(ArgumentError("radical_circle: radical center is inside the circles (negative power); no real orthogonal circle exists"))
     return APCircle2(rc, sqrt(p))
 end
+"""
+    orthogonal_circle(c::APCircle2, p::APPoint)
+
+The circle centered at `p`, orthogonal to `c` (its radius squared equals
+`p`'s power with respect to `c`, same idea as [`radical_circle`](@ref)).
+Throws `ArgumentError` when `p` isn't strictly outside `c`, since no real
+circle centered there can be orthogonal to `c`.
+"""
+function orthogonal_circle(c::APCircle2, p::APPoint)
+    pw = power_of_point(p, c)
+    pw <= 0 && throw(ArgumentError("orthogonal_circle: p must lie strictly outside c"))
+    return APCircle2(p, sqrt(pw))
+end
+"""
+    orthogonal_circle(c::APCircle2, p1::APPoint, p2::APPoint; atol=1e-9)
+
+The circle orthogonal to `c`, passing through `p1` and `p2`: built from the
+classical inversive-geometry fact that the circle through `p1`, `p2` and
+the [`inversion`](@ref) of `p1` with respect to `c` is orthogonal to `c`.
+
+Throws `ArgumentError` in the two configurations this construction can't
+resolve on its own: `p1`/`p2` sitting exactly on `c` (its own inverse,
+collapsing the 3-point circumcircle), or `p1`/`p2` being an exact inverse
+pair with respect to `c` (same collapse, from the other side) -- both
+have genuine solutions (a whole family, in the first case), but picking
+one needs extra case analysis this package doesn't implement yet. Any
+other collinear-degenerate input surfaces as the ordinary `ArgumentError`
+from [`APCircle2`](@ref)`(p1, p2, p3)`.
+"""
+function orthogonal_circle(c::APCircle2, p1::APPoint, p2::APPoint; atol=1e-9)
+    tol = sqrt(atol) * max(c.r, norm(c.center), 1.0)
+    (abs(distance(p1, c.center) - c.r) <= tol || abs(distance(p2, c.center) - c.r) <= tol) &&
+        throw(ArgumentError("orthogonal_circle: p1/p2 exactly on c isn't supported (infinite family of solutions)"))
+    z = inversion(p1, c)
+    distance(z, p2) <= tol &&
+        throw(ArgumentError("orthogonal_circle: p1/p2 are an exact inverse pair with respect to c, not supported yet"))
+    return APCircle2(p1, p2, z)
+end
