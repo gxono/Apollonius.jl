@@ -198,6 +198,19 @@ symmedian (Lemoine) point.
 """
 brocard_axis(t::APTriangle) = APLine(circumcenter(t), symmedian_point(t))
 """
+    apollonius_point_of_triangle(t::APTriangle)
+
+The Apollonius point of `t` (Kimberling X(181)): the intersection of the
+[`brocard_axis`](@ref) with the line through the [`nine_point_center`](@ref)
+and the [`spieker_center`](@ref). Not to be confused with
+[`apollonius_circle`](@ref)/[`three_apollonius_circles`](@ref) (the
+classical two-point/three-circle Apollonius *problem*) -- this is a single
+named triangle center with no direct relation to those beyond sharing
+Apollonius' name.
+"""
+apollonius_point_of_triangle(t::APTriangle) =
+    only(intersection(brocard_axis(t), APLine(nine_point_center(t), spieker_center(t))))
+"""
     lemoine_axis(t::APTriangle)
 
 The Lemoine axis of `t`: the polar line of the symmedian point with

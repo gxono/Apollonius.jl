@@ -53,7 +53,7 @@ export intersection
 export centroid, circumcenter, circumradius, circumcircle,
        incenter, inradius, incircle, orthocenter, area, perimeter, is_degenerate
 export excenters, exradii, excircles, euler_line, nine_point_center, nine_point_circle, euler_points
-export orthic_axis, brocard_axis, lemoine_axis, steiner_line
+export orthic_axis, brocard_axis, lemoine_axis, steiner_line, apollonius_point_of_triangle
 export barycentric_point, barycentric_coordinates, trilinear_point, trilinear_coordinates,
        altitude, median, bisector, bisector_ext, mediator, trisector,
        nagel_point, gergonne_point, spieker_center, symmedian_point, mittenpunkt, simson_line,
