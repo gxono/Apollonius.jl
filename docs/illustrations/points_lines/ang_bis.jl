@@ -1,10 +1,6 @@
 include("../default_config.jl")
 
 
-
-
-
-
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(3.0, 6.0)
     l1 = APLine(P,Q)
@@ -13,10 +9,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
 end
 
 
-
-
 @svg_doc(sz, @__FILE__, begin
-sethue(julia_blue)
+    sethue(julia_blue)
     path([l1, l2], action=:stroke)
 
     sethue(julia_purple)
@@ -24,9 +18,4 @@ sethue(julia_blue)
 
     path([P,Q,C])
     setpoint(julia_red)
-
-    sethue("black")
-    label("Q", :N ,Q)
-    label("P", :NW ,P)
-    label("C", :SW ,C)
 end)

@@ -4,7 +4,7 @@ using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin, newsubpath,
     background, RGBA,
     sethue, setdash, setopacity, setline,
-    fillpreserve, strokepath,
+    fillpreserve, strokepath, fillpath,
     julia_blue, julia_green, julia_red, julia_purple,
     gsave, grestore,
     label

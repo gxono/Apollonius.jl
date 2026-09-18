@@ -11,14 +11,14 @@ transform in the package ([`translate`](@ref), [`rotate`](@ref),
 [`invert_neg`](@ref), and [`APAffineMap`](@ref) application) has a matching
 macro that instead takes a whole `begin ... end` block naming several
 shapes at once, applies the transform to each, and returns the results
-together as a tuple — plus a mutating `!` counterpart that rebinds each
+together as a tuple, plus a mutating `!` counterpart that rebinds each
 shape's own variable instead of returning a copy. [`@boundingbox`](@ref)
 follows the same block syntax to build the one box around everything
 listed, rather than applying a transform.
 
 | Macro | Transform applied | Mutating form |
 |:------|:-------------------|:--------------|
-| [`@boundingbox`](@ref) | — (builds one [`APBoundingBox`](@ref) around everything) | — |
+| [`@boundingbox`](@ref) | (builds one [`APBoundingBox`](@ref) around everything) | (none) |
 | [`@translate`](@ref) | [`translate`](@ref) | [`@translate!`](@ref) |
 | [`@rotate`](@ref) | [`rotate`](@ref) | [`@rotate!`](@ref) |
 | [`@homothety`](@ref) | [`homothety`](@ref) | [`@homothety!`](@ref) |
@@ -32,16 +32,16 @@ listed, rather than applying a transform.
 ## Reading the block
 
 Every one of these macros reads its `begin ... end` block the same way,
-top to bottom, as ordinary code (not a new scope — there's no `let`):
+top to bottom, as ordinary code (not a new scope, there's no `let`):
 
 * an **assignment** `name = expr` runs as written, and `name`'s value is
   the one transformed;
-* a **destructuring assignment** `name1, name2, ... = expr` — what
+* a **destructuring assignment** `name1, name2, ... = expr` (what
   functions returning several shapes at once naturally look like, e.g.
-  [`external_tangent_lines`](@ref) — runs the same way, and *each* name is
+  [`external_tangent_lines`](@ref)) runs the same way, and *each* name is
   transformed individually, exactly as if it had its own `name = ...` line;
-* a **bare expression** — most often the name of a shape defined earlier,
-  outside the block or on an earlier line inside it — has its value
+* a **bare expression** (most often the name of a shape defined earlier,
+  outside the block or on an earlier line inside it) has its value
   transformed directly, with nothing (re)assigned.
 
 A single shape/expression instead of a full block also works
@@ -70,9 +70,9 @@ end
 L1, L2
 ```
 
-A named item can even be a plain `Vector` of shapes — what
+A named item can even be a plain `Vector` of shapes (what
 [`intersection`](@ref)/[`tangent_points`](@ref) return, since they can
-give 0, 1 or 2 points depending on the geometry — and it's transformed
+give 0, 1 or 2 points depending on the geometry), and it's transformed
 element-wise, via [`translate`](@ref)/[`rotate`](@ref)/[`homothety`](@ref)/
 [`reflection`](@ref)/[`invert`](@ref)/[`invert_neg`](@ref)'s own
 `AbstractVector{<:APObject}` methods (plain broadcasting under the hood):
@@ -89,7 +89,7 @@ Q1, Q2
 
 ## `@boundingbox`
 
-Builds one [`APBoundingBox`](@ref) around every shape listed — shorthand
+Builds one [`APBoundingBox`](@ref) around every shape listed: shorthand
 for `reduce(bbox_union, APBoundingBox.(shapes))`, [`bbox_union`](@ref)
 itself being the box around two boxes:
 
@@ -108,16 +108,16 @@ bbox_union(APBoundingBox(t), APBoundingBox(circ))   # exactly what @boundingbox 
 ```
 
 Blocks like this often mix in plain construction helpers alongside the
-actual shapes — a center point, a radius, a scalar computed along the
+actual shapes: a center point, a radius, a scalar computed along the
 way. `APBoundingBox` handles every one of those without erroring:
 
   - a bare [`APPoint`](@ref) gets its own degenerate (zero-size) box at
-    its own location — a point *is* a position, so it grows a
+    its own location: a point *is* a position, so it grows a
     [`bbox_union`](@ref) exactly like any other shape;
   - a plain number, an [`APVector`](@ref) (a direction, not a location),
     or an unbounded curve/region (`APLine`, `APRay`, `APAngle2`,
     `APHalfPlane2`, `APStrip2`) has no position of its own to report, so
-    `APBoundingBox` returns the *empty* box for these instead — the
+    `APBoundingBox` returns the *empty* box for these instead: the
     identity element for `bbox_union`, so combining it with anything else
     just returns that other box unchanged:
 
@@ -135,7 +135,7 @@ end
 isempty(APBoundingBox(radio)), bbox_union(APBoundingBox(radio), APBoundingBox(centro)) == APBoundingBox(centro)
 ```
 
-An empty block is an `ArgumentError` — there's no box to build:
+An empty block is an `ArgumentError`: there's no box to build:
 
 ```@example geo
 try
@@ -153,18 +153,18 @@ shift it so it isn't half off-canvas, and what canvas size do I even pass
 to `Drawing`? [`@to_luxor_picture`](@ref) answers all three in one call:
 it translates and uniformly scales every shape in the block so their
 combined [`APBoundingBox`](@ref) fits centered on `(0, 0)`, and returns
-the exact canvas size — as a `(width=w, height=h)` `NamedTuple` — alongside
+the exact canvas size (as a `(width=w, height=h)` `NamedTuple`) alongside
 the transformed shapes. Centering on `(0, 0)` matches Luxor's own
 `origin()` convention, so the result is ready to draw right after
-`origin()` — which `@png`/`@svg`/`@pdf` already call for you. Despite the
-name, this macro is plain geometry — it has no Luxor dependency at all;
+`origin()`, which `@png`/`@svg`/`@pdf` already call for you. Despite the
+name, this macro is plain geometry: it has no Luxor dependency at all;
 see [Drawing with Luxor.jl](@ref) for the full `Drawing`/`path`/`finish`
 workflow this is designed to feed directly.
 
 It also reflects everything across the x-axis by default (`flip=true`):
 this package's own geometry follows the standard math convention (`y` up,
-counterclockwise angles positive), but Luxor — like most 2D graphics
-APIs — draws with `y` increasing *downward*, so left uncorrected,
+counterclockwise angles positive), but Luxor (like most 2D graphics
+APIs) draws with `y` increasing *downward*, so left uncorrected,
 everything would render as a vertical mirror image of how it reads on
 paper. Pass `flip=false` to get the raw, un-mirrored coordinates instead:
 
@@ -195,7 +195,7 @@ end
 sz   # the combined bbox is already 10x10, so this is its natural size
 ```
 
-Being a `NamedTuple`, `sz` supports `sz.width`/`sz.height` — but also still
+Being a `NamedTuple`, `sz` supports `sz.width`/`sz.height`, but also still
 destructures positionally exactly like a plain tuple would, so `(w, h) =
 sz` (or `(w, h), (c2, s2) = @to_luxor_picture begin ... end` directly)
 works too, if that's all you need:
@@ -212,8 +212,8 @@ c2, s2   # translated so the combined bbox is centered on (0, 0)
 for the mutating form); the block is read exactly like
 [`@boundingbox`](@ref)'s (an assignment or a destructuring assignment
 binds its name(s) as usual, a bare expression contributes without binding
-anything, and a single shape/expression works without `begin`/`end` too)
-— including how construction helpers are handled: a bare
+anything, and a single shape/expression works without `begin`/`end` too),
+including how construction helpers are handled: a bare
 [`APPoint`](@ref) is repositioned along with everything else (it's a real
 position), while a plain number or an [`APVector`](@ref) is left
 completely untouched (there's no position to move, and a number in
@@ -235,9 +235,9 @@ radio2 == radio, centro2   # radio2 untouched; centro2 repositioned like circ2
 
 An unbounded shape (`APLine`, `APRay`, `APAngle2`, `APHalfPlane2`,
 `APStrip2`) is a third case: it doesn't contribute to the canvas size
-(no finite extent to report — see [`APBoundingBox()`](@ref)), but it *is*
-still repositioned along with everything else, since — unlike a number or
-a vector — it does have a position and does support `translate`/
+(no finite extent to report; see [`APBoundingBox()`](@ref)), but it *is*
+still repositioned along with everything else, since (unlike a number or
+a vector) it does have a position and does support `translate`/
 `homothety` like any other shape:
 
 ```@example geo
@@ -252,26 +252,26 @@ ext1   # repositioned exactly like c1_2/c2_2, even though its own bbox is empty
 ```
 
 A block with nothing but non-positional values (numbers/vectors, with no
-shape carrying a real position at all) is an `ArgumentError` — there's no
+shape carrying a real position at all) is an `ArgumentError`: there's no
 finite content to size a canvas around.
 
 A named item can also be a plain `Vector` of shapes (see the same
-capability under [Reading the block](@ref) above) — e.g. the result of
-`intersection.(ext1, [c1, c2])` — and it's repositioned element-wise right
+capability under [Reading the block](@ref) above), e.g. the result of
+`intersection.(ext1, [c1, c2])`, and it's repositioned element-wise right
 alongside everything else.
 
 ### Sizing options
 
 | Option | Effect |
 |:-------|:-------|
-| *(none)* | scale factor `1.0` — the shapes' own coordinate units become output units directly |
+| *(none)* | scale factor `1.0`: the shapes' own coordinate units become output units directly |
 | `scale` | a literal, uniform multiplier |
 | `width` (alone) | scaled so the content's width comes out exactly `width` minus `margin`; height follows to preserve the aspect ratio |
 | `height` (alone) | symmetric |
 | `width` *and* `height` | a "contain" fit: scaled by whichever of the two is more restrictive, so the content fits inside *both* without distortion |
 | `margin` | blank space guaranteed around the content on every side (default `0.0`) |
 
-`scale` and `width`/`height` are mutually exclusive — combining them is an
+`scale` and `width`/`height` are mutually exclusive: combining them is an
 error. The scale factor is **always** the same in `x` and `y`: a circle
 passed through `@to_luxor_picture` is always still a circle, never
 distorted into an ellipse, no matter which sizing option is used.
@@ -296,7 +296,7 @@ end
 
 When `width` and `height` are given together and don't match the
 content's own aspect ratio, the content is scaled by whichever bound is
-more restrictive and *centered* in the requested canvas — extra blank
+more restrictive and *centered* in the requested canvas: extra blank
 space (beyond `margin`) lands on whichever axis has slack, rather than
 stretching the content to fill it:
 
@@ -311,7 +311,7 @@ end
 (w, h), circ2   # circ2 is still an APCircle2 -- never distorted
 ```
 
-`margin` works the same way whether or not `width`/`height` are given —
+`margin` works the same way whether or not `width`/`height` are given:
 with neither, it simply pads the content's own natural size on every side:
 
 ```@example geo
@@ -323,7 +323,7 @@ end
 (w, h)   # the natural 10x10 size, padded by 3 on every side
 ```
 
-Combining `scale` with `width`/`height` is an error — raised as soon as
+Combining `scale` with `width`/`height` is an error: raised as soon as
 the macro call itself is expanded, before any of the block even runs:
 
 ```@example geo
@@ -338,7 +338,7 @@ end
 
 The mutating counterpart: rebinds each *named* shape (an assignment, or a
 bare reference to a shape defined earlier) to its own translated/scaled
-image, instead of returning copies — the same relationship
+image, instead of returning copies, the same relationship
 [`@translate!`](@ref) has to [`@translate`](@ref). Since the shapes are
 already accessible under their own names afterward, it returns just the
 `(width=w, height=h)` `NamedTuple`:
@@ -355,7 +355,7 @@ end
 ```
 
 A bare, unnamed expression has nothing to rebind, so this form rejects it
-(same as `@translate!` and the rest of that family) — see
+(same as `@translate!` and the rest of that family); see
 [Drawing with Luxor.jl](@ref) for the complete pipeline, from a bare set
 of `APPoint`/`APTriangle`/etc. all the way to a finished PNG.
 
@@ -371,7 +371,7 @@ end
 T1
 ```
 
-`t`/`s` themselves are untouched by `@translate` — `@translate!` instead
+`t`/`s` themselves are untouched by `@translate`; `@translate!` instead
 rebinds each *named* shape's own variable to its translated image (the
 object itself never mutates, since these are all immutable structs; only
 the variable is repointed, the same trick `Setfield.jl`'s `@set!` uses):
@@ -455,7 +455,7 @@ t6
 ## `@invert` / `@invert!` and `@invert_neg` / `@invert_neg!`
 
 [`invert`](@ref)/[`invert_neg`](@ref) with respect to the circle centered
-at `center` (radius `k`, defaulting to `1.0`) — note that inversion can
+at `center` (radius `k`, defaulting to `1.0`); note that inversion can
 change a shape's own *type* (an `APLine` not through `center` inverts to
 an `APCircle2`, and vice versa), no different here:
 
@@ -490,7 +490,7 @@ far_line2
 ## `@affinemap` / `@affinemap!`
 
 Applies any [`APAffineMap`](@ref) `m`, exactly like calling `m(shape)`
-by hand — see [Affine Maps](@ref) for how `m` itself is built:
+by hand; see [Affine Maps](@ref) for how `m` itself is built:
 
 ```@example geo
 m = APAffineMap(1.3, 0.4, -0.2, 0.9, 0.0, 0.0)
@@ -499,7 +499,7 @@ T7, C7 = @affinemap m begin
     t
     circ
 end
-T7   # circ, being non-similarity-mapped, would come back as an APEllipse2 — see Affine Maps
+T7   # circ, being non-similarity-mapped, would come back as an APEllipse2, see Affine Maps
 ```
 
 ```@example geo
@@ -511,8 +511,8 @@ t8
 ## Embedding a macro call inside another expression
 
 When a call to any of these (besides `@boundingbox`, which only takes one
-argument before the block) appears as an *argument* to something else —
-not its own statement — wrap it in parentheses:
+argument before the block) appears as an *argument* to something else,
+rather than its own statement, wrap it in parentheses:
 
 ```julia
 f((@rotate angle p), other_arg)    # correct
@@ -521,5 +521,5 @@ f(@rotate angle p, other_arg)      # wrong: swallows other_arg into the macro ca
 
 This is a general rule for any multi-argument macro call in Julia (a bare
 `@macro arg1 arg2` swallows comma-separated arguments that follow), not
-specific to this package — a plain statement like `x = @rotate angle p`
+specific to this package: a plain statement like `x = @rotate angle p`
 never runs into it.

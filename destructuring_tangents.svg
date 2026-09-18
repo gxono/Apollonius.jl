@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="240" viewBox="0 0 500 240">
+<rect x="-50" y="-24" width="600" height="288" fill="rgb(100%, 100%, 100%)" fill-opacity="1"/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 161.539063 120 C 161.539063 159.085938 129.855469 190.769531 90.769531 190.769531 C 51.683594 190.769531 20 159.085938 20 120 C 20 80.914063 51.683594 49.230469 90.769531 49.230469 C 129.855469 49.230469 161.539063 80.914063 161.539063 120 Z M 161.539063 120 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 480 120 C 480 139.542969 464.15625 155.382813 444.617188 155.382813 C 425.074219 155.382813 409.230469 139.542969 409.230469 120 C 409.230469 100.457031 425.074219 84.617188 444.617188 84.617188 C 464.15625 84.617188 480 100.457031 480 120 Z M 480 120 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M -897.140625 -50.414063 L 1443.140625 184.792969 "/>

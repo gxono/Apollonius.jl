@@ -1,5 +1,5 @@
 include("../default_config.jl")
-
+using Apollonius: rotate, translate
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(2.0, 6.0)
@@ -39,7 +39,6 @@ path(APSegment(P,C), action=:stroke)
 sethue(julia_purple)
 path(angTR, action=:fill, as=:rsector)
 path(APSegment(P,R), action=:stroke)
-
 
 #Traslation
 path(APEquipollentVector(vecCT, C), action=:stroke, as=:arrow)

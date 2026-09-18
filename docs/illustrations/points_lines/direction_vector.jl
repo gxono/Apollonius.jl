@@ -1,5 +1,4 @@
-using Apollonius, Luxor
-using Luxor: julia_blue, julia_green, julia_purple, julia_red
+include("../default_config.jl")
 
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     A = APPoint(5.0, 4.0)
@@ -9,7 +8,7 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     v = normalize(d)
 end
 
-@svg begin
+@svg_doc(sz, @__FILE__, begin
     sethue(julia_blue)
     path(l, action = :stroke)
 
@@ -22,4 +21,4 @@ end
     path([A,O])
     sethue("white"); fillpreserve()
     sethue(julia_red); strokepath()
-end sz.width sz.height "direction_vector.svg"
+end)

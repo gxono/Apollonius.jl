@@ -2,6 +2,7 @@ module Apollonius
 
 using LinearAlgebra: norm, dot, normalize, nullspace
 import LinearAlgebra
+import Random
 
 # The APPoint/APVector primitives and the abstract type hierarchy
 # (APObject/APLocus/APCurve/APSet/APRegion/APPolygon/APTransform) that
@@ -116,6 +117,7 @@ include("ap_conic_fit.jl")
 include("ap_triangle.jl")
 
 include("utils.jl")
+include("ap_rand.jl")
 
 export sides, diagonals, diagonal_intersection, is_cyclic
 export direction, slope_angle, midpoint, distance, polar_point, polar_point_deg

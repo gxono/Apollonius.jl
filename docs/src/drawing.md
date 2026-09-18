@@ -25,7 +25,7 @@ Julia's package-extension mechanism (`[weakdeps]`/`[extensions]` in
 `Project.toml`, available since Julia 1.9) is what makes this possible:
 `path` is declared in `Apollonius.jl` but given no methods there.
 The moment your own session also has Luxor loaded, those methods
-materialize automatically — no configuration needed on your part beyond
+materialize automatically, no configuration needed on your part beyond
 loading both packages:
 
 ```julia
@@ -53,15 +53,15 @@ preview()
 
 
 If you only ever `using Apollonius` and never load Luxor, `path`
-simply doesn't exist as a callable function (`methods(path)` is empty) —
-there is no partial/broken state to worry about.
+simply doesn't exist as a callable function (`methods(path)` is empty).
+There is no partial/broken state to worry about.
 
 ## `path` is deliberately thin
 
 `path(obj; action=:path, kwargs...)` only ever does one thing: it adds
 `obj` to Luxor's *current path*, using Luxor's own primitives underneath
 (`Luxor.circle`, `Luxor.line`, `Luxor.poly`, `Luxor.arc2r`, ...). It never
-calls `sethue`, never sets an opacity, and never draws a label — those are
+calls `sethue`, never sets an opacity, and never draws a label; those are
 already exactly what Luxor's own `sethue`, `setopacity` and `label` do
 well, and giving `path` its own parallel vocabulary for them would just be
 a second thing to learn for no benefit. Every example on this page is
@@ -72,11 +72,11 @@ The one keyword every method shares is `action`, forwarded straight to
 Luxor exactly the way Luxor's own shape functions (`circle`, `poly`, ...)
 take it:
 
-* `:path` (the default) — add to the current path and do nothing else.
+* `:path` (the default): add to the current path and do nothing else.
   Use this when you're about to style it yourself (`Luxor.strokepath()`,
   `Luxor.fillpath()`, `Luxor.clip()`, or add more shapes to the same path
   first) or when you're going to reuse the same call with several actions.
-* `:stroke`, `:fill`, `:fillstroke` — build the path *and* render it
+* `:stroke`, `:fill`, `:fillstroke`: build the path *and* render it
   immediately, the one-call convenience:
 
 ```julia
@@ -89,7 +89,7 @@ Luxor.strokepath()              # ...you render it, same effect
 
 For a translucent fill *underneath* a solid outline (a common combination
 that used to be its own `fillcolor` keyword on this page in an earlier
-version of this interface), just do what you'd do with any Luxor shape —
+version of this interface), just do what you'd do with any Luxor shape:
 build the path once, fill it, then stroke a fresh copy:
 
 ```julia
@@ -100,7 +100,7 @@ path(t; action=:stroke)
 ```
 
 And for a label, `Luxor.label` (or plain `Luxor.text`) at whatever anchor
-point makes sense for that shape — which is almost always a point the
+point makes sense for that shape, which is almost always a point the
 package already gives you a name for, so there's nothing to look up.
 `Luxor.label` accepts an `APPoint` directly (both the alignment-`Symbol`
 form and the direction-angle one), no `Luxor.Point(p...)` conversion
@@ -116,13 +116,13 @@ Luxor.label("O", :N, circumcenter(t))
 Setting up a `Drawing` normally means guessing values by hand: how wide
 and tall does the canvas need to be, how far do the shapes need to shift
 so nothing ends up off-canvas, how much breathing room to leave around
-the edges? [`@to_luxor_picture`](@ref) (from the core package — see
+the edges? [`@to_luxor_picture`](@ref) (from the core package; see
 [Transforming in Bulk: Macros](@ref) for the full option reference)
 answers all of that in one call: it translates and uniformly scales a
 whole set of shapes so they fit centered on `(0, 0)`, and hands back the
 exact canvas size directly. Centering on `(0, 0)` matches Luxor's own
 `origin()` convention, so the result is ready to draw right after
-`origin()` — which `@png` already calls for you:
+`origin()`, which `@png` already calls for you:
 
 ```julia
 using Apollonius, Luxor
@@ -162,13 +162,13 @@ path(circ2; action=:stroke)
 finish()
 ```
 
-`t`/`circ` themselves are untouched — see [`@to_luxor_picture!`](@ref) for
+`t`/`circ` themselves are untouched; see [`@to_luxor_picture!`](@ref) for
 the mutating form, which rebinds them in place instead.
 
 When the requested `width`/`height` don't match the content's own aspect
-ratio, the content is scaled (still uniformly — a circle never becomes an
+ratio, the content is scaled (still uniformly; a circle never becomes an
 ellipse) to fit inside both, and centered, leaving extra blank space
-beyond `margin` on whichever axis has slack — the same "contain fit" a
+beyond `margin` on whichever axis has slack: the same "contain fit" a
 CSS `object-fit: contain` or an image viewer's "fit to window" would give:
 
 ```julia
@@ -189,7 +189,7 @@ As an additional comment, every illustration under `docs/illustrations/`
 shares the same Luxor imports and `setpoint`/`Drawing`/`finish`/`preview`
 boilerplate, factored out once into `docs/illustrations/default_config.jl`
 (a shared `include`) and its `@svg_doc` macro. `docs/illustrations/template.jl`
-is the copy-paste starting point for a new one — copy it into the right
+is the copy-paste starting point for a new one: copy it into the right
 subfolder (`triangles/`, `circles/`, ...) and fill in the two blanks:
 
 ```julia
@@ -206,7 +206,7 @@ end)
 ```
 
 `@svg_doc` derives both the output filename and its subfolder under
-`docs/src/assets/img/` from `@__FILE__` — which is why it has to be passed
+`docs/src/assets/img/` from `@__FILE__`, which is why it has to be passed
 in literally at the call site (a macro can never recover *its caller's*
 file on its own, only its own defining file), rather than typed as a
 `fmt_name`/path computation in every single illustration file by hand.
@@ -215,7 +215,7 @@ file on its own, only its own defining file), rather than typed as a
 ### Excluding a shape from sizing: `@unbounded`
 
 Every shape named in a `@to_luxor_picture` block counts toward the
-canvas's size and scale — including a large auxiliary shape you built only
+canvas's size and scale, including a large auxiliary shape you built only
 to construct something else, and never meant to set the picture's own
 scale. [`@unbounded`](@ref) marks one line as exempt from that sizing,
 without changing anything else about it: it still binds/translates/scales
@@ -237,7 +237,7 @@ end
 ```
 
 Wrap either the whole line (`@unbounded locus = APCircle2(...)`) or just
-the right-hand side (`locus = @unbounded APCircle2(...)`) — both read the
+the right-hand side (`locus = @unbounded APCircle2(...)`), both read the
 same way. Outside a picture block, `@unbounded expr` is simply `expr`, a
 harmless no-op, so it's always safe to leave in place regardless of
 context.
@@ -273,7 +273,7 @@ end
 
 Both macros' returned size `NamedTuple` also carries `fct`: the exact same
 translate + homothety + (if `flip`) reflection pipeline applied to every
-shape in the block, as a plain function — so it can be applied to
+shape in the block, as a plain function, so it can be applied to
 something that was never one of the block's own shapes and still land in
 the same transformed coordinate space (a label position computed after
 the fact, a point from unrelated data, ...):
@@ -289,11 +289,11 @@ sz.fct(centroid(t))   # matches where `centroid(t2)` would land -- t was never r
 ### Known limitation: plain numbers never scale
 
 A bare number gets a well-defined empty [`APBoundingBox`](@ref) (it
-contributes nothing to a picture's sizing, on purpose — see
+contributes nothing to a picture's sizing, on purpose; see
 [`APBoundingBox`](@ref)`()`), but a `Vector`/`Tuple` of numbers as a
 single named binding has *no* `APBoundingBox` method at all (it isn't a
 `Vector{<:APPoint}` or `Vector{<:APObject}`), so it errors unless wrapped
-in [`@unbounded`](@ref) — after which it passes through completely
+in [`@unbounded`](@ref), after which it passes through completely
 unchanged, regardless of the picture's own scale factor:
 
 ```julia
@@ -309,10 +309,10 @@ This is a fundamental limitation, not a bug that could be fixed by making
 `Vector{Float64}`, whether its numbers are *lengths* (which should scale
 with the picture) or something purely combinatorial like vertex counts or
 indices (which must not). Both are indistinguishable `Float64`s by the
-time they reach the macro — `@unbounded` only silences the sizing error,
+time they reach the macro; `@unbounded` only silences the sizing error,
 it can't retroactively make the numbers scale correctly.
 
-**The alternative** is to never scale a number directly — instead,
+**The alternative** is to never scale a number directly: instead,
 compute it *from already-transformed shapes*, after the block has done
 its scaling. A distance between two already-scaled points is correctly
 scaled by construction, with no separate "scale this number" step needed
@@ -338,7 +338,7 @@ distance(sz.fct(A), sz.fct(B))
 [`APBoundingBox`](@ref) of whatever is currently on the active `Drawing`'s
 Cairo path, via `Luxor.path_extents`. Unlike computing an `APBoundingBox`
 straight from the AP shapes (exact, and needs no `Drawing` open at all),
-this reflects whatever Cairo itself measured — useful as a sanity check,
+this reflects whatever Cairo itself measured, useful as a sanity check,
 or when the path also has plain Luxor calls mixed in that
 `Apollonius` has no way to know about:
 
@@ -358,7 +358,7 @@ current_path_bbox()   # APBoundingBox([0.0, 0.0] .. [0.0, 0.0]) -- stroking cons
 finish()
 ```
 
-Call it *before* a non-`:path` action — `:stroke`/`:fill`/etc. clear the
+Call it *before* a non-`:path` action: `:stroke`/`:fill`/etc. clear the
 current path as a side effect of actually rendering it, so
 `current_path_bbox()` reads as an empty (all-zero) box afterward, as shown
 above. For a shape whose `path` method samples points rather than using a
@@ -370,32 +370,32 @@ the same accuracy as that sampling.
 
 `path(obj; action=:path, kwargs...)` dispatches on the type of `obj`.
 Besides `action`, every method also accepts whatever *structural* (not
-styling) keywords that curve needs — how far to extend an infinite line,
+styling) keywords that curve needs: how far to extend an infinite line,
 how finely to sample a curve Luxor has no native primitive for, and so on:
 
 | Type | Adds to the path as | Type-specific keywords |
 |:-----|:---------------------|:------------------------|
 | `APPoint` | a small circle | `radius=3` |
-| `APSegment` | a straight line between its two points, or — pass `as=:arrow` — an arrow (see [Arrows](@ref) below) | `as=:plain` (default) |
-| `APLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point — or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow` |
+| `APSegment` | a straight line between its two points, or (pass `as=:arrow`) an arrow (see [Arrows](@ref) below) | `as=:plain` (default) |
+| `APLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point, or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow` |
 | `APRay` | likewise, extended only past `through` (not past `origin`); `extend=0.0` draws the exact finite segment from `origin` to `through` | `extend=1000.0`; `as=:plain`/`:arrow` |
-| `APCircle2` | Luxor's native circle | — |
-| any [`APPolygon`](@ref) | every side, chained end to end into one closed path — a straight line for an `APSegment` side, a true arc for an `APCircularArc2` side, an `n`-point sampled polyline for any other conic-arc side (see below); covers `APTriangle`, `APQuadrilateral`, `APStraightNgon`, `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2` and `APCurvilinearNgon2` — **one** method for the whole family | `n=60` (only matters if some side needs sampling) |
-| `APBoundingBox` | an axis-aligned box | — |
-| `APEllipse2` | a smooth, Bézier-curve ellipse (Luxor's own axis-aligned `ellipse(center, w, h)`, `w = 2a`, `h = 2b`) inside a rotated/translated frame matching `e.center`/`e.angle`, so the path stays a true curve at any zoom level | — |
+| `APCircle2` | Luxor's native circle | (none) |
+| any [`APPolygon`](@ref) | every side, chained end to end into one closed path: a straight line for an `APSegment` side, a true arc for an `APCircularArc2` side, an `n`-point sampled polyline for any other conic-arc side (see below); covers `APTriangle`, `APQuadrilateral`, `APStraightNgon`, `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2` and `APCurvilinearNgon2`, **one** method for the whole family | `n=60` (only matters if some side needs sampling) |
+| `APBoundingBox` | an axis-aligned box | (none) |
+| `APEllipse2` | a smooth, Bézier-curve ellipse (Luxor's own axis-aligned `ellipse(center, w, h)`, `w = 2a`, `h = 2b`) inside a rotated/translated frame matching `e.center`/`e.angle`, so the path stays a true curve at any zoom level | (none) |
 | `APParabola2` | Luxor has no native parabola primitive: sampled at `n` points via [`point_on_parabola`](@ref) over the parameter range `srange`, added as an open polyline | `srange=(-100.0, 100.0)`, `n=60` |
 | `APHyperbola2` | likewise (no native primitive), sampled via [`point_on_hyperbola`](@ref) on one branch at a time | `trange=(-2.0, 2.0)`, `n=60`, `branch=1` (pass `branch=-1` and call again for the other branch) |
-| `APCircularArc2` | a true circular arc from `p1` to `p2`, via Luxor's own `arc2r` (Cairo's native arc primitive — not a polygonal approximation) | — |
+| `APCircularArc2` | a true circular arc from `p1` to `p2`, via Luxor's own `arc2r` (Cairo's native arc primitive, not a polygonal approximation) | (none) |
 | `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on_arc`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
-| `APAngle2` | see below — it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
+| `APAngle2` | see below; it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
 | `APVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=APPoint(0.0, 0.0)`, `as=:plain`/`:arrow` |
 | `APHalfPlane2` | unbounded, so this draws its boundary line only (see `APLine` above) | `extend=1000.0` |
 | `APStrip2` | likewise unbounded: both boundary lines, one call each | `extend=1000.0` |
 | `AbstractVector{<:APObject}` | each element in turn, with the same `kwargs` every time (see below) | whatever that element's own type takes |
 
-The last row is what lets a plain `Vector` — what [`intersection`](@ref)/
+The last row is what lets a plain `Vector` (what [`intersection`](@ref)/
 [`tangent_points`](@ref) return, since they can give 0, 1 or 2 points
-depending on the geometry — get drawn directly, without unwrapping it by
+depending on the geometry) get drawn directly, without unwrapping it by
 hand first:
 
 ```julia
@@ -405,7 +405,7 @@ path(pts; action=:fill)    # each point drawn as its own small circle
 
 It also calls `Luxor.newsubpath()` before each element, so this is the
 safe way to batch several shapes into *one* combined path with the
-default `action=:path` — e.g. to fill them one color and outline them
+default `action=:path`, e.g. to fill them one color and outline them
 another with a single `fillpreserve()`/`strokepath()` pair, rather than
 drawing each one twice:
 
@@ -417,12 +417,12 @@ sethue("blue"); strokepath()
 
 Without the `newsubpath()`, Cairo's own circle/arc primitives connect to
 wherever the current path left off with a straight line the moment a
-second one starts — a well-known Cairo gotcha, not something specific to
+second one starts, a well-known Cairo gotcha, not something specific to
 this package, but one `path(::AbstractVector)` takes care of for you.
 
 !!! warning "`path(v)` is not the same as `path.(v)`"
     Broadcasting (`path.(pts; action=:path)`, with the dot) calls the
-    scalar `path` method on each point directly — it never reaches
+    scalar `path` method on each point directly; it never reaches
     `path(::AbstractVector)` at all, so none of the `newsubpath()`
     handling above applies. For an immediately-rendering action
     (`:stroke`, `:fill`, `:fillstroke`) the two look identical, since each
@@ -434,13 +434,13 @@ this package, but one `path(::AbstractVector)` takes care of for you.
 
 Most types default effectively to an outline when you pass `action=:stroke`
 (`APPoint` would need `action=:fill` to actually show up, since an
-unfilled single-pixel-radius circle is invisible — but that choice is now
+unfilled single-pixel-radius circle is invisible, but that choice is now
 yours to make, same as with any other type).
 
 The single `path(pg::APPolygon)` method is the direct payoff of building
 a real [`APPolygon`](@ref) hierarchy: it walks `sides(pg)` via the same
 `_polygon_walk` [`area`](@ref)/[`perimeter`](@ref) already use, so one
-method — not seven, one per concrete type — covers every straight-sided
+method (not seven, one per concrete type) covers every straight-sided
 *and* curved-region shape in the package. The one behavior difference
 from a hand-rolled per-vertex path: it always produces a *closed* path (no
 `close=false` open-polyline option), since a walked side sequence is
@@ -449,16 +449,16 @@ inherently a loop.
 **A subtlety worth knowing, inherited from Luxor itself rather than
 anything this package adds**: with a non-`:path` action, most of Luxor's
 own shape-building functions (`circle`, `poly`, and so the types built on
-them here — `APCircle2`, every `APPolygon`, `APEllipse2`) clear the current
+them here: `APCircle2`, every `APPolygon`, `APEllipse2`) clear the current
 path first, so calling one always draws *only* that shape. A few of
-Luxor's own primitives don't — `line` (hence `APSegment`/`APLine`/`APRay`
+Luxor's own primitives don't: `line` (hence `APSegment`/`APLine`/`APRay`
 here) and `box` (hence `APBoundingBox`) add to whatever path is already
 there instead. In practice this rarely matters: a prior call with a real
 action (`:stroke`, `:fill`, ...) already emptied the path as a side effect
 of drawing it, regardless of which behavior the next call has. It only
 shows up if you deliberately chain several `path(...; action=:path)` calls
 to build one compound shape across multiple types and finish with a single
-action on the last call — in that case, a final
+action on the last call; in that case, a final
 `APSegment`/`APLine`/`APRay`/`APBoundingBox` call correctly includes
 everything built so far, while a final `APCircle2`/`APPolygon`/etc. call
 would silently discard it first.
@@ -487,7 +487,7 @@ immediately, with no deferred form, so `action` is ignored when
 
 ### `APAngle2`: rays, arc, sector, or the parallelogram-law marker
 
-An `APAngle2` is genuinely just the space between two rays — but it's
+An `APAngle2` is genuinely just the space between two rays, but it's
 conventionally *drawn* as a small arc, a filled wedge, or (especially for
 a right angle) a small square in the corner. `as` picks which:
 
@@ -507,10 +507,10 @@ path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
 
 `radius` defaults to `0.15` times the shorter of the distances from the
 vertex to `ang.a` and `ang.b`, so it looks reasonable at the figure's own
-scale without having to think about it — pass it explicitly to override.
+scale without having to think about it; pass it explicitly to override.
 `as=:arc` and `as=:sector` are, in fact, nothing more than
 `path(APCircularArc2(...))` and `path(APCircularSector2(...))` under the
-hood (see below) — `APAngle2` just works out the right circle and
+hood (see below); `APAngle2` just works out the right circle and
 endpoints first.
 
 `as=:rarc`/`:rsector` generalize the little square textbooks use to mark
@@ -529,8 +529,8 @@ whole parallelogram, for filling.
 [`APCircularArc2`](@ref), [`APCircularSector2`](@ref),
 [`APCircularSegment2`](@ref), [`APAnnularSector2`](@ref) and
 [`APInterstice2`](@ref) (see [Circles](@ref),
-[Tangency & Apollonius Problems](@ref)) draw exactly like everything else
-— all through the same generic `path(pg::APPolygon)` method described
+[Tangency & Apollonius Problems](@ref)) draw exactly like everything else,
+all through the same generic `path(pg::APPolygon)` method described
 above:
 
 ```julia
@@ -561,7 +561,7 @@ path(invert(APTriangle(APPoint(50.0, 20.0), APPoint(90.0, 30.0), APPoint(60.0, 8
 
 Every curved side here is built from Luxor's own `arc2r`/`carc2r` (Cairo's
 native circular-arc path primitive, driven by a center and the two
-endpoints) — never a sampled polyline standing in for the arc, the way
+endpoints), never a sampled polyline standing in for the arc, the way
 `APParabola2`/`APHyperbola2` above have to (Luxor has no native primitive
 for *those* curves, so sampling is the only option there).
 
@@ -583,7 +583,7 @@ path(earc; action=:stroke)
 ```
 
 
-They can also turn up as a *side* of a curvilinear region — not from
+They can also turn up as a *side* of a curvilinear region, not from
 building one directly (there's no `APEllipticSector2`), but as the result
 of an [`APAffineMap`](@ref) applied to a circular-arc region, since a
 non-conformal map turns a circular arc elliptic:
@@ -598,7 +598,7 @@ path(skew(sec); action=:stroke)   # an APCurvilinearTriangle2 with one elliptic-
 <img src="../assets/img/drawing/affine_skew.svg" alt="" style="width:100%;">
 ```
 
-`path(::APPolygon)` handles this transparently — a side is drawn with
+`path(::APPolygon)` handles this transparently: a side is drawn with
 `arc2r` if it's an `APCircularArc2`, or sampled at `n` points (the same
 `n` `path` itself takes) if it's any of the other three arc types.
 
@@ -613,11 +613,11 @@ also tangent to the previous. Rather than re-solving the 3-circle
 Apollonius problem (up to 8 candidate solutions) at every step of the
 chain, this inverts about the point where `K` and `K2` touch: both become
 **parallel lines**, and in that inverted picture the whole chain collapses
-to a trivial row of *equal* circles translated along them — invert each
+to a trivial row of *equal* circles translated along them: invert each
 one back and the real, naturally-shrinking chain falls out, one
 [`invert`](@ref) per new circle instead of a full Apollonius solve.
 `delta_r` then perturbs each circle's own already-inverted (real-space)
-radius by a constant amount before it's kept — a negative value shrinks
+radius by a constant amount before it's kept: a negative value shrinks
 every circle a bit further, opening up the gaps between them, which is
 what gives the logo its current look; it has to be applied there and not
 inside the inverted-space construction, since that construction only
@@ -708,14 +708,14 @@ that call site:
   `Luxor.rotate(...)`.
 * In your own scripts (not needed just to follow this page), prefer
   `using Apollonius` together with `import Luxor` instead of
-  `using Luxor` — then only `Apollonius`'s bindings are unqualified,
+  `using Luxor`; then only `Apollonius`'s bindings are unqualified,
   and every Luxor call is written as `Luxor.something`, which sidesteps
   the ambiguity entirely rather than resolving it case by case. This is
   the convention this package's own test suite uses internally.
 * Or the other way around: plain `using Apollonius` (every one of
   its names unqualified, colliding or not), plus `using Luxor: f1, f2, ...`
   naming only the handful of Luxor functions actually called, instead of
-  blanket `using Luxor` — since `distance`/`rotate` are then never brought
+  blanket `using Luxor`, since `distance`/`rotate` are then never brought
   in from Luxor at all, there's no collision left to resolve. Add a plain
   `import Luxor` alongside so `Luxor.something` (e.g. `Luxor.julia_green`)
   still works for anything not explicitly named. This is what the logo

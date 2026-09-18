@@ -1,10 +1,5 @@
 include("../default_config.jl")
 
-
-
-
-
-
 sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(3.0, 6.0)
     s = APSegment(P, Q)
@@ -14,7 +9,6 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     lpe = perpendicular_through(l, C)
     lpb = perpendicular_bisector(s)
 end
-
 
 @svg_doc(sz, @__FILE__, begin
 sethue(julia_blue)
