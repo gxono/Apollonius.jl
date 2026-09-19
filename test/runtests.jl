@@ -456,6 +456,22 @@ using Base.MathConstants: golden
                 @test distance(circ.center, bigger.p1) ≈ 2 * circ.r
                 @test bigger.p1 ≈ circ.center + 2 * (p1 - circ.center)
             end
+            @testset "arc_with_angle / arc_with_length" begin
+                ctr, start = APPoint(1.0, 2.0), APPoint(4.0, 2.0)
+                ccw = arc_with_angle(ctr, start, pi / 3)
+                @test ccw isa APCircularArc2
+                @test ccw.p1 ≈ start && measure(ccw) ≈ pi / 3 && ccw.circle.r ≈ 3.0
+                cw = arc_with_angle(ctr, start, -pi / 3)
+                @test cw.p2 ≈ start && measure(cw) ≈ pi / 3
+                by_len = arc_with_length(ctr, start, pi)
+                @test by_len ≈ arc_with_angle(ctr, start, pi / 3)
+                @test arc_length(by_len) ≈ pi atol = 1e-9
+                @test arc_with_length(ctr, start, -pi) ≈ cw
+                @test_throws ArgumentError arc_with_angle(ctr, start, 0.0)
+                @test_throws ArgumentError arc_with_angle(ctr, start, 2pi)
+                @test_throws ArgumentError arc_with_angle(ctr, ctr, 1.0)
+                @test_throws ArgumentError arc_with_length(ctr, ctr, 1.0)
+            end
         end
         @testset "APEllipticArc2 (new)" begin
             e2 = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0, 0.2)

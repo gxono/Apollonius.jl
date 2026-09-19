@@ -373,6 +373,27 @@ with `r` taken to be `distance(center, p1)`):
 APCircularArc2(c.center, c.r, p1, p2) == arc
 ```
 
+### Compass arcs
+
+In a ruler-and-compass construction the second end of an arc is rarely
+a point you already have: you set the compass to a radius and swing it
+through some angle or distance. [`arc_with_angle`](@ref)`(center, p, angle)`
+and [`arc_with_length`](@ref)`(center, p, len)` build exactly that: the arc
+of the circle centered at `center` through `p`, starting at `p` and
+sweeping a given angle (radians) or arc length. A negative value sweeps
+clockwise, and since an `APCircularArc2` always runs counterclockwise from
+`p1` to `p2`, that case comes back with `p` stored as `arc.p2`:
+
+```@example geo
+tick = arc_with_angle(c.center, p1, pi / 6)
+measure(tick) ≈ pi / 6, tick.p1 ≈ p1
+```
+
+```@example geo
+back = arc_with_length(c.center, p1, -1.0)   # 1 unit of arc length, clockwise
+arc_length(back) ≈ 1.0, back.p2 ≈ p1
+```
+
 ```@raw html
 <img src="../assets/img/circles/arc.svg" alt="" style="width:100%; max-width: 700px;">
 ```

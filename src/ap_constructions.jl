@@ -157,3 +157,36 @@ function apollonius_circle(a::APPoint, b::APPoint, k::Real; atol=1e-9)
     p_ext = a + k * (b - a) / (k - 1)
     return APCircle2(midpoint(p_int, p_ext), distance(p_int, p_ext) / 2)
 end
+"""
+    arc_with_angle(center::APPoint, p::APPoint, angle::Real)
+
+The circular arc of the circle centered at `center` through `p`, sweeping
+`angle` radians from `p`: counterclockwise for a positive `angle`,
+clockwise for a negative one -- the compass arc of a ruler-and-compass
+construction, set to `distance(center, p)` and swung through a given
+angle. Since an [`APCircularArc2`](@ref) always runs counterclockwise from
+`p1` to `p2`, a clockwise sweep comes back with `p` as `arc.p2` instead
+of `arc.p1`. `angle` must satisfy `0 < abs(angle) < 2π` (an arc can't be a
+full circle or empty); `p` must differ from `center`.
+
+See [`arc_with_length`](@ref) to give the sweep as an arc length instead.
+"""
+function arc_with_angle(center::APPoint, p::APPoint, angle::Real)
+    0 < abs(angle) < 2pi || throw(ArgumentError("arc_with_angle: abs(angle) must be in (0, 2π)"))
+    q = rotate(p, angle, center)
+    return angle > 0 ? APCircularArc2(center, distance(center, p), p, q) :
+           APCircularArc2(center, distance(center, p), q, p)
+end
+"""
+    arc_with_length(center::APPoint, p::APPoint, len::Real)
+
+Like [`arc_with_angle`](@ref), but the sweep is given as an arc length
+`len` along the circle centered at `center` through `p` (so the angle is
+`len / distance(center, p)`); a negative `len` sweeps clockwise. `len` must
+be nonzero and shorter than the whole circumference.
+"""
+function arc_with_length(center::APPoint, p::APPoint, len::Real)
+    r = distance(center, p)
+    r > 0 || throw(ArgumentError("arc_with_length: p must differ from center"))
+    return arc_with_angle(center, p, len / r)
+end
