@@ -30,6 +30,7 @@ makedocs(;
         "Numbers & Tolerances" => "numbers.md",
         "Types & Operations" => "types.md",
         "Cookbook" => "cookbook.md",
+        "Euclid, Book I" => "euclid.md",
         "Circles" => "circles.md",
         "Triangles & Triangle Centers" => "triangles.md",
         "Tangency & Apollonius Problems" => "tangency.md",
