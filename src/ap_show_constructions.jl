@@ -130,3 +130,83 @@ function bisector_construction(vertex::APPoint, p1::APPoint, p2::APPoint;
         compass_trace(x1, y; angle=sweep), compass_trace(x2, y; angle=sweep)]
     return (result=APLine(vertex, y), arcs=arcs, points=[x1, x2, y])
 end
+"""
+    projection_construction(p::APPoint, l::APLine; radius=nothing, radius2=nothing, sweep=π/6)
+
+The ruler-and-compass construction of the orthogonal projection of `p` onto
+`l`, with everything the figure needs to show it: the
+[`perpendicular_construction`](@ref) of `l` through `p` (same `radius`,
+`radius2` and `sweep`), whose crossing with `l` is the foot. Returns a
+`NamedTuple` `(result, arcs, points)` where `result` is the foot (an
+[`APPoint`](@ref)) and `arcs` and `points` are those of the perpendicular
+construction.
+"""
+function projection_construction(p::APPoint, l::APLine; radius::Union{Nothing,Real}=nothing,
+    radius2::Union{Nothing,Real}=nothing, sweep::Real=pi / 6)
+    pc = perpendicular_construction(l, p; radius=radius, radius2=radius2, sweep=sweep)
+    return (result=only(intersection(l, pc.result)), arcs=pc.arcs, points=pc.points)
+end
+"""
+    reflection_construction(p::APPoint, l::APLine; radius=nothing, sweep=π/6)
+
+The ruler-and-compass construction of the mirror image of `p` across `l`:
+the circle centered at `p` of `radius` (default `1.5 * distance(p, l)`, it
+must exceed that distance) cuts `l` at `x1` and `x2`, and the circles of the
+same radius centered at them, both through `p`, meet again at the image.
+Returns a `NamedTuple` `(result, arcs, points)`: `result` is the image (an
+[`APPoint`](@ref)), `arcs` six compass traces (around `x1`, `x2`, `p` and the
+image) and `points` is `[x1, x2]`. If `p` is on `l` it is its own image, with
+no arcs.
+"""
+function reflection_construction(p::APPoint, l::APLine; radius::Union{Nothing,Real}=nothing, sweep::Real=pi / 6)
+    on_line(p, l) && return (result=p, arcs=APCircularArc2{Float64}[], points=APPoint{2,Float64}[])
+    dl = distance(p, l)
+    r = radius === nothing ? 1.5dl : radius
+    r > dl || throw(ArgumentError("reflection_construction: radius must exceed the distance from p to l"))
+    xs = intersection(l, APCircle2(p, r))
+    length(xs) == 2 || throw(ArgumentError("reflection_construction: the circle does not cut l in two points"))
+    x1, x2 = xs
+    cs = intersection(APCircle2(x1, r), APCircle2(x2, r))
+    length(cs) == 2 || throw(ArgumentError("reflection_construction: the two circles do not cross in two points"))
+    q = distance(cs[1], p) > distance(cs[2], p) ? cs[1] : cs[2]
+    arcs = [compass_trace(c, x; angle=sweep) for (c, x) in ((p, x1), (p, x2), (x1, p), (x2, p), (x1, q), (x2, q))]
+    return (result=q, arcs=arcs, points=[x1, x2])
+end
+"""
+    symmetry_construction(p::APPoint, center::APPoint; sweep=π/6)
+
+The ruler-and-compass construction of the image of `p` under the point
+symmetry about `center`: the circle centered at `center` through `p` meets
+the line `p, center` again on the other side. Returns a `NamedTuple`
+`(result, arcs, points)`: `result` is the image, `arcs` two compass traces
+(around `p` and around the image) and `points` is empty. Throws an
+`ArgumentError` if `p == center`.
+"""
+function symmetry_construction(p::APPoint, center::APPoint; sweep::Real=pi / 6)
+    distance(p, center) > 0 || throw(ArgumentError("symmetry_construction: p must differ from center"))
+    q = reflection(p, center)
+    return (result=q, arcs=[compass_trace(center, p; angle=sweep), compass_trace(center, q; angle=sweep)],
+        points=APPoint{2,Float64}[])
+end
+"""
+    translation_construction(p::APPoint, a::APPoint, b::APPoint; sweep=π/6)
+
+The ruler-and-compass construction of the image of `p` under the
+translation that takes `a` to `b`, as a parallelogram: the circle centered at
+`p` of radius `distance(a, b)` and the circle centered at `b` of radius
+`distance(a, p)` meet at `p + (b - a)`. Returns a `NamedTuple`
+`(result, arcs, points)`: `result` is the image, `arcs` two compass traces
+(around the image) and `points` is empty. If `a == b` the translation is the
+identity, with no arcs. Throws an `ArgumentError` if `p == a`.
+"""
+function translation_construction(p::APPoint, a::APPoint, b::APPoint; sweep::Real=pi / 6)
+    v = b - a
+    norm(v) > 0 || return (result=p, arcs=APCircularArc2{Float64}[], points=APPoint{2,Float64}[])
+    distance(a, p) > 0 || throw(ArgumentError("translation_construction: p must differ from a"))
+    expected = p + v
+    crossings = intersection(APCircle2(p, norm(v)), APCircle2(b, distance(a, p)))
+    isempty(crossings) && throw(ArgumentError("translation_construction: the construction circles do not meet"))
+    q = crossings[argmin([distance(c, expected) for c in crossings])]
+    return (result=q, arcs=[compass_trace(p, q; angle=sweep), compass_trace(b, q; angle=sweep)],
+        points=APPoint{2,Float64}[])
+end

@@ -716,6 +716,44 @@ using Base.MathConstants: golden
             @test_throws ArgumentError bisector_construction(v, v, p2)
         end
     end
+    @testset "shown constructions of transformations" begin
+        l = APLine(APPoint(0.0, 0.0), APPoint(5.0, 1.0))
+        p = APPoint(2.0, 4.0)
+        @testset "projection_construction" begin
+            pr = projection_construction(p, l)
+            @test pr.result ≈ projection(p, l) && on_line(pr.result, l)
+            @test length(pr.arcs) == 4 && length(pr.points) == 3
+            @test isapprox(projection_construction(APPoint(2.5, 0.5), l).result, APPoint(2.5, 0.5); atol=1e-9)   # p on l: its own foot
+        end
+        @testset "reflection_construction" begin
+            rf = reflection_construction(p, l)
+            @test rf.result ≈ reflection(p, l)
+            x1, x2 = rf.points
+            @test on_line(x1, l) && on_line(x2, l)
+            @test distance(x1, p) ≈ 1.5 * distance(p, l)
+            @test distance(x1, rf.result) ≈ distance(x1, p) && distance(x2, rf.result) ≈ distance(x2, p)   # both circles pass through p and its image
+            @test length(rf.arcs) == 6 && all(a -> a isa APCircularArc2, rf.arcs)
+            triv = reflection_construction(APPoint(2.5, 0.5), l)
+            @test triv.result == APPoint(2.5, 0.5) && isempty(triv.arcs) && isempty(triv.points)
+            @test_throws ArgumentError reflection_construction(p, l; radius=0.1)
+        end
+        @testset "symmetry_construction" begin
+            c = APPoint(1.0, 1.0)
+            sy = symmetry_construction(p, c)
+            @test sy.result ≈ reflection(p, c) && midpoint(p, sy.result) ≈ c
+            @test length(sy.arcs) == 2 && all(a -> isapprox(a.circle.center, c; atol=1e-9) && a.circle.r ≈ distance(p, c), sy.arcs)
+            @test_throws ArgumentError symmetry_construction(c, c)
+        end
+        @testset "translation_construction" begin
+            a, b = APPoint(0.0, 0.0), APPoint(3.0, 1.0)
+            tr = translation_construction(p, a, b)
+            @test tr.result ≈ p + (b - a)
+            @test length(tr.arcs) == 2 && all(x -> isapprox(midpoint(x), tr.result; atol=1e-9), tr.arcs)   # both traces are centered on the image
+            @test translation_construction(APPoint(2.0, 0.0), APPoint(0.0, 0.0), APPoint(1.0, 0.0)).result ≈ APPoint(3.0, 0.0)   # p collinear with a and b: tangent circles
+            @test translation_construction(p, a, a).result == p
+            @test_throws ArgumentError translation_construction(a, a, b)
+        end
+    end
     @testset "APParametricCurve2" begin
         curve = APParametricCurve2(t -> APPoint(2t, t^2), (0.0, 3.0))
         @test point_on_curve(curve, 0.0) == APPoint(0.0, 0.0)
