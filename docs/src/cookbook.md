@@ -13,7 +13,7 @@ that explains the function in depth.
 using Apollonius
 ```
 
-## Points and segments
+## Working with points and segments
 
 ### The midpoint, or a point a fraction of the way along
 
@@ -48,7 +48,7 @@ distance(p, APSegment(APPoint(0.0, 0.0), APPoint(3.0, 0.0))), distance(p, APLine
 
 See [Measurements & Queries](@ref) for what `distance` means for each type.
 
-## Lines
+## Working with lines
 
 ### The perpendicular from a point, and its foot
 
@@ -107,7 +107,7 @@ first(angle_bisectors(ang)), length(angle_trisectors(ang))
 
 The figure is in [Points, Lines & Rays](@ref).
 
-## Circles
+## Working with circles
 
 ### The circle through three points
 
@@ -156,16 +156,16 @@ radical_axis(c1, c2)
 
 The line through the two points where the circles cross, when they do.
 
-### A circle orthogonal to another, through a point
+### A circle orthogonal to another, with a given center
 
 ```@example geo
 c = APCircle2(APPoint(0.0, 0.0), 3.0)
 o = orthogonal_circle(c, APPoint(7.0, 0.0))
-intersection_angle(c, o) ≈ pi / 2
+o.center, intersection_angle(c, o) ≈ pi / 2
 ```
 
 ```@raw html
-<img src="../assets/img/cookbook/orthogonal.svg" alt="A circle and a circle orthogonal to it through an outside point, crossing at right angles" style="width:100%; max-width: 700px;">
+<img src="../assets/img/cookbook/orthogonal.svg" alt="A circle and the circle orthogonal to it centered at an outside point, crossing at right angles" style="width:100%; max-width: 700px;">
 ```
 
 ### The power of a point
@@ -186,15 +186,23 @@ invert(c, APPoint(0.0, 0.0); k=2.0)
 
 See [Circles](@ref) for the figures.
 
-## Tangent circles
+## Working with tangent circles
 
 ### The circle through two points tangent to a line
 
 ```@example geo
-A, B = APPoint(0.0, 0.0), APPoint(4.0, 0.0)
+A, B = APPoint(0.0, 0.0), APPoint(4.0, 1.0)
 l = APLine(APPoint(-3.0, 3.0), APPoint(8.0, 3.0))
 sols = tangent_circles_through_points(A, B, l)
 length(sols), all(c -> line_circle_position(l, c) == :tangent, sols)
+```
+
+### The circle through a point tangent to two lines
+
+```@example geo
+l1, l2 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0))
+sols = tangent_circles_through_point(l1, l2, APPoint(3.0, 1.0))
+length(sols), all(c -> line_circle_position(l1, c) == :tangent, sols)
 ```
 
 ### The circles tangent to three circles
@@ -215,15 +223,36 @@ l1, l2 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), APLine(APPoint(0.0, 0.0),
 tangent_circles_with_radius(l1, l2, 2.0)
 ```
 
-### The circle tangent to a line at a point
+### The circle with a given center tangent to a line
 
 ```@example geo
 l = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
-p = APPoint(2.0, 0.0)
 tangent_circles_with_center(APPoint(2.0, 3.0), l)
 ```
 
-## Triangles
+### The second point where a line meets a circle
+
+When you already know one of the points, `other_intersection` gives the
+other, or `nothing` if the line is tangent there:
+
+```@example geo
+c = APCircle2(APPoint(0.0, 0.0), 5.0)
+l = APLine(APPoint(-5.0, 0.0), APPoint(0.0, 3.0))
+other_intersection(l, c, APPoint(-5.0, 0.0))
+```
+
+### Circles that touch each other in a ring
+
+The three circles centered at the vertices of a triangle that touch pairwise
+at the points where the incircle touches the sides:
+
+```@example geo
+t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
+ring = three_tangent_circles(t)
+circles_position(ring[1], ring[2]), circles_position(ring[2], ring[3])
+```
+
+## Working with triangles
 
 ### Build a triangle from a side and two angles
 
@@ -237,6 +266,16 @@ The same idea, with other data: [`triangle_on_segment_sas`](@ref) (an angle
 and a side), [`triangle_on_segment_sss`](@ref) (three sides) and the named
 ones such as [`equilateral_triangle_on_segment`](@ref). See
 [Triangles & Triangle Centers](@ref).
+
+### An equilateral triangle on a segment, or a square
+
+```@example geo
+A, B = APPoint(0.0, 0.0), APPoint(4.0, 0.0)
+eq = equilateral_triangle_on_segment(A, B)
+distance(eq[3], A) ≈ 4.0, distance(eq[3], B) ≈ 4.0
+```
+
+Pass `ccw=false` for the other side of the segment.
 
 ### The classical centers, and the Euler line
 
@@ -276,6 +315,17 @@ t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
 barycentric_point(t, 1.0, 1.0, 1.0) ≈ centroid(t)
 ```
 
+### Napoleon's theorem
+
+The centers of the equilateral triangles built outward on the sides form an
+equilateral triangle:
+
+```@example geo
+t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
+n = napoleon_triangle(t)
+distance(n[1], n[2]) ≈ distance(n[2], n[3]) ≈ distance(n[3], n[1])
+```
+
 ### The Simson line of a point on the circumcircle
 
 ```@example geo
@@ -285,7 +335,7 @@ sl = simson_line(t, p)
 all(on_line(projection(p, APLine(s.p1, s.p2)), sl) for s in sides(t))
 ```
 
-## Polygons
+## Working with polygons
 
 ### A regular polygon
 
@@ -312,9 +362,10 @@ area(square_on_segment(A, B)), area(rectangle_on_segment(A, B, 2.0))
 
 ```@example geo
 using Random
-pts = rand(Xoshiro(3), APBoundingBox(APPoint(0.0, 0.0), APPoint(10.0, 6.0)), 30)
+box = APBoundingBox(APPoint(0.0, 0.0), APPoint(10.0, 6.0))
+pts = [rand_inside(Xoshiro(k), box) for k in 1:30]
 hull = convex_hull(pts)
-length(hull), all(p -> point_in_polygon(p, APStraightNgon(hull)) || p in hull, pts)
+length(vertices(hull)), all(p -> point_in_polygon(p, hull) || any(v -> v ≈ p, vertices(hull)), pts)
 ```
 
 ```@raw html
@@ -335,6 +386,18 @@ c = APCircle2(APPoint(0.0, 0.0), 2.0)
 box = bbox_union(APBoundingBox(c), APBoundingBox(pg))
 bbox_width(box), bbox_height(box)
 ```
+
+### Random points inside a shape
+
+```@example geo
+using Random
+c = APCircle2(APPoint(0.0, 0.0), 3.0)
+pts = [rand_inside(Xoshiro(k), c) for k in 1:5]
+all(p -> distance(p, c.center) <= c.r, pts)
+```
+
+`rand(rng, shape)` gives points on the boundary instead. See
+[Points, Lines & Rays](@ref).
 
 ## Two classical results
 
@@ -366,7 +429,7 @@ p = point_on_circle(c, 1.2)
 distance(p, A) / distance(p, B) ≈ 2.0
 ```
 
-## Conics
+## Working with conics
 
 ### An ellipse from its foci
 
@@ -375,14 +438,18 @@ e = APEllipse2(APPoint(-3.0, 0.0), APPoint(3.0, 0.0), 5.0)
 e.a, e.b, foci(e)
 ```
 
-The last argument is the sum of the distances to the foci, which is `2a`.
+The last argument is the semi-major axis `a`, so the sum of the distances from a point of the ellipse to the two foci is `2a`.
 
 ### The tangent to a conic at a point, and from a point
+
+The polar of a point on a conic is its tangent there, and the tangents from
+an outside point are two:
 
 ```@example geo
 e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
 p = point_on_ellipse(e, 1.0)
-tangent_at(e, 1.0), length(tangent_lines(e, APPoint(8.0, 0.0)))
+at_p = polar_line(e, p)
+on_line(p, at_p), length(tangent_lines(e, APPoint(8.0, 0.0)))
 ```
 
 ### A parabola from a focus and a directrix
@@ -408,7 +475,8 @@ See [Conics: Ellipse, Parabola & Hyperbola](@ref).
 
 ```@example geo
 t = APTriangle(APPoint(0.0, 0.0), APPoint(3.0, 0.0), APPoint(0.0, 4.0))
-rotate(t, pi / 2, APPoint(0.0, 0.0)), homothety(t, 2.0, APPoint(0.0, 0.0)), reflection(t, APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0)))
+O = APPoint(0.0, 0.0)
+isapprox(rotate(t, pi / 2, O), APTriangle(O, APPoint(0.0, 3.0), APPoint(-4.0, 0.0)); atol=1e-9), area(homothety(t, 2.0, O)) ≈ 4 * area(t), reflection(t, APLine(O, APPoint(0.0, 1.0))) ≈ APTriangle(O, APPoint(-3.0, 0.0), APPoint(0.0, 4.0))
 ```
 
 Every type accepts these. See [Affine Maps](@ref).
@@ -417,7 +485,7 @@ Every type accepts these. See [Affine Maps](@ref).
 
 ```@example geo
 m = rotation_map(pi / 2, APPoint(0.0, 0.0)) ∘ translation_map(APVector(3.0, 0.0))
-m(APPoint(0.0, 0.0))
+isapprox(m(APPoint(0.0, 0.0)), APPoint(0.0, 3.0); atol=1e-9)
 ```
 
 ### A map from three points and their images
@@ -436,12 +504,12 @@ C2, S2 = @rotate (pi / 2) begin
     c
     s
 end
-C2
+C2.r, C2.center ≈ APPoint(-2.0, 1.0)
 ```
 
 See [Transforming in Bulk: Macros](@ref).
 
-## Checking
+## Checking recipes
 
 ### Are these points on a circle? On a line?
 
@@ -460,7 +528,7 @@ side_of_line(APPoint(1.0, 3.0), l), APPoint(1.0, 1.0) in APHalfPlane2(l, APPoint
 
 See [Predicates](@ref).
 
-## Drawing
+## Drawing recipes
 
 ### Fit a construction to a canvas
 
@@ -485,11 +553,11 @@ for (v, name) in zip(vertices(lxo.t), ("A", "B", "C"))
 end
 ```
 
-### Mark equal sides and right angles
+### Mark equal sides and a right angle
 
 ```julia
-path(marks(APSegment(A2, B2); count=2); action=:stroke)      # two ticks
-path(marks(APAngle2(B2, A2, C2); style=:square); action=:stroke)
+path(marks(APSegment(A2, B2); count=2); action=:stroke)             # two ticks
+path(APAngle2(A2, B2, C2); as=:rarc, radius=12, action=:stroke)     # the right-angle square
 ```
 
 Marks, braces, arrowheads and their styles are in

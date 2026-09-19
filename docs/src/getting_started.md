@@ -128,4 +128,5 @@ through it and lists the usual mistakes.
 | Draw a compass and ruler construction step by step | [Compass & Ruler Constructions](@ref) |
 | Draw figures, add marks, labels and braces | [Drawing with Luxor.jl](@ref), [Marks, Labels & Decorations](@ref) |
 | Move or scale a whole figure at once | [Affine Maps](@ref), [Transforming in Bulk: Macros](@ref) |
+| Find a ready-made recipe | [Cookbook](@ref) |
 | Look up a function | [API Reference](@ref) |
