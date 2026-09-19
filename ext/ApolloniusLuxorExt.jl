@@ -17,11 +17,14 @@ forwarded straight through).
 Luxor.label(txt::AbstractString, alignment::Symbol, p::AP.APPoint; kwargs...) = Luxor.label(txt, alignment, _lp(p); kwargs...)
 Luxor.label(txt::AbstractString, direction::Real, p::AP.APPoint; kwargs...) = Luxor.label(txt, direction, _lp(p); kwargs...)
 """
-    path(p::APPoint; radius=3, action=:path, reverse=false)
+    path(p::APPoint; radius=3, as=:circle, action=:path, reverse=false)
 
-`p` as a small circle of the given `radius`. `reverse` is accepted and
-ignored (a point has no direction), so `path(v; reverse=true)` works on a
-vector that mixes points with curves.
+`p` as a small mark of size `radius`: `as = :circle` (the default, a circle
+of that radius), `:square` (side `2radius`), `:cross` (an `x`) or `:plus`
+(a `+`), the last two with arms of length `radius` from the point, built
+from two strokes, so only `action = :stroke` shows them. `reverse` is
+accepted and ignored (a point has no direction), so `path(v; reverse=true)`
+works on a vector that mixes points with curves.
 
 # Reversing a path
 
@@ -32,7 +35,46 @@ matters where the direction of travel shows: which end an `as=:arrow` arrow
 points to, where a dash pattern starts, and the orientation of subpaths
 combined under a fill rule.
 """
-AP.path(p::AP.APPoint; radius=3, action=:path, reverse::Bool=false) = Luxor.circle(_lp(p), radius, action)
+function AP.path(p::AP.APPoint; radius=3, as::Symbol=:circle, action=:path, reverse::Bool=false)
+    c = _lp(p)
+    as === :circle && return Luxor.circle(c, radius, action)
+    as === :square && return Luxor.box(c, 2radius, 2radius, action)
+    if as === :cross || as === :plus
+        d = as === :cross ? sqrt(0.5) * radius : Float64(radius)
+        arms = as === :cross ? ((d, d), (d, -d)) : ((d, 0.0), (0.0, d))
+        action != :path && Luxor.newpath()
+        for (dx, dy) in arms
+            Luxor.move(c + Luxor.Point(-dx, -dy))
+            Luxor.line(c + Luxor.Point(dx, dy))
+        end
+        return Luxor.do_action(action)
+    end
+    throw(ArgumentError("path(::APPoint): as must be :circle, :square, :cross or :plus, got $(repr(as))"))
+end
+"""
+    dimension(p1::APPoint, p2::APPoint; kwargs...)
+    dimension(s::APSegment; kwargs...)
+
+Luxor's own `dimension`, accepting `APPoint`s (or an `APSegment`) directly:
+the dimension line for the distance between them, with extension lines,
+two arrowheads and the measured value as text, drawn immediately. `kwargs`
+(`offset`, `format`, `fromextension`, `toextension`, `textgap`, ...) are
+forwarded straight through. Returns `(distance, text)`, like Luxor's.
+"""
+Luxor.dimension(p1::AP.APPoint, p2::AP.APPoint; kwargs...) = Luxor.dimension(_lp(p1), _lp(p2); kwargs...)
+Luxor.dimension(s::AP.APSegment; kwargs...) = Luxor.dimension(s.p1, s.p2; kwargs...)
+"""
+    tickline(p1::APPoint, p2::APPoint; kwargs...)
+
+Luxor's own `tickline`, accepting `APPoint`s directly: a line from `p1` to
+`p2` with major and minor ticks (and numbers), drawn immediately, or only
+computed with `vertices=true`. `kwargs` are forwarded straight through.
+Returns the tick positions `(major, minor)` as vectors of [`APPoint`](@ref).
+"""
+function Luxor.tickline(p1::AP.APPoint, p2::AP.APPoint; kwargs...)
+    major, minor = Luxor.tickline(_lp(p1), _lp(p2); kwargs...)
+    return AP.APPoint{2,Float64}[AP.APPoint(q.x, q.y) for q in major], AP.APPoint{2,Float64}[AP.APPoint(q.x, q.y) for q in minor]
+end
 """
     path(v::APVector, from::APPoint=APPoint(0.0, 0.0); as=:plain, action=:path, kwargs...)
 

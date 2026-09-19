@@ -5304,6 +5304,25 @@ using Base.MathConstants: golden
             path(shown.arcs; action=:stroke)
             path(shown.result; action=:stroke)
             Luxor.label("a", label_anchor(APSegment(APPoint(-50.0, -40.0), APPoint(50.0, -40.0)))...)   # splats into Luxor's label(txt, alignment, pos)
+            @testset "point shapes, dimension and tickline" begin
+                for shape in (:circle, :square, :cross, :plus)
+                    path(APPoint(0.0, 0.0); as=shape, radius=4, action=:stroke)
+                end
+                Luxor.newpath()
+                path(APPoint(10.0, 10.0); as=:cross, radius=4, action=:path)
+                cross = first(Luxor.pathtopoly())
+                @test length(cross) == 4   # two strokes, two points each
+                @test isapprox(Luxor.distance(cross[1], cross[2]), 8.0; atol=0.05)   # each arm is `radius` long on both sides
+                Luxor.newpath()
+                @test_throws ArgumentError path(APPoint(0.0, 0.0); as=:bogus)
+                d, txt = Luxor.dimension(APPoint(-40.0, 70.0), APPoint(40.0, 70.0); offset=10)
+                @test d ≈ 80.0 && txt == "80.0"
+                d2, _ = Luxor.dimension(APSegment(APPoint(-30.0, 90.0), APPoint(30.0, 90.0)))
+                @test d2 ≈ 60.0
+                major, minor = Luxor.tickline(APPoint(-50.0, 80.0), APPoint(50.0, 80.0); major=3, minor=1, vertices=true)
+                @test length(major) == 5 && length(minor) == 9 && all(q -> q isa APPoint, major)
+                @test isapprox(major[1], APPoint(-50.0, 80.0); atol=1e-9) && isapprox(major[end], APPoint(50.0, 80.0); atol=1e-9)
+            end
             @testset "reverse=true traverses the same path backwards" begin
                 pts_of(obj; kwargs...) = (Luxor.newpath(); path(obj; action=:path, kwargs...); first(Luxor.pathtopoly()))
                 near(p, x, y) = isapprox(p.x, x; atol=0.02) && isapprox(p.y, y; atol=0.02)   # Cairo stores path points in 1/256 units
