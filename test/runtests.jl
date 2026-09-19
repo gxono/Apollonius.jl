@@ -637,6 +637,30 @@ using Base.MathConstants: golden
             @test_throws ArgumentError compass_trace(c0, p0; angle=7.0)
         end
     end
+    @testset "label_anchor" begin
+        h = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+        @test label_anchor(h) == (alignment=:N, point=APPoint(5.0, 0.0))   # screen coordinates: y grows downward, left of travel is up
+        @test label_anchor(h; side=:right).alignment == :S
+        @test label_anchor(h, 0.2).point ≈ APPoint(2.0, 0.0)
+        @test label_anchor(APSegment(APPoint(0.0, 0.0), APPoint(0.0, 10.0))).alignment == :E
+        @test label_anchor(APSegment(APPoint(0.0, 10.0), APPoint(0.0, 0.0))).alignment == :W   # reversing the segment flips the side
+        @test_throws ArgumentError label_anchor(h; side=:up)
+        ang = APAngle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0))
+        la = label_anchor(ang)
+        @test la.alignment == :SE && la.point ≈ APPoint(0.25 * 4 / sqrt(2), 0.25 * 4 / sqrt(2))
+        @test label_anchor(ang; dist=2.0).point ≈ APPoint(sqrt(2), sqrt(2))
+        reflex = APAngle2(APPoint(0.0, 0.0), APPoint(0.0, 4.0), APPoint(4.0, 0.0))   # the wedge from a to b sweeps the long way round
+        @test label_anchor(reflex).alignment == :NW
+        @test_throws ArgumentError label_anchor(APAngle2(APPoint(0.0, 0.0), APPoint(0.0, 0.0), APPoint(4.0, 0.0)))
+        circ = APCircle2(APPoint(1.0, 1.0), 3.0)
+        @test label_anchor(circ, 0.0) == (alignment=:E, point=APPoint(4.0, 1.0))
+        @test label_anchor(circ, pi).alignment == :W
+        @test label_anchor(APPoint(3.0, -3.0), APPoint(0.0, 0.0)) == (alignment=:NE, point=APPoint(3.0, -3.0))
+        @test label_anchor(APPoint(-3.0, 0.0), APPoint(0.0, 0.0)).alignment == :W
+        arc = APCircularArc2(APPoint(0.0, 0.0), 5.0, 0.0, pi / 2)
+        @test label_anchor(arc; side=:left).alignment == :SE && label_anchor(arc; side=:right).alignment == :NW
+        @test first(keys(label_anchor(h))) == :alignment   # same order as Luxor's label(txt, alignment, pos)
+    end
     @testset "shown compass-and-ruler constructions" begin
         a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
         @testset "mediator_construction" begin
@@ -5241,6 +5265,7 @@ using Base.MathConstants: golden
             shown = mediator_construction(APPoint(-50.0, -40.0), APPoint(50.0, -40.0))
             path(shown.arcs; action=:stroke)
             path(shown.result; action=:stroke)
+            Luxor.label("a", label_anchor(APSegment(APPoint(-50.0, -40.0), APPoint(50.0, -40.0)))...)   # splats into Luxor's label(txt, alignment, pos)
             @testset "reverse=true traverses the same path backwards" begin
                 pts_of(obj; kwargs...) = (Luxor.newpath(); path(obj; action=:path, kwargs...); first(Luxor.pathtopoly()))
                 near(p, x, y) = isapprox(p.x, x; atol=0.02) && isapprox(p.y, y; atol=0.02)   # Cairo stores path points in 1/256 units
