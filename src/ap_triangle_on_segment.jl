@@ -58,7 +58,7 @@ end
 
 The triangle with base `[a, b]`, angle `angle_a` (radians) at `a` and
 `angle_b` at `b`, built counterclockwise from `a` to `b` (`ccw=false`
-builds it on the other side) -- the generic ASA construction every
+builds it on the other side): the generic ASA construction every
 fixed-shape `*_on_segment` constructor in this file is a special case of
 (e.g. [`triangle_30_60_90_on_segment`](@ref) is
 `triangle_on_segment(a, b, pi/6, pi/3)`). Throws an `ArgumentError` unless

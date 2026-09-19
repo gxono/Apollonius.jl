@@ -5,6 +5,7 @@ end
 @svg_doc(sz, @__FILE__, begin
 sethue(julia_blue); Luxor.setline(1.5)
 path(arc, action=:stroke)
+sethue(julia_purple)
 path(marks(arc; at=0.2, count=1, style=:tick, size=14); action=:stroke)
 path(marks(arc; at=0.5, count=2, style=:chevron, size=14, gap=9); action=:stroke)
 path(marks(arc; at=0.8, count=1, style=:circle, size=10); action=:stroke)

@@ -69,7 +69,7 @@ end
     intersection(c1::APConic2, c2::APConic2; atol=1e-9)
 
 The intersection points of two conics, up to 4 real points (Bézout's
-theorem for two degree-2 curves) -- covers every pair *except* two
+theorem for two degree-2 curves): covers every pair *except* two
 circles, which already has its own direct method
 ([`intersection`](@ref)`(::APCircle2, ::APCircle2)`, picked automatically
 since it's more specific).
@@ -79,7 +79,7 @@ quadratic `Ax² + Bxy + Cy² + Dx + Ey + F = 0` (found once per type via a
 rotation/translation of the conic's own local equation into the ambient
 frame). Eliminating `x` between the two
 equations gives their Sylvester resultant, a polynomial in `y` of degree
-at most 4 -- found here by evaluating it at 5 points and fitting the
+at most 4: found here by evaluating it at 5 points and fitting the
 quartic through them (exact in principle, since the resultant *is* a
 polynomial of that degree; far less error-prone than expanding it
 symbolically) and solving via a companion-matrix eigendecomposition. Each

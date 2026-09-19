@@ -14,6 +14,7 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "Conventions & FAQ" => "conventions.md",
+        "Workflow: From Construction to Figure" => "workflow.md",
         "Drawing with Luxor.jl" => "drawing.md",
         "Marks, Labels & Decorations" => "decorations.md",
         "Compass & Ruler Constructions" => "constructions.md",

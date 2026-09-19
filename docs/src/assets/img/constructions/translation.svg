@@ -16,8 +16,8 @@
 </g>
 </g>
 </defs>
-<path fill="none" stroke-width="1.2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 296.816406 40 C 320.6875 72.214844 330.78125 112.59375 324.882813 152.253906 "/>
-<path fill="none" stroke-width="1.2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 277.128906 87.675781 C 307.800781 85.496094 338.085938 95.589844 361.316406 115.738281 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 296.816406 40 C 320.6875 72.214844 330.78125 112.59375 324.882813 152.253906 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 277.128906 87.675781 C 307.800781 85.496094 338.085938 95.589844 361.316406 115.738281 "/>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-dasharray="4 4" stroke-miterlimit="10" d="M 175.347656 130 L 322.015625 93.335938 "/>
 <path fill="none" stroke-width="1.8" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 138.683594 240 L 276.382813 205.574219 "/>
 <path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 275.457031 201.863281 L 285.347656 203.332031 L 277.3125 209.285156 "/>

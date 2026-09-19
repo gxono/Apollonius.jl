@@ -25,7 +25,7 @@ cross2(a, b) = a[1] * b[2] - a[2] * b[1]
 """
     cross3(a, b)
 
-The 3D (vector) cross product of `a` and `b`, as an [`APVector`](@ref) --
+The 3D (vector) cross product of `a` and `b`, as an [`APVector`](@ref):
 the 3D counterpart of [`cross2`](@ref). Works on any indexable `a`/`b`
 (`APPoint{3}` or `APVector{3}`), same duck-typed convention as `cross2`.
 """

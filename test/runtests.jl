@@ -578,6 +578,20 @@ using Base.MathConstants: golden
             @test only(marks(s; at=0.2)).p1[1] ≈ 2.0
             @test length(marks(s; style=:cross)) == 2
             @test only(marks(s; style=:circle, size=2.0)) ≈ APCircle2(APPoint(5.0, 0.0), 1.0)
+            # :z and :s are letters that stand upright on a vertical segment (drawn coordinates, y down)
+            vs = APSegment(APPoint(0.0, 50.0), APPoint(0.0, -50.0))
+            zz = only(marks(vs; style=:z, size=20.0))
+            @test zz isa APPolyline2 && length(vertices(zz)) == 4
+            z1, z2, z3, z4 = vertices(zz)
+            @test z1[2] == z2[2] < z3[2] == z4[2] || z1[2] == z2[2] > z3[2] == z4[2]   # two horizontal strokes
+            @test z1[1] < z2[1] && z3[1] < z4[1]                                          # both left to right, like a Z
+            @test z1[2] < z3[2] && z1[1] == z3[1]                                         # top stroke first, diagonal down-left
+            ss = marks(vs; style=:s, size=20.0)
+            @test length(ss) == 2 && all(x -> x isa APCircularArc2, ss)
+            @test all(x -> x.circle.r ≈ 5.0, ss)
+            two = marks(vs; style=:z, count=2, size=20.0, gap=4.0)   # gap < size: raised so letters do not overlap
+            @test length(two) == 2 && distance(midpoint(two[1][1], two[1][3]), midpoint(two[2][1], two[2][3])) ≈ 20.0
+            @test_throws ArgumentError marks(vs; style=:zigzag)
             cs = marks(s; style=:circle, count=3, size=6.0, gap=4.0)   # gap < size: raised so circles are tangent
             @test distance(cs[1].center, cs[2].center) ≈ 6.0 && distance(cs[2].center, cs[3].center) ≈ 6.0
             cs = marks(s; style=:circle, count=2, size=2.0, gap=5.0)   # gap > size: disjoint

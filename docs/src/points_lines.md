@@ -169,7 +169,7 @@ arithmetic, not a call to `translate`) is the same shorthand for a plain
 `APPoint`:
 
 ```@example geo
-APVector(ev)         # unwraps back to the bare vector -- same as d
+APVector(ev)         # unwraps back to the bare vector, same as d
 translate(A, ev)     # same as translate(A, d): ev's own point is ignored
 ```
 

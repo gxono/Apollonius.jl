@@ -16,10 +16,10 @@
 </g>
 </g>
 </defs>
-<path fill="none" stroke-width="1.2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 204.949219 148.828125 C 173.4375 138.242188 147.417969 115.574219 132.617188 85.804688 "/>
-<path fill="none" stroke-width="1.2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 367.382813 56.457031 C 360.367188 88.953125 340.726563 117.332031 312.789063 135.347656 "/>
-<path fill="none" stroke-width="1.2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 295.367188 169.128906 C 283.535156 204.363281 258.1875 233.453125 224.90625 250 "/>
-<path fill="none" stroke-width="1.2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 318.351563 238.320313 C 282.019531 230.472656 250.292969 208.515625 230.152344 177.28125 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 204.949219 148.828125 C 173.4375 138.242188 147.417969 115.574219 132.617188 85.804688 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 367.382813 56.457031 C 360.367188 88.953125 340.726563 117.332031 312.789063 135.347656 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 295.367188 169.128906 C 283.535156 204.363281 258.1875 233.453125 224.90625 250 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 318.351563 238.320313 C 282.019531 230.472656 250.292969 208.515625 230.152344 177.28125 "/>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-dasharray="4 4" stroke-miterlimit="10" d="M 244.859375 30 L 255.222656 112.921875 "/>
 <path fill="none" stroke-width="1.8" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 95.78125 132.851563 L 440.402344 89.773438 "/>
 <path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="1.8" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 247.859375 30 C 247.859375 31.65625 246.515625 33 244.859375 33 C 243.203125 33 241.859375 31.65625 241.859375 30 C 241.859375 28.34375 243.203125 27 244.859375 27 C 246.515625 27 247.859375 28.34375 247.859375 30 Z M 247.859375 30 "/>

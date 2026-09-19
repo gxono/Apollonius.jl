@@ -119,7 +119,7 @@ Add `obj` (an `APPoint`, `APVector`, `APSegment`, `APLine`, `APRay`,
 `APParametricCurve2`, `APAngle2`, `APHalfPlane2`, `APStrip2`, any conic
 arc (`APCircularArc2`, `APEllipticArc2`, `APParabolicArc2`,
 `APHyperbolicArc2`), or any
-`APPolygon` -- `APTriangle`, `APQuadrilateral`, `APStraightNgon`,
+`APPolygon`: `APTriangle`, `APQuadrilateral`, `APStraightNgon`,
 `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`,
 `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2`,
 `APCurvilinearNgon2`) to the current path of an active Luxor `Drawing`,
@@ -128,23 +128,23 @@ primitives. This is a package extension: `Apollonius` doesn't
 depend on Luxor, but methods for `path` become available as soon as both
 packages are loaded (`using Apollonius, Luxor`).
 
-Deliberately thin: `path` never touches color, fill, or labels -- that's
+Deliberately thin: `path` never touches color, fill, or labels: that's
 already what Luxor's own `sethue`, `setopacity`, `label`, etc. do well.
 Every method accepts `action` (`:path` by default, meaning "add to the
-current path and do nothing else" -- pass `:stroke`, `:fill`, `:fillstroke`
+current path and do nothing else": pass `:stroke`, `:fill`, `:fillstroke`
 or `:clip` to render/use it immediately, exactly as Luxor's own shape
 functions do) plus whatever shape-specific keywords the curve needs
 (`extend` for the unbounded `APLine`/`APRay`, `srange`/`n` for
 `APParabola2`, `trange`/`n`/`branch` for `APHyperbola2`, `as`/`radius` for
 `APAngle2`, `n` for `APEllipticArc2`/`APParabolicArc2`/`APHyperbolicArc2`
 and for any `APPolygon` with such a side). `APSegment`/`APLine`/`APRay`
-also take `as=:arrow` to draw as an arrow instead of a plain line -- the
+also take `as=:arrow` to draw as an arrow instead of a plain line: the
 one exception to the "just adds to the path" rule, since it draws
 immediately (`action` is ignored in that case). See
 [Drawing with Luxor.jl](@ref) for the full per-type reference.
 
 Note: `APBoundingBox` is ambiguous when both packages are loaded with
-`using` (Luxor has its own `BoundingBox` type) -- write
+`using` (Luxor has its own `BoundingBox` type): write
 `Apollonius.APBoundingBox` explicitly when you mean this package's.
 """
 function path end
@@ -154,7 +154,7 @@ export current_path_bbox
 
 The [`APBoundingBox`](@ref) of whatever is currently on the active Luxor
 `Drawing`'s Cairo path (in the current user-space coordinates, i.e. after
-any `origin`/`translate`/`scale`/`rotate` already applied) -- via
+any `origin`/`translate`/`scale`/`rotate` already applied): via
 `Luxor.path_extents`. Unlike computing an `APBoundingBox` directly from
 the AP shapes themselves (exact, needs no `Drawing` at all), this reflects
 whatever Cairo itself actually measured, so it also picks up anything
@@ -164,7 +164,7 @@ the non-circular conic arcs) rather than using a native Cairo primitive.
 Like [`path`](@ref), this is a package extension: only callable once
 Luxor is also loaded.
 
-Call it *before* a non-`:path` action (`:stroke`, `:fill`, ...) -- Cairo
+Call it *before* a non-`:path` action (`:stroke`, `:fill`, ...): Cairo
 clears the current path as a side effect of actually rendering it, same
 as most of Luxor's own shape functions, so `current_path_bbox()` reads as
 an empty (all-zero) box afterward.

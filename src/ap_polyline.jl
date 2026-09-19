@@ -3,7 +3,7 @@
     APPolyline2(vertices::APPoint{2}...)
 
 The open curve through `vertices`, in order, joined by straight
-[`APSegment`](@ref)s -- [`APSegment`](@ref) generalized to any number of
+[`APSegment`](@ref)s: [`APSegment`](@ref) generalized to any number of
 points, and the open counterpart of [`APStraightNgon`](@ref) (which
 always closes back to its first vertex; this never does).
 """
@@ -70,7 +70,7 @@ distance(pl::APPolyline2, p::APPoint) = distance(p, pl)
     APCurvilinearPolyline2(sides::AbstractVector)
 
 The open curve made of `sides`, in order, each an [`APSegment`](@ref) or
-one of the 4 conic arc types -- the open counterpart of
+one of the 4 conic arc types: the open counterpart of
 [`APCurvilinearNgon2`](@ref) (which always closes back to its first
 side's start; this never does), and the curved-sided counterpart of
 [`APPolyline2`](@ref). Each side's own endpoint must match the next

@@ -224,7 +224,7 @@ intersection(arc::APConicArc2, r::APRay; atol=1e-9) = intersection(r, arc; atol=
 
 The circular-arc-specific overloads: since circle-vs-circle intersection
 already exists, a circular arc can also intersect a full `APCircle2` or
-another circular arc the same way -- intersect the underlying circles,
+another circular arc the same way: intersect the underlying circles,
 then keep only the points within each arc's own sweep. There is no
 general `intersection` between an arc and a *different* conic type it
 isn't cut from (an elliptic arc against a circle, two elliptic arcs from

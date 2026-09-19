@@ -9,7 +9,7 @@ m = parallel_construction(l, p; sweep=pi / 4)
 D, E = m.points
 @svg_doc(sz, @__FILE__, begin
 Luxor.fontsize(15)
-sethue(julia_green); Luxor.setline(1.2)
+sethue(julia_green); Luxor.setline(1)
 path(m.arcs, action=:stroke)
 setdash("dash"); Luxor.setline(1)
 path(APPolyline2([A, p, E, D, A]), action=:stroke)

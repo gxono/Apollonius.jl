@@ -8,7 +8,7 @@ every conic arc ([`APCircularArc2`](@ref) and the rest), every
 [`APPolygon`](@ref) (straight-sided or curved) and [`APBoundingBox`](@ref).
 Not defined for `APLine`/`APRay` (infinite), `APParabola2`/`APHyperbola2`
 as full curves (also infinite), or the unbounded `APSet` family
-(`APAngle2`/`APHalfPlane2`/`APStrip2`) -- there is no uniform distribution
+(`APAngle2`/`APHalfPlane2`/`APStrip2`): there is no uniform distribution
 on an infinite set.
 
 Exact (truly uniform in arc length) for `APSegment` and `APCircularArc2`.
@@ -17,7 +17,7 @@ uniform in the curve's own parameter instead: exact arc-length
 parametrization needs elliptic integrals for those three, so points
 cluster slightly more near the flatter parts of the curve. An
 `APPolygon`/`APBoundingBox` picks one side with probability proportional
-to its own length, then a point on that side by the rule above -- so the
+to its own length, then a point on that side by the rule above: so the
 result is uniform along the whole perimeter (up to that same per-arc-type
 caveat for any curved side).
 """

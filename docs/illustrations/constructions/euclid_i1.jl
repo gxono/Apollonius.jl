@@ -9,7 +9,7 @@ traces = [compass_trace(A, C; angle=pi / 4), compass_trace(B, C; angle=pi / 4)]
 Luxor.fontsize(15)
 sethue("gray80"); Luxor.setline(1)
 path([cA, cB], action=:stroke)
-sethue(julia_green); Luxor.setline(2)
+sethue(julia_green); Luxor.setline(1)
 path(traces, action=:stroke)
 sethue(julia_purple); Luxor.setline(1.8)
 path(APTriangle(A, B, C), action=:stroke)

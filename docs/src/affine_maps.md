@@ -89,9 +89,9 @@ returns: a circle piped through stays an `APCircle2`, not an
 t = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
 
 rotate(pi / 2)(t)                              # rotate(t, pi/2, origin)
-t |> translate(APVector(2.0, 0.0)) |> rotate(pi / 2)  # pipe several in a row -- each step exact
+t |> translate(APVector(2.0, 0.0)) |> rotate(pi / 2)  # pipe several in a row, each step exact
 
-# circumcircle(t) stays an APCircle2 all the way through -- contrast with
+# circumcircle(t) stays an APCircle2 all the way through, in contrast with
 # map(homothety_map(2.0, APPoint(0.0,0.0)), ...) below, which widens it
 map(homothety(2.0), [t, circumcircle(t)])
 ```
@@ -103,7 +103,7 @@ way composing two `APAffineMap`s does:
 
 ```@example geo
 chain = rotate(pi / 2) ∘ translate(APVector(2.0, 0.0))
-chain isa APAffineMap   # false -- just a Function
+chain isa APAffineMap   # false, it is just a Function
 chain(circumcircle(t))  # still an APCircle2, computed via 2 exact calls in sequence
 ```
 

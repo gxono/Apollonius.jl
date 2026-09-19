@@ -11,7 +11,7 @@ _arrow(p1, p2; kwargs...) =
     label(txt::AbstractString, direction::Real, p::APPoint; kwargs...)
 
 Luxor's own `label`, accepting an `APPoint` directly instead of requiring
-a `Luxor.Point` (`kwargs` -- `offset`, `leader`, `leaderoffsets` -- are
+a `Luxor.Point` (`kwargs`, `offset`, `leader`, `leaderoffsets`, are
 forwarded straight through).
 """
 Luxor.label(txt::AbstractString, alignment::Symbol, p::AP.APPoint; kwargs...) = Luxor.label(txt, alignment, _lp(p); kwargs...)
@@ -80,7 +80,7 @@ end
 
 `APVector` has no position of its own, so it's drawn as the segment
 `from -> from + v` (`from` defaults to the origin). `as=:arrow` draws it
-as an arrow instead -- see [`path(::APSegment)`](@ref) for what that
+as an arrow instead: see [`path(::APSegment)`](@ref) for what that
 changes.
 """
 function AP.path(v::AP.APVector, from::AP.APPoint=AP.APPoint(0.0, 0.0); as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
@@ -91,7 +91,7 @@ end
 """
     path(ev::APEquipollentVector; as=:plain, action=:path, kwargs...)
 
-Draws the segment `ev.point -> tip(ev)` -- the [`APEquipollentVector`](@ref)
+Draws the segment `ev.point -> tip(ev)`: the [`APEquipollentVector`](@ref)
 analogue of `path(::APVector, ::APPoint)` above, with the point of
 application already built into the value instead of a separate `from`
 argument (and, unlike a bare `APVector`, correctly scaled/placed by
@@ -109,13 +109,13 @@ end
 `as=:arrow` draws `s.p1 -> s.p2` as an arrow via Luxor's own `arrow`
 instead of a plain line. Unlike every other `path` method, this one
 special case draws immediately (stroke plus an arrowhead fill) rather
-than just adding to the current path -- Luxor's `arrow` has no deferred
+than just adding to the current path: Luxor's `arrow` has no deferred
 form, so `action` is ignored when `as=:arrow`. `kwargs`
 (`arrowheadlength`, `arrowheadangle`, `linewidth`, ...) are forwarded
 straight to `Luxor.arrow` in that case; unlike calling `Luxor.arrow`
 directly, `linewidth` here defaults to the currently active `setline()`
 width (Luxor's own default is a flat `1.0`, ignoring `setline()`
-entirely -- see `Luxor.arrow`'s own docstring), so switching a shape from
+entirely: see `Luxor.arrow`'s own docstring), so switching a shape from
 `as=:plain` to `as=:arrow` doesn't silently thin its line. Pass
 `linewidth=...` explicitly to override that.
 """
@@ -139,11 +139,11 @@ to instead draw the exact finite segment between `l.p1` and `l.p2` (the
 two points that happen to define `l`, with nothing added past them).
 
 `extend` can also be a 2-tuple `(past_p1, past_p2)` to extend each end by
-a different amount -- e.g. `extend=(0.0, 50.0)` draws from `l.p1` itself
+a different amount: e.g. `extend=(0.0, 50.0)` draws from `l.p1` itself
 (nothing added there) to 50 units past `l.p2`. A bare number is short for
 `(extend, extend)`, extending both ends equally, same as before.
 
-`as=:arrow` draws it as an arrow instead -- see
+`as=:arrow` draws it as an arrow instead: see
 [`path(::APSegment)`](@ref) for what that changes.
 """
 function AP.path(l::AP.APLine; extend::Union{Real,Tuple{Real,Real}}=1000.0, add::Union{Nothing,Real,Tuple{Real,Real}}=nothing,
@@ -169,7 +169,7 @@ segment from `r.origin` to `r.through`. `add=(before, after)` (or a single
 number for both) instead lengthens that segment by fractions of
 `distance(r.origin, r.through)`, `before` past the origin and `after` past
 `r.through`, replacing `extend`; see [`extend_line`](@ref). `as=:arrow` draws
-it as an arrow instead -- see [`path(::APSegment)`](@ref) for what that changes.
+it as an arrow instead: see [`path(::APSegment)`](@ref) for what that changes.
 """
 function AP.path(r::AP.APRay; extend=1000.0, add::Union{Nothing,Real,Tuple{Real,Real}}=nothing, as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
     u = AP.direction(r) / AP.norm(AP.direction(r))
@@ -187,7 +187,7 @@ end
     path(hp::APHalfPlane2; extend=1000.0, add=nothing, action=:path)
 
 `APHalfPlane2` is an unbounded region, so there's no finite shape to add
-to the path -- this draws its boundary line instead (see
+to the path: this draws its boundary line instead (see
 [`path(::APLine)`](@ref)), the same way an infinite `APLine` itself is
 drawn. `add` is forwarded to it.
 """
@@ -197,7 +197,7 @@ AP.path(hp::AP.APHalfPlane2; extend=1000.0, add=nothing, action=:path, reverse::
     path(s::APStrip2; extend=1000.0, add=nothing, action=:path)
 
 `APStrip2` is likewise unbounded, so this draws both of its boundary
-lines (see [`path(::APLine)`](@ref)), one call each -- there's no way to
+lines (see [`path(::APLine)`](@ref)), one call each: there's no way to
 add two disjoint lines as a single Luxor path action, so `action` is
 applied to each independently rather than to the pair as a whole. `add` is
 forwarded to each line.
@@ -280,16 +280,16 @@ end
 """
     path(ang::APAngle2; as=:arc, radius=nothing, action=:path)
 
-An `APAngle2` doesn't have a single canonical path -- it's genuinely the
+An `APAngle2` doesn't have a single canonical path: it's genuinely the
 space between two rays, but is conventionally *drawn* as a small arc (or a
 filled wedge). `as` picks which:
 
   - `:rays` (open polyline `a -> vertex -> b`, the literal two half-lines
     that bound the angle, each extended `radius` units from the vertex)
   - `:arc` (default; a circular arc of the given `radius`, centered at the
-    vertex, swept from `ang.a` to `ang.b` -- the conventional angle marker)
+    vertex, swept from `ang.a` to `ang.b`, the conventional angle marker)
   - `:sector` (closed pie-wedge: vertex, out to the arc, around it, and
-    back -- handy for `action=:fill` to shade the angle's interior)
+    back, handy for `action=:fill` to shade the angle's interior)
   - `:rarc` (open polyline `pa -> pc -> pb`, generalizing the little
     square used to mark a *right* angle to any angle: `pa`/`pb` are the
     points at distance `radius` along each ray, and `pc = pa + pb -
@@ -298,7 +298,7 @@ filled wedge). `as` picks which:
     square corner marker; at any other angle it's a rhombus (both `pa`/`pb`
     are `radius` from the vertex), tracing the same idea)
   - `:rsector` (closed version of `:rarc`: the whole parallelogram
-    `vertex, pa, pc, pb` -- handy for `action=:fill`, the same relationship
+    `vertex, pa, pc, pb`: handy for `action=:fill`, the same relationship
     `:sector` has to `:arc`)
 
 `radius` defaults to `0.15` times the shorter of `distance(vertex, a)` and
@@ -338,7 +338,7 @@ end
     path(arc::APCircularArc2; action=:path)
 
 A true circular arc from `arc.p1` to `arc.p2`, via Luxor's own `arc2r`
-(center + the two endpoints -- no separate angle bookkeeping needed, and no
+(center + the two endpoints: no separate angle bookkeeping needed, and no
 polygonal approximation: this draws with Cairo's native arc primitive).
 """
 function AP.path(arc::AP.APCircularArc2; action=:path, reverse::Bool=false)
@@ -367,7 +367,7 @@ end
 
 Luxor has no native primitive for an arbitrary parametrized curve, so
 it's added as an `n`-point open polyline, sampled via
-[`point_on_curve`](@ref) over `curve.trange` -- same idea as the sampled
+[`point_on_curve`](@ref) over `curve.trange`: same idea as the sampled
 conic-arc types above.
 """
 function AP.path(curve::AP.APParametricCurve2; n=60, action=:path, reverse::Bool=false)
@@ -420,16 +420,16 @@ end
 """
     path(pg::APPolygon; n=60, action=:path)
 
-Traces every side of `pg` end to end into a single closed path -- an
+Traces every side of `pg` end to end into a single closed path: an
 `APSegment` side contributes a straight line, an `APCircularArc2` side a
 true arc (see [`path(::APCircularArc2)`](@ref)), and any other conic-arc
-side (`APEllipticArc2`/`APParabolicArc2`/`APHyperbolicArc2` -- possible
+side (`APEllipticArc2`/`APParabolicArc2`/`APHyperbolicArc2`: possible
 after an [`APAffineMap`](@ref), which can turn a circular-arc side
 elliptic) an `n`-point sampled polyline, same as their own standalone
 `path` method. Sides are walked in whichever direction continues from the
 previous one's last point (via `_polygon_walk`, the same walk
 `area`/`perimeter` use), so this one method covers the entire polygon
-family -- `APTriangle`, `APQuadrilateral`, `APStraightNgon`, and every
+family: `APTriangle`, `APQuadrilateral`, `APStraightNgon`, and every
 curved-region type (`APCircularSector2`, `APCircularSegment2`,
 `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`,
 `APCurvilinearQuadrilateral2`, `APCurvilinearNgon2`).
@@ -456,19 +456,19 @@ end
     path(v::Tuple{Vararg{<:APObject}}; kwargs...)
 
 `path` for each element of `v` in turn, with the same `kwargs` every time.
-This is what lets a plain `Vector` -- what `intersection`/`tangent_points`
-return, since they can give 0, 1 or 2 points depending on the geometry --
+This is what lets a plain `Vector`, what `intersection`/`tangent_points`
+return, since they can give 0, 1 or 2 points depending on the geometry,
 get drawn directly as a single argument, without unwrapping it by hand
 first. Any shape works, not just a `Vector`: a `Tuple` (e.g.
 `vertices(::APTriangle)`, which isn't a `Vector`) or a `Matrix` (e.g.
 `[ext_lines int_lines]`, hcat-ing two tangent-line pairs together) are
-both just iterated over in the order Julia already iterates them in --
+both just iterated over in the order Julia already iterates them in:
 reshape/flatten it yourself first if a specific order matters.
 
 It also calls `Luxor.newsubpath()` before each element, so `path(v)` is
 the safe way to batch several elements into *one* combined path with the
 default `action=:path` (e.g. to `fillpreserve()` then `strokepath()` once
-for all of them) -- without it, Cairo's own circle/arc primitives connect
+for all of them): without it, Cairo's own circle/arc primitives connect
 to wherever the current path left off with a stray straight line, a
 well-known Cairo gotcha whenever a new arc starts without its own fresh
 subpath.
@@ -478,7 +478,7 @@ calls the scalar `path` method on each element directly and never reaches
 this method at all, so it gets none of the `newsubpath()` handling above.
 For an immediately-rendering action (`:stroke`, `:fill`, `:fillstroke`)
 the two happen to look identical, since each element renders and clears
-on its own regardless -- but for the default `action=:path`, only `path(v)`
+on its own regardless: but for the default `action=:path`, only `path(v)`
 batches safely; `path.(v)` (or a hand-written loop without `newsubpath()`)
 reproduces the stray-line bug this method exists to avoid.
 """

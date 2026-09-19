@@ -6,7 +6,7 @@ end
 m = mediator_construction(a, b; sweep=pi / 4)
 @svg_doc(sz, @__FILE__, begin
 Luxor.fontsize(15)
-sethue(julia_green); Luxor.setline(1.2)
+sethue(julia_green); Luxor.setline(1)
 path(m.arcs, action=:stroke)
 sethue(julia_blue); Luxor.setline(1.8)
 path(APSegment(a, b), action=:stroke)

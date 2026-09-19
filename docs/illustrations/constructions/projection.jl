@@ -8,7 +8,7 @@ l = APLine(A, B)
 m = projection_construction(p, l; sweep=pi / 4)
 @svg_doc(sz, @__FILE__, begin
 Luxor.fontsize(15)
-sethue(julia_green); Luxor.setline(1.2)
+sethue(julia_green); Luxor.setline(1)
 path(m.arcs, action=:stroke)
 setdash("dash"); Luxor.setline(1)
 path(APSegment(p, m.result), action=:stroke)

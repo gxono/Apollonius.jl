@@ -7,11 +7,11 @@ sz = @to_luxor_picture! width=500 height=280 margin=30 begin
 end
 @svg_doc(sz, @__FILE__, begin
 Luxor.fontsize(14)
-sethue("gray80"); Luxor.setline(0.7)
+sethue("gray80"); Luxor.setline(1)
 path(grid, action=:stroke)
 sethue(julia_blue); Luxor.setline(1.5)
 path(axes, action=:stroke)
-sethue(julia_green); setdash("dot"); Luxor.setline(1.5)
+sethue(julia_purple); setdash("dot"); Luxor.setline(1)
 path(guides, action=:stroke)
 setdash("solid")
 path(P)

@@ -67,7 +67,7 @@ the [`inversion`](@ref) of `p1` with respect to `c` is orthogonal to `c`.
 Throws `ArgumentError` in the two configurations this construction can't
 resolve on its own: `p1`/`p2` sitting exactly on `c` (its own inverse,
 collapsing the 3-point circumcircle), or `p1`/`p2` being an exact inverse
-pair with respect to `c` (same collapse, from the other side) -- both
+pair with respect to `c` (same collapse, from the other side): both
 have genuine solutions (a whole family, in the first case), but picking
 one needs extra case analysis this package doesn't implement yet. Any
 other collinear-degenerate input surfaces as the ordinary `ArgumentError`
@@ -160,7 +160,7 @@ Adams/Soddy/symmedial-style additions were checked against) returns two
 circles here, one centered at each of the two perpendicular-foot points.
 Deriving the *nearer* point's radius from first principles and checking
 the result by inverting `c` back through it shows that circle never
-actually maps `c` onto `l` -- there is only one real solution in the
+actually maps `c` onto `l`: there is only one real solution in the
 disjoint case, mirroring how [`midcircle`](@ref)`(::APCircle2,
 ::APCircle2)` also has exactly one solution for externally disjoint
 circles (a line is the "infinite-radius, externally disjoint" case, so

@@ -8,7 +8,7 @@ end
 Luxor.fontsize(14)
 sethue(julia_blue); Luxor.setline(1.5)
 path([s1, s2, s3], action=:stroke)
-sethue(julia_green)
+sethue(julia_purple)
 path(brace(s1.p1, s1.p2; height=14, side=:left); action=:stroke)
 path(brace(s2.p1, s2.p2; height=14, side=:right); action=:stroke)
 path(brace(s3.p1, s3.p2; height=14, side=:right); action=:stroke)

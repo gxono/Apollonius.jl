@@ -8,7 +8,7 @@ l = APLine(A, B)
 m = perpendicular_construction(l, p; sweep=pi / 4)
 @svg_doc(sz, @__FILE__, begin
 Luxor.fontsize(15)
-sethue(julia_green); Luxor.setline(1.2)
+sethue(julia_green); Luxor.setline(1)
 path(m.arcs, action=:stroke)
 sethue(julia_blue); Luxor.setline(1.8)
 path(l; extend=(80, 80), action=:stroke)

@@ -306,7 +306,7 @@ circ = APCircle2(APPoint(3.0, 2.0), 1.5)
     t
     circ
 end
-(w, h), circ2   # circ2 is still an APCircle2 -- never distorted
+(w, h), circ2   # circ2 is still an APCircle2, never distorted
 ```
 
 `margin` works the same way whether or not `width`/`height` are given:

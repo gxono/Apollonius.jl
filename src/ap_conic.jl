@@ -3,7 +3,7 @@
 
 The parent of the four 2D conic types: [`APCircle2`](@ref),
 [`APEllipse2`](@ref), [`APParabola2`](@ref), [`APHyperbola2`](@ref).
-`APCircle2` is a *sibling* here, not a subtype of `APEllipse2` -- despite
+`APCircle2` is a *sibling* here, not a subtype of `APEllipse2`: despite
 being the degenerate `a == b` case mathematically, it's a genuinely
 different (simpler, one-parameter) struct rather than an `APEllipse2`
 with equal axes.
@@ -52,7 +52,7 @@ APCircle2(center::APPoint{2,T1}, r::T2) where {T1,T2<:Real} = APCircle2{promote_
 """
     APCircle2(center::APPoint, through::APPoint)
 
-The circle centered at `center` passing through `through` -- same as
+The circle centered at `center` passing through `through`: same as
 `APCircle2(center, distance(center, through))`, for when a point on the
 circle is more natural to give than the radius itself.
 """
@@ -61,7 +61,7 @@ APCircle2(center::APPoint, through::APPoint) =
 """
     APCircle2(p1::APPoint, p2::APPoint, p3::APPoint; atol=1e-9)
 
-The circle through three points -- their circumcircle, computed directly
+The circle through three points: their circumcircle, computed directly
 (same formula [`circumcenter`](@ref) uses on an [`APTriangle`](@ref),
 without needing to build one first). Throws an `ArgumentError` if `p1`,
 `p2`, `p3` are (or are too close to) collinear, since then no finite
@@ -103,7 +103,7 @@ antipode(p::APPoint, c::APCircle2) = reflection(p, c.center)
 """
     distance(p::APPoint, c::APCircle2)
 
-Distance from `p` to the *curve* of `c` (like every other `APCurve` -- not
+Distance from `p` to the *curve* of `c` (like every other `APCurve`: not
 to the filled disk `Base.in` tests membership of).
 """
 distance(p::APPoint, c::APCircle2) = abs(distance(p, c.center) - c.r)
@@ -120,8 +120,8 @@ distance(l::APLine, c::APCircle2) = distance(c, l)
 
 The distance between the two *curves*: `0` whenever they touch or cross
 (tangent, secant, or one properly inside the other without touching is
-the only case this is nonzero for *and* nested -- see below), otherwise
-the gap -- either the external gap (`d - r1 - r2`, when disjoint) or the
+the only case this is nonzero for *and* nested, see below), otherwise
+the gap, either the external gap (`d - r1 - r2`, when disjoint) or the
 gap between a smaller circle and the inside of a bigger one that encloses
 it (`|r1-r2| - d`, when nested without touching).
 """
@@ -282,7 +282,7 @@ end
     distance(p::APPoint, e::APEllipse2)
 
 Distance from `p` to the curve of `e`. Unlike every other conic distance
-in this package, there's no closed form for this -- it's found by Newton's
+in this package, there's no closed form for this: it's found by Newton's
 method on the ellipse's own parametrization (essentially exact in
 practice, converging to machine precision in a handful of iterations for
 any non-degenerate ellipse).
@@ -442,7 +442,7 @@ end
 """
     distance(p::APPoint, h::APHyperbola2)
 
-Distance from `p` to the curve of `h` (either branch -- whichever is
+Distance from `p` to the curve of `h` (either branch: whichever is
 closer). Like [`distance(::APPoint, ::APEllipse2)`](@ref), found via
 Newton's method rather than a closed form.
 """
@@ -603,12 +603,12 @@ end
     APCircularArc2(circle::APCircle2, p1::APPoint, p2::APPoint)
 
 The arc of `circle` traversed counterclockwise from `p1` to `p2`. `p1`/
-`p2` need not lie exactly on `circle` -- only their *angle* from
+`p2` need not lie exactly on `circle`: only their *angle* from
 `circle.center` matters, so the constructor projects each onto `circle`
 (same angle, radius `circle.r`) before storing it. This keeps `arc.p1`/
 `arc.p2` always genuinely on the circle, matching what
 [`point_on_arc`](@ref)/[`midpoint`](@ref) already compute from the angle
-alone -- without it, anything built directly from the raw `arc.p1`/
+alone: without it, anything built directly from the raw `arc.p1`/
 `arc.p2` (e.g. [`APCircularSector2`](@ref)'s own radii,
 `APSegment(circle.center, arc.p1)`) would end at the wrong point whenever
 the caller passed an off-circle `p1`/`p2`, visibly disagreeing with the
@@ -630,7 +630,7 @@ end
     APCircularArc2(center::APPoint, r::Real, p1::APPoint, p2::APPoint; ccw::Bool=true)
 
 The arc of the circle centered at `center` with radius `r`, from `p1` to
-`p2` (neither point's own distance from `center` has to be `r` -- same
+`p2` (neither point's own distance from `center` has to be `r`: same
 projection rule as the `circle`-based constructor above, only their angle
 matters). `ccw=true` (the default) sweeps counterclockwise from `p1` to
 `p2`; `ccw=false` builds the complementary arc instead (as if `p1`/`p2`
@@ -658,7 +658,7 @@ Base.show(io::IO, arc::APCircularArc2) = print(io, "APCircularArc2(", arc.circle
 
 The *complementary* arc: same circle, `p1`/`p2` swapped, so it sweeps the
 rest of the way around (`measure` goes from `θ` to `2π - θ`, 0 stays 0).
-See [`reverse(::APAngle2)`](@ref) for why this exists -- the same
+See [`reverse(::APAngle2)`](@ref) for why this exists: the same
 already-mirrored-coordinates gotcha applies here.
 """
 Base.reverse(arc::APCircularArc2) = APCircularArc2(arc.circle, arc.p2, arc.p1)
@@ -678,7 +678,7 @@ arc_length(arc::APCircularArc2) = arc.circle.r * measure(arc)
     point_on_arc(arc, t::Real)
 
 The point on `arc` at parameter `t` (`t = 0` gives `arc.p1`, `t = 1`
-gives `arc.p2`) -- defined for [`APCircularArc2`](@ref), `APEllipticArc2`,
+gives `arc.p2`): defined for [`APCircularArc2`](@ref), `APEllipticArc2`,
 `APParabolicArc2` and `APHyperbolicArc2`.
 """
 function point_on_arc(arc::APCircularArc2, t::Real)
@@ -707,7 +707,7 @@ end
 """
     distance(p::APPoint, arc::APCircularArc2)
 
-Distance from `p` to `arc` itself -- not the full circle: if `p`'s
+Distance from `p` to `arc` itself: not the full circle: if `p`'s
 angular projection falls within the arc's own sweep, this is the same as
 [`distance(::APPoint, ::APCircle2)`](@ref); otherwise it's the closer of
 the two endpoints.
@@ -724,7 +724,7 @@ distance(arc::APCircularArc2, p::APPoint) = distance(p, arc)
     _ray_crossings(p::APPoint, arc::APCircularArc2)
 
 How many times the rightward horizontal ray from `p` crosses `arc`
-itself (not the full circle) -- `0`, `1` or `2`. See
+itself (not the full circle): `0`, `1` or `2`. See
 [`_ray_crossings(::APPoint, ::APSegment)`](@ref) for why this exists:
 it's the curved-side building block `point_in_polygon` needs to apply
 the even-odd rule to a region with one or more arc sides.
@@ -764,7 +764,7 @@ translate(arc::APCircularArc2, v::APVector) =
     APEllipticArc2(ellipse::APEllipse2, p1::APPoint, p2::APPoint)
 
 The arc of `ellipse` traversed counterclockwise (in the ellipse's own
-parametrization) from `p1` to `p2` -- the ellipse analogue of
+parametrization) from `p1` to `p2`: the ellipse analogue of
 [`APCircularArc2`](@ref), same swept/complementary-arc convention.
 """
 struct APEllipticArc2{T<:Real} <: APConicArc2{T}
@@ -791,7 +791,7 @@ Base.convert(::Type{APEllipticArc2{T}}, a::APEllipticArc2) where {T} = APEllipti
 
 The *complementary* arc: same ellipse, `p1`/`p2` swapped, so it sweeps the
 rest of the way around. See [`reverse(::APAngle2)`](@ref) for why this
-exists -- the same already-mirrored-coordinates gotcha applies here.
+exists: the same already-mirrored-coordinates gotcha applies here.
 """
 Base.reverse(arc::APEllipticArc2) = APEllipticArc2(arc.ellipse, arc.p2, arc.p1)
 function _ellipse_param(e::APEllipse2, p::APPoint)
@@ -844,7 +844,7 @@ end
 
 The length of `arc`. Unlike [`arc_length(::APCircularArc2)`](@ref),
 there's no elementary closed form for this (an elliptic arc length is,
-true to the name, an elliptic integral) -- found instead by numerically
+true to the name, an elliptic integral): found instead by numerically
 integrating the parametrization speed `|Δθ|·√(a²sin²θ + b²cos²θ)` over
 `arc`'s own angular range.
 """
@@ -907,8 +907,8 @@ translate(arc::APEllipticArc2, v::APVector) =
 
 The arc of `parabola` between `p1` and `p2`. Unlike a circle/ellipse (a
 closed curve, where two points leave the "which way around" arc
-ambiguous), a parabola is open -- two points on it always determine a
-single, unambiguous arc, with no complementary alternative -- so, unlike
+ambiguous), a parabola is open, two points on it always determine a
+single, unambiguous arc, with no complementary alternative, so, unlike
 [`APCircularArc2`](@ref)/[`APEllipticArc2`](@ref), `reflection` never
 needs to swap `p1`/`p2`.
 """
@@ -935,7 +935,7 @@ Base.convert(::Type{APParabolicArc2{T}}, a::APParabolicArc2) where {T} = APParab
     reverse(arc::APParabolicArc2)
 
 `p1`/`p2` swapped: since a parabola is open, this is the *same* arc (same
-point set) with its parametrization direction reversed -- unlike
+point set) with its parametrization direction reversed: unlike
 [`reverse(::APCircularArc2)`](@ref)/[`reverse(::APEllipticArc2)`](@ref),
 there's no complementary-arc ambiguity to resolve here. Provided mainly
 for consistency with the closed-conic arcs' `reverse`.

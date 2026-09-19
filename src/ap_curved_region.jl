@@ -81,7 +81,7 @@ end
 
 The centroid of `s`, at distance `(4r·sin(θ/2))/(3θ)` from the circle's
 center along the arc's own bisector (`θ = measure(s.arc)`, `r =
-s.arc.circle.r`) -- the classical circular-sector centroid formula. Unlike
+s.arc.circle.r`): the classical circular-sector centroid formula. Unlike
 `area`/`perimeter` (which reuse the generic `APPolygon` machinery via
 [`sides`](@ref)), this is a dedicated formula: the generic
 `centroid(::APPolygon)` needs [`vertices`](@ref), which curved-sided
@@ -132,7 +132,7 @@ end
     centroid(s::APCircularSegment2)
 
 The centroid of `s`, at distance `(4r·sin³(θ/2))/(3(θ-sinθ))` from the
-circle's center along the arc's own bisector -- the classical
+circle's center along the arc's own bisector: the classical
 circular-segment centroid formula (see
 [`centroid(::APCircularSector2)`](@ref) for why this is a dedicated
 formula rather than the generic `APPolygon` one).
@@ -155,7 +155,7 @@ translate(s::APCircularSegment2, v::APVector) = APCircularSegment2(translate(s.a
 The region between two concentric arcs: `outer` (on the outer circle,
 `outer.circle.r > r_inner`) and the corresponding arc of the concentric
 circle of radius `r_inner`, closed by the two radial segments between
-them -- Luxor's own `sector(center, innerradius, outerradius, ...)` shape,
+them: Luxor's own `sector(center, innerradius, outerradius, ...)` shape,
 represented here as an [`APPolygon`](@ref).
 """
 struct APAnnularSector2{T<:Real} <: APPolygon{2,T}
@@ -197,7 +197,7 @@ end
     centroid(s::APAnnularSector2)
 
 The centroid of `s`, as the area-weighted difference of the outer and
-inner sectors' own centroids (`(Aₒcₒ - Aᵢcᵢ)/(Aₒ-Aᵢ)`) -- both share the
+inner sectors' own centroids (`(Aₒcₒ - Aᵢcᵢ)/(Aₒ-Aᵢ)`): both share the
 same bisector by construction, so this reduces to the same closed form as
 [`centroid(::APCircularSector2)`](@ref) applied twice.
 """
@@ -250,11 +250,11 @@ const APSide{T} = Union{APSegment{2,T},APCircularArc2{T},APEllipticArc2{T},APPar
 
 A closed region bounded by 3 sides, each independently an [`APSegment`](@ref)
 or a conic arc ([`APCircularArc2`](@ref), `APEllipticArc2`,
-`APParabolicArc2`, `APHyperbolicArc2`) -- the general 3-sided analogue of
+`APParabolicArc2`, `APHyperbolicArc2`): the general 3-sided analogue of
 [`APTriangle`](@ref) (all straight) and [`APInterstice2`](@ref) (all
 circular arcs). The wider arc coverage (beyond just circular) exists
-mainly so that `APAffineMap`-transformed circular-arc regions -- whose
-arcs generically become elliptic under a non-conformal map -- still fit.
+mainly so that `APAffineMap`-transformed circular-arc regions, whose
+arcs generically become elliptic under a non-conformal map, still fit.
 """
 struct APCurvilinearTriangle2{T<:Real} <: APPolygon{2,T}
     sides::NTuple{3,APSide{T}}
@@ -299,7 +299,7 @@ translate(q::APCurvilinearQuadrilateral2, v::APVector) = APCurvilinearQuadrilate
     APCurvilinearNgon2(sides::AbstractVector)
 
 A closed region bounded by any number of sides, each an [`APSegment`](@ref)
-or an [`APCircularArc2`](@ref) -- the fully general case of the curved
+or an [`APCircularArc2`](@ref): the fully general case of the curved
 [`APPolygon`](@ref) family.
 """
 struct APCurvilinearNgon2{T<:Real} <: APPolygon{2,T}
@@ -323,7 +323,7 @@ end
     APCurvilinearNgon2(sides...)
 
 Same as [`APCurvilinearNgon2(::AbstractVector)`](@ref) above, one side per
-argument instead of wrapped in a `Vector` -- matching
+argument instead of wrapped in a `Vector`: matching
 [`APCurvilinearTriangle2`](@ref)/[`APCurvilinearQuadrilateral2`](@ref)'s
 own fixed-count, one-argument-per-side style for the arbitrary-count case.
 """
@@ -345,10 +345,10 @@ translate(pg::APCurvilinearNgon2, v::APVector) = APCurvilinearNgon2([translate(s
 
 The axis-aligned bounding box of `pg`. The generic
 [`APBoundingBox(::APPolygon)`](@ref) in ap_polygon.jl (via `vertices`)
-doesn't apply to any curved-sided region -- [`APCircularSector2`](@ref),
+doesn't apply to any curved-sided region, [`APCircularSector2`](@ref),
 `APCircularSegment2`, `APAnnularSector2`, `APInterstice2`,
 `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2`,
-`APCurvilinearNgon2` don't implement `vertices` -- so this instead unions
+`APCurvilinearNgon2` don't implement `vertices`, so this instead unions
 the bounding box of each of `pg`'s own [`sides`](@ref) (every side type,
 straight or any conic arc, already knows its own bounding box).
 """

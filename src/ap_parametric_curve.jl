@@ -43,7 +43,7 @@ A sampled bounding box: `f` has no closed form in general, so this
 evaluates `curve.f` at `n` evenly spaced points over `curve.trange` and
 takes the union of their individual (degenerate) boxes. Unlike every
 other `APBoundingBox` method in this package, this is an approximation,
-not exact -- a sharply curving `f` between sample points can poke outside
+not exact: a sharply curving `f` between sample points can poke outside
 the box this returns. Raise `n` for a tighter fit.
 """
 function APBoundingBox(curve::APParametricCurve2; n::Int=200)

@@ -12,7 +12,7 @@ angle_at(vertex::APPoint, p1::APPoint, p2::APPoint) =
     APAngle2(vertex::APPoint, a::APPoint, b::APPoint)
 
 The angle at `vertex` between the rays `vertex -> a` and `vertex -> b`,
-plus (since it's an [`APSet`](@ref)) the infinite wedge they bound -- the
+plus (since it's an [`APSet`](@ref)) the infinite wedge they bound: the
 region swept counterclockwise from ray `vertex -> a` to ray `vertex -> b`
 by [`normalized_measure`](@ref) radians. Unlike [`angle_at`](@ref)/
 [`angle_between`](@ref), which just return a number, this keeps the three
@@ -36,7 +36,7 @@ Base.show(io::IO, ang::APAngle2) = print(io, "APAngle2(vertex=", ang.vertex, ", 
 
 The *complementary* wedge: same vertex, `a`/`b` swapped, so the sweep
 runs the other way around the vertex. [`normalized_measure`](@ref) goes
-from `θ` to `2π - θ` (0 stays 0) -- same rays, opposite orientation.
+from `θ` to `2π - θ` (0 stays 0): same rays, opposite orientation.
 
 This is the fix for a common gotcha: [`APAngle2`](@ref)'s "counterclockwise
 from `a` to `b`" is computed straight from the `(x, y)` values it's given,
@@ -46,7 +46,7 @@ coordinate space (e.g. after [`@to_luxor_picture`](@ref)'s default
 convention). Building the angle *before* that reflection and letting the
 whole object pass through the macro handles this automatically (see
 [Drawing with Luxor.jl](@ref)); reconstructing it *after*, straight from
-already-mirrored points, silently picks up the reversed sense instead --
+already-mirrored points, silently picks up the reversed sense instead:
 `reverse` is the manual fix for that second case.
 """
 Base.reverse(ang::APAngle2) = APAngle2(ang.vertex, ang.b, ang.a)
@@ -54,18 +54,18 @@ Base.reverse(ang::APAngle2) = APAngle2(ang.vertex, ang.b, ang.a)
     measure(ang::APAngle2)
 
 The signed measure of `ang` (radians, in `(-π, π]`, counterclockwise from
-ray `vertex -> a` to ray `vertex -> b`) -- see [`angle_between`](@ref).
+ray `vertex -> a` to ray `vertex -> b`): see [`angle_between`](@ref).
 """
 measure(ang::APAngle2) = angle_between(ang.a - ang.vertex, ang.b - ang.vertex)
 """
     rotate(obj::APObject, ang::APAngle2, args...; kwargs...)
 
-Same as `rotate(obj, measure(ang), args...; kwargs...)` -- lets any
+Same as `rotate(obj, measure(ang), args...; kwargs...)`: lets any
 existing `rotate(obj, angle::Real, ...)` method (2D with a `center`, 3D
 with an `axis`) be driven by an `APAngle2`'s own measure directly, without
 unwrapping it by hand first. Not to be confused with
 `rotate(ang::APAngle2, angle::Real, center)`, which rotates `ang` itself
-*as a shape* -- here `ang` supplies the rotation amount for some other
+*as a shape*: here `ang` supplies the rotation amount for some other
 `obj`, via its `measure`.
 """
 rotate(obj::APObject, ang::APAngle2, args...; kwargs...) = rotate(obj, measure(ang), args...; kwargs...)
@@ -81,7 +81,7 @@ end
 """
     abs(ang::APAngle2)
 
-The unsigned measure of `ang` (radians, in `[0, π]`) -- see [`angle_at`](@ref).
+The unsigned measure of `ang` (radians, in `[0, π]`): see [`angle_at`](@ref).
 """
 Base.abs(ang::APAngle2) = angle_at(ang.vertex, ang.a, ang.b)
 """
@@ -123,7 +123,7 @@ translate(ang::APAngle2, v::APVector) =
 Distance from `p` to the wedge `ang` (see [`APAngle2`](@ref)). The
 wedge's boundary is exactly the union of the two rays `vertex -> a` and
 `vertex -> b`, so `mode = :boundary` is `min` of the distances to each
-ray -- this holds for any measure, reflex wedges included. With `mode =
+ray: this holds for any measure, reflex wedges included. With `mode =
 :region` (the default), `0.0` whenever `p` lies inside the wedge, else
 the same boundary distance (for a closed region, the nearest point to an
 exterior point always lies on the boundary).
@@ -139,14 +139,14 @@ distance(ang::APAngle2, p::APPoint; mode::Symbol=:region) = distance(p, ang; mod
     reflection(ang::APAngle2, about::APPoint)
     reflection(ang::APAngle2, about::APLine)
 
-Reflect `ang`. Since `APAngle2` is an [`APSet`](@ref) -- the infinite wedge
-swept counterclockwise from `a` to `b`, not just a bare signed value --
+Reflect `ang`. Since `APAngle2` is an [`APSet`](@ref), the infinite wedge
+swept counterclockwise from `a` to `b`, not just a bare signed value,
 reflecting about an `APLine` (a true mirror) swaps `a`/`b` so the result
 is a genuine mirror image of the wedge (exactly the same swap convention
 [`APCircularArc2`](@ref)/[`APEllipticArc2`](@ref) use to stay a true
 mirror image rather than the complementary region); reflecting about an
 `APPoint` (a point reflection) needs no swap. Consequently [`measure`](@ref)'s
-sign is preserved by *both* -- a point reflection and a mirror are both
+sign is preserved by *both*: a point reflection and a mirror are both
 "apply the same swap-or-not rule uniformly across the AP hierarchy",
 rather than the sign-flip-under-mirror convention a bare rotation
 instruction would suggest.
@@ -162,7 +162,7 @@ APBoundingBox(::APAngle2) = APBoundingBox()
 
 The closed half-plane bounded by `boundary`: `side = +1` means the side
 left of `boundary` (oriented `p1 -> p2`), `side = -1` means the right
-side -- see [`side_of_line`](@ref)'s convention, which this mirrors. The
+side: see [`side_of_line`](@ref)'s convention, which this mirrors. The
 second form is often easier to reason about: pass any point known to lie
 inside instead of working out left/right by hand.
 """
@@ -205,7 +205,7 @@ translate(hp::APHalfPlane2, v::APVector) = APHalfPlane2(translate(hp.boundary, v
 
 Reflect `hp`'s boundary. Reflecting about an `APPoint` (a point
 reflection) is orientation-preserving, so `side` is unchanged. Reflecting
-about an `APLine` (a true mirror) reverses orientation, so `side` flips --
+about an `APLine` (a true mirror) reverses orientation, so `side` flips:
 otherwise the reflected half-plane would represent the wrong side of its
 own (also reflected) boundary.
 """

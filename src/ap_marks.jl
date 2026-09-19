@@ -64,7 +64,7 @@ function tangent_at(arc::APHyperbolicArc2, t::Real)
     v = (dx * APVector(c, sn) + dy * APVector(-sn, c)) * (t2 >= t1 ? 1 : -1)
     return APEquipollentVector(_unit_direction(v, "a hyperbolic arc"), point_on_arc(arc, t))
 end
-const _MARK_STYLES = (:tick, :slash, :chevron, :cross, :circle)
+const _MARK_STYLES = (:tick, :slash, :chevron, :cross, :circle, :z, :s)
 function _marks_at(frame::APEquipollentVector, count::Integer, style::Symbol, size::Real, gap::Real, slant::Real)
     count >= 1 || throw(ArgumentError("marks: count must be at least 1"))
     size > 0 || throw(ArgumentError("marks: size must be positive"))
@@ -73,7 +73,7 @@ function _marks_at(frame::APEquipollentVector, count::Integer, style::Symbol, si
     N = orthogonal(T)
     out = APObject[]
     half = size / 2
-    step = style === :circle ? max(gap, size) : gap   # circles are at least tangent
+    step = style in (:circle, :z, :s) ? max(gap, size) : gap   # circles are at least tangent, letters do not overlap
     for i in 1:count
         C = P + ((i - (count + 1) / 2) * step) * T
         if style === :tick
@@ -85,6 +85,15 @@ function _marks_at(frame::APEquipollentVector, count::Integer, style::Symbol, si
             d1, d2 = (N + T) / sqrt(2), (N - T) / sqrt(2)
             push!(out, APSegment(C - half * d1, C + half * d1))
             push!(out, APSegment(C - half * d2, C + half * d2))
+        elseif style === :z
+            # upright "Z" when the segment is vertical on the drawn (y down) canvas
+            a, b = size / 4, half
+            push!(out, APPolyline2([C - a * N + b * T, C + a * N + b * T, C - a * N - b * T, C + a * N - b * T]))
+        elseif style === :s
+            r, up, dn = size / 4, C + (size / 4) * T, C - (size / 4) * T
+            top, mid, bot = up + r * cos(pi / 6) * N + r * sin(pi / 6) * T, up - r * T, dn - r * cos(pi / 6) * N - r * sin(pi / 6) * T
+            push!(out, APCircularArc2(up, r, mid, top))
+            push!(out, APCircularArc2(dn, r, up - r * T, bot))
         elseif style === :circle
             push!(out, APCircle2(C, half))
         else
@@ -121,6 +130,8 @@ marks from objects already transformed to the drawing (for example the ones
 | `:chevron` | a `>` pointing along the direction of travel (parallel-line marks) |
 | `:cross` | an `x`, two strokes per mark |
 | `:circle` | a small circle |
+| `:z` | a zigzag, a `Z` that stands upright when the segment is vertical on the drawn canvas |
+| `:s` | an `S` drawn the same way, from two arcs |
 
 Throws an `ArgumentError` for an unknown `style`, `count < 1` or
 `size <= 0`.
@@ -139,7 +150,7 @@ larger (one, two or three arcs is the usual way to say two angles are
 equal). `size` defaults to `0.15` times the shorter of the two rays, the
 same radius [`path`](@ref)`(ang)` uses.
 
-Any other `style` (`:tick`, `:slash`, `:chevron`, `:cross`, `:circle`, see
+Any other `style` (`:tick`, `:slash`, `:chevron`, `:cross`, `:circle`, `:z`, `:s`, see
 [`marks`](@ref)) instead puts `count` symbols of size `mark_size` on the arc
 of radius `size`, centered at parameter `at` of it. With `arcs = n > 0` the
 result also has `n` concentric arcs (radii `size`, `size + gap`, ...) and

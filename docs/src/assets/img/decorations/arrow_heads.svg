@@ -47,10 +47,10 @@
 <path fill="none" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 89.695313 120 L 284.847656 120 "/>
 <path fill="none" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 89.695313 175.757813 L 284.847656 175.757813 "/>
 <path fill="none" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 312.726563 175.757813 C 312.726563 129.566406 350.171875 92.121094 396.363281 92.121094 C 442.554688 92.121094 480 129.566406 480 175.757813 "/>
-<path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 193.738281 64.242188 L 180.804688 69.601563 L 180.804688 58.886719 Z M 193.738281 64.242188 "/>
-<path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 193.738281 120 L 180.804688 125.359375 L 185.332031 120 L 180.804688 114.640625 Z M 193.738281 120 "/>
-<path fill="none" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 180.804688 181.113281 L 193.738281 175.757813 L 180.804688 170.398438 "/>
-<path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 480 175.757813 L 474.640625 162.824219 L 485.359375 162.824219 Z M 480 175.757813 "/>
+<path fill-rule="nonzero" fill="rgb(58.4%, 34.5%, 69.8%)" fill-opacity="1" d="M 193.738281 64.242188 L 180.804688 69.601563 L 180.804688 58.886719 Z M 193.738281 64.242188 "/>
+<path fill-rule="nonzero" fill="rgb(58.4%, 34.5%, 69.8%)" fill-opacity="1" d="M 193.738281 120 L 180.804688 125.359375 L 185.332031 120 L 180.804688 114.640625 Z M 193.738281 120 "/>
+<path fill="none" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 180.804688 181.113281 L 193.738281 175.757813 L 180.804688 170.398438 "/>
+<path fill-rule="nonzero" fill="rgb(58.4%, 34.5%, 69.8%)" fill-opacity="1" d="M 480 175.757813 L 474.640625 162.824219 L 485.359375 162.824219 Z M 480 175.757813 "/>
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-0" x="25" y="69.253166"/>
 <use xlink:href="#glyph-0-1" x="28.889648" y="69.253166"/>

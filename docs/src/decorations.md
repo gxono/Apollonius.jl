@@ -85,6 +85,10 @@ of one mark.
 | `:chevron` | a `>` along the direction of travel, the usual mark for parallel lines |
 | `:cross` | an `x`, two strokes per mark |
 | `:circle` | a small circle, never closer to its neighbours than tangent |
+| `:z` | a zigzag: a `Z` that stands upright when the segment is vertical on the drawn canvas, so on a horizontal segment it lies on its side |
+| `:s` | an `S` drawn the same way, made of two arcs |
+
+A double or triple mark is `count=2` or `count=3` of the same style, and a slanted tick is `:slash` (`slant` sets its tilt). The letters `:z` and `:s` are as tall as `size` along the segment, so `gap` is raised to `size` when it is smaller.
 
 ```@example geo
 two_ticks = marks(s; count=2)

@@ -502,7 +502,7 @@ the arc itself. [`APCircularSector2`](@ref), [`APCircularSegment2`](@ref)
 and [`APAnnularSector2`](@ref) are the three classical ways to do this
 (`APCircularSector2(circle, p1, p2)` is shorthand for
 `APCircularSector2(APCircularArc2(circle, p1, p2))`, and likewise for the
-other two -- each also takes the circle's raw `center`/`r` directly
+other two. Each also takes the circle's raw `center`/`r` directly
 instead, e.g. `APCircularSector2(center, r, p1, p2)`):
 
 * **[`APCircularSector2`](@ref)**, the "pie slice": bounded by the two
@@ -691,7 +691,7 @@ for the *n*-sided case built from an arbitrary vector of sides).
 points: an open chain through a list of vertices, joined by straight
 sides. It's the open counterpart of [`APStraightNgon`](@ref) (which
 always closes back to its first vertex; this never does), so it's an
-[`APCurve`](@ref), not an [`APPolygon`](@ref) -- no area, no interior:
+[`APCurve`](@ref), not an [`APPolygon`](@ref), so it has no area and no interior:
 
 ```@example geo
 zigzag = APPolyline2(APPoint(0.0, 0.0), APPoint(2.0, 3.0), APPoint(4.0, 0.0), APPoint(6.0, 3.0))

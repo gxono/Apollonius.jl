@@ -134,7 +134,7 @@ circ = APCircle2(APPoint(4.0, 1.0), 4.0)
     t
     circ
 end
-# (w, h) = (300.0, 328.0) -- exactly 300 wide (as requested), tall enough
+# (w, h) = (300.0, 328.0): exactly 300 wide (as requested), tall enough
 # to keep t/circ's own aspect ratio, plus a 10-unit margin on every side
 
 @png begin
@@ -259,7 +259,7 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     iv = projection.(I, tsides)
     npc = nine_point_circle(triangle)
     npc_c = nine_point_center(triangle)
-    ep = euler_points(triangle)   # a Tuple of 3 points -- no `collect` needed
+    ep = euler_points(triangle)   # a Tuple of 3 points, no `collect` needed
     ips = reduce(vcat, intersection.(npc, tsides))
 end
 ```
@@ -283,7 +283,7 @@ sz, (t2, circ2) = @to_luxor_picture width=300.0 margin=10.0 begin
     t
     circ
 end
-sz.fct(centroid(t))   # matches where `centroid(t2)` would land -- t was never re-transformed itself
+sz.fct(centroid(t))   # matches where `centroid(t2)` would land, since t was never re-transformed itself
 ```
 
 ### The drawable area itself: `sz.bb`
@@ -327,7 +327,7 @@ sz, (t2, ns2) = @to_luxor_picture width=400.0 begin
     t = APTriangle(A, B, C)
     ns = @unbounded [1.2, 3.2, 5.3]   # e.g. hand-typed side lengths
 end
-ns2 == ns   # true -- untouched, regardless of the picture's scale factor
+ns2 == ns   # true: untouched, regardless of the picture's scale factor
 ```
 
 This is a fundamental limitation, not a bug that could be fixed by making
@@ -379,7 +379,7 @@ current_path_bbox()   # APBoundingBox([-140.0, -154.0] .. [140.0, 154.0])
                        # since both t2/circ2 draw via a native Cairo primitive (no sampling)
 
 strokepath()
-current_path_bbox()   # APBoundingBox([0.0, 0.0] .. [0.0, 0.0]) -- stroking consumes the path,
+current_path_bbox()   # APBoundingBox([0.0, 0.0] .. [0.0, 0.0]): stroking consumes the path,
                        # same as most of Luxor's own shape functions
 finish()
 ```

@@ -182,7 +182,7 @@ The circle(s) centered at `center`, tangent to `l`/`c`. Always exactly one
 solution for a line (`r = distance(center, l)`, the perpendicular
 distance); up to two for a circle (external tangency, `r = d + c.r`, and
 internal tangency, `r = |d - c.r|`, where `d = distance(center,
-c.center)`) -- collapsing to one when `center` sits exactly on `c`, and
+c.center)`): collapsing to one when `center` sits exactly on `c`, and
 none at all when `center` coincides with `c`'s own center (every circle
 there is concentric with `c`, never tangent to it). Returns a
 `Vector{APCircle2{Float64}}`, matching the rest of this tangent-circle

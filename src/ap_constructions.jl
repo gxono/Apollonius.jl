@@ -6,7 +6,7 @@ from the positive x-axis: `center + (r*cos(angle), r*sin(angle))`.
 
 No zero-argument default for `center` here (unlike the `Point2`-based
 `polar_point`, which already claims the `(r::Real, angle::Real)`
-default-elided fallback -- see [`rotation_map`](@ref) for why an AP-typed
+default-elided fallback: see [`rotation_map`](@ref) for why an AP-typed
 default would collide with it): pass `center` explicitly.
 """
 polar_point(r::Real, angle::Real, center::APPoint{2}) =
@@ -24,7 +24,7 @@ polar_point_deg(r::Real, angle::Real) = polar_point_deg(r, angle, APPoint(0.0,0.
     barycenter(points, weights)
 
 The weighted barycenter (center of mass) of `points` with the given
-`weights` -- `points` an `AbstractVector`/`Tuple` of `APPoint`, `weights`
+`weights`: `points` an `AbstractVector`/`Tuple` of `APPoint`, `weights`
 an `AbstractVector`/`Tuple` of `Real` (e.g. `barycenter(vertices(t),
 [1.0, 1.0, 2.0])` works directly, even though `vertices(::APTriangle)`
 returns a `Tuple` rather than a `Vector`).
@@ -162,7 +162,7 @@ end
 
 The circular arc of the circle centered at `center` through `p`, sweeping
 `angle` radians from `p`: counterclockwise for a positive `angle`,
-clockwise for a negative one -- the compass arc of a ruler-and-compass
+clockwise for a negative one: the compass arc of a ruler-and-compass
 construction, set to `distance(center, p)` and swung through a given
 angle. Since an [`APCircularArc2`](@ref) always runs counterclockwise from
 `p1` to `p2`, a clockwise sweep comes back with `p` as `arc.p2` instead

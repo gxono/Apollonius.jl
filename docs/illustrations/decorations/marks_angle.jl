@@ -6,6 +6,7 @@ end
 @svg_doc(sz, @__FILE__, begin
 sethue(julia_blue); Luxor.setline(1.5)
 path(rays, action=:stroke)
+sethue(julia_purple)
 for (i, a) in enumerate(angs)
     path(marks(a; count=i, size=26, gap=6); action=:stroke)
 end

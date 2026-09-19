@@ -8,6 +8,7 @@ end
 Luxor.fontsize(14)
 sethue(julia_blue); Luxor.setline(1.5)
 path(segs, action=:stroke)
+sethue(julia_purple)
 for (s, style) in zip(segs, styles)
     path(marks(s; count=2, style=style, size=20, gap=12); action=:stroke)
 end
