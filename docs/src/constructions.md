@@ -202,26 +202,43 @@ translation) the result is the point itself and `arcs` is empty.
 
 ## Watching a construction step by step
 
-The blocks on this page are run when the documentation is built, and the
-figures below come from them: each one draws what the code above it just
-computed. Drawing needs Luxor, so the block that loads it is hidden. Only the
-geometry is shown, and the drawing lines are hidden too (they follow the
-colors used across these figures: blue for the given objects, green for the
-construction aids, purple for the result).
+The blocks in this section are run when the documentation is built, and each
+figure comes from the code above it. Only the geometry is shown: the lines that
+draw are hidden. The figures use one color code: blue for the given objects,
+gray for the circles of the construction, green for the points found along the
+way, purple for the result.
 
-The example is the perpendicular bisector of `[a, b]`, built by hand instead of
-with [`mediator_construction`](@ref). First the objects and one fit of all of
-them to the canvas, so that every step uses the same frame:
+Each construction is done here by hand, with the same steps the shown
+constructions above use. One block computes everything and fits it to the
+canvas once, so every step is drawn in the same frame.
+
+### The perpendicular bisector
+
+The perpendicular bisector of `[a, b]`, built by hand instead of with
+[`mediator_construction`](@ref).
 
 ```@example geo
-using Luxor: @drawsvg, background, sethue, setline, setdash, fontsize, label, julia_blue, julia_green, julia_red, julia_purple # hide
+using Luxor: sethue, setline, setdash, fontsize, label, julia_blue, julia_green, julia_red, julia_purple # hide
 import Luxor # hide
+fig_given(x; w=2) = (sethue(julia_blue); setline(w); path(x; action=:stroke)) # hide
+fig_faint(x) = (sethue("gray80"); setline(1); setdash("dash"); path(x; action=:stroke); setdash("solid")) # hide
+fig_aid(x) = (sethue(julia_green); setline(1); setdash("dash"); path(x; action=:stroke); setdash("solid")) # hide
+fig_result(x; w=2) = (sethue(julia_purple); setline(w); path(x; action=:stroke)) # hide
+fig_fill(x; a=0.25) = (sethue(julia_purple); Luxor.setopacity(a); path(x; action=:fill); Luxor.setopacity(1.0)) # hide
+fig_dots(pts, c) = (sethue(c); path(pts; radius=3, action=:fill)) # hide
+fig_tags(ts...) = (sethue(julia_red); for (t, al, p) in ts; label(t, al, p); end) # hide
+fig_vtags(t) = (sethue(julia_red); g = centroid(t); for (n, v) in zip(("A", "B", "C"), vertices(t)); label(n, label_anchor(v, g)...); end) # hide
+function fig_draw(f, w, h) # hide
+    Luxor.@drawsvg begin # hide
+        Luxor.origin(); fontsize(15); f() # hide
+    end w h # hide
+end # hide
 a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
 r = 0.75 * distance(a, b)            # any radius above half of distance(a, b) works
 c1, c2 = APCircle2(a, r), APCircle2(b, r)
 p, q = intersection(c1, c2)          # the two crossings of the circles
 
-(w, h), (a2, b2, c1_2, c2_2, p2, q2) = @to_luxor_picture width=500 margin=30 begin
+(fw, fh), (a2, b2, c1_2, c2_2, p2, q2) = @to_luxor_picture width=500 margin=30 begin
     a
     b
     c1
@@ -229,7 +246,7 @@ p, q = intersection(c1, c2)          # the two crossings of the circles
     p
     q
 end
-H = ceil(Int, h) # hide
+figH = ceil(Int, fh) # hide
 nothing # hide
 ```
 
@@ -237,33 +254,23 @@ nothing # hide
 
 ```@example geo
 segment = APSegment(a2, b2)
-Luxor.@drawsvg begin # hide
-    Luxor.origin() # hide
-    fontsize(15) # hide
-    sethue(julia_blue); setline(2) # hide
-    path(segment; action=:stroke) # hide
-    path([a2, b2]; radius=3, action=:fill) # hide
-    sethue(julia_red) # hide
-    label("A", :W, a2); label("B", :E, b2) # hide
-end 500 H # hide
+fig_draw(500, figH) do # hide
+    fig_given(segment) # hide
+    fig_dots([a2, b2], julia_blue) # hide
+    fig_tags(("A", :W, a2), ("B", :E, b2)) # hide
+end # hide
 ```
 
 **Step 2.** A circle around each end, with the same radius.
 
 ```@example geo
 @show c1.r == c2.r == r
-Luxor.@drawsvg begin # hide
-    Luxor.origin() # hide
-    fontsize(15) # hide
-    sethue("gray80"); setline(1); setdash("dash") # hide
-    path([c1_2, c2_2]; action=:stroke) # hide
-    setdash("solid") # hide
-    sethue(julia_blue); setline(2) # hide
-    path(segment; action=:stroke) # hide
-    path([a2, b2]; radius=3, action=:fill) # hide
-    sethue(julia_red) # hide
-    label("A", :W, a2); label("B", :E, b2) # hide
-end 500 H # hide
+fig_draw(500, figH) do # hide
+    fig_faint([c1_2, c2_2]) # hide
+    fig_given(segment) # hide
+    fig_dots([a2, b2], julia_blue) # hide
+    fig_tags(("A", :W, a2), ("B", :E, b2)) # hide
+end # hide
 ```
 
 **Step 3.** The circles cross at two points, and each one is at the same distance from `a` and from `b`.
@@ -271,20 +278,13 @@ end 500 H # hide
 ```@example geo
 @show distance(p, a) ≈ distance(p, b)
 @show distance(q, a) ≈ distance(q, b)
-Luxor.@drawsvg begin # hide
-    Luxor.origin() # hide
-    fontsize(15) # hide
-    sethue("gray80"); setline(1); setdash("dash") # hide
-    path([c1_2, c2_2]; action=:stroke) # hide
-    setdash("solid") # hide
-    sethue(julia_blue); setline(2) # hide
-    path(segment; action=:stroke) # hide
-    path([a2, b2]; radius=3, action=:fill) # hide
-    sethue(julia_green) # hide
-    path([p2, q2]; radius=3, action=:fill) # hide
-    sethue(julia_red) # hide
-    label("A", :W, a2); label("B", :E, b2); label("P", :N, p2); label("Q", :S, q2) # hide
-end 500 H # hide
+fig_draw(500, figH) do # hide
+    fig_faint([c1_2, c2_2]) # hide
+    fig_given(segment) # hide
+    fig_dots([a2, b2], julia_blue) # hide
+    fig_dots([p2, q2], julia_green) # hide
+    fig_tags(("A", :W, a2), ("B", :E, b2), ("P", :N, p2), ("Q", :S, q2)) # hide
+end # hide
 ```
 
 **Step 4.** The line through the two crossings is the result.
@@ -293,26 +293,267 @@ end 500 H # hide
 bisector = APLine(p2, q2)
 @show is_perpendicular(bisector, APLine(a2, b2))
 @show on_line(midpoint(a2, b2), bisector)
-Luxor.@drawsvg begin # hide
-    Luxor.origin() # hide
-    fontsize(15) # hide
-    sethue("gray80"); setline(1); setdash("dash") # hide
-    path([c1_2, c2_2]; action=:stroke) # hide
-    setdash("solid") # hide
-    sethue(julia_blue); setline(2) # hide
-    path(segment; action=:stroke) # hide
-    path([a2, b2]; radius=3, action=:fill) # hide
-    sethue(julia_purple); setline(2) # hide
-    path(bisector; extend=(40, 40), action=:stroke) # hide
-    sethue(julia_green) # hide
-    path([p2, q2]; radius=3, action=:fill) # hide
-    sethue(julia_red) # hide
-    label("A", :W, a2); label("B", :E, b2); label("P", :N, p2); label("Q", :S, q2) # hide
-end 500 H # hide
+fig_draw(500, figH) do # hide
+    fig_faint([c1_2, c2_2]) # hide
+    fig_given(segment) # hide
+    fig_result(bisector) # hide
+    fig_dots([a2, b2], julia_blue) # hide
+    fig_dots([p2, q2], julia_green) # hide
+    fig_tags(("A", :W, a2), ("B", :E, b2), ("P", :N, p2), ("Q", :S, q2)) # hide
+end # hide
 ```
 
-This is the same line that `mediator_construction(a, b).result` returns, and
-the same construction the static figure above shows with its compass traces.
+### The perpendicular from a point
+
+The perpendicular to a line `l` through a point `p` off the line, as in
+[`perpendicular_construction`](@ref). A circle around `p` cuts `l` at two
+points; two equal circles around those cross on the other side of `l`.
+
+```@example geo
+A, B = APPoint(0.0, 0.0), APPoint(8.0, 1.0)
+l = APLine(A, B)
+p = APPoint(3.0, 4.0)
+r = 1.5 * distance(p, l)
+x1, x2 = intersection(l, APCircle2(p, r))       # where the circle around p cuts l
+r2 = 0.75 * distance(x1, x2)
+ys = intersection(APCircle2(x1, r2), APCircle2(x2, r2))
+y = side_of_line(ys[1], l) != side_of_line(p, l) ? ys[1] : ys[2]   # the crossing on the far side of l
+
+(fw, fh), (A2, B2, p2, x1_2, x2_2, y2, cp, cx1, cx2) = @to_luxor_picture width=500 margin=30 begin
+    A
+    B
+    p
+    x1
+    x2
+    y
+    APCircle2(p, r)
+    APCircle2(x1, r2)
+    APCircle2(x2, r2)
+end
+l2 = APLine(A2, B2)
+figH = ceil(Int, fh) # hide
+nothing # hide
+```
+
+**Step 1.** The line and the point.
+
+```@example geo
+@show on_line(p, l)
+fig_draw(500, figH) do # hide
+    fig_given(l2) # hide
+    fig_dots([p2], julia_blue) # hide
+    fig_tags(("p", :NE, p2)) # hide
+end # hide
+```
+
+**Step 2.** A circle around `p` that cuts the line at `x1` and `x2`.
+
+```@example geo
+@show distance(x1, p) ≈ distance(x2, p) ≈ r
+fig_draw(500, figH) do # hide
+    fig_faint(cp) # hide
+    fig_given(l2) # hide
+    fig_dots([p2], julia_blue) # hide
+    fig_dots([x1_2, x2_2], julia_green) # hide
+    fig_tags(("p", :NE, p2), ("x1", :SW, x1_2), ("x2", :SE, x2_2)) # hide
+end # hide
+```
+
+**Step 3.** Two equal circles around `x1` and `x2` cross at `y`, on the other side of the line.
+
+```@example geo
+@show side_of_line(y, l) != side_of_line(p, l)
+fig_draw(500, figH) do # hide
+    fig_faint([cx1, cx2]) # hide
+    fig_given(l2) # hide
+    fig_dots([p2], julia_blue) # hide
+    fig_dots([x1_2, x2_2, y2], julia_green) # hide
+    fig_tags(("p", :NE, p2), ("x1", :SW, x1_2), ("x2", :SE, x2_2), ("y", :E, y2)) # hide
+end # hide
+```
+
+**Step 4.** The line through `p` and `y` is perpendicular to `l`.
+
+```@example geo
+perp = APLine(p2, y2)
+@show is_perpendicular(perp, l2)
+fig_draw(500, figH) do # hide
+    fig_faint([cx1, cx2]) # hide
+    fig_given(l2) # hide
+    fig_result(perp) # hide
+    fig_dots([p2], julia_blue) # hide
+    fig_dots([x1_2, x2_2, y2], julia_green) # hide
+    fig_tags(("p", :NE, p2), ("x1", :SW, x1_2), ("x2", :SE, x2_2), ("y", :E, y2)) # hide
+end # hide
+```
+
+### The parallel
+
+The parallel to `l` through `p`, as a rhombus, as in
+[`parallel_construction`](@ref). A circle around a point `A` of `l` through `p`
+gives `D` on `l`; two circles of the same radius around `D` and `p` meet at `E`.
+
+```@example geo
+A, B = APPoint(0.0, 0.0), APPoint(8.0, 1.0)
+l = APLine(A, B)
+p = APPoint(2.0, 4.0)
+r = distance(A, p)
+D = A + r * normalize(direction(l))              # the circle around A through p cuts l at D
+es = intersection(APCircle2(D, r), APCircle2(p, r))
+E = distance(es[1], A) > distance(es[2], A) ? es[1] : es[2]
+
+(fw, fh), (A2, B2, p2, D2, E2, cA, cD, cP) = @to_luxor_picture width=500 margin=30 begin
+    A
+    B
+    p
+    D
+    E
+    APCircle2(A, r)
+    APCircle2(D, r)
+    APCircle2(p, r)
+end
+l2 = APLine(A2, B2)
+figH = ceil(Int, fh) # hide
+nothing # hide
+```
+
+**Step 1.** The line, the point `A` on it, and `p`.
+
+```@example geo
+@show distance(A, p) ≈ r
+fig_draw(500, figH) do # hide
+    fig_given(l2) # hide
+    fig_dots([A2, p2], julia_blue) # hide
+    fig_tags(("A", :SW, A2), ("p", :NW, p2)) # hide
+end # hide
+```
+
+**Step 2.** The circle around `A` through `p` cuts `l` at `D`.
+
+```@example geo
+@show on_line(D, l)
+@show distance(A, D) ≈ r
+fig_draw(500, figH) do # hide
+    fig_faint(cA) # hide
+    fig_given(l2) # hide
+    fig_dots([A2, p2], julia_blue) # hide
+    fig_dots([D2], julia_green) # hide
+    fig_tags(("A", :SW, A2), ("p", :NW, p2), ("D", :S, D2)) # hide
+end # hide
+```
+
+**Step 3.** Two circles of the same radius, around `D` and around `p`, meet at `E`.
+
+```@example geo
+@show distance(E, D) ≈ r
+@show distance(E, p) ≈ r
+fig_draw(500, figH) do # hide
+    fig_faint([cA, cD, cP]) # hide
+    fig_given(l2) # hide
+    fig_dots([A2, p2], julia_blue) # hide
+    fig_dots([D2, E2], julia_green) # hide
+    fig_tags(("A", :SW, A2), ("p", :NW, p2), ("D", :S, D2), ("E", :NE, E2)) # hide
+end # hide
+```
+
+**Step 4.** `A`, `D`, `E` and `p` are the corners of a rhombus, so the line through `p` and `E` is parallel to `l`.
+
+```@example geo
+par = APLine(p2, E2)
+@show is_parallel(par, l2)
+fig_draw(500, figH) do # hide
+    fig_faint([cA, cD, cP]) # hide
+    fig_aid(APPolyline2([A2, p2, E2, D2, A2])) # hide
+    fig_given(l2) # hide
+    fig_result(par) # hide
+    fig_dots([A2, p2], julia_blue) # hide
+    fig_dots([D2, E2], julia_green) # hide
+    fig_tags(("A", :SW, A2), ("p", :NW, p2), ("D", :S, D2), ("E", :NE, E2)) # hide
+end # hide
+```
+
+### The angle bisector
+
+The bisector of the angle at `v` between `p1` and `p2`, as in
+[`bisector_construction`](@ref). A circle around `v` cuts the two rays; two
+equal circles around those points cross inside the angle.
+
+```@example geo
+v, p1, p2 = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 3.0)
+u1, u2 = normalize(p1 - v), normalize(p2 - v)
+r = min(distance(v, p1), distance(v, p2)) / 2
+x1, x2 = v + r * u1, v + r * u2                 # where the circle around v cuts the rays
+r2 = 0.75 * distance(x1, x2)
+ys = intersection(APCircle2(x1, r2), APCircle2(x2, r2))
+y = dot(ys[1] - v, u1 + u2) > dot(ys[2] - v, u1 + u2) ? ys[1] : ys[2]   # the crossing inside the angle
+
+(fw, fh), (s1, s2, x1_2, x2_2, y2, cv, cx1, cx2, v2) = @to_luxor_picture width=500 margin=30 begin
+    APSegment(v, p1)
+    APSegment(v, p2)
+    x1
+    x2
+    y
+    APCircle2(v, r)
+    APCircle2(x1, r2)
+    APCircle2(x2, r2)
+    v
+end
+figH = ceil(Int, fh) # hide
+nothing # hide
+```
+
+**Step 1.** The two rays.
+
+```@example geo
+@show angle_at(v, p1, p2)
+fig_draw(500, figH) do # hide
+    fig_given([s1, s2]) # hide
+    fig_dots([v2], julia_blue) # hide
+    fig_tags(("v", :SW, v2)) # hide
+end # hide
+```
+
+**Step 2.** A circle around `v` cuts the rays at `x1` and `x2`, at the same distance from `v`.
+
+```@example geo
+@show distance(v, x1) ≈ distance(v, x2)
+fig_draw(500, figH) do # hide
+    fig_faint(cv) # hide
+    fig_given([s1, s2]) # hide
+    fig_dots([v2], julia_blue) # hide
+    fig_dots([x1_2, x2_2], julia_green) # hide
+    fig_tags(("v", :SW, v2), ("x1", :S, x1_2), ("x2", :NW, x2_2)) # hide
+end # hide
+```
+
+**Step 3.** Two equal circles around `x1` and `x2` cross at `y`, inside the angle.
+
+```@example geo
+@show distance(y, x1) ≈ distance(y, x2)
+fig_draw(500, figH) do # hide
+    fig_faint([cx1, cx2]) # hide
+    fig_given([s1, s2]) # hide
+    fig_dots([v2], julia_blue) # hide
+    fig_dots([x1_2, x2_2, y2], julia_green) # hide
+    fig_tags(("v", :SW, v2), ("x1", :S, x1_2), ("x2", :NW, x2_2), ("y", :NE, y2)) # hide
+end # hide
+```
+
+**Step 4.** The ray from `v` through `y` is the bisector: both angles it makes are equal.
+
+```@example geo
+@show angle_at(v, p1, y) ≈ angle_at(v, y, p2)
+fig_draw(500, figH) do # hide
+    fig_faint([cx1, cx2]) # hide
+    fig_given([s1, s2]) # hide
+    fig_result(APRay(v2, y2)) # hide
+    fig_dots([v2], julia_blue) # hide
+    fig_dots([x1_2, x2_2, y2], julia_green) # hide
+    fig_tags(("v", :SW, v2), ("x1", :S, x1_2), ("x2", :NW, x2_2), ("y", :NE, y2)) # hide
+end # hide
+```
+
+These are the same lines that `mediator_construction`, `perpendicular_construction`, `parallel_construction` and `bisector_construction` return as `result`, with the compass traces they also return.
 
 ## Drawing the steps
 

@@ -10,6 +10,8 @@ makedocs(;
         edit_link="master",
         assets=String[],
         size_threshold_ignore=["api.md"],
+        size_threshold_warn=400 * 1024,
+        size_threshold=800 * 1024,
     ),
     pages=[
         "Home" => "index.md",
