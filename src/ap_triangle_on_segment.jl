@@ -3,6 +3,10 @@
 
 The equilateral triangle with side `[a, b]`, built counterclockwise from
 `a` to `b` (`ccw=false` builds it on the other side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 function equilateral_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
     return APTriangle(a, b, rotate(b, ccw ? pi / 3 : -pi / 3, a))
@@ -20,6 +24,10 @@ The isosceles triangle with base `[a, b]` and the given equal leg length
 (`distance(a, c) == distance(b, c) == leg`), built counterclockwise from
 `a` to `b` (`ccw=false` builds it on the other side). Throws an
 `ArgumentError` if `leg` is too short to reach across the base.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 isosceles_triangle_on_segment(a::APPoint, b::APPoint, leg::Real; ccw::Bool=true) =
     triangle_on_segment_sss(a, b, leg, leg; ccw=ccw)
@@ -38,6 +46,10 @@ counterclockwise from `a` to `b` (`ccw=false` builds it on the other
 side). Generalizes [`isosceles_triangle_on_segment`](@ref) (`len_a ==
 len_b`). Throws an `ArgumentError` if `len_a`/`len_b` can't reach across
 `[a, b]` (triangle inequality).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 function triangle_on_segment_sss(a::APPoint, b::APPoint, len_a::Real, len_b::Real; ccw::Bool=true)
     pts = intersection(APCircle2(a, len_a), APCircle2(b, len_b))
@@ -64,6 +76,10 @@ fixed-shape `*_on_segment` constructor in this file is a special case of
 `triangle_on_segment(a, b, pi/6, pi/3)`). Throws an `ArgumentError` unless
 both angles are in `(0, π)` and sum to less than `π`, since otherwise the
 two rays from `a` and `b` never meet on a genuine triangle's side.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 function triangle_on_segment(a::APPoint, b::APPoint, angle_a::Real, angle_b::Real; ccw::Bool=true)
     (0 < angle_a < pi && 0 < angle_b < pi && angle_a + angle_b < pi) ||
@@ -88,6 +104,11 @@ that same vertex (SAS: two sides and the angle between them then known),
 built counterclockwise from `a` to `b` (`ccw=false` builds it on the
 other side). Throws an `ArgumentError` unless `angle` is in `(0, π)` and
 `at` is `:a` or `:b`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `at` | `:a` | the base vertex where the angle is, `:a` or `:b` |
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 function triangle_on_segment_sas(a::APPoint, b::APPoint, angle::Real, len::Real; at::Symbol=:a, ccw::Bool=true)
     0 < angle < pi || throw(ArgumentError("triangle_on_segment_sas: angle must be in (0, π)"))
@@ -127,6 +148,12 @@ at the other base vertex ([`intersection`](@ref)`(::APRay,
 
 `ccw=false` builds on the other side of the base, same as every other
 `*_on_segment` constructor in this file.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `at` | `:a` | the base vertex where the angle is, `:a` or `:b` |
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
+| `second_solution` | `false` | when the data give two triangles, `false` returns the one with the larger angle at the other base vertex, `true` the other |
 """
 function triangle_on_segment_ssa(a::APPoint, b::APPoint, angle::Real, opposite_len::Real;
     at::Symbol=:a, ccw::Bool=true, second_solution::Bool=false)
@@ -163,6 +190,10 @@ end
 The right triangle with hypotenuse `[a, b]`, angle `30°` at `a` and `60°`
 at `b`, built counterclockwise from `a` to `b` (`ccw=false` builds it on
 the other side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 triangle_30_60_90_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
     triangle_on_segment(a, b, pi / 6, pi / 3; ccw=ccw)
@@ -178,6 +209,10 @@ end
 The isosceles right triangle with hypotenuse `[a, b]`, built via Thales'
 theorem (the right-angle vertex lies on the circle with diameter `[a, b]`),
 counterclockwise from `a` to `b` (`ccw=false` builds it on the other side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 isosceles_right_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
     triangle_on_segment(a, b, pi / 4, pi / 4; ccw=ccw)
@@ -193,6 +228,10 @@ end
 The golden triangle with base `[a, b]`: isosceles with base angles `72°`
 and apex angle `36°`, built counterclockwise from `a` to `b` (`ccw=false`
 builds it on the other side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 golden_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
     triangle_on_segment(a, b, 2pi / 5, 2pi / 5; ccw=ccw)
@@ -208,6 +247,10 @@ end
 The golden gnomon with base `[a, b]`: isosceles with base angles `36°` and
 apex angle `108°`, built counterclockwise from `a` to `b` (`ccw=false`
 builds it on the other side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 golden_gnomon_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
     triangle_on_segment(a, b, pi / 5, pi / 5; ccw=ccw)
@@ -225,6 +268,10 @@ is at `b`, and the "3" side `[b, c]` is perpendicular to `[a, b]` with
 length `0.75 * distance(a, b)`, giving hypotenuse `[a, c]` the remaining
 "5" side automatically. Built counterclockwise from `a` to `b` (`ccw=false`
 builds it on the other side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 egyptian_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
     triangle_on_segment_sas(a, b, pi / 2, 0.75 * distance(a, b); at=:b, ccw=ccw)
@@ -241,6 +288,10 @@ The isosceles triangle with base `[a, b]` whose sides are proportional to
 `2`, `φ` and `φ` (the profile of the pyramid of Cheops): the two equal sides
 have length `φ / 2 * distance(a, b)`. Built counterclockwise from `a` to `b`
 (`ccw=false` builds it on the other side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 cheops_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
     isosceles_triangle_on_segment(a, b, golden / 2 * distance(a, b); ccw=ccw)
@@ -256,6 +307,10 @@ golden ratio: `[a, b]` is the long leg and `[b, c]` the short one, of length
 `distance(a, b) / φ` (the half of a golden rectangle cut by a diagonal).
 Built counterclockwise from `a` to `b` (`ccw=false` builds it on the other
 side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` builds on the left of `a → b` (counterclockwise), `false` on the right |
 """
 golden_right_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
     triangle_on_segment_sas(a, b, pi / 2, distance(a, b) / golden; at=:b, ccw=ccw)

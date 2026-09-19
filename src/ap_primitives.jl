@@ -196,6 +196,10 @@ orthogonal projection), meets `l`: the oblique projection of `p` onto
 `l` for any other `angle`. `angle` must be strictly between `0` and `π`:
 at either end, the projecting line becomes parallel to `l` itself, so
 there's no longer a single intersection point.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `angle` | `pi/2` | angle of the projecting line with `l`, in radians, strictly between `0` and `π`; the default is the perpendicular |
 """
 function projection(p::APPoint, l::APLine; angle::Real=pi / 2)
     d = direction(l)
@@ -499,6 +503,10 @@ end
 `mode=:region` (default): `0` when `p` is inside or on `bb`, otherwise the
 usual point-to-axis-aligned-box distance. `mode=:boundary`: always the
 distance to the nearest edge, even from inside.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `mode` | `:region` | for regions and sets: `:region` gives `0` for a point inside or on it, `:boundary` the distance to the boundary even from inside |
 """
 function distance(p::APPoint{2}, bb::APBoundingBox{2}; mode::Symbol=:region)
     _check_distance_mode(mode)

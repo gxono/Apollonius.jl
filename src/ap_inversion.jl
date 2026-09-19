@@ -23,6 +23,11 @@ beyond what `inversion` itself already throws for). Without this method,
 [`invert(center::APPoint; k, atol)`](@ref)'s one-argument curried form
 instead (built for `p |> invert(center)`), returning a *function* rather
 than the inverted point.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `k` | `1.0` | radius of the circle of inversion |
+| `atol` | `1e-9` | tolerance for deciding that a line passes through the center |
 """
 invert(p::APPoint, center::APPoint; k::Real=1.0, atol=1e-9) = inversion(p, APCircle2(center, k))
 """
@@ -121,6 +126,11 @@ inversion_neg(p::APPoint, c::APCircle2) = reflection(inversion(p, c), c.center)
 The image of `l`/`c` under inversion of *negative* ratio with respect to
 the circle centered at `center` with radius `k`: the ordinary
 [`invert`](@ref) image, point-reflected through `center`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `k` | `1.0` | radius of the circle of inversion |
+| `atol` | `1e-9` | tolerance for deciding that a line passes through the center |
 """
 invert_neg(l::APLine, center::APPoint; k::Real=1.0, atol=1e-9) = reflection(invert(l, center; k=k, atol=atol), center)
 invert_neg(c::APCircle2, center::APPoint; k::Real=1.0, atol=1e-9) = reflection(invert(c, center; k=k, atol=atol), center)

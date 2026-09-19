@@ -10,6 +10,10 @@ parallelogram(a::APPoint, b::APPoint, c::APPoint) = APQuadrilateral(a, b, c, a +
 
 The square with side `[a, b]`, built counterclockwise from `a` to `b`
 (`ccw=false` builds it on the other side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` puts the square on the left of `a → b`, `false` on the right |
 """
 function square_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
     v = orthogonal(b - a)
@@ -21,6 +25,10 @@ end
 
 The rectangle with side `[a, b]` and the given `height`, built
 counterclockwise from `a` to `b` (`ccw=false` builds it on the other side).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` puts the rectangle on the left of `a → b`, `false` on the right |
 """
 function rectangle_on_segment(a::APPoint, b::APPoint, height::Real; ccw::Bool=true)
     u = orthogonal((b - a) / norm(b - a))

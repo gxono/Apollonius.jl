@@ -338,6 +338,10 @@ Base.in(p::APPoint, h::APHyperbola2) = begin
 end
 """
     point_on_hyperbola(h::APHyperbola2, t::Real; branch::Int=1)
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `branch` | `1` | which branch of the hyperbola: `1` or `-1` |
 """
 function point_on_hyperbola(h::APHyperbola2, t::Real; branch::Int=1)
     x, y = branch * h.a * cosh(t), h.b * sinh(t)

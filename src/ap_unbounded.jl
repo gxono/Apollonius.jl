@@ -127,6 +127,10 @@ ray: this holds for any measure, reflex wedges included. With `mode =
 :region` (the default), `0.0` whenever `p` lies inside the wedge, else
 the same boundary distance (for a closed region, the nearest point to an
 exterior point always lies on the boundary).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `mode` | `:region` | for regions and sets: `:region` gives `0` for a point inside or on it, `:boundary` the distance to the boundary even from inside |
 """
 function distance(p::APPoint, ang::APAngle2; mode::Symbol=:region)
     _check_distance_mode(mode)

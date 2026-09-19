@@ -210,6 +210,10 @@ end
 The half circle centered at `center` starting at `p` and ending at the
 antipode of `p`, counterclockwise for `ccw=true` (the default). Shorthand
 for [`arc_with_angle`](@ref)`(center, p, π)`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `ccw` | `true` | `true` sweeps counterclockwise from `p`, `false` clockwise |
 """
 semicircle(center::APPoint, p::APPoint; ccw::Bool=true) = arc_with_angle(center, p, ccw ? pi : -pi)
 """

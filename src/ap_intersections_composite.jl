@@ -82,6 +82,11 @@ sampled at `n` parameters, every sign change of the signed distance to `obj` is
 refined by bisection, and points off a ray or segment are dropped. A curve that
 only touches `obj` without crossing it, or that crosses it twice between two
 samples, is missed: increase `n`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `n` | `400` | number of parameter samples along the curve |
+| `atol` | `1e-9` | tolerance for merging repeated points |
 """
 function intersection(c::APParametricCurve2, o::_ParametricTarget; n::Integer=400, atol=1e-9)
     g = _residual(o)

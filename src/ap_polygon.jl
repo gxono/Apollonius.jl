@@ -280,6 +280,10 @@ t = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0))
 distance(APPoint(1.0, 1.0), t)                    # 0.0: p is inside t
 distance(APPoint(1.0, 1.0), t; mode=:boundary)    # > 0.0: distance to the nearest side instead
 ```
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `mode` | `:region` | for regions and sets: `:region` gives `0` for a point inside or on it, `:boundary` the distance to the boundary even from inside |
 """
 function distance(p::APPoint, pg::APPolygon; mode::Symbol=:region)
     _check_distance_mode(mode)

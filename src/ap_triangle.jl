@@ -465,6 +465,10 @@ The (outer, by default) Napoleon triangle of `t`: the triangle formed by
 the centroids of the equilateral triangles erected on each side of `t`
 (outward by default; inward if `outward=false`). Always equilateral
 (Napoleon's theorem).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `outward` | `true` | `true` erects the equilateral triangles outward on the sides (the outer Napoleon triangle), `false` inward |
 """
 function napoleon_triangle(t::APTriangle; outward::Bool=true)
     A, B, C = t[1], t[2], t[3]
@@ -477,6 +481,10 @@ end
 
 The center of the (outer, by default) Napoleon triangle of `t`: which, by
 Napoleon's theorem, coincides with the centroid of `t` itself.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `outward` | `true` | `true` uses the outward equilateral triangles, `false` the inward ones |
 """
 napoleon_point(t::APTriangle; outward::Bool=true) = centroid(napoleon_triangle(t; outward=outward))
 """
@@ -1107,6 +1115,10 @@ end
 The center of `t`'s inner (`outer=false`, the default) or outer
 (`outer=true`) [`soddy_circles`](@ref) circle, as a point on its own
 (Kimberling X(176) and X(175) respectively).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `outer` | `false` | `false` gives the center of the inner Soddy circle (X176), `true` the outer one (X175) |
 """
 function soddy_center(t::APTriangle; outer::Bool=false, atol=1e-9)
     sc = soddy_circles(t; atol=atol)
