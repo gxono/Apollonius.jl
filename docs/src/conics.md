@@ -248,6 +248,289 @@ two conics can meet in up to 4 points, one degree too many for that
 shortcut. Both give a `Vector{APPoint{2,Float64}}`, so nothing about
 calling `intersection` changes based on which two types you hand it.
 
+## Conic constructions step by step
+
+The blocks in this section are run when the documentation is built, and each
+figure comes from the code above it; only the geometry is shown. The figures
+use one color code: blue for the given objects, green for the construction
+aids, purple for what is found. In each part, the first block builds the
+objects inside [`@to_luxor_picture`](@ref), which fits them to the canvas and
+returns the fitted objects in `lxo`, under the names they were given. The
+answer is built there too, so that the canvas has room for every step, and each
+step then rebuilds its part of it from the given objects. A curve that goes on
+forever is marked `@unbounded`, and an arc of it is drawn in its place.
+
+### An ellipse from the sum of distances
+
+An ellipse is the set of points whose distances to the two foci add up to a
+constant, `2a`. To find such a point, pick a radius `r`, and draw the circle of
+radius `r` around one focus and the circle of radius `2a - r` around the other.
+They cross at points of the ellipse.
+
+```@example geo
+using Luxor: sethue, setline, setdash, fontsize, label, julia_blue, julia_green, julia_red, julia_purple # hide
+import Luxor # hide
+fig_given(x) = (sethue(julia_blue); path(x; action=:stroke)) # hide
+fig_faint(x) = (Luxor.gsave(); setline(1); setdash("dash"); sethue("gray80"); path(x; action=:stroke); Luxor.grestore()) # hide
+fig_aid(x) = (Luxor.gsave(); setline(1); setdash("dash"); sethue(julia_green); path(x; action=:stroke); Luxor.grestore()) # hide
+fig_result(x) = (sethue(julia_purple); path(x; action=:stroke)) # hide
+fig_fill(x; a=0.25) = (sethue(julia_purple); Luxor.setopacity(a); path(x; action=:fill); Luxor.setopacity(1.0)) # hide
+fig_dots(pts, c) = (path(pts); sethue("white"); Luxor.fillpreserve(); sethue(c); Luxor.strokepath()) # hide
+fig_tags(ts...) = (sethue(julia_red); for (t, al, p) in ts; label(t, al, p); end) # hide
+fig_vtags(t) = (sethue(julia_red); g = centroid(t); for (n, v) in zip(("A", "B", "C"), vertices(t)); label(n, label_anchor(v, g)...); end) # hide
+function fig_draw(f, w, h) # hide
+    Luxor.@drawsvg begin # hide
+        Luxor.origin(); fontsize(15); f() # hide
+    end w h # hide
+end # hide
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+    ef1 = APPoint(-3.0, 0.0)
+    ef2 = APPoint(3.0, 0.0)
+    eell = APEllipse2(ef1, ef2, 5.0)
+end
+(; ef1, ef2, eell) = lxo
+figH = ceil(Int, lxm.height) # hide
+nothing # hide
+```
+
+**Step 1.** The two foci, and the sum of distances `2a`.
+
+```@example geo
+ea = eell.a
+distance(ef1, ef2) < 2ea
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_dots([ef1, ef2], julia_blue) # hide
+    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
+end # hide
+```
+
+**Step 2.** A radius `r` between `a - c` and `a + c`, and the two circles of radius `r` and `2a - r`.
+
+```@example geo
+er = 0.6 * ea
+ek1, ek2 = APCircle2(ef1, er), APCircle2(ef2, 2ea - er)
+ep = intersection(ek1, ek2)
+all(p -> distance(p, ef1) + distance(p, ef2) ≈ 2ea, ep)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_faint([ek1, ek2]) # hide
+    fig_dots([ef1, ef2], julia_blue) # hide
+    fig_dots(ep, julia_purple) # hide
+    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
+end # hide
+```
+
+**Step 3.** The same with other radii. Each pair of circles gives two more points.
+
+```@example geo
+epall = reduce(vcat, [intersection(APCircle2(ef1, s * ea), APCircle2(ef2, (2 - s) * ea)) for s in (0.45, 0.6, 0.8, 1.0, 1.2, 1.4, 1.55)])
+length(epall)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_dots([ef1, ef2], julia_blue) # hide
+    fig_dots(epall, julia_purple) # hide
+    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
+end # hide
+```
+
+**Step 4.** The ellipse passes through all of them.
+
+```@example geo
+all(p -> is_on_ellipse(p, eell), epall)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_result(eell) # hide
+    fig_dots([ef1, ef2], julia_blue) # hide
+    fig_dots(epall, julia_purple) # hide
+    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
+end # hide
+```
+
+### A parabola from a focus and a directrix
+
+A parabola is the set of points as far from the focus as from the directrix.
+Take a point `D` on the directrix. A point `P` of the parabola that is as far
+from the focus as from `D` is on the perpendicular bisector of `[F, D]`, and
+its distance to the directrix is measured along the perpendicular at `D`. So it
+is where the two lines meet.
+
+```@example geo
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+    pf = APPoint(0.0, 1.0)
+    pd = APSegment(APPoint(-6.0, -1.0), APPoint(6.0, -1.0))
+    @unbounded ppar = APParabola2(pf, APLine(pd.p1, pd.p2))
+    parc = APParabolicArc2(ppar, point_on_parabola(ppar, -5.0), point_on_parabola(ppar, 5.0))
+end
+(; pf, pd, ppar, parc) = lxo
+figH = ceil(Int, lxm.height) # hide
+nothing # hide
+```
+
+**Step 1.** The focus, and the directrix as a line.
+
+```@example geo
+pl = APLine(pd.p1, pd.p2)
+!on_line(pf, pl)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(pd) # hide
+    fig_dots([pf], julia_blue) # hide
+    fig_tags(("F", :N, pf)) # hide
+end # hide
+```
+
+**Step 2.** A point `D` of the directrix, and the perpendicular bisector of `[F, D]`.
+
+```@example geo
+pdp = point_on_line(pl, 0.7)
+pm = perpendicular_bisector(pf, pdp)
+distance(pf, pm) ≈ distance(pdp, pm)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(pd) # hide
+    fig_aid([pm, APSegment(pf, pdp)]) # hide
+    fig_dots([pf], julia_blue) # hide
+    fig_dots([pdp], julia_green) # hide
+    fig_tags(("F", :N, pf), ("D", :S, pdp)) # hide
+end # hide
+```
+
+**Step 3.** The perpendicular to the directrix at `D` meets it at a point of the parabola.
+
+```@example geo
+pn = perpendicular_through(pl, pdp)
+pp = only(intersection(pm, pn))
+distance(pp, pf) ≈ distance(pp, pl)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(pd) # hide
+    fig_aid([pm, pn, APSegment(pf, pdp)]) # hide
+    fig_dots([pf], julia_blue) # hide
+    fig_dots([pdp], julia_green) # hide
+    fig_dots([pp], julia_purple) # hide
+    fig_tags(("F", :N, pf), ("D", :S, pdp), ("P", :E, pp)) # hide
+end # hide
+```
+
+**Step 4.** The same for other points of the directrix, and the parabola through all of them.
+
+```@example geo
+pps = [only(intersection(perpendicular_bisector(pf, d), perpendicular_through(pl, d))) for d in [point_on_line(pl, t) for t in (0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95)]]
+all(p -> is_on_parabola(p, ppar), pps)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(pd) # hide
+    fig_result(parc) # hide
+    fig_dots([pf], julia_blue) # hide
+    fig_dots(pps, julia_purple) # hide
+    fig_tags(("F", :N, pf)) # hide
+end # hide
+```
+
+### The tangent to an ellipse at a point
+
+Light from one focus reflects off the ellipse towards the other, so the tangent
+at `P` makes equal angles with the two focal radii. Reflecting `F1` in the
+tangent puts it on the line `F2P`, at distance `|PF1|` from `P`. That point `Q` is
+then at distance `|PF1| + |PF2| = 2a` from `F2`, and the tangent is the
+perpendicular bisector of `[F1, Q]`.
+
+```@example geo
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+    tf1 = APPoint(-3.0, 0.0)
+    tf2 = APPoint(3.0, 0.0)
+    tell = APEllipse2(tf1, tf2, 5.0)
+    tp = point_on_ellipse(tell, 1.0)
+    tq = only(intersection(APRay(tf2, tp), APCircle2(tf2, 2 * tell.a)))
+    @unbounded ttan = polar_line(tell, tp)
+end
+(; tf1, tf2, tell, tp, tq, ttan) = lxo
+figH = ceil(Int, lxm.height) # hide
+nothing # hide
+```
+
+**Step 1.** The ellipse with its foci, and a point `P` on it.
+
+```@example geo
+is_on_ellipse(tp, tell)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(tell) # hide
+    fig_dots([tf1, tf2, tp], julia_blue) # hide
+    fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp)) # hide
+end # hide
+```
+
+**Step 2.** The two focal radii. Their lengths add up to `2a`.
+
+```@example geo
+tr1, tr2 = APSegment(tp, tf1), APSegment(tp, tf2)
+distance(tp, tf1) + distance(tp, tf2) ≈ 2tell.a
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(tell) # hide
+    fig_aid([tr1, tr2]) # hide
+    fig_dots([tf1, tf2, tp], julia_blue) # hide
+    fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp)) # hide
+end # hide
+```
+
+**Step 3.** The circle of radius `2a` around `F2` cuts the line `F2P` beyond `P` at `Q`, and `|PQ| = |PF1|`.
+
+```@example geo
+tq = only(intersection(APRay(tf2, tp), APCircle2(tf2, 2tell.a)))
+distance(tp, tq) ≈ distance(tp, tf1)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(tell) # hide
+    fig_aid([APSegment(tf2, tq), tr1]) # hide
+    fig_dots([tf1, tf2, tp], julia_blue) # hide
+    fig_dots([tq], julia_green) # hide
+    fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp), ("Q", :N, tq)) # hide
+end # hide
+```
+
+**Step 4.** The tangent is the perpendicular bisector of `[F1, Q]`.
+
+```@example geo
+ttl = perpendicular_bisector(tf1, tq)
+(on_line(tp, ttl), ttl ≈ polar_line(tell, tp))
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(tell) # hide
+    fig_aid([APSegment(tf1, tq)]) # hide
+    fig_result(ttl) # hide
+    fig_dots([tf1, tf2, tp], julia_blue) # hide
+    fig_dots([tq], julia_green) # hide
+    fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp), ("Q", :N, tq)) # hide
+end # hide
+```
+
 ## Arcs of a conic
 
 [`APEllipticArc2`](@ref), [`APParabolicArc2`](@ref) and

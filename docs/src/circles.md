@@ -394,6 +394,295 @@ line_circle_position(APLine(APPoint(0.0, 5.0), APPoint(1.0, 5.0)), APCircle2(APP
 <img src="../assets/img/circles/line_circle_positions.svg" alt="A line and a circle, disjoint, tangent and secant" style="width:100%; max-width: 700px;">
 ```
 
+## Circle constructions step by step
+
+The blocks in this section are run when the documentation is built, and each
+figure comes from the code above it; only the geometry is shown. The figures
+use one color code: blue for the given objects, green for the construction
+aids, purple for what is found. In each part, the first block builds the
+objects inside [`@to_luxor_picture`](@ref), which fits them to the canvas and
+returns the fitted objects in `lxo`, under the names they were given. The
+answer is built there too, so that the canvas has room for every step, and each
+step then rebuilds its part of it from the given objects.
+
+### The tangent lines from a point
+
+A tangent is perpendicular to the radius at its point of contact. So the
+contact point `T` sees the segment from the center `O` to the point `P` under
+a right angle, and by Thales' theorem it lies on the circle with diameter
+`[O, P]`.
+
+```@example geo
+using Luxor: sethue, setline, setdash, fontsize, label, julia_blue, julia_green, julia_red, julia_purple # hide
+import Luxor # hide
+fig_given(x) = (sethue(julia_blue); path(x; action=:stroke)) # hide
+fig_faint(x) = (Luxor.gsave(); setline(1); setdash("dash"); sethue("gray80"); path(x; action=:stroke); Luxor.grestore()) # hide
+fig_aid(x) = (Luxor.gsave(); setline(1); setdash("dash"); sethue(julia_green); path(x; action=:stroke); Luxor.grestore()) # hide
+fig_result(x) = (sethue(julia_purple); path(x; action=:stroke)) # hide
+fig_fill(x; a=0.25) = (sethue(julia_purple); Luxor.setopacity(a); path(x; action=:fill); Luxor.setopacity(1.0)) # hide
+fig_dots(pts, c) = (path(pts); sethue("white"); Luxor.fillpreserve(); sethue(c); Luxor.strokepath()) # hide
+fig_tags(ts...) = (sethue(julia_red); for (t, al, p) in ts; label(t, al, p); end) # hide
+fig_vtags(t) = (sethue(julia_red); g = centroid(t); for (n, v) in zip(("A", "B", "C"), vertices(t)); label(n, label_anchor(v, g)...); end) # hide
+function fig_draw(f, w, h) # hide
+    Luxor.@drawsvg begin # hide
+        Luxor.origin(); fontsize(15); f() # hide
+    end w h # hide
+end # hide
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+    kc = APCircle2(APPoint(0.0, 0.0), 3.0)
+    kp = APPoint(9.0, 2.0)
+    kth = APCircle2(midpoint(kc.center, kp), distance(kc.center, kp) / 2)
+end
+(; kc, kp, kth) = lxo
+figH = ceil(Int, lxm.height) # hide
+nothing # hide
+```
+
+**Step 1.** The circle, its center, and a point outside it.
+
+```@example geo
+ko = kc.center
+!(kp in kc)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(kc) # hide
+    fig_dots([ko, kp], julia_blue) # hide
+    fig_tags(("O", :SW, ko), ("P", :N, kp)) # hide
+end # hide
+```
+
+**Step 2.** The circle with diameter `[O, P]`, centered at the midpoint of the two.
+
+```@example geo
+km = midpoint(ko, kp)
+kthales = APCircle2(km, distance(km, ko))
+distance(km, kp) ≈ distance(km, ko)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(kc) # hide
+    fig_aid(kthales) # hide
+    fig_dots([ko, kp], julia_blue) # hide
+    fig_dots([km], julia_green) # hide
+    fig_tags(("O", :SW, ko), ("P", :N, kp), ("M", :S, km)) # hide
+end # hide
+```
+
+**Step 3.** The two circles cross at the points of contact. Each one sees `[O, P]` under a right angle.
+
+```@example geo
+kT = intersection(kc, kthales)
+all(t -> is_perpendicular(APLine(t, ko), APLine(t, kp)), kT)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(kc) # hide
+    fig_aid([kthales, APSegment(ko, kT[1]), APSegment(ko, kT[2])]) # hide
+    fig_dots([ko, kp], julia_blue) # hide
+    fig_dots(kT, julia_purple) # hide
+    fig_tags(("O", :SW, ko), ("P", :N, kp)) # hide
+end # hide
+```
+
+**Step 4.** The tangent lines are the lines from `P` through the two points.
+
+```@example geo
+ktl = [APLine(kp, t) for t in kT]
+all(l -> line_circle_position(l, kc) == :tangent, ktl)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(kc) # hide
+    fig_result([APSegment(kp, t) for t in kT]) # hide
+    fig_dots([ko, kp], julia_blue) # hide
+    fig_dots(kT, julia_purple) # hide
+    fig_tags(("O", :SW, ko), ("P", :N, kp)) # hide
+end # hide
+```
+
+### The circle through three points
+
+The center is at the same distance from `a` and from `b`, so it is on the
+perpendicular bisector of `[a, b]`. It is on the one of `[b, c]` too, so it is
+where the two bisectors meet.
+
+```@example geo
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+    qa = APPoint(0.0, 0.0)
+    qb = APPoint(6.0, 1.0)
+    qc = APPoint(2.0, 5.0)
+    qci = circumcircle(APTriangle(qa, qb, qc))
+end
+(; qa, qb, qc, qci) = lxo
+figH = ceil(Int, lxm.height) # hide
+nothing # hide
+```
+
+**Step 1.** Three points that are not on a line.
+
+```@example geo
+!is_collinear(qa, qb, qc)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_dots([qa, qb, qc], julia_blue) # hide
+    fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
+end # hide
+```
+
+**Step 2.** The perpendicular bisector of `[a, b]`.
+
+```@example geo
+qm1 = perpendicular_bisector(qa, qb)
+distance(qa, qm1) ≈ distance(qb, qm1)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_aid(qm1) # hide
+    fig_dots([qa, qb, qc], julia_blue) # hide
+    fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
+end # hide
+```
+
+**Step 3.** The perpendicular bisector of `[b, c]`.
+
+```@example geo
+qm2 = perpendicular_bisector(qb, qc)
+distance(qb, qm2) ≈ distance(qc, qm2)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_aid([qm1, qm2]) # hide
+    fig_dots([qa, qb, qc], julia_blue) # hide
+    fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
+end # hide
+```
+
+**Step 4.** They meet at the center, which is at the same distance from the three points.
+
+```@example geo
+qo = only(intersection(qm1, qm2))
+distance(qo, qa) ≈ distance(qo, qb) ≈ distance(qo, qc)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_aid([qm1, qm2]) # hide
+    fig_dots([qa, qb, qc], julia_blue) # hide
+    fig_dots([qo], julia_purple) # hide
+    fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
+end # hide
+```
+
+**Step 5.** The circle around the center through the three points.
+
+```@example geo
+qres = APCircle2(qo, distance(qo, qa))
+isapprox(qres, qci; atol=1e-9)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_aid([qm1, qm2]) # hide
+    fig_result(qres) # hide
+    fig_dots([qa, qb, qc], julia_blue) # hide
+    fig_dots([qo], julia_purple) # hide
+    fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
+end # hide
+```
+
+### The radical axis of two circles that do not meet
+
+When two circles cross, their radical axis is the line through the two points.
+When they do not, an auxiliary circle that crosses both gives a point of it.
+The common chords of the auxiliary circle with each one meet at a point that
+has the same power with respect to all three circles, and the radical axis is
+the perpendicular to the line of centers through that point.
+
+```@example geo
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+    r1 = APCircle2(APPoint(0.0, 0.0), 2.0)
+    r2 = APCircle2(APPoint(7.0, 1.0), 1.5)
+    rk = APCircle2(APPoint(3.5, 2.0), 3.2)
+    @unbounded rax = radical_axis(r1, r2)
+    rpiece = APSegment(APPoint(3.6, -3.0), APPoint(3.6, 5.0))   # the part of the axis in view
+end
+(; r1, r2, rk, rax, rpiece) = lxo
+figH = ceil(Int, lxm.height) # hide
+nothing # hide
+```
+
+**Step 1.** Two circles that are apart.
+
+```@example geo
+circles_position(r1, r2)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given([r1, r2]) # hide
+end # hide
+```
+
+**Step 2.** An auxiliary circle that crosses both.
+
+```@example geo
+circles_position(r1, rk), circles_position(r2, rk)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given([r1, r2]) # hide
+    fig_aid(rk) # hide
+end # hide
+```
+
+**Step 3.** Its common chord with each circle. The two lines meet at a point with the same power for the three circles.
+
+```@example geo
+rp = intersection(r1, rk)
+rq = intersection(r2, rk)
+rl1, rl2 = APLine(rp[1], rp[2]), APLine(rq[1], rq[2])
+rm = only(intersection(rl1, rl2))
+power_of_point(rm, r1) ≈ power_of_point(rm, r2) ≈ power_of_point(rm, rk)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given([r1, r2]) # hide
+    fig_aid([rk, rl1, rl2]) # hide
+    fig_dots([rp; rq], julia_green) # hide
+    fig_dots([rm], julia_purple) # hide
+    fig_tags(("M", :NE, rm)) # hide
+end # hide
+```
+
+**Step 4.** The radical axis: the perpendicular to the line of centers through that point.
+
+```@example geo
+raxis = perpendicular_through(APLine(r1.center, r2.center), rm)
+raxis ≈ rax
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given([r1, r2]) # hide
+    fig_aid([APLine(r1.center, r2.center)]) # hide
+    fig_result(raxis) # hide
+    fig_dots([r1.center, r2.center], julia_blue) # hide
+    fig_dots([rm], julia_purple) # hide
+    fig_tags(("M", :NE, rm)) # hide
+end # hide
+```
+
 ## Circular arcs
 
 [`APCircularArc2`](@ref) is the arc of a circle between two of its points,
