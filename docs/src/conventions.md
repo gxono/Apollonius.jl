@@ -24,6 +24,12 @@ arc = APCircularArc2(c, APPoint(3.0, 0.0), APPoint(0.0, 3.0))
 measure(arc) ≈ pi / 2, point_on_arc(arc, 0.0) ≈ arc.p1
 ```
 
+The order of the two rays decides which wedge you get. Swapping `a` and `b` gives the other one:
+
+```@raw html
+<img src="../assets/img/conventions/angle_orientation.svg" alt="The same two rays give a small angle or a reflex angle depending on their order" style="width:100%; max-width: 700px;">
+```
+
 ## Naming
 
 * Types start with `AP`. A `2` at the end marks a type whose formulas only
@@ -96,6 +102,10 @@ an arrowhead at the other end. See [Drawing with Luxor.jl](@ref).
 
 ```@example geo
 measure(arc) ≈ pi / 2, measure(reverse(arc)) ≈ 3pi / 2
+```
+
+```@raw html
+<img src="../assets/img/conventions/arc_reverse.svg" alt="An arc in blue and its reverse, the rest of the circle, dashed" style="width:100%; max-width: 700px;">
 ```
 
 **Why does `s[end]` fail on a segment?** Indexing works (`s[1]`, `s[2]`)

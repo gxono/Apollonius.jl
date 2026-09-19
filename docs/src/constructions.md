@@ -42,6 +42,16 @@ trace = compass_trace(center, p; angle=pi / 3)
 measure(trace) ≈ pi / 3, isapprox(midpoint(trace), p; atol=1e-9)
 ```
 
+```@raw html
+<img src="../assets/img/constructions/compass_trace.svg" alt="A compass trace around a point P, centered at O" style="width:100%; max-width: 700px;">
+```
+
+Three of the other builders side by side: `arc_with_angle` starts at the point and sweeps from it, `semicircle` is a half turn, and `extend_arc` lengthens an arc (the blue part is the original).
+
+```@raw html
+<img src="../assets/img/constructions/arc_builders.svg" alt="Three compass arcs: arc_with_angle, semicircle and extend_arc" style="width:100%; max-width: 700px;">
+```
+
 ## A first construction: Euclid I.1
 
 The first proposition of the *Elements* builds an equilateral triangle on a
@@ -55,6 +65,10 @@ crossings = intersection(APCircle2(A, r), APCircle2(B, r))
 C = first(crossings)
 traces = [compass_trace(A, C; angle=pi / 6), compass_trace(B, C; angle=pi / 6)]
 distance(A, C) ≈ r, distance(B, C) ≈ r
+```
+
+```@raw html
+<img src="../assets/img/constructions/euclid_i1.svg" alt="Two circles, the compass traces around C and the equilateral triangle" style="width:100%; max-width: 700px;">
 ```
 
 `traces` are the two arcs a compass would leave around `C`, ready for
@@ -104,6 +118,10 @@ m = mediator_construction(a, b)
 isapprox(m.result, perpendicular_bisector(a, b); atol=1e-9), length(m.arcs)
 ```
 
+```@raw html
+<img src="../assets/img/constructions/mediator.svg" alt="The perpendicular bisector of a segment with its four compass traces" style="width:100%; max-width: 700px;">
+```
+
 ```@example geo
 l = APLine(APPoint(0.0, 0.0), APPoint(5.0, 1.0))
 q = APPoint(2.0, 4.0)
@@ -112,15 +130,33 @@ par = parallel_construction(l, q)
 is_perpendicular(perp.result, l), is_parallel(par.result, l), on_line(q, par.result)
 ```
 
+```@raw html
+<img src="../assets/img/constructions/perpendicular.svg" alt="The perpendicular to a line through a point off the line" style="width:100%; max-width: 700px;">
+```
+
+The parallel is a rhombus: `A`, `D`, `E` and the point, with the parallel through the point and `E`.
+
+```@raw html
+<img src="../assets/img/constructions/parallel.svg" alt="The parallel to a line through a point, built as a rhombus" style="width:100%; max-width: 700px;">
+```
+
 When `q` is already on `l`, `perpendicular_construction` marks two points on
 `l` at the same distance from `q` and takes the mediator of those, so the
 result is the same kind of line.
+
+```@raw html
+<img src="../assets/img/constructions/perpendicular_on_line.svg" alt="The perpendicular to a line through a point on the line" style="width:100%; max-width: 700px;">
+```
 
 ```@example geo
 v, p1, p2 = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 3.0)
 bis = bisector_construction(v, p1, p2)
 y = bis.points[3]
 angle_at(v, p1, y) ≈ angle_at(v, y, p2)
+```
+
+```@raw html
+<img src="../assets/img/constructions/bisector.svg" alt="The bisector of an angle with its compass traces" style="width:100%; max-width: 700px;">
 ```
 
 ### The points
@@ -135,6 +171,30 @@ sym = symmetry_construction(q, APPoint(1.0, 1.0))
 tra = translation_construction(q, APPoint(0.0, 0.0), APPoint(3.0, 1.0))
 proj.result ≈ projection(q, l), refl.result ≈ reflection(q, l),
 sym.result ≈ reflection(q, APPoint(1.0, 1.0)), tra.result ≈ q + APVector(3.0, 1.0)
+```
+
+The projection drops the foot of the perpendicular:
+
+```@raw html
+<img src="../assets/img/constructions/projection.svg" alt="The projection of a point on a line" style="width:100%; max-width: 700px;">
+```
+
+The reflection finds the mirror image with two circles through the point:
+
+```@raw html
+<img src="../assets/img/constructions/reflection.svg" alt="The reflection of a point across a line" style="width:100%; max-width: 700px;">
+```
+
+The point symmetry needs two traces:
+
+```@raw html
+<img src="../assets/img/constructions/symmetry.svg" alt="The image of a point by symmetry about a center" style="width:100%; max-width: 700px;">
+```
+
+And the translation completes a parallelogram:
+
+```@raw html
+<img src="../assets/img/constructions/translation.svg" alt="The image of a point by a translation" style="width:100%; max-width: 700px;">
 ```
 
 If the point is its own image (a point on `l` for a reflection, a zero

@@ -19,6 +19,6 @@ macro svg_doc(sz, file, content)
         origin()
         $(esc(content))
         finish()
-        preview()
+        haskey(ENV, "APOLLONIUS_NO_PREVIEW") || preview()
     end
 end

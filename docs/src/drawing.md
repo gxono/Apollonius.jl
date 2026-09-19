@@ -422,6 +422,12 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | `APCurvilinearPolyline2` | an open chain of straight and curved sides in the order given: a line for an `APSegment`, a true arc for an `APCircularArc2`, a sampled polyline for any other conic arc | `n=60` |
 | `AbstractVector{<:APObject}` | each element in turn, with the same `kwargs` every time (see below) | whatever that element's own type takes |
 
+The four point shapes, drawn with `action=:stroke`:
+
+```@raw html
+<img src="../assets/img/drawing/point_shapes.svg" alt="The four point shapes: circle, square, cross and plus" style="width:100%; max-width: 700px;">
+```
+
 Every method for a curve also takes `reverse=true` (see [Reversing a path](@ref)). The last row is what lets a plain `Vector` (what [`intersection`](@ref)/
 [`tangent_points`](@ref) return, since they can give 0, 1 or 2 points
 depending on the geometry) get drawn directly, without unwrapping it by
@@ -654,6 +660,10 @@ path(arc; action=:stroke)                 # the dashes start at arc.p1
 path(arc; reverse=true, action=:stroke)   # the same arc, dashes starting at arc.p2
 ```
 
+```@raw html
+<img src="../assets/img/drawing/path_reverse.svg" alt="The same segment drawn with an arrow forward and reversed" style="width:100%; max-width: 700px;">
+```
+
 This is not the same as [`reverse`](@ref)`(obj)`, which builds a new object.
 For a circular or elliptic arc that object is the *complementary* arc, the
 rest of the circle. `path(arc; reverse=true)` draws the same arc.
@@ -678,6 +688,12 @@ region, a bounding box), and without approximating any arc.
     sethue("red")
     paint()                                          # everything except the two discs
 end
+```
+
+The same idea with two discs and a triangle, shading everything else:
+
+```@raw html
+<img src="../assets/img/drawing/clip_out.svg" alt="The outside of two circles and a triangle shaded" style="width:100%; max-width: 700px;">
 ```
 
 Two calls keep what is outside both shapes, and a `Vector` argument does the
@@ -711,6 +727,19 @@ d, text = Luxor.dimension(APPoint(-80.0, 60.0), APPoint(80.0, 60.0); offset=15) 
 major, minor = Luxor.tickline(APPoint(-100.0, 0.0), APPoint(100.0, 0.0);
     major=4, minor=1, vertices=true)                                              # positions only
 path(major; radius=2, action=:fill)                                              # draw them as dots
+```
+
+The measured text is the distance between the two points you pass, so on a
+canvas it is a length in pixels. Use `format` to show the value in your own
+units, and `textrotation=-pi/2` to keep the text upright on a horizontal
+dimension line (Luxor rotates it with the line by default):
+
+```julia
+Luxor.dimension(a, b; offset=40, format=d -> "7.0", textrotation=-pi / 2, textgap=25)
+```
+
+```@raw html
+<img src="../assets/img/drawing/dimension.svg" alt="A dimension line with its measured text" style="width:100%; max-width: 700px;">
 ```
 
 To choose where a label goes and how it is aligned, see

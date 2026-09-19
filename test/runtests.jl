@@ -578,6 +578,10 @@ using Base.MathConstants: golden
             @test only(marks(s; at=0.2)).p1[1] ≈ 2.0
             @test length(marks(s; style=:cross)) == 2
             @test only(marks(s; style=:circle, size=2.0)) ≈ APCircle2(APPoint(5.0, 0.0), 1.0)
+            cs = marks(s; style=:circle, count=3, size=6.0, gap=4.0)   # gap < size: raised so circles are tangent
+            @test distance(cs[1].center, cs[2].center) ≈ 6.0 && distance(cs[2].center, cs[3].center) ≈ 6.0
+            cs = marks(s; style=:circle, count=2, size=2.0, gap=5.0)   # gap > size: disjoint
+            @test distance(cs[1].center, cs[2].center) ≈ 5.0
             chev = marks(s; style=:chevron, size=4.0)
             @test length(chev) == 2 && chev[1].p1 ≈ chev[2].p1   # both arms share the tip
             slash = only(marks(s; style=:slash, slant=pi / 6, size=2.0))

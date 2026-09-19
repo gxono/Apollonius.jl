@@ -258,6 +258,10 @@ ext = extend_line(base, 0.5)         # half of 10.0 more, at each end
 ext.p1, ext.p2, distance(ext.p1, ext.p2)
 ```
 
+```@raw html
+<img src="../assets/img/decorations/extend_line.svg" alt="A segment lengthened at both ends" style="width:100%; max-width: 700px;">
+```
+
 The same lengthening is available when drawing, as the `add` keyword of
 `path`; see [Drawing with Luxor.jl](@ref). More on this function is in
 [Marks, Labels & Decorations](@ref).

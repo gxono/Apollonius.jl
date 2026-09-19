@@ -1,0 +1,25 @@
+include("../default_config.jl")
+sz = @to_luxor_picture! width=500 height=280 margin=30 begin
+    A, B = APPoint(0.0, 0.0), APPoint(8.0, 1.0)
+    p = APPoint(3.0, 4.0)
+    extent = projection_construction(p, APLine(A, B); sweep=pi / 4).arcs
+end
+l = APLine(A, B)
+m = projection_construction(p, l; sweep=pi / 4)
+@svg_doc(sz, @__FILE__, begin
+Luxor.fontsize(15)
+sethue(julia_purple); Luxor.setline(1.2)
+path(m.arcs, action=:stroke)
+sethue(julia_blue); Luxor.setline(1.8)
+path(l; extend=(80, 80), action=:stroke)
+sethue("gray"); setdash("dash"); Luxor.setline(1)
+path(APSegment(p, m.result), action=:stroke)
+setdash("solid")
+path([p, m.points...])
+setpoint(julia_blue)
+path([m.result])
+setpoint(julia_red)
+sethue("black")
+label("p", :NE, p)
+label("foot", :SE, m.result)
+end)

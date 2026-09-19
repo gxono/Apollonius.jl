@@ -1,0 +1,21 @@
+include("../default_config.jl")
+sz = @to_luxor_picture! width=500 height=280 margin=30 begin
+    grid = grid_lines(APBoundingBox(APPoint(-1.0, -1.0), APPoint(7.0, 5.0)); step=1.0)
+    axes = axes_lines(APBoundingBox(APPoint(-1.0, -1.0), APPoint(7.0, 5.0)))
+    P = APPoint(4.0, 3.0)
+    guides = coordinate_guides(P)
+end
+@svg_doc(sz, @__FILE__, begin
+Luxor.fontsize(14)
+sethue("gainsboro"); Luxor.setline(0.7)
+path(grid, action=:stroke)
+sethue("black"); Luxor.setline(1.3)
+path(axes, action=:stroke)
+sethue(julia_blue); setdash("dot"); Luxor.setline(1.5)
+path(guides, action=:stroke)
+setdash("solid")
+path(P)
+setpoint(julia_red)
+sethue("black")
+label("P", :NE, P)
+end)

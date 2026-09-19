@@ -57,6 +57,12 @@ mid = tangent_at(arc, 0.5)
 mid.point, dot(mid.vector, mid.point - circ.center) ≈ 0.0
 ```
 
+```@raw html
+<img src="../assets/img/decorations/tangent_at.svg" alt="Five tangent vectors along a semicircle" style="width:100%; max-width: 700px;">
+```
+
+The direction of travel is the stored one, from `p1` to `p2`. `@to_luxor_picture` flips the `y` axis, so an arc that runs counterclockwise in your coordinates comes back with its endpoints swapped and runs clockwise on the screen. Compute the decorations on the transformed objects and they follow what you see.
+
 ## Equality marks: `marks`
 
 [`marks`](@ref)`(obj)` returns `count` marks centered at parameter `at` of
@@ -78,11 +84,15 @@ of one mark.
 | `:slash` | a stroke tilted `slant` from the perpendicular |
 | `:chevron` | a `>` along the direction of travel, the usual mark for parallel lines |
 | `:cross` | an `x`, two strokes per mark |
-| `:circle` | a small circle |
+| `:circle` | a small circle, never closer to its neighbours than tangent |
 
 ```@example geo
 two_ticks = marks(s; count=2)
 length(two_ticks), only(marks(s; style=:circle, size=2.0))
+```
+
+```@raw html
+<img src="../assets/img/decorations/marks_segment.svg" alt="The five mark styles on a segment, two marks each" style="width:100%; max-width: 700px;">
 ```
 
 Marks lie on the tangent at `at`, so with a small `gap` they follow the
@@ -91,6 +101,10 @@ curve closely. On a circular arc a tick lies along a radius:
 ```@example geo
 tick = only(marks(arc; size=1.0))
 on_line(circ.center, APLine(tick.p1, tick.p2))
+```
+
+```@raw html
+<img src="../assets/img/decorations/marks_arc.svg" alt="A tick, two chevrons and a circle on an arc" style="width:100%; max-width: 700px;">
 ```
 
 ### Marks on an angle
@@ -115,8 +129,18 @@ arcs = marks(ang; count=2, size=0.8, gap=0.3)
 [a.circle.r for a in arcs]
 ```
 
+```@raw html
+<img src="../assets/img/decorations/marks_angle.svg" alt="One, two and three arcs on an angle" style="width:100%; max-width: 700px;">
+```
+
 To combine arcs and a symbol, call `marks` twice with the same `size` and
 concatenate the results.
+
+In the first panel a tick crosses two arcs: the tick is centered between their radii and is longer than the gap between them. The other five panels show each symbol style.
+
+```@raw html
+<img src="../assets/img/decorations/marks_angle_symbols.svg" alt="Arcs with a tick, and each symbol style on an angle" style="width:100%; max-width: 700px;">
+```
 
 ## Arrowheads: `arrow_head`
 
@@ -146,6 +170,10 @@ head = arrow_head(arc; at=1.0, place=:tip)
 isapprox(head[1], arc.p2; atol=1e-9)
 ```
 
+```@raw html
+<img src="../assets/img/decorations/arrow_heads.svg" alt="The three arrowhead styles on segments, and a tip arrow on an arc" style="width:100%; max-width: 700px;">
+```
+
 ## Braces: `brace` and `brace_anchor`
 
 [`brace`](@ref)`(p1, p2)` is a curly brace along the segment, `height`
@@ -158,6 +186,10 @@ pieces disappear.
 ```@example geo
 b = brace(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0)
 count(x -> x isa APCircularArc2, b), count(x -> x isa APSegment, b)
+```
+
+```@raw html
+<img src="../assets/img/decorations/braces.svg" alt="Braces on the left and right of a segment, horizontal and diagonal, with labels" style="width:100%; max-width: 700px;">
 ```
 
 [`brace_anchor`](@ref) with the same arguments gives the point of the brace
@@ -193,6 +225,10 @@ t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
 [label_anchor(v, centroid(t)).alignment for v in vertices(t)]
 ```
 
+```@raw html
+<img src="../assets/img/decorations/label_anchor.svg" alt="A triangle with vertex, side and angle labels placed outside" style="width:100%; max-width: 700px;">
+```
+
 ## Guides and grids
 
 [`coordinate_guides`](@ref)`(p)` returns the two segments from `p` to the
@@ -216,6 +252,10 @@ bb = APBoundingBox(APPoint(-2.0, -1.0), APPoint(3.0, 2.0))
 length(grid_lines(bb)), length(grid_lines(bb; step=0.5)), length(axes_lines(bb))
 ```
 
+```@raw html
+<img src="../assets/img/decorations/guides_grid.svg" alt="A grid, the axes and dotted coordinate guides for a point" style="width:100%; max-width: 700px;">
+```
+
 ## Lengthening a line: `extend_line`
 
 [`extend_line`](@ref)`(l, before, after)` lengthens the line through
@@ -228,6 +268,10 @@ that end.
 ```@example geo
 l = APLine(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
 extend_line(l, 0.2), extend_line(l, 0.0, -0.3)
+```
+
+```@raw html
+<img src="../assets/img/decorations/extend_line.svg" alt="A segment lengthened at both ends and another shortened at one end" style="width:100%; max-width: 700px;">
 ```
 
 ## Drawing all of it
@@ -252,6 +296,12 @@ end
     path(brace(seg.p1, seg.p2); action=:stroke)
     label("10", brace_anchor(seg.p1, seg.p2)...)       # splat: (alignment, point)
 end w h
+```
+
+Put together, the pieces make a figure like this one: an isosceles triangle with equal-side marks, arcs on the equal angles, an arrow on the base and a brace with its label. The script is `docs/illustrations/decorations/full_figure.jl`.
+
+```@raw html
+<img src="../assets/img/decorations/full_figure.svg" alt="An isosceles triangle with marks, an arrow, a brace and labels" style="width:100%; max-width: 700px;">
 ```
 
 The `label` method for `APPoint`s and the `dimension` and `tickline`

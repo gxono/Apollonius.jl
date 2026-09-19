@@ -73,8 +73,9 @@ function _marks_at(frame::APEquipollentVector, count::Integer, style::Symbol, si
     N = orthogonal(T)
     out = APObject[]
     half = size / 2
+    step = style === :circle ? max(gap, size) : gap   # circles are at least tangent
     for i in 1:count
-        C = P + ((i - (count + 1) / 2) * gap) * T
+        C = P + ((i - (count + 1) / 2) * step) * T
         if style === :tick
             push!(out, APSegment(C - half * N, C + half * N))
         elseif style === :slash
@@ -104,7 +105,9 @@ sides or arcs are congruent), as a `Vector` of geometric objects ready for
 [`tangent_at`](@ref); `0.5` is the middle), `gap` apart along the tangent
 there. Defined for an [`APSegment`](@ref) and the four conic arcs.
 
-`size` is the full length of one mark (the diameter for `:circle`); both
+`size` is the full length of one mark (the diameter for `:circle`, whose
+neighbours are never closer than tangent, so `gap` smaller than `size` is
+raised to `size`); both
 `size` and `gap` are in the units of the coordinates of `obj`, so build the
 marks from objects already transformed to the drawing (for example the ones
 [`@to_luxor_picture`](@ref) returns) to get a size in canvas units.

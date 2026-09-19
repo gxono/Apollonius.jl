@@ -1,0 +1,20 @@
+include("../default_config.jl")
+sz = @to_luxor_picture! width=500 height=240 margin=60 begin
+    O1, A1, B1 = APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(2.0, 4.0)
+    O2, A2, B2 = APPoint(9.0, 0.0), APPoint(14.0, 0.0), APPoint(11.0, 4.0)
+    ang1 = APAngle2(O1, A1, B1)
+    ang2 = APAngle2(O2, B2, A2)
+end
+@svg_doc(sz, @__FILE__, begin
+Luxor.fontsize(15)
+sethue(julia_blue); Luxor.setline(1.8)
+path([APSegment(O1, A1), APSegment(O1, B1), APSegment(O2, A2), APSegment(O2, B2)], action=:stroke)
+sethue(julia_purple); Luxor.setline(2)
+path(marks(ang1; size=30); action=:stroke)
+path(marks(ang2; size=30); action=:stroke)
+sethue("black")
+label("a", :E, A1); label("b", :N, B1)
+label("b", :N, B2); label("a", :E, A2)
+label("APAngle2(O,a,b)", :S, O1 + APVector(2.5, 0.0))
+label("APAngle2(O,b,a)", :S, O2 + APVector(2.5, 0.0))
+end)
