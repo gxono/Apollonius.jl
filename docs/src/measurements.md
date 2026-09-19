@@ -1,0 +1,149 @@
+```@meta
+CurrentModule = Apollonius
+```
+
+# Measurements & Queries
+
+The functions on this page take an object and return a number, an angle or a
+point derived from it. They are spread over the pages of each kind of object;
+this page puts them side by side and says what each one accepts.
+
+| You want | Function | Accepts |
+|:---------|:---------|:--------|
+| Distance | [`distance`](@ref) | points, lines, rays, segments, circles, conics, arcs, polylines, polygons, bounding boxes, angles, half-planes, strips |
+| Area | [`area`](@ref) | any polygon (including curvilinear ones), circle, ellipse |
+| Perimeter | [`perimeter`](@ref) | any polygon, circle, ellipse |
+| Length of a curve | [`arc_length`](@ref) | circular, elliptic, parabolic and hyperbolic arcs, polylines |
+| Angle swept | [`measure`](@ref) | angles, circular and elliptic arcs |
+| Angle between things | [`angle_at`](@ref), [`angle_between`](@ref), [`intersection_angle`](@ref), [`slope_angle`](@ref) | points, vectors, circles, lines |
+| Middle | [`midpoint`](@ref) | two points, a segment, any arc |
+| Center of mass | [`centroid`](@ref) | polygons, sectors, segments, annular sectors |
+| Foci | [`foci`](@ref) | ellipses, hyperbolas |
+| Closest of several points | [`nearest_point`](@ref) | a vector of points and a point |
+| Sizes of a triangle | [`circumradius`](@ref), [`inradius`](@ref) | triangles |
+| Circle and point | [`power_of_point`](@ref), [`tangent_length`](@ref) | a point and a circle |
+
+```@example geo
+using Apollonius
+```
+
+## Distance
+
+[`distance`](@ref) is the shortest distance between two objects, and it is
+`0` when they touch. It works in either order (`distance(p, c)` and
+`distance(c, p)` are the same) and for every pair the table above allows.
+What "the object" means depends on the type:
+
+* For a curve (a circle, an ellipse, an arc, a polyline) it is the curve
+  itself, so a point inside a circle is at distance `r - d` from it, not `0`.
+* For a line it is the whole infinite line. For a ray or a segment it is
+  only the piece drawn, so a point past the end is measured to the endpoint.
+* For a region (a polygon, an angle, a half-plane, a strip) it is `0` inside,
+  unless you pass `mode=:boundary`. See
+  [Polygons & Bounding Boxes](@ref) and
+  [Unbounded Regions: Half-Planes, Strips & Angles](@ref).
+
+```@example geo
+c = APCircle2(APPoint(0.0, 0.0), 5.0)
+distance(APPoint(2.0, 0.0), c), distance(APPoint(8.0, 0.0), c)   # inside and outside: both 3.0
+```
+
+Two objects of the same kind are measured between their nearest points:
+
+```@example geo
+c1, c2 = APCircle2(APPoint(0.0, 0.0), 1.0), APCircle2(APPoint(5.0, 0.0), 1.0)
+sa, sb = APSegment(APPoint(9.0, 0.0), APPoint(10.0, 0.0)), APSegment(APPoint(12.0, 1.0), APPoint(12.0, 5.0))
+la, lb = APLine(APPoint(15.0, 0.0), APPoint(19.0, 0.0)), APLine(APPoint(15.0, 2.5), APPoint(19.0, 2.5))
+distance(c1, c2), distance(sa, sb), distance(la, lb)
+```
+
+```@raw html
+<img src="../assets/img/measurements/distance_pairs.svg" alt="The shortest distance between two circles, two segments and two parallel lines" style="width:100%; max-width: 700px;">
+```
+
+## Area, perimeter and length
+
+[`area`](@ref) and [`perimeter`](@ref) cover every closed shape: polygons of
+every kind, a circle and an ellipse.
+
+```@example geo
+t = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0))
+e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+area(t), perimeter(t), area(e), perimeter(e)
+```
+
+The area of an ellipse is exact (`π·a·b`). Its perimeter has no closed form,
+and the value returned is Ramanujan's approximation, which is accurate to
+many more digits than a drawing needs.
+
+For a piece of a curve, use [`arc_length`](@ref). It also works for an open
+chain such as an [`APPolyline2`](@ref), where it is the sum of the sides.
+
+```@example geo
+arc = APCircularArc2(APCircle2(APPoint(0.0, 0.0), 3.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0))
+measure(arc), arc_length(arc) ≈ 3.0 * measure(arc)
+```
+
+```@raw html
+<img src="../assets/img/measurements/arc_measure.svg" alt="A circular arc with the angle it sweeps, its measure, and its length" style="width:100%; max-width: 700px;">
+```
+
+```@example geo
+arc_length(APPolyline2(APPoint(0.0, 0.0), APPoint(3.0, 4.0), APPoint(3.0, 6.0)))
+```
+
+## Angle functions
+
+Five functions return an angle. They differ in what they take and in
+whether the sign means anything:
+
+| Function | Takes | Result |
+|:---------|:------|:-------|
+| [`angle_at`](@ref)`(vertex, p1, p2)` | three points | unsigned, in `[0, π]` |
+| [`angle_between`](@ref)`(u, v)` | two vectors | signed, in `(-π, π]` |
+| [`measure`](@ref)`(ang)` | an [`APAngle2`](@ref) or an arc | signed for an angle, the angle swept for an arc |
+| [`intersection_angle`](@ref)`(c1, c2)` | two circles | the angle between the tangents where they cross |
+| [`slope_angle`](@ref)`(obj)` | a line, ray or segment | the angle of its direction from the `x` axis |
+
+```@example geo
+v = APPoint(0.0, 0.0)
+angle_at(v, APPoint(1.0, 0.0), APPoint(0.0, -1.0)), angle_between(APVector(1.0, 0.0), APVector(0.0, -1.0))
+```
+
+The first is the plain opening between the two rays, the second says the
+turn from the first vector to the second is clockwise. See
+[Points, Lines & Rays](@ref) for the angle type and its marks.
+
+## Points derived from an object
+
+[`midpoint`](@ref) works for two points, for a segment and for any arc (the
+point halfway along the curve). [`centroid`](@ref) is the center of mass of
+the enclosed area, not the average of the vertices, and the two differ as
+soon as the vertices are not evenly spread:
+
+```@example geo
+pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(6.0, 1.0), APPoint(1.0, 1.0), APPoint(1.0, 4.0), APPoint(0.0, 4.0)])
+centroid(pg)   # area-weighted, not the average of the six vertices
+```
+
+```@raw html
+<img src="../assets/img/measurements/centroid.svg" alt="An L-shaped polygon with its area-weighted centroid and the plain average of its vertices" style="width:100%; max-width: 700px;">
+```
+
+[`foci`](@ref) returns the two foci of an ellipse or a hyperbola as a tuple.
+[`nearest_point`](@ref) picks, from a vector of points such as the one
+[`intersection`](@ref) returns, the closest to a reference point, which is
+how to choose one of several solutions by where you want it.
+
+```@example geo
+foci(e), nearest_point([APPoint(1.0, 1.0), APPoint(4.0, 4.0)], APPoint(0.0, 0.0))
+```
+
+For a triangle, [`circumradius`](@ref) and [`inradius`](@ref) give the radii
+of its circumscribed and inscribed circles. For a point and a circle,
+[`power_of_point`](@ref) is `d² - r²`, and [`tangent_length`](@ref) is its
+square root, the length of the tangent from the point (see [Circles](@ref)).
+
+```@example geo
+circumradius(t), inradius(t), power_of_point(APPoint(13.0, 0.0), c), tangent_length(c, APPoint(13.0, 0.0))
+```

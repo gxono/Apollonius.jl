@@ -23,6 +23,8 @@ makedocs(;
         "Compass & Ruler Constructions" => "constructions.md",
         "Points, Lines & Rays" => "points_lines.md",
         "Predicates" => "predicates.md",
+        "Measurements & Queries" => "measurements.md",
+        "Intersections" => "intersections.md",
         "Circles" => "circles.md",
         "Triangles & Triangle Centers" => "triangles.md",
         "Tangency & Apollonius Problems" => "tangency.md",

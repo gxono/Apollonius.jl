@@ -1,0 +1,25 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=560 height=240 margin=30 begin
+    c1 = APCircle2(APPoint(0.0, 0.0), 1.0)
+    c2 = APCircle2(APPoint(5.0, 0.0), 1.0)
+    gap1 = APSegment(APPoint(1.0, 0.0), APPoint(4.0, 0.0))
+    sa = APSegment(APPoint(9.0, 0.0), APPoint(10.0, 0.0))
+    sb = APSegment(APPoint(12.0, 1.0), APPoint(12.0, 5.0))
+    gap2 = APSegment(APPoint(10.0, 0.0), APPoint(12.0, 1.0))
+    la = APSegment(APPoint(15.0, 0.0), APPoint(19.0, 0.0))
+    lb = APSegment(APPoint(15.0, 2.5), APPoint(19.0, 2.5))
+    gap3 = APSegment(APPoint(17.0, 0.0), APPoint(17.0, 2.5))
+end
+(; c1, c2, gap1, sa, sb, gap2, la, lb, gap3) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+sethue(julia_blue)
+path([c1, c2, sa, sb], action=:stroke)
+path([la, lb], action=:stroke)
+sethue(julia_purple)
+path([gap1, gap2, gap3], action=:stroke)
+sethue(julia_red)
+label("3.0", :N, midpoint(gap1.p1, gap1.p2))
+label("√5", :SE, midpoint(gap2.p1, gap2.p2))
+label("2.5", :E, midpoint(gap3.p1, gap3.p2))
+end)
