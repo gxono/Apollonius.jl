@@ -17,11 +17,22 @@ forwarded straight through).
 Luxor.label(txt::AbstractString, alignment::Symbol, p::AP.APPoint; kwargs...) = Luxor.label(txt, alignment, _lp(p); kwargs...)
 Luxor.label(txt::AbstractString, direction::Real, p::AP.APPoint; kwargs...) = Luxor.label(txt, direction, _lp(p); kwargs...)
 """
-    path(p::APPoint; radius=3, action=:path)
+    path(p::APPoint; radius=3, action=:path, reverse=false)
 
-`p` as a small circle of the given `radius`.
+`p` as a small circle of the given `radius`. `reverse` is accepted and
+ignored (a point has no direction), so `path(v; reverse=true)` works on a
+vector that mixes points with curves.
+
+# Reversing a path
+
+Every `path` method for a curve takes `reverse::Bool=false`: the very same
+points traversed backwards. It is *not* the same as `reverse(obj)`, which
+for a circular or elliptic arc gives the *complementary* arc. Reversing
+matters where the direction of travel shows: which end an `as=:arrow` arrow
+points to, where a dash pattern starts, and the orientation of subpaths
+combined under a fill rule.
 """
-AP.path(p::AP.APPoint; radius=3, action=:path) = Luxor.circle(_lp(p), radius, action)
+AP.path(p::AP.APPoint; radius=3, action=:path, reverse::Bool=false) = Luxor.circle(_lp(p), radius, action)
 """
     path(v::APVector, from::APPoint=APPoint(0.0, 0.0); as=:plain, action=:path, kwargs...)
 
@@ -30,9 +41,10 @@ AP.path(p::AP.APPoint; radius=3, action=:path) = Luxor.circle(_lp(p), radius, ac
 as an arrow instead -- see [`path(::APSegment)`](@ref) for what that
 changes.
 """
-function AP.path(v::AP.APVector, from::AP.APPoint=AP.APPoint(0.0, 0.0); as::Symbol=:plain, action=:path, kwargs...)
-    as == :arrow && return _arrow(_lp(from), _lp(from + v); kwargs...)
-    return Luxor.line(_lp(from), _lp(from + v), action)
+function AP.path(v::AP.APVector, from::AP.APPoint=AP.APPoint(0.0, 0.0); as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
+    a, b = reverse ? (from + v, from) : (from, from + v)
+    as == :arrow && return _arrow(_lp(a), _lp(b); kwargs...)
+    return Luxor.line(_lp(a), _lp(b), action)
 end
 """
     path(ev::APEquipollentVector; as=:plain, action=:path, kwargs...)
@@ -44,9 +56,10 @@ argument (and, unlike a bare `APVector`, correctly scaled/placed by
 `@to_luxor_picture` beforehand, since this type has a real
 `APBoundingBox`). `as=:arrow` draws it as an arrow instead.
 """
-function AP.path(ev::AP.APEquipollentVector; as::Symbol=:plain, action=:path, kwargs...)
-    as == :arrow && return _arrow(_lp(ev.point), _lp(AP.tip(ev)); kwargs...)
-    return Luxor.line(_lp(ev.point), _lp(AP.tip(ev)), action)
+function AP.path(ev::AP.APEquipollentVector; as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
+    a, b = reverse ? (AP.tip(ev), ev.point) : (ev.point, AP.tip(ev))
+    as == :arrow && return _arrow(_lp(a), _lp(b); kwargs...)
+    return Luxor.line(_lp(a), _lp(b), action)
 end
 """
     path(s::APSegment; as=:plain, action=:path, kwargs...)
@@ -64,9 +77,10 @@ entirely -- see `Luxor.arrow`'s own docstring), so switching a shape from
 `as=:plain` to `as=:arrow` doesn't silently thin its line. Pass
 `linewidth=...` explicitly to override that.
 """
-function AP.path(s::AP.APSegment; as::Symbol=:plain, action=:path, kwargs...)
-    as == :arrow && return _arrow(_lp(s.p1), _lp(s.p2); kwargs...)
-    return Luxor.line(_lp(s.p1), _lp(s.p2), action)
+function AP.path(s::AP.APSegment; as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
+    a, b = reverse ? (s.p2, s.p1) : (s.p1, s.p2)
+    as == :arrow && return _arrow(_lp(a), _lp(b); kwargs...)
+    return Luxor.line(_lp(a), _lp(b), action)
 end
 """
     path(l::APLine; extend=1000.0, as=:plain, action=:path, kwargs...)
@@ -84,10 +98,11 @@ a different amount -- e.g. `extend=(0.0, 50.0)` draws from `l.p1` itself
 `as=:arrow` draws it as an arrow instead -- see
 [`path(::APSegment)`](@ref) for what that changes.
 """
-function AP.path(l::AP.APLine; extend::Union{Real,Tuple{Real,Real}}=1000.0, as::Symbol=:plain, action=:path, kwargs...)
+function AP.path(l::AP.APLine; extend::Union{Real,Tuple{Real,Real}}=1000.0, as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
     past_p1, past_p2 = extend isa Tuple ? extend : (extend, extend)
     u = AP.direction(l) / AP.norm(AP.direction(l))
     p1, p2 = l.p1 - past_p1 * u, l.p2 + past_p2 * u
+    reverse && ((p1, p2) = (p2, p1))
     as == :arrow && return _arrow(_lp(p1), _lp(p2); kwargs...)
     return Luxor.line(_lp(p1), _lp(p2), action)
 end
@@ -99,11 +114,12 @@ past `r.through`. Pass `extend=0.0` to instead draw the exact finite
 segment from `r.origin` to `r.through`. `as=:arrow` draws it as an arrow
 instead -- see [`path(::APSegment)`](@ref) for what that changes.
 """
-function AP.path(r::AP.APRay; extend=1000.0, as::Symbol=:plain, action=:path, kwargs...)
+function AP.path(r::AP.APRay; extend=1000.0, as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
     u = AP.direction(r) / AP.norm(AP.direction(r))
-    p2 = r.through + extend * u
-    as == :arrow && return _arrow(_lp(r.origin), _lp(p2); kwargs...)
-    return Luxor.line(_lp(r.origin), _lp(p2), action)
+    a, b = r.origin, r.through + extend * u
+    reverse && ((a, b) = (b, a))
+    as == :arrow && return _arrow(_lp(a), _lp(b); kwargs...)
+    return Luxor.line(_lp(a), _lp(b), action)
 end
 """
     path(hp::APHalfPlane2; extend=1000.0, action=:path)
@@ -113,7 +129,8 @@ to the path -- this draws its boundary line instead (see
 [`path(::APLine)`](@ref)), the same way an infinite `APLine` itself is
 drawn.
 """
-AP.path(hp::AP.APHalfPlane2; extend=1000.0, action=:path) = AP.path(hp.boundary; extend=extend, action=action)
+AP.path(hp::AP.APHalfPlane2; extend=1000.0, action=:path, reverse::Bool=false) =
+    AP.path(hp.boundary; extend=extend, action=action, reverse=reverse)
 """
     path(s::APStrip2; extend=1000.0, action=:path)
 
@@ -122,18 +139,33 @@ lines (see [`path(::APLine)`](@ref)), one call each -- there's no way to
 add two disjoint lines as a single Luxor path action, so `action` is
 applied to each independently rather than to the pair as a whole.
 """
-function AP.path(s::AP.APStrip2; extend=1000.0, action=:path)
-    AP.path(s.line1; extend=extend, action=action)
-    AP.path(s.line2; extend=extend, action=action)
+function AP.path(s::AP.APStrip2; extend=1000.0, action=:path, reverse::Bool=false)
+    AP.path(s.line1; extend=extend, action=action, reverse=reverse)
+    AP.path(s.line2; extend=extend, action=action, reverse=reverse)
 end
 """
-    path(c::APCircle2; action=:path)
+    path(c::APCircle2; action=:path, reverse=false)
+
+With `reverse=true` the circle is traversed in the opposite direction
+(built as a counter-direction arc, starting at the same point).
 """
-AP.path(c::AP.APCircle2; action=:path) = Luxor.circle(_lp(c.center), c.r, action)
+function AP.path(c::AP.APCircle2; action=:path, reverse::Bool=false)
+    reverse || return Luxor.circle(_lp(c.center), c.r, action)
+    action != :path && Luxor.newpath()
+    center = _lp(c.center)
+    Luxor.move(center + Luxor.Point(c.r, 0.0))
+    Luxor.carc(center, c.r, 2pi, 0.0)
+    Luxor.closepath()
+    Luxor.do_action(action)
+end
 """
-    path(bb::APBoundingBox; action=:path)
+    path(bb::APBoundingBox; action=:path, reverse=false)
 """
-AP.path(bb::AP.APBoundingBox; action=:path) = Luxor.box(_lp(bb.min), _lp(bb.max), action)
+function AP.path(bb::AP.APBoundingBox; action=:path, reverse::Bool=false)
+    reverse || return Luxor.box(_lp(bb.min), _lp(bb.max), action)
+    corners = _lp([bb.min, AP.APPoint(bb.max[1], bb.min[2]), bb.max, AP.APPoint(bb.min[1], bb.max[2])])
+    return Luxor.poly(Base.reverse(corners), action; close=true)
+end
 """
     path(e::APEllipse2; action=:path)
 
@@ -142,12 +174,19 @@ inside a rotated/translated frame (`gsave`/`translate`/`rotate`/`grestore`)
 matching `e.center`/`e.angle`, so the rendered path stays a true curve at
 any zoom level.
 """
-function AP.path(e::AP.APEllipse2; action=:path)
+function AP.path(e::AP.APEllipse2; action=:path, reverse::Bool=false)
     action != :path && Luxor.newpath()
     Luxor.gsave()
     Luxor.translate(_lp(e.center))
     Luxor.rotate(e.angle)
-    Luxor.ellipse(Luxor.O, 2 * e.a, 2 * e.b; action=:path)
+    if reverse
+        Luxor.scale(e.a, e.b)
+        Luxor.move(Luxor.Point(1.0, 0.0))
+        Luxor.carc(Luxor.O, 1.0, 2pi, 0.0)
+        Luxor.closepath()
+    else
+        Luxor.ellipse(Luxor.O, 2 * e.a, 2 * e.b; action=:path)
+    end
     Luxor.grestore()
     Luxor.do_action(action)
 end
@@ -157,8 +196,9 @@ end
 Luxor has no native parabola primitive, so this samples `n` points via
 [`point_on_parabola`](@ref) over `srange` and adds them as an open polyline.
 """
-function AP.path(par::AP.APParabola2; srange=(-100.0, 100.0), n=60, action=:path)
+function AP.path(par::AP.APParabola2; srange=(-100.0, 100.0), n=60, action=:path, reverse::Bool=false)
     pts = [_lp(AP.point_on_parabola(par, s)) for s in range(srange[1], srange[2]; length=n)]
+    reverse && Base.reverse!(pts)
     Luxor.poly(pts, action; close=false)
 end
 """
@@ -169,8 +209,9 @@ Luxor has no native hyperbola primitive, so this samples `n` points via
 them as an open polyline. Call twice (`branch=1` and `branch=-1`) for both
 branches.
 """
-function AP.path(h::AP.APHyperbola2; trange=(-2.0, 2.0), n=60, branch::Int=1, action=:path)
+function AP.path(h::AP.APHyperbola2; trange=(-2.0, 2.0), n=60, branch::Int=1, action=:path, reverse::Bool=false)
     pts = [_lp(AP.point_on_hyperbola(h, t; branch=branch)) for t in range(trange[1], trange[2]; length=n)]
+    reverse && Base.reverse!(pts)
     Luxor.poly(pts, action; close=false)
 end
 """
@@ -201,28 +242,31 @@ filled wedge). `as` picks which:
 `distance(vertex, b)`, so it looks reasonable at the triangle/figure's own
 scale without having to think about it.
 """
-function AP.path(ang::AP.APAngle2; as::Symbol=:arc, radius=nothing, action=:path)
+function AP.path(ang::AP.APAngle2; as::Symbol=:arc, radius=nothing, action=:path, reverse::Bool=false)
     vertex, a, b = ang.vertex, ang.a, ang.b
     r = radius === nothing ? 0.15 * min(AP.distance(vertex, a), AP.distance(vertex, b)) : radius
     if as == :rays
         ua = (a - vertex) / AP.norm(a - vertex)
         ub = (b - vertex) / AP.norm(b - vertex)
-        return Luxor.poly(_lp([vertex + r * ua, vertex, vertex + r * ub]), action; close=false)
+        pts = [vertex + r * ua, vertex, vertex + r * ub]
+        return Luxor.poly(_lp(reverse ? Base.reverse(pts) : pts), action; close=false)
     end
     pa = vertex + r * (a - vertex) / AP.norm(a - vertex)
     pb = vertex + r * (b - vertex) / AP.norm(b - vertex)
     if as == :rarc
         pc = pa + (pb - vertex)
-        return Luxor.poly(_lp([pa, pc, pb]), action; close=false)
+        pts = [pa, pc, pb]
+        return Luxor.poly(_lp(reverse ? Base.reverse(pts) : pts), action; close=false)
     elseif as == :rsector
         pc = pa + (pb - vertex)
-        return Luxor.poly(_lp([vertex, pa, pc, pb]), action; close=true)
+        pts = [vertex, pa, pc, pb]
+        return Luxor.poly(_lp(reverse ? Base.reverse(pts) : pts), action; close=true)
     end
     arc = AP.APCircularArc2(AP.APCircle2(vertex, r), pa, pb)
     if as == :arc
-        return AP.path(arc; action=action)
+        return AP.path(arc; action=action, reverse=reverse)
     elseif as == :sector
-        return AP.path(AP.APCircularSector2(arc); action=action)
+        return AP.path(AP.APCircularSector2(arc); action=action, reverse=reverse)
     else
         throw(ArgumentError("path(::APAngle2): as must be :rays, :arc, :sector, :rarc or :rsector, got $(repr(as))"))
     end
@@ -234,10 +278,10 @@ A true circular arc from `arc.p1` to `arc.p2`, via Luxor's own `arc2r`
 (center + the two endpoints -- no separate angle bookkeeping needed, and no
 polygonal approximation: this draws with Cairo's native arc primitive).
 """
-function AP.path(arc::AP.APCircularArc2; action=:path)
+function AP.path(arc::AP.APCircularArc2; action=:path, reverse::Bool=false)
     action != :path && Luxor.newpath()
-    Luxor.move(_lp(arc.p1))
-    Luxor.arc2r(_lp(arc.circle.center), _lp(arc.p1), _lp(arc.p2))
+    Luxor.move(_lp(reverse ? arc.p2 : arc.p1))
+    _add_arc!(arc, reverse)
     Luxor.do_action(action)
 end
 """
@@ -250,8 +294,9 @@ or hyperbola, so each is added as an `n`-point open polyline, sampled via
 [`point_on_arc`](@ref) over the arc's own parameter range `[0, 1]`
 (`arc.p1` to `arc.p2`).
 """
-function AP.path(arc::Union{AP.APEllipticArc2,AP.APParabolicArc2,AP.APHyperbolicArc2}; n=60, action=:path)
-    pts = [_lp(AP.point_on_arc(arc, t)) for t in range(0.0, 1.0; length=n)]
+function AP.path(arc::Union{AP.APEllipticArc2,AP.APParabolicArc2,AP.APHyperbolicArc2}; n=60, action=:path, reverse::Bool=false)
+    ts = reverse ? range(1.0, 0.0; length=n) : range(0.0, 1.0; length=n)
+    pts = [_lp(AP.point_on_arc(arc, t)) for t in ts]
     Luxor.poly(pts, action; close=false)
 end
 """
@@ -262,8 +307,9 @@ it's added as an `n`-point open polyline, sampled via
 [`point_on_curve`](@ref) over `curve.trange` -- same idea as the sampled
 conic-arc types above.
 """
-function AP.path(curve::AP.APParametricCurve2; n=60, action=:path)
-    pts = [_lp(AP.point_on_curve(curve, t)) for t in range(curve.trange[1], curve.trange[2]; length=n)]
+function AP.path(curve::AP.APParametricCurve2; n=60, action=:path, reverse::Bool=false)
+    ts = reverse ? range(curve.trange[2], curve.trange[1]; length=n) : range(curve.trange[1], curve.trange[2]; length=n)
+    pts = [_lp(AP.point_on_curve(curve, t)) for t in ts]
     Luxor.poly(pts, action; close=false)
 end
 """
@@ -272,8 +318,10 @@ end
 An open chain of straight sides: one polyline through `pl`'s vertices in
 order (never closed, unlike an [`APStraightNgon`](@ref)).
 """
-function AP.path(pl::AP.APPolyline2; action=:path)
-    Luxor.poly([_lp(p) for p in pl.vertices], action; close=false)
+function AP.path(pl::AP.APPolyline2; action=:path, reverse::Bool=false)
+    pts = [_lp(p) for p in pl.vertices]
+    reverse && Base.reverse!(pts)
+    Luxor.poly(pts, action; close=false)
 end
 """
     path(pg::APCurvilinearPolyline2; n=60, action=:path)
@@ -283,14 +331,15 @@ already starts where the previous one ends): a straight line for an
 `APSegment` side, a true arc for an `APCircularArc2` side, and an
 `n`-point sampled polyline for any other conic-arc side.
 """
-function AP.path(pg::AP.APCurvilinearPolyline2; n=60, action=:path)
+function AP.path(pg::AP.APCurvilinearPolyline2; n=60, action=:path, reverse::Bool=false)
     action != :path && Luxor.newpath()
-    Luxor.move(_lp(AP._side_p1(pg.sides[1])))
-    for side in pg.sides
+    sides = reverse ? Base.reverse(pg.sides) : pg.sides
+    Luxor.move(_lp(reverse ? AP._side_p2(sides[1]) : AP._side_p1(sides[1])))
+    for side in sides
         if side isa AP.APSegment
-            Luxor.line(_lp(side.p2))
+            Luxor.line(_lp(reverse ? side.p1 : side.p2))
         else
-            _add_arc!(side, false; n=n)
+            _add_arc!(side, reverse; n=n)
         end
     end
     Luxor.do_action(action)
@@ -322,9 +371,10 @@ curved-region type (`APCircularSector2`, `APCircularSegment2`,
 `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`,
 `APCurvilinearQuadrilateral2`, `APCurvilinearNgon2`).
 """
-function AP.path(pg::AP.APPolygon; n=60, action=:path)
+function AP.path(pg::AP.APPolygon; n=60, action=:path, reverse::Bool=false)
     action != :path && Luxor.newpath()
     order = AP._polygon_walk(AP.sides(pg))
+    reverse && (order = [(side, !flag) for (side, flag) in Base.reverse(order)])
     first_side, first_reversed = order[1]
     start_pt = first_reversed ? AP._side_p2(first_side) : AP._side_p1(first_side)
     Luxor.move(_lp(start_pt))

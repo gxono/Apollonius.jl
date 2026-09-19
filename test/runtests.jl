@@ -5183,6 +5183,39 @@ using Base.MathConstants: golden
             path(APCurvilinearPolyline2([APSegment(APPoint(-60.0, 0.0), APPoint(30.0, 0.0)), arc]); action=:stroke)
             path(marks(APSegment(APPoint(-40.0, -40.0), APPoint(40.0, -40.0)); count=2); action=:stroke)
             path(marks(arc; style=:chevron); action=:stroke)
+            @testset "reverse=true traverses the same path backwards" begin
+                pts_of(obj; kwargs...) = (Luxor.newpath(); path(obj; action=:path, kwargs...); first(Luxor.pathtopoly()))
+                near(p, x, y) = isapprox(p.x, x; atol=0.02) && isapprox(p.y, y; atol=0.02)   # Cairo stores path points in 1/256 units
+                seg = APSegment(APPoint(0.0, 0.0), APPoint(50.0, 50.0))
+                fw, bw = pts_of(seg), pts_of(seg; reverse=true)
+                @test near(first(fw), 0, 0) && near(last(fw), 50, 50)
+                @test near(first(bw), 50, 50) && near(last(bw), 0, 0)
+                cfw, cbw = pts_of(arc), pts_of(arc; reverse=true)   # arc: (30,0) -> (0,30) on the origin-centered circle
+                @test near(first(cfw), 30, 0) && near(last(cfw), 0, 30)
+                @test near(first(cbw), 0, 30) && near(last(cbw), 30, 0)
+                @test all(p -> isapprox(hypot(p.x, p.y), 30.0; atol=0.1), cbw)   # still on the same circle
+                e2 = APEllipse2(APPoint(0.0, 0.0), 40.0, 20.0)
+                earc = APEllipticArc2(e2, point_on_ellipse(e2, 0.2), point_on_ellipse(e2, 1.4))
+                efw, ebw = pts_of(earc), pts_of(earc; reverse=true)
+                @test near(first(efw), earc.p1[1], earc.p1[2]) && near(first(ebw), earc.p2[1], earc.p2[2])
+                @test near(last(ebw), earc.p1[1], earc.p1[2])
+                pl = APPolyline2(APPoint(-50.0, -50.0), APPoint(-20.0, 20.0), APPoint(10.0, -30.0))
+                @test near(first(pts_of(pl; reverse=true)), 10, -30)
+                cpl = APCurvilinearPolyline2([APSegment(APPoint(-60.0, 0.0), APPoint(30.0, 0.0)), arc])
+                cfwd, cbwd = pts_of(cpl), pts_of(cpl; reverse=true)
+                @test near(first(cfwd), -60, 0) && near(last(cfwd), 0, 30)
+                @test near(first(cbwd), 0, 30) && near(last(cbwd), -60, 0)
+                circ = APCircle2(APPoint(0.0, 0.0), 30.0)
+                @test Luxor.ispolyclockwise(pts_of(circ)) != Luxor.ispolyclockwise(pts_of(circ; reverse=true))
+                @test Luxor.ispolyclockwise(pts_of(e2)) != Luxor.ispolyclockwise(pts_of(e2; reverse=true))
+                tri = APTriangle(APPoint(-50.0, 40.0), APPoint(50.0, 40.0), APPoint(0.0, -40.0))
+                @test Luxor.ispolyclockwise(pts_of(tri)) != Luxor.ispolyclockwise(pts_of(tri; reverse=true))
+                sec = APCircularSector2(arc)   # a closed curved region: same start point, opposite orientation
+                @test Luxor.ispolyclockwise(pts_of(sec)) != Luxor.ispolyclockwise(pts_of(sec; reverse=true))
+                path(seg; as=:arrow, reverse=true)   # arrows: runs without error, the head goes to p1
+                path([seg, APPoint(1.0, 1.0)]; reverse=true, action=:stroke)   # a vector mixing curves and points
+                Luxor.newpath()
+            end
             path(APCircularSector2(arc); action=:fill)
             path(APCircularSegment2(arc); action=:fill)
             c1 = Apollonius.APCircle2(APPoint(0.0, 0.0), 40.0)
