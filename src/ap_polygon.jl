@@ -55,7 +55,10 @@ Unsigned area of `p`, via the Green's-theorem line integral `(1/2)|∮(x dy
 or some are [`APCircularArc2`](@ref)s.
 """
 function area(p::APPolygon)
-    total = sum(_polygon_walk(sides(p))) do (side, reversed)
+    o = vertices(p)[1]
+    # translate the first vertex to the origin, so the result does not degrade far from it
+    q = translate(p, APVector(-o[1], -o[2]))
+    total = sum(_polygon_walk(sides(q))) do (side, reversed)
         term = _side_greens_term(side)
         reversed ? -term : term
     end
@@ -195,19 +198,21 @@ plain average deliberately, since that's its own well-known convention.
 function centroid(p::APPolygon)
     v = vertices(p)
     n = length(v)
-    A = zero(v[1][1])
-    cx = zero(v[1][1])
-    cy = zero(v[1][1])
+    o = v[1]   # work relative to the first vertex, so the result does not degrade far from the origin
+    A = zero(o[1])
+    cx = zero(o[1])
+    cy = zero(o[1])
     for i in 1:n
         j = i == n ? 1 : i + 1
-        cr = cross2(v[i], v[j])
+        vi, vj = v[i] - o, v[j] - o
+        cr = cross2(vi, vj)
         A += cr
-        cx += (v[i][1] + v[j][1]) * cr
-        cy += (v[i][2] + v[j][2]) * cr
+        cx += (vi[1] + vj[1]) * cr
+        cy += (vi[2] + vj[2]) * cr
     end
     A /= 2
-    abs(A) <= 1e-12 && return v[1] + sum(vi - v[1] for vi in v) / n
-    return APPoint(cx / (6A), cy / (6A))
+    abs(A) <= 1e-12 && return o + sum(vi - o for vi in v) / n
+    return o + APVector(cx / (6A), cy / (6A))
 end
 """
     is_convex(p::APPolygon; atol=1e-9)

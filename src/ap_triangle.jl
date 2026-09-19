@@ -64,14 +64,11 @@ Center of the circle passing through the three vertices of `t`.
 """
 function circumcenter(t::APTriangle)
     a, b, c = t[1], t[2], t[3]
-    ax, ay = a[1], a[2]
-    bx, by = b[1], b[2]
-    cx, cy = c[1], c[2]
-    d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
-    a2, b2, c2 = ax^2 + ay^2, bx^2 + by^2, cx^2 + cy^2
-    ux = (a2 * (by - cy) + b2 * (cy - ay) + c2 * (ay - by)) / d
-    uy = (a2 * (cx - bx) + b2 * (ax - cx) + c2 * (bx - ax)) / d
-    return APPoint(ux, uy)
+    # relative to a, so the result does not degrade far from the origin
+    u, v = b - a, c - a
+    d = 2 * (u[1] * v[2] - u[2] * v[1])
+    u2, v2 = u[1]^2 + u[2]^2, v[1]^2 + v[2]^2
+    return a + APVector((v[2] * u2 - u[2] * v2) / d, (u[1] * v2 - v[1] * u2) / d)
 end
 """
     circumradius(t::APTriangle)

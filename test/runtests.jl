@@ -5820,3 +5820,16 @@ end
     @test s(sec) isa APCircularSector2
     @test m(sec) isa APCurvilinearTriangle2
 end
+
+@testset "triangle centers, centroid and area far from the origin" begin
+    P(x, y) = APPoint(x, y)
+    for b in (1e6, 1e8, 1e10)
+        t = APTriangle(P(b, b), P(b + 3.0, b), P(b, b + 4.0))
+        q = APStraightNgon([P(b, b), P(b + 4.0, b), P(b + 4.0, b + 3.0), P(b + 1.0, b + 3.0)])
+        @test circumcenter(t) ≈ P(b + 1.5, b + 2.0) atol = 1e-4
+        @test orthocenter(t) ≈ P(b, b) atol = 1e-4
+        @test centroid(t) ≈ P(b + 1.0, b + 4 / 3) atol = 1e-4
+        @test area(t) ≈ 6.0
+        @test area(q) ≈ 10.5
+    end
+end

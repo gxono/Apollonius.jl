@@ -26,6 +26,7 @@ makedocs(;
         "Predicates" => "predicates.md",
         "Measurements & Queries" => "measurements.md",
         "Intersections" => "intersections.md",
+        "Numbers & Tolerances" => "numbers.md",
         "Circles" => "circles.md",
         "Triangles & Triangle Centers" => "triangles.md",
         "Tangency & Apollonius Problems" => "tangency.md",
