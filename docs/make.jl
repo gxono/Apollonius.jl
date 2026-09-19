@@ -16,6 +16,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Getting Started" => "getting_started.md",
         "Conventions & FAQ" => "conventions.md",
         "Workflow: From Construction to Figure" => "workflow.md",
         "Drawing with Luxor.jl" => "drawing.md",
