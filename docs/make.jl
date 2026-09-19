@@ -22,6 +22,7 @@ makedocs(;
         "Marks, Labels & Decorations" => "decorations.md",
         "Compass & Ruler Constructions" => "constructions.md",
         "Points, Lines & Rays" => "points_lines.md",
+        "Predicates" => "predicates.md",
         "Circles" => "circles.md",
         "Triangles & Triangle Centers" => "triangles.md",
         "Tangency & Apollonius Problems" => "tangency.md",
