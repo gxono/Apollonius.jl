@@ -5,7 +5,7 @@ end
 @svg_doc(sz, @__FILE__, begin
 gsave()
 clip_out(shapes)
-sethue(julia_blue); setopacity(0.25)
+sethue(julia_purple); setopacity(0.25)
 Luxor.paint()
 grestore()
 sethue(julia_blue); Luxor.setline(1.8)

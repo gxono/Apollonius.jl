@@ -6,15 +6,14 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
 end
 @svg_doc(sz, @__FILE__, begin
 Luxor.fontsize(14)
-sethue(julia_blue)
+sethue(julia_blue); Luxor.setline(1.5)
 path(segs, action=:stroke)
 path(arc, action=:stroke)
-sethue(julia_red)
 path(arrow_head(segs[1]; style=:triangle, size=14); action=:fill)
 path(arrow_head(segs[2]; style=:stealth, size=14); action=:fill)
 path(arrow_head(segs[3]; style=:open, size=14); action=:stroke)
 path(arrow_head(arc; at=1.0, place=:tip, size=14); action=:fill)
-sethue("black")
+sethue(julia_red)
 for (p, style) in zip(names, (:triangle, :stealth, :open))
     label(":" * string(style), :E, p)
 end

@@ -4,12 +4,12 @@ sz = @to_luxor_picture! width=500 height=240 margin=40 begin
 end
 frames = [tangent_at(arc, t) for t in (0.0, 0.25, 0.5, 0.75, 1.0)]
 @svg_doc(sz, @__FILE__, begin
-sethue(julia_purple)
+sethue(julia_blue); Luxor.setline(1.8)
 path(arc, action=:stroke)
-sethue(julia_red)
+sethue(julia_purple)
 for f in frames
     path(APEquipollentVector(30 * f.vector, f.point); as=:arrow, action=:stroke)
 end
 path([f.point for f in frames])
-setpoint(julia_blue)
+plot_point(julia_purple)
 end)

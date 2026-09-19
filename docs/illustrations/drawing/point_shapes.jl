@@ -9,7 +9,7 @@ sethue(julia_blue); Luxor.setline(2)
 for (p, s) in zip(pts, shapes)
     path(p; radius=14, as=s, action=:stroke)
 end
-sethue("black")
+sethue(julia_red)
 for (p, s) in zip(pts, shapes)
     label(":" * string(s), :S, p + APVector(0.0, 30.0))
 end

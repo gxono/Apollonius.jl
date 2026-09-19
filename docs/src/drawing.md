@@ -186,7 +186,7 @@ finish()
 ```
 
 As an additional comment, every illustration under `docs/illustrations/`
-shares the same Luxor imports and `setpoint`/`Drawing`/`finish`/`preview`
+shares the same Luxor imports and `Drawing`/`finish`/`preview`
 boilerplate, factored out once into `docs/illustrations/default_config.jl`
 (a shared `include`) and its `@svg_doc` macro. `docs/illustrations/template.jl`
 is the copy-paste starting point for a new one: copy it into the right

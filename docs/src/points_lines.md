@@ -78,7 +78,7 @@ r = APRay(O, A)         # the half-line starting at O, through A
 distance(O, A)
 ```
 
-`distance(O, A)` is `5.0`: with `A = (3, 4)`, this is just the classic
+`distance(O, A)` is `5.0`: with `A = APPoint(3.0, 4.0)`, this is just the classic
 3-4-5 triangle. `APSegment`, `APLine` and `APRay` all wrap the *same* two
 points here. What differs is only how far they extend and what other
 functions are willing to do with them (e.g. [`on_segment`](@ref) only
@@ -108,7 +108,7 @@ vector toolkit, without a separate `using LinearAlgebra`:
 
 ```@example geo
 norm(d)        # 5.0
-normalize(d)   # (0.6, 0.8): unit vector, same direction
+normalize(d)   # ⟨0.6, 0.8⟩: unit vector, same direction
 dot(d, APVector(1.0, 0.0))   # 3.0
 ```
 
@@ -220,7 +220,7 @@ point_on_circle(c, 0.0), point_on_circle(c, pi / 2)
 ## Direction, slope and predicates
 
 ```@example geo
-direction(l)                    # (3.0, 4.0): l.p2 - l.p1, as an APVector
+direction(l)                    # ⟨3.0, 4.0⟩: l.p2 - l.p1, as an APVector
 rad2deg(slope_angle(l))         # ≈ 53.13°
 is_collinear(O, A, APPoint(6.0, 8.0))
 on_line(APPoint(6.0, 8.0), l)
@@ -379,7 +379,7 @@ barycenter([P, Q, C], [1.0, 1.0, 2.0])   # weighted average of the three
 ## Parallels, perpendiculars and bisectors
 
 ```@example geo
-midpoint(P, Q)                      # (3.5, 2.0): the plain average of the two
+midpoint(P, Q)                      # [3.5, 2.0]: the plain average of the two
 parallel_through(l, C)             # line through C, parallel to l
 perpendicular_through(l, C)        # line through C, perpendicular to l
 pb = perpendicular_bisector(P, Q)  # perpendicular to [P,Q] through its midpoint
@@ -527,8 +527,8 @@ point that divides `[A,B]` in the golden ratio, `A + (B-A)/φ`.
 A, B = APPoint(0.0, 0.0), APPoint(8.0, 0.0)
 P = APPoint(2.0, 0.0)
 
-Pgold = golden_ratio_point(A, B)     # ≈ (4.944, 0)
-Pconj = harmonic_conjugate(A, B, P)  # (-4.0, 0): P's harmonic conjugate
+Pgold = golden_ratio_point(A, B)     # ≈ [4.944, 0.0]
+Pconj = harmonic_conjugate(A, B, P)  # [-4.0, 0.0]: P's harmonic conjugate
 ```
 
 `P'` falls *outside* `[A,B]`, on the opposite side from `B`: that is exactly

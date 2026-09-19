@@ -122,7 +122,7 @@ bb.min, bb.max
 
 ```@example geo
 bbox_width(bb), bbox_height(bb)   # 4.0, 3.0
-bbox_center(bb)                   # (2.0, 1.5)
+bbox_center(bb)                   # [2.0, 1.5]
 bbox_diagonal(bb)                 # 5.0
 bbox_aspect_ratio(bb)             # width / height
 ```

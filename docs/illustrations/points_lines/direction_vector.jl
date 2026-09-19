@@ -14,6 +14,5 @@ end
     sethue(julia_purple)
     path(v, action=:stroke, as=:arrow)
     path([A,O])
-    sethue("white"); fillpreserve()
-    sethue(julia_red); strokepath()
+    plot_point(julia_blue)
 end)

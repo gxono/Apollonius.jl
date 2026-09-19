@@ -5,10 +5,8 @@ sz = @to_luxor_picture! width=500 height=280 margin=20 begin
     rays = [APSegment(a.vertex, x) for a in angs for x in (a.a, a.b)]
 end
 @svg_doc(sz, @__FILE__, begin
-sethue(julia_blue)
+sethue(julia_blue); Luxor.setline(1.5)
 path(rays, action=:stroke)
-sethue(julia_red)
-Luxor.setline(1.5)
 # two arcs and a tick that crosses both
 path(marks(angs[1]; style=:tick, arcs=2, size=26, gap=6); action=:stroke)
 for (a, style) in zip(angs[2:end], styles)

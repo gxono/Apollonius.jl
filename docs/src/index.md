@@ -68,8 +68,8 @@ using Luxor: @svg, sethue, setdash, setopacity,
 import Luxor
 
 sz = @to_luxor_picture! width=500 height=320 margin=20 begin
-    circle1 = APCircle2((300,300), 300)
-    circle2 = APCircle2((900,200), 100)
+    circle1 = APCircle2(APPoint(300.0, 300.0), 300.0)
+    circle2 = APCircle2(APPoint(900.0, 200.0), 100.0)
     el1, el2 = external_tangent_lines(circle1, circle2)
     il1, il2 = internal_tangent_lines(circle1, circle2)
     ang = APAngle2(el1.p1, circle1.center, el1.p2)

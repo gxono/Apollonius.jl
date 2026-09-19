@@ -7,5 +7,5 @@ end
     sethue(julia_purple)
     path(e, action=:stroke)
     path(c)
-    setpoint(julia_red)
+    plot_point(julia_blue)
 end)

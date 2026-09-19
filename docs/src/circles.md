@@ -48,7 +48,7 @@ points. There's no finite circle through them in that case.
 
 ```@example geo
 c0 = APCircle2(APPoint(0.0, 0.0), 5.0)
-antipode(APPoint(5.0, 0.0), c0)   # (-5.0, 0.0), on the far side of c0.center
+antipode(APPoint(5.0, 0.0), c0)   # [-5.0, 0.0], on the far side of c0.center
 ```
 
 ## Power of a point and tangent lines
@@ -147,7 +147,7 @@ center), an `APCircle2` (which inverts to another `APCircle2`, or an
 (see below), an `APTriangle`, and an `APStraightNgon`.
 
 ```@example geo
-inversion(APPoint(10.0, 0.0), c)   # (2.5, 0.0): 5²/10 = 2.5
+inversion(APPoint(10.0, 0.0), c)   # [2.5, 0.0]: 5²/10 = 2.5
 ```
 
 [`inversion_neg`](@ref) and [`invert_neg`](@ref) give the *negative-ratio*
@@ -155,7 +155,7 @@ inversion instead: the same image, point-reflected through the inversion
 circle's own center (i.e. on ray `p -> O` rather than `O -> p`):
 
 ```@example geo
-inversion_neg(APPoint(10.0, 0.0), c)   # (-2.5, 0.0): the mirror image of the positive one
+inversion_neg(APPoint(10.0, 0.0), c)   # [-2.5, 0.0]: the mirror image of the positive one
 ```
 
 `invert`/`invert_neg` also take just `center` (and, as a keyword, `k`) to
@@ -274,7 +274,7 @@ recovering `p` from that line.
 
 ```@example geo
 pl = polar_line(c, p)   # the line through pts[1] and pts[2] above
-pole(c, pl)              # back to p = (13.0, 0.0)
+pole(c, pl)              # back to p = APPoint(13.0, 0.0)
 ```
 
 ## Similitude centers and common tangents
@@ -289,8 +289,8 @@ each as `APLine(p1, p2)` with `p1`/`p2` the actual points of tangency on
 of these lines does pass through it):
 
 ```@example geo
-external_similitude_center(c1, c2)   # (24.0, 0.0)
-internal_similitude_center(c1, c2)   # (4.8, 0.0)
+external_similitude_center(c1, c2)   # [24.0, 0.0]
+internal_similitude_center(c1, c2)   # [4.8, 0.0]
 ext = external_tangent_lines(c1, c2)
 int = internal_tangent_lines(c1, c2)
 distance(ext[1].p1, c1.center), distance(ext[1].p2, c2.center)   # (c1.r, c2.r)

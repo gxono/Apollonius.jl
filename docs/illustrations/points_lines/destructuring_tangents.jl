@@ -7,6 +7,5 @@ end
     sethue(julia_blue)
     path([c1, c2, l1, l2], action = :stroke)
     path(collect(Iterators.flatten([l1,l2])))
-    sethue("white"); fillpreserve()
-    sethue(julia_red); strokepath()
+    plot_point(julia_blue)
 end)
