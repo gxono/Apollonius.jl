@@ -49,19 +49,19 @@
 <path fill="none" stroke-width="1.8" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 304.285156 174.285156 L 358.570313 65.714844 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 73.417969 147.453125 C 83.578125 152.535156 90 162.921875 90 174.285156 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 334.285156 174.285156 C 334.285156 187.695313 325.382813 199.480469 312.484375 203.144531 C 299.582031 206.808594 285.816406 201.464844 278.765625 190.058594 C 271.714844 178.648438 273.09375 163.949219 282.140625 154.046875 C 291.1875 144.148438 305.707031 141.457031 317.703125 147.453125 "/>
-<g fill="rgb(0%, 0%, 0%)" fill-opacity="1">
+<g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-0" x="200.714286" y="178.262765"/>
 </g>
-<g fill="rgb(0%, 0%, 0%)" fill-opacity="1">
+<g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-1" x="110.114572" y="60.538504"/>
 </g>
-<g fill="rgb(0%, 0%, 0%)" fill-opacity="1">
+<g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-1" x="354.400286" y="60.538504"/>
 </g>
-<g fill="rgb(0%, 0%, 0%)" fill-opacity="1">
+<g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-0" x="445" y="178.262765"/>
 </g>
-<g fill="rgb(0%, 0%, 0%)" fill-opacity="1">
+<g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-2" x="5.803223" y="190.213449"/>
 <use xlink:href="#glyph-0-3" x="15.808105" y="190.213449"/>
 <use xlink:href="#glyph-0-2" x="25.812988" y="190.213449"/>
@@ -78,7 +78,7 @@
 <use xlink:href="#glyph-0-1" x="105.859375" y="190.213449"/>
 <use xlink:href="#glyph-0-12" x="114.20166" y="190.213449"/>
 </g>
-<g fill="rgb(0%, 0%, 0%)" fill-opacity="1">
+<g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-2" x="250.088937" y="190.213449"/>
 <use xlink:href="#glyph-0-3" x="260.09382" y="190.213449"/>
 <use xlink:href="#glyph-0-2" x="270.098703" y="190.213449"/>
