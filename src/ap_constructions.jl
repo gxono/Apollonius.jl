@@ -265,3 +265,21 @@ function extend_line(l::APLine, before::Real, after::Real=before)
     return APSegment(l.p1 - before * d, l.p2 + after * d)
 end
 extend_line(s::APSegment, before::Real, after::Real=before) = extend_line(APLine(s.p1, s.p2), before, after)
+"""
+    point_on_line(l, t)
+
+The point `l.p1 + t * (l.p2 - l.p1)` of a line, a segment or a ray (for a
+ray the two points are `origin` and `through`): `t = 0` is the first defining
+point, `t = 1` the second, and `t` is measured in units of
+`distance(l.p1, l.p2)`. It is not restricted to `[0, 1]`, so a value outside
+that range gives a point on the line beyond a segment's ends.
+"""
+point_on_line(l::Union{APLine,APSegment}, t::Real) = l.p1 + t * (l.p2 - l.p1)
+point_on_line(r::APRay, t::Real) = r.origin + t * (r.through - r.origin)
+"""
+    point_on_circle(c::APCircle2, angle)
+
+The point of `c` at `angle` radians counterclockwise from the positive
+x-axis, as seen from its center: `polar_point(c.r, angle, c.center)`.
+"""
+point_on_circle(c::APCircle2, angle::Real) = polar_point(c.r, angle, c.center)

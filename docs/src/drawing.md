@@ -404,7 +404,7 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | `APPoint` | a small mark: a circle by default, or a square, an `x` or a `+` | `radius=3`; `as=:circle` (also `:square`, `:cross`, `:plus`; the last two are two strokes, so they only show with `action=:stroke`) |
 | `APSegment` | a straight line between its two points, or (pass `as=:arrow`) an arrow (see [Arrows](@ref) below) | `as=:plain` (default) |
 | `APLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point, or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow` ; `add=(before, after)`: lengthen by fractions of `distance(l.p1, l.p2)` instead of absolute units (see [`extend_line`](@ref)), replacing `extend` |
-| `APRay` | likewise, extended only past `through` (not past `origin`); `extend=0.0` draws the exact finite segment from `origin` to `through` | `extend=1000.0`; `as=:plain`/`:arrow` |
+| `APRay` | likewise, extended only past `through` (not past `origin`); `extend=0.0` draws the exact finite segment from `origin` to `through` | `extend=1000.0`; `as=:plain`/`:arrow`; `add=(before, after)`: lengthen the segment `origin`-`through` by fractions of its length, replacing `extend` |
 | `APCircle2` | Luxor's native circle | (none) |
 | any [`APPolygon`](@ref) | every side, chained end to end into one closed path: a straight line for an `APSegment` side, a true arc for an `APCircularArc2` side, an `n`-point sampled polyline for any other conic-arc side (see below); covers `APTriangle`, `APQuadrilateral`, `APStraightNgon`, `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2` and `APCurvilinearNgon2`, **one** method for the whole family | `n=60` (only matters if some side needs sampling) |
 | `APBoundingBox` | an axis-aligned box | (none) |
@@ -415,8 +415,8 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on_arc`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
 | `APAngle2` | see below; it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
 | `APVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=APPoint(0.0, 0.0)`, `as=:plain`/`:arrow` |
-| `APHalfPlane2` | unbounded, so this draws its boundary line only (see `APLine` above) | `extend=1000.0` |
-| `APStrip2` | likewise unbounded: both boundary lines, one call each | `extend=1000.0` |
+| `APHalfPlane2` | unbounded, so this draws its boundary line only (see `APLine` above) | `extend=1000.0`, `add` |
+| `APStrip2` | likewise unbounded: both boundary lines, one call each | `extend=1000.0`, `add` |
 | `APEquipollentVector` | the segment from its point of application to its tip | `as=:plain`/`:arrow` |
 | `APPolyline2` | an open chain of straight sides through its vertices, never closed | (none) |
 | `APCurvilinearPolyline2` | an open chain of straight and curved sides in the order given: a line for an `APSegment`, a true arc for an `APCircularArc2`, a sampled polyline for any other conic arc | `n=60` |
@@ -679,7 +679,7 @@ of the elements.
 [`clip_out`](@ref)`(obj)` restricts it to the *outside*, which is what lunes,
 arbelos and "a circle minus two circles" figures need. It works on anything
 `path` draws as a closed shape (a circle, an ellipse, a polygon or curved
-region, a bounding box), and without approximating any arc.
+region, a bounding box, or an angle drawn with `as=:sector` or `as=:rsector`), and without approximating any arc.
 
 ```julia
 @layer begin
@@ -740,6 +740,15 @@ Luxor.dimension(a, b; offset=40, format=d -> "7.0", textrotation=-pi / 2, textga
 
 ```@raw html
 <img src="../assets/img/drawing/dimension.svg" alt="A dimension line with its measured text" style="width:100%; max-width: 700px;">
+```
+
+`label` also takes a `LaTeXString` as the text once `LaTeXStrings` and
+`MathTeXEngine` are loaded (Luxor draws it with its own LaTeX support), so a
+label can be a formula:
+
+```julia
+using LaTeXStrings, MathTeXEngine
+label(L"lpha^2 + eta_1", :N, APPoint(0.0, 0.0))
 ```
 
 To choose where a label goes and how it is aligned, see

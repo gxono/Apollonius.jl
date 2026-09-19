@@ -200,6 +200,23 @@ and [`distance`](@ref) give you the other way around:
 `polar_point(distance(O, p), slope_angle(APLine(O, p)), O)` recovers `p`
 (for `p != O`).
 
+## Points by parameter and by angle
+
+[`point_on_line`](@ref)`(obj, t)` is the point `p1 + t * (p2 - p1)` of a
+line, segment or ray: `t = 0` is the first defining point, `t = 1` the
+second, and the parameter is not restricted to `[0, 1]`. [`point_on_circle`](@ref)`(c, angle)`
+is the point of a circle at an angle (radians, counterclockwise from the
+positive x-axis) as seen from its center.
+
+```@example geo
+point_on_line(s, 0.5) ≈ midpoint(s), point_on_line(l, 2.0), point_on_line(r, -1.0)
+```
+
+```@example geo
+c = APCircle2(APPoint(1.0, 2.0), 5.0)
+point_on_circle(c, 0.0), point_on_circle(c, pi / 2)
+```
+
 ## Direction, slope and predicates
 
 ```@example geo
@@ -571,6 +588,16 @@ other shapes in this package:
 
 Not defined for `APLine`/`APRay` (infinite: no uniform distribution
 exists) or `APParabola2`/`APHyperbola2` as full curves (also infinite).
+
+For a point in the *interior*, use [`rand_inside`](@ref)`([rng,] s)`: uniform
+over the area of an [`APCircle2`](@ref) (the disk), an [`APEllipse2`](@ref),
+an [`APBoundingBox`](@ref) or an [`APTriangle`](@ref).
+
+```@example geo
+using Random
+q = rand_inside(Xoshiro(1), APCircle2(APPoint(0.0, 0.0), 2.0))
+distance(q, APPoint(0.0, 0.0)) <= 2.0
+```
 
 ```@example geo
 s = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))

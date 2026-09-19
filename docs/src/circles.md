@@ -325,6 +325,41 @@ t1, t2 = tangent_parallel(c, APLine(APPoint(0.0, 3.0), APPoint(1.0, 4.0)))
 <img src="../assets/img/circles/tangent_parallel.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
+## Choosing among the intersections
+
+[`intersection`](@ref) returns a `Vector` of the points where two objects
+meet, and the order is fixed for the two most common pairs:
+
+* line and circle: in the direction of the line, from `l.p1` towards `l.p2`;
+* two circles: the first point is on the left when going from the first
+  center to the second, the second is on the right.
+
+For any other pair, do not rely on the order: pick the point you want by
+where it is, with [`nearest_point`](@ref)`(points, p)`, or as "the other
+one" with [`other_intersection`](@ref)`(a, b, known)`. The second is the
+usual case of a line through a point of a circle: it returns the second
+intersection, or `nothing` when the line is tangent there.
+
+```@example geo
+c = APCircle2(APPoint(0.0, 0.0), 5.0)
+l = APLine(APPoint(-5.0, 0.0), APPoint(0.0, 3.0))          # goes through (-5, 0), a point of c
+other_intersection(l, c, APPoint(-5.0, 0.0))                # the second point where l meets c
+```
+
+```@example geo
+pts = intersection(c, APCircle2(APPoint(6.0, 0.0), 5.0))   # two points, above and below the x-axis
+nearest_point(pts, APPoint(3.0, 10.0))                      # the upper one
+```
+
+[`intersection_angle`](@ref)`(c1, c2)` is the angle at which two circles cross,
+between `0` (they touch) and `π/2` (they are orthogonal), or `nothing` when
+they do not meet.
+
+```@example geo
+c1 = APCircle2(APPoint(0.0, 0.0), 5.0)
+intersection_angle(c1, orthogonal_circle(c1, APPoint(13.0, 0.0))) ≈ pi / 2
+```
+
 ## How two circles (or a line and a circle) relate
 
 [`circles_position`](@ref) and [`line_circle_position`](@ref) classify the

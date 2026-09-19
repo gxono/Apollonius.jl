@@ -161,41 +161,50 @@ function AP.path(l::AP.APLine; extend::Union{Real,Tuple{Real,Real}}=1000.0, add:
     return Luxor.line(_lp(p1), _lp(p2), action)
 end
 """
-    path(r::APRay; extend=1000.0, as=:plain, action=:path, kwargs...)
+    path(r::APRay; extend=1000.0, add=nothing, as=:plain, action=:path, kwargs...)
 
 `APRay` is half-infinite, so it's added from `r.origin` to `extend` units
 past `r.through`. Pass `extend=0.0` to instead draw the exact finite
-segment from `r.origin` to `r.through`. `as=:arrow` draws it as an arrow
-instead -- see [`path(::APSegment)`](@ref) for what that changes.
+segment from `r.origin` to `r.through`. `add=(before, after)` (or a single
+number for both) instead lengthens that segment by fractions of
+`distance(r.origin, r.through)`, `before` past the origin and `after` past
+`r.through`, replacing `extend`; see [`extend_line`](@ref). `as=:arrow` draws
+it as an arrow instead -- see [`path(::APSegment)`](@ref) for what that changes.
 """
-function AP.path(r::AP.APRay; extend=1000.0, as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
+function AP.path(r::AP.APRay; extend=1000.0, add::Union{Nothing,Real,Tuple{Real,Real}}=nothing, as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
     u = AP.direction(r) / AP.norm(AP.direction(r))
-    a, b = r.origin, r.through + extend * u
+    if add === nothing
+        a, b = r.origin, r.through + extend * u
+    else
+        seg = add isa Tuple ? AP.extend_line(AP.APSegment(r.origin, r.through), add[1], add[2]) : AP.extend_line(AP.APSegment(r.origin, r.through), add)
+        a, b = seg.p1, seg.p2
+    end
     reverse && ((a, b) = (b, a))
     as == :arrow && return _arrow(_lp(a), _lp(b); kwargs...)
     return Luxor.line(_lp(a), _lp(b), action)
 end
 """
-    path(hp::APHalfPlane2; extend=1000.0, action=:path)
+    path(hp::APHalfPlane2; extend=1000.0, add=nothing, action=:path)
 
 `APHalfPlane2` is an unbounded region, so there's no finite shape to add
 to the path -- this draws its boundary line instead (see
 [`path(::APLine)`](@ref)), the same way an infinite `APLine` itself is
-drawn.
+drawn. `add` is forwarded to it.
 """
-AP.path(hp::AP.APHalfPlane2; extend=1000.0, action=:path, reverse::Bool=false) =
-    AP.path(hp.boundary; extend=extend, action=action, reverse=reverse)
+AP.path(hp::AP.APHalfPlane2; extend=1000.0, add=nothing, action=:path, reverse::Bool=false) =
+    AP.path(hp.boundary; extend=extend, add=add, action=action, reverse=reverse)
 """
-    path(s::APStrip2; extend=1000.0, action=:path)
+    path(s::APStrip2; extend=1000.0, add=nothing, action=:path)
 
 `APStrip2` is likewise unbounded, so this draws both of its boundary
 lines (see [`path(::APLine)`](@ref)), one call each -- there's no way to
 add two disjoint lines as a single Luxor path action, so `action` is
-applied to each independently rather than to the pair as a whole.
+applied to each independently rather than to the pair as a whole. `add` is
+forwarded to each line.
 """
-function AP.path(s::AP.APStrip2; extend=1000.0, action=:path, reverse::Bool=false)
-    AP.path(s.line1; extend=extend, action=action, reverse=reverse)
-    AP.path(s.line2; extend=extend, action=action, reverse=reverse)
+function AP.path(s::AP.APStrip2; extend=1000.0, add=nothing, action=:path, reverse::Bool=false)
+    AP.path(s.line1; extend=extend, add=add, action=action, reverse=reverse)
+    AP.path(s.line2; extend=extend, add=add, action=action, reverse=reverse)
 end
 """
     path(c::APCircle2; action=:path, reverse=false)

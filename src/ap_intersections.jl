@@ -8,6 +8,12 @@ a `Vector{APPoint{2,Float64}}` with 0, 1 or 2 points; an `APSegment`
 against anything only keeps the points that fall within its own two
 endpoints, and an `APRay` only the points on its own side of `origin`,
 unlike the infinite `APLine` through the same defining points.
+
+The order of the points is fixed for a line and a circle (along the line,
+from `l.p1` towards `l.p2`) and for two circles (the first is on the left going
+from the first center to the second). For other pairs it is not
+specified: use [`nearest_point`](@ref) or [`other_intersection`](@ref) to pick
+one.
 """
 function intersection(l1::APLine, l2::APLine; atol=1e-9)
     d1, d2 = direction(l1), direction(l2)
@@ -99,4 +105,52 @@ function intersection(c1::APCircle2, c2::APCircle2; atol=1e-9)
     perp = orthogonal(u)
     p1, p2 = m + h * perp, m - h * perp
     return [APPoint(p1[1], p1[2]), APPoint(p2[1], p2[2])]
+end
+"""
+    nearest_point(points, p)
+
+The element of `points` (a `Vector` of [`APPoint`](@ref)s, such as what
+[`intersection`](@ref) returns) closest to `p`. Throws an `ArgumentError` for
+an empty collection. Use it to pick one of several solutions by where you
+want it: `nearest_point(intersection(l, c), APPoint(3.0, 4.0))`.
+"""
+function nearest_point(points::AbstractVector{<:APPoint}, p::APPoint)
+    isempty(points) && throw(ArgumentError("nearest_point: no points to choose from"))
+    return points[argmin([distance(q, p) for q in points])]
+end
+"""
+    other_intersection(a, b, known; atol=1e-9)
+
+The intersection of `a` and `b` that is not `known`, given that `known` is
+one of them: the other point when a line goes through a point of a circle,
+the second point where two circles meet, and so on. Works for every pair of
+objects that [`intersection`](@ref) accepts. Returns `nothing` when `known`
+is the only intersection (a tangency), and throws an `ArgumentError` if
+`known` is not an intersection of `a` and `b` at all.
+"""
+function other_intersection(a, b, known::APPoint; atol::Real=1e-9)
+    xs = intersection(a, b; atol=atol)
+    isempty(xs) && throw(ArgumentError("other_intersection: a and b do not meet"))
+    far = maximum(distance(x, known) for x in xs)
+    tol = sqrt(atol) * max(1.0, far)
+    matches = [x for x in xs if distance(x, known) <= tol]
+    isempty(matches) && throw(ArgumentError("other_intersection: known is not an intersection of a and b"))
+    others = [x for x in xs if distance(x, known) > tol]
+    return isempty(others) ? nothing : first(others)
+end
+"""
+    intersection_angle(c1::APCircle2, c2::APCircle2)
+
+The angle at which two circles cross, in radians in `[0, π/2]`: the acute
+angle between their tangent lines (or radii) at a common point. It is `π/2`
+for [orthogonal circles](@ref orthogonal_circle) and `0` for circles that
+touch. Returns `nothing` when the circles do not meet (separate, nested, or
+concentric).
+"""
+function intersection_angle(c1::APCircle2, c2::APCircle2; atol::Real=1e-9)
+    d = distance(c1.center, c2.center)
+    d <= atol * max(c1.r, c2.r, 1.0) && return nothing
+    x = (d^2 - c1.r^2 - c2.r^2) / (2 * c1.r * c2.r)
+    abs(x) > 1 + atol && return nothing
+    return acos(min(abs(x), 1.0))
 end

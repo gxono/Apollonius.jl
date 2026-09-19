@@ -43,3 +43,28 @@ function _rand_point(rng::Random.AbstractRNG, bb::APBoundingBox)
     p1, p2, p3, p4 = bb.min, APPoint(bb.max[1], bb.min[2]), bb.max, APPoint(bb.min[1], bb.max[2])
     return _rand_point_on_sides(rng, [APSegment(p1, p2), APSegment(p2, p3), APSegment(p3, p4), APSegment(p4, p1)])
 end
+"""
+    rand_inside([rng,] s)
+
+A random point in the *interior* of `s`, uniformly distributed over its
+area, where [`rand`](@ref) gives a point on its boundary. Defined for
+[`APCircle2`](@ref) (the disk), [`APEllipse2`](@ref), [`APBoundingBox`](@ref)
+and [`APTriangle`](@ref).
+"""
+rand_inside(s) = rand_inside(Random.default_rng(), s)
+function rand_inside(rng::Random.AbstractRNG, c::APCircle2)
+    return polar_point(c.r * sqrt(rand(rng)), 2π * rand(rng), c.center)
+end
+function rand_inside(rng::Random.AbstractRNG, e::APEllipse2)
+    ρ, θ = sqrt(rand(rng)), 2π * rand(rng)
+    return _from_ellipse_local(e.a * ρ * cos(θ), e.b * ρ * sin(θ), e)
+end
+function rand_inside(rng::Random.AbstractRNG, bb::APBoundingBox)
+    return APPoint(bb.min[1] + rand(rng) * (bb.max[1] - bb.min[1]), bb.min[2] + rand(rng) * (bb.max[2] - bb.min[2]))
+end
+function rand_inside(rng::Random.AbstractRNG, t::APTriangle)
+    u, v = rand(rng), rand(rng)
+    u + v > 1 && ((u, v) = (1 - u, 1 - v))
+    a, b, c = vertices(t)
+    return a + u * (b - a) + v * (c - a)
+end

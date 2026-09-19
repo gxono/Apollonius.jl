@@ -654,6 +654,64 @@ using Base.MathConstants: golden
             @test_throws ArgumentError compass_trace(c0, p0; angle=7.0)
         end
     end
+    @testset "calculation helpers: points by parameter, choosing intersections, more triangles" begin
+        seg = APSegment(APPoint(0.0, 0.0), APPoint(4.0, 2.0))
+        @test point_on_line(seg, 0.5) ≈ APPoint(2.0, 1.0) && point_on_line(seg, 2.0) ≈ APPoint(8.0, 4.0)
+        @test point_on_line(APLine(APPoint(1.0, 1.0), APPoint(2.0, 1.0)), -1.0) ≈ APPoint(0.0, 1.0)
+        @test point_on_line(APRay(APPoint(1.0, 1.0), APPoint(1.0, 3.0)), 0.5) ≈ APPoint(1.0, 2.0)
+        c = APCircle2(APPoint(1.0, 2.0), 5.0)
+        @test point_on_circle(c, 0.0) ≈ APPoint(6.0, 2.0) && point_on_circle(c, pi / 2) ≈ APPoint(1.0, 7.0)
+        @test distance(point_on_circle(c, 1.234), c.center) ≈ c.r
+        # documented order of the solutions
+        line = APLine(APPoint(-10.0, 0.0), APPoint(10.0, 0.0))
+        xs = intersection(line, APCircle2(APPoint(0.0, 0.0), 5.0))
+        @test xs[1] ≈ APPoint(-5.0, 0.0) && xs[2] ≈ APPoint(5.0, 0.0)   # along the line
+        ys = intersection(APCircle2(APPoint(0.0, 0.0), 5.0), APCircle2(APPoint(6.0, 0.0), 5.0))
+        @test ys[1][2] > 0 > ys[2][2]   # the first is to the left going from the first center to the second
+        # nearest_point / other_intersection
+        @test nearest_point(xs, APPoint(9.0, 1.0)) ≈ APPoint(5.0, 0.0)
+        @test_throws ArgumentError nearest_point(APPoint{2,Float64}[], APPoint(0.0, 0.0))
+        circ = APCircle2(APPoint(0.0, 0.0), 5.0)
+        @test other_intersection(line, circ, APPoint(-5.0, 0.0)) ≈ APPoint(5.0, 0.0)
+        @test other_intersection(circ, APCircle2(APPoint(6.0, 0.0), 5.0), ys[2]) ≈ ys[1]
+        @test other_intersection(APLine(APPoint(5.0, 0.0), APPoint(5.0, 1.0)), circ, APPoint(5.0, 0.0)) === nothing   # tangent
+        @test_throws ArgumentError other_intersection(line, circ, APPoint(1.0, 1.0))
+        @test_throws ArgumentError other_intersection(line, APCircle2(APPoint(0.0, 9.0), 1.0), APPoint(0.0, 0.0))
+        far = APPoint(1e6, 1e6)   # the tolerance does not depend on the distance from the origin
+        cf = APCircle2(far, 5.0)
+        @test other_intersection(APLine(far + APVector(-5.0, 0.0), far + APVector(5.0, 0.0)), cf, far + APVector(-5.0, 0.0)) ≈ far + APVector(5.0, 0.0)
+        # angle between circles
+        @test intersection_angle(circ, orthogonal_circle(circ, APPoint(13.0, 0.0))) ≈ pi / 2
+        @test intersection_angle(circ, APCircle2(APPoint(8.0, 0.0), 3.0)) ≈ 0.0 atol = 1e-6   # tangent
+        @test intersection_angle(circ, APCircle2(APPoint(20.0, 0.0), 1.0)) === nothing
+        @test intersection_angle(circ, APCircle2(APPoint(0.5, 0.0), 1.0)) === nothing        # nested
+        @test intersection_angle(circ, APCircle2(APPoint(0.0, 0.0), 2.0)) === nothing        # concentric
+        d1, d2 = APCircle2(APPoint(0.0, 0.0), 5.0), APCircle2(APPoint(6.0, 0.0), 3.0)
+        p = first(intersection(d1, d2))
+        @test intersection_angle(d1, d2) ≈ angle_between(p - d1.center, p - d2.center) || intersection_angle(d1, d2) ≈ pi - angle_between(p - d1.center, p - d2.center)
+        # triangles
+        a, b = APPoint(0.0, 0.0), APPoint(2.0, 0.0)
+        ch = cheops_triangle_on_segment(a, b)
+        @test distance(ch[1], ch[3]) ≈ golden && distance(ch[2], ch[3]) ≈ golden
+        @test cheops_triangle_on_segment(APSegment(a, b); ccw=false)[3][2] < 0
+        gr = golden_right_triangle_on_segment(a, b)
+        @test distance(gr[2], gr[3]) ≈ 2 / golden && abs(dot(gr[1] - gr[2], gr[3] - gr[2])) < 1e-12
+        @test distance(gr[1], gr[2]) / distance(gr[2], gr[3]) ≈ golden
+        @test golden_right_triangle_on_segment(APSegment(a, b))[3] ≈ gr[3]
+        # random interior points
+        rng = Apollonius.Random.Xoshiro(1)
+        tri = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 3.0))
+        @test all(_ -> in(rand_inside(rng, tri), tri), 1:200)
+        @test all(_ -> distance(rand_inside(rng, circ), circ.center) <= circ.r, 1:200)
+        el = APEllipse2(APPoint(1.0, 1.0), 4.0, 2.0, 0.6)
+        @test all(_ -> (let f = foci(el), q = rand_inside(rng, el); distance(q, f[1]) + distance(q, f[2]) <= 2 * el.a + 1e-9 end), 1:200)
+        bb = APBoundingBox(APPoint(-1.0, -2.0), APPoint(3.0, 5.0))
+        @test all(_ -> in(rand_inside(rng, bb), bb), 1:200)
+        radii = [distance(rand_inside(rng, circ), circ.center) for _ in 1:4000]
+        @test 0.45 < count(<(circ.r / sqrt(2)), radii) / 4000 < 0.55   # uniform in area: half the points within r/√2
+        @test rand_inside(circ) isa APPoint
+    end
+
     @testset "extend_line (tkz add, relative)" begin
         l = APLine(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
         @test extend_line(l, 0.2) == APSegment(APPoint(-2.0, 0.0), APPoint(12.0, 0.0))
@@ -5468,6 +5526,13 @@ using Base.MathConstants: golden
                 @test near(first(pts_of(aline; add=0.2, extend=99.0)), -2, 0)   # add replaces extend
                 @test near(first(pts_of(aline; extend=(0.0, 3.0))), 0, 0)      # extend is unchanged
                 path(aline; add=(0.1, 0.1), as=:arrow)
+                aray = APRay(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+                @test near(first(pts_of(aray; add=(0.5, 0.2))), -5, 0) && near(last(pts_of(aray; add=(0.5, 0.2))), 12, 0)
+                @test near(last(pts_of(aray; add=0.3)), 13, 0) && near(first(pts_of(aray; add=0.3)), -3, 0)
+                @test near(last(pts_of(aray; extend=4.0)), 14, 0)   # extend is unchanged
+                @test near(first(pts_of(APHalfPlane2(aline, APPoint(0.0, 5.0)); add=0.2)), -2, 0)
+                path(APStrip2(aline, APLine(APPoint(0.0, 3.0), APPoint(10.0, 3.0))); add=0.1)
+                Luxor.newpath()
                 path(seg; as=:arrow, reverse=true)   # arrows: runs without error, the head goes to p1
                 path([seg, APPoint(1.0, 1.0)]; reverse=true, action=:stroke)   # a vector mixing curves and points
                 Luxor.newpath()
@@ -5578,6 +5643,16 @@ using Base.MathConstants: golden
             Luxor.finish()
             @test !painted(m2, 100, 130) && painted(m2, 10, 10)   # a point inside the triangle is protected
             @test !painted(m2, 100, 101)   # and so is the nested circle's interior (one clip per shape, no even-odd toggling)
+            Luxor.Drawing(200, 200, :image)   # angles (as=:sector / :rsector) and circular sectors are closed shapes too
+            Luxor.origin(); Luxor.background("white")
+            wedge = APAngle2(APPoint(0.0, 0.0), APPoint(60.0, 0.0), APPoint(0.0, -60.0))   # canvas: right/up quadrant
+            clip_out(wedge; as=:rsector, radius=50.0)
+            clip_out(APCircularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 50.0), APPoint(50.0, 0.0), APPoint(0.0, 50.0))))
+            Luxor.sethue("red"); Luxor.paint()
+            m3 = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test !painted(m3, 125, 75) && !painted(m3, 125, 125)   # inside the wedge and inside the sector
+            @test painted(m3, 75, 75) && painted(m3, 10, 10)        # elsewhere
         end
         @testset "path(::APAngle2) as=:rarc/:rsector -- the parallelogram-law angle marker" begin
             ang90 = APAngle2(APPoint(0.0, 0.0), APPoint(50.0, 0.0), APPoint(0.0, 50.0))

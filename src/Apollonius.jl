@@ -89,7 +89,8 @@ export medial_triangle, orthic_triangle, excentral_triangle, contact_triangle,
 export equilateral_triangle_on_segment, isosceles_triangle_on_segment, triangle_on_segment,
        triangle_on_segment_sss, triangle_on_segment_sas, triangle_on_segment_ssa, triangle_30_60_90_on_segment,
        isosceles_right_triangle_on_segment, golden_triangle_on_segment, golden_gnomon_on_segment,
-       egyptian_triangle_on_segment
+       egyptian_triangle_on_segment, cheops_triangle_on_segment, golden_right_triangle_on_segment
+export point_on_line, point_on_circle, nearest_point, other_intersection, intersection_angle, rand_inside
 export tangent_length, tangent_points, tangent_lines, external_tangent_lines, internal_tangent_lines,
        tangent_parallel
 export external_similitude_center, internal_similitude_center

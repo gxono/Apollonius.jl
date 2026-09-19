@@ -234,3 +234,32 @@ egyptian_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
 function egyptian_triangle_on_segment(s::APSegment; ccw::Bool=true)
     return egyptian_triangle_on_segment(s.p1, s.p2; ccw=ccw)
 end
+"""
+    cheops_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
+
+The isosceles triangle with base `[a, b]` whose sides are proportional to
+`2`, `φ` and `φ` (the profile of the pyramid of Cheops): the two equal sides
+have length `φ / 2 * distance(a, b)`. Built counterclockwise from `a` to `b`
+(`ccw=false` builds it on the other side).
+"""
+cheops_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
+    isosceles_triangle_on_segment(a, b, golden / 2 * distance(a, b); ccw=ccw)
+"""
+    cheops_triangle_on_segment(s::APSegment; ccw::Bool=true)
+"""
+cheops_triangle_on_segment(s::APSegment; ccw::Bool=true) = cheops_triangle_on_segment(s.p1, s.p2; ccw=ccw)
+"""
+    golden_right_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true)
+
+The right triangle with the right angle at `b`, whose two legs are in the
+golden ratio: `[a, b]` is the long leg and `[b, c]` the short one, of length
+`distance(a, b) / φ` (the half of a golden rectangle cut by a diagonal).
+Built counterclockwise from `a` to `b` (`ccw=false` builds it on the other
+side).
+"""
+golden_right_triangle_on_segment(a::APPoint, b::APPoint; ccw::Bool=true) =
+    triangle_on_segment_sas(a, b, pi / 2, distance(a, b) / golden; at=:b, ccw=ccw)
+"""
+    golden_right_triangle_on_segment(s::APSegment; ccw::Bool=true)
+"""
+golden_right_triangle_on_segment(s::APSegment; ccw::Bool=true) = golden_right_triangle_on_segment(s.p1, s.p2; ccw=ccw)

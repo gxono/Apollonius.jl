@@ -735,10 +735,15 @@ keyword picking which side of `[a, b]` the third vertex falls on.
 | [`golden_triangle_on_segment`](@ref) | isosceles `72°-72°-36°`, base `[a, b]` |
 | [`golden_gnomon_on_segment`](@ref) | isosceles `36°-36°-108°` (the golden gnomon), base `[a, b]` |
 | [`egyptian_triangle_on_segment`](@ref) | `3-4-5` right triangle, `[a, b]` the "4" side, right angle at `b` |
+| [`cheops_triangle_on_segment`](@ref) | isosceles with sides in the ratio `2 : φ : φ`, base `[a, b]` (the profile of the Cheops pyramid) |
+| [`golden_right_triangle_on_segment`](@ref) | right triangle with legs in the golden ratio, `[a, b]` the long leg, right angle at `b` |
 | [`triangle_on_segment`](@ref) | generic ASA: base `[a, b]`, given angle at `a` and at `b` |
 | [`triangle_on_segment_sas`](@ref) | generic SAS: base `[a, b]`, given angle and side length at one vertex |
 | [`triangle_on_segment_ssa`](@ref) | generic SSA: base `[a, b]`, an angle at one vertex, and the length of the opposite side (0/1/2 solutions) |
 | [`triangle_on_segment_sss`](@ref) | generic SSS: base `[a, b]` and both new side lengths |
+
+The `72°-72°-36°` triangle of Euclid is [`golden_triangle_on_segment`](@ref),
+and the `30°-60°-90°` "school" triangle is [`triangle_30_60_90_on_segment`](@ref).
 
 Every fixed-shape constructor above is really just a named call into one
 of these four: `golden_triangle_on_segment(a, b)` is
