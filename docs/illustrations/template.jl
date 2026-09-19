@@ -1,5 +1,7 @@
 include("default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+    # build the objects here: name = APObject(...)
 end
-@svg_doc(sz, @__FILE__, begin
+# bring the fitted objects into scope: (; name1, name2) = lxo
+@svg_doc(lxm, @__FILE__, begin
 end)

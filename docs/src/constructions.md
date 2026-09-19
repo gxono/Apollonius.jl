@@ -210,10 +210,11 @@ way, purple for the result.
 
 Each construction is done by hand, with the same steps the shown constructions
 above use. The first block of each one builds everything inside
-[`@to_luxor_picture!`](@ref), which fits it to the canvas and replaces each name
-with the fitted object, so every step is drawn in the same frame. A plain number
-such as a radius is not scaled, so the checks compare distances between the
-fitted objects.
+[`@to_luxor_picture`](@ref), which fits it to the canvas and returns the fitted
+objects in `lxo`, under the names they were given, so every step is drawn in
+the same frame. The line `(; a, b, ...) = lxo` brings them into scope. A plain
+number such as a radius is not scaled, so the checks compare distances between
+the fitted objects.
 
 ### The perpendicular bisector
 
@@ -236,14 +237,15 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-fsz = @to_luxor_picture! width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     a = APPoint(0.0, 0.0)
     b = APPoint(6.0, 2.0)
     c1 = APCircle2(a, 0.75 * distance(a, b))     # any radius above half of distance(a, b) works
     c2 = APCircle2(b, 0.75 * distance(a, b))
     p, q = intersection(c1, c2)                  # the two crossings of the circles
 end
-figH = ceil(Int, fsz.height) # hide
+(; a, b, c1, c2, p, q) = lxo
+figH = ceil(Int, lxm.height) # hide
 nothing # hide
 ```
 
@@ -316,7 +318,7 @@ line is infinite, so it is marked `@unbounded`: it is fitted like the rest but
 does not set the size of the canvas.
 
 ```@example geo
-fsz = @to_luxor_picture! width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     A = APPoint(0.0, 0.0)
     B = APPoint(8.0, 1.0)
     @unbounded l = APLine(A, B)
@@ -328,7 +330,8 @@ fsz = @to_luxor_picture! width=500 margin=30 begin
     ys = intersection(cx1, cx2)
     y = side_of_line(ys[1], l) != side_of_line(p, l) ? ys[1] : ys[2]   # the crossing on the far side of l
 end
-figH = ceil(Int, fsz.height) # hide
+(; A, B, l, p, cp, x1, x2, cx1, cx2, ys, y) = lxo
+figH = ceil(Int, lxm.height) # hide
 nothing # hide
 ```
 
@@ -403,7 +406,7 @@ The parallel to `l` through `p`, as a rhombus, as in
 gives `D` on `l`; two circles of the same radius around `D` and `p` meet at `E`.
 
 ```@example geo
-fsz = @to_luxor_picture! width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     A = APPoint(0.0, 0.0)
     B = APPoint(8.0, 1.0)
     @unbounded l = APLine(A, B)
@@ -415,7 +418,8 @@ fsz = @to_luxor_picture! width=500 margin=30 begin
     es = intersection(cD, cP)
     E = distance(es[1], A) > distance(es[2], A) ? es[1] : es[2]
 end
-figH = ceil(Int, fsz.height) # hide
+(; A, B, l, p, cA, D, cD, cP, es, E) = lxo
+figH = ceil(Int, lxm.height) # hide
 nothing # hide
 ```
 
@@ -491,7 +495,7 @@ The bisector of the angle at `v` between `p1` and `p2`, as in
 equal circles around those points cross inside the angle.
 
 ```@example geo
-fsz = @to_luxor_picture! width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     v = APPoint(0.0, 0.0)
     s1 = APSegment(v, APPoint(4.0, 0.0))
     s2 = APSegment(v, APPoint(1.0, 3.0))
@@ -502,7 +506,8 @@ fsz = @to_luxor_picture! width=500 margin=30 begin
     cx2 = APCircle2(x2, 0.75 * distance(x1, x2))
     y = argmax(q -> distance(q, v), intersection(cx1, cx2))   # the crossing inside the angle
 end
-figH = ceil(Int, fsz.height) # hide
+(; v, s1, s2, cv, x1, x2, cx1, cx2, y) = lxo
+figH = ceil(Int, lxm.height) # hide
 nothing # hide
 ```
 

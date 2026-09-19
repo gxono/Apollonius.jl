@@ -1,12 +1,13 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=280 margin=40 begin
+lxm, lxo = @to_luxor_picture width=500 height=280 margin=40 begin
     A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
     t = APTriangle(A, B, C)
     sides = [APSegment(A, B), APSegment(B, C), APSegment(C, A)]
     ang = APAngle2(A, B, C)
 end
+(; A, B, C, t, sides, ang) = lxo
 G = centroid(t)
-@svg_doc(sz, @__FILE__, begin
+@svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
 sethue(julia_blue); Luxor.setline(1.5)
 path(t, action=:stroke)

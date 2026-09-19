@@ -91,9 +91,9 @@ figure comes from the code above it; only the geometry is shown. The figures
 use one color code: blue for the given triangle, green for the construction
 aids, purple for what is found. In each part, the first block builds the
 triangle (the one of the running example) and what is derived from it inside
-[`@to_luxor_picture!`](@ref), which fits it to the canvas and replaces each
-name with the fitted object. The steps then call the functions of this page on
-the fitted triangle.
+[`@to_luxor_picture`](@ref), which fits it to the canvas and returns the fitted
+objects in `lxo`, under the names they were given. The steps then call the
+functions of this page on the fitted triangle.
 
 ### The circumcenter and the circumcircle
 
@@ -115,11 +115,12 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-fsz = @to_luxor_picture! width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     tri = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
     circ = circumcircle(tri)
 end
-figH = ceil(Int, fsz.height) # hide
+(; tri, circ) = lxo
+figH = ceil(Int, lxm.height) # hide
 nothing # hide
 ```
 
@@ -195,11 +196,12 @@ The incenter is where the angle bisectors meet, and it is the center of the
 circle that touches the three sides.
 
 ```@example geo
-fsz = @to_luxor_picture! width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     tri = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
     inc = incircle(tri)
 end
-figH = ceil(Int, fsz.height) # hide
+(; tri, inc) = lxo
+figH = ceil(Int, lxm.height) # hide
 nothing # hide
 ```
 
@@ -276,13 +278,14 @@ Each comes from a different set of lines: medians, perpendicular bisectors and
 altitudes.
 
 ```@example geo
-fsz = @to_luxor_picture! width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     tri = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
     cen = centroid(tri)
     cir = circumcenter(tri)
     ort = orthocenter(tri)
 end
-figH = ceil(Int, fsz.height) # hide
+(; tri, cen, cir, ort) = lxo
+figH = ceil(Int, lxm.height) # hide
 nothing # hide
 ```
 

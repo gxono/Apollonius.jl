@@ -151,8 +151,10 @@ shift it so it isn't half off-canvas, and what canvas size do I even pass
 to `Drawing`? [`@to_luxor_picture`](@ref) answers all three in one call:
 it translates and uniformly scales every shape in the block so their
 combined [`APBoundingBox`](@ref) fits centered on `(0, 0)`, and returns
-the exact canvas size (as a `(width=w, height=h)` `NamedTuple`) alongside
-the transformed shapes. Centering on `(0, 0)` matches Luxor's own
+two `NamedTuple`s: the first has the canvas size and the fitting function
+(`width`, `height`, `fct`, `bb`), and the second has the transformed shapes,
+one field per name in the block. Throughout this documentation they are called
+`lxm` (the "Luxor meta") and `lxo` (the "Luxor objects"). Centering on `(0, 0)` matches Luxor's own
 `origin()` convention, so the result is ready to draw right after
 `origin()`, which `@png`/`@svg`/`@pdf` already call for you. Despite the
 name, this macro is plain geometry: it has no Luxor dependency at all;
@@ -169,49 +171,53 @@ paper. Pass `flip=false` to get the raw, un-mirrored coordinates instead:
 ```@example geo
 t = APTriangle(APPoint(0.0, 0.0), APPoint(80.0, 0.0), APPoint(0.0, 80.0))
 
-_, t2 = @to_luxor_picture width = 200.0 begin
+lxm, lxo = @to_luxor_picture width = 200.0 begin
     t
 end
-t2.c   # (0, 80) in t's own coordinates ends up with a *negative* y here
+lxo.t.c   # (0, 80) in t's own coordinates ends up with a *negative* y here
 ```
 
 ```@example geo
-_, t2_noflip = @to_luxor_picture width = 200.0 flip = false begin
+lxm_noflip, lxo_noflip = @to_luxor_picture width = 200.0 flip = false begin
     t
 end
-t2_noflip.c   # flip=false: the raw, un-mirrored coordinates
+lxo_noflip.t.c   # flip=false: the raw, un-mirrored coordinates
 ```
 
 ```@example geo
-c = APCircle2(APPoint(3.0, -1.0), 5.0)
-s = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
-
-sz, (c2, s2) = @to_luxor_picture begin
-    c
-    s
+lxm, lxo = @to_luxor_picture begin
+    c = APCircle2(APPoint(3.0, -1.0), 5.0)
+    s = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 end
-sz   # the combined bbox is already 10x10, so this is its natural size
+lxm.width, lxm.height   # the combined bbox is already 10x10, so this is its natural size
 ```
 
-Being a `NamedTuple`, `sz` supports `sz.width`/`sz.height`, but also still
-destructures positionally exactly like a plain tuple would, so `(w, h) =
-sz` (or `(w, h), (c2, s2) = @to_luxor_picture begin ... end` directly)
-works too, if that's all you need:
+The shapes are built inside the block, and the second value has them back
+under the same names, so nothing has to be written twice:
 
 ```@example geo
-sz.width, sz.height
+lxo.c, lxo.s   # translated so the combined bbox is centered on (0, 0)
 ```
 
 ```@example geo
-c2, s2   # translated so the combined bbox is centered on (0, 0)
+(; c, s) = lxo    # or bring them all into scope at once, under their own names
+c
 ```
 
-`c`/`s` themselves are untouched (see [`@to_luxor_picture!`](@ref) below
-for the mutating form); the block is read exactly like
-[`@boundingbox`](@ref)'s (an assignment or a destructuring assignment
-binds its name(s) as usual, a bare expression contributes without binding
-anything, and a single shape/expression works without `begin`/`end` too),
-including how construction helpers are handled: a bare
+Being a `NamedTuple`, `lxm` supports `lxm.width`/`lxm.height`, and it still
+destructures positionally like a plain tuple, so `(w, h), lxo =
+@to_luxor_picture begin ... end` works if that is all you need. `lxo`
+destructures by position too, in the order of the block.
+
+Every line of the block has a name, which is what it is returned under: an
+assignment `name = expr`, a destructuring assignment `p, q = expr` (`p` and
+`q` become two fields), or the name of a shape defined earlier written on its
+own line. A name assigned twice keeps its last value. Any other bare
+expression is an `ArgumentError`, since it would have nothing to be returned
+as. The originals (`c` and `s` above) are untouched: see
+[`@to_luxor_picture!`](@ref) below for the mutating form.
+
+This includes how construction helpers are handled: a bare
 [`APPoint`](@ref) is repositioned along with everything else (it's a real
 position), while a plain number or an [`APVector`](@ref) is left
 completely untouched (there's no position to move, and a number in
@@ -223,12 +229,12 @@ centro = APPoint(2.0, 1.0)
 radio = 5.0
 circ2 = APCircle2(centro, radio)
 
-(w, h), (centro2, radio2, c2) = @to_luxor_picture width = 400.0 begin
+lxm, lxo = @to_luxor_picture width = 400.0 begin
     centro
     radio
     circ2
 end
-radio2 == radio, centro2   # radio2 untouched; centro2 repositioned like circ2
+lxo.radio == radio, lxo.centro   # radio untouched; centro repositioned like circ2
 ```
 
 An unbounded shape (`APLine`, `APRay`, `APAngle2`, `APHalfPlane2`,
@@ -241,12 +247,12 @@ a vector) it does have a position and does support `translate`/
 ```@example geo
 c1, c2 = APCircle2(APPoint(0.0, 0.0), 3.0), APCircle2(APPoint(10.0, 0.0), 3.0)
 
-(w, h), (c1_2, c2_2, ext1, ext2) = @to_luxor_picture width = 200.0 begin
+lxm, lxo = @to_luxor_picture width = 200.0 begin
     c1
     c2
     ext1, ext2 = external_tangent_lines(c1, c2)  # destructuring assignment
 end
-ext1   # repositioned exactly like c1_2/c2_2, even though its own bbox is empty
+lxo.ext1   # repositioned exactly like lxo.c1 and lxo.c2, even though its own bbox is empty
 ```
 
 A block with nothing but non-positional values (numbers/vectors, with no
@@ -276,20 +282,20 @@ distorted into an ellipse, no matter which sizing option is used.
 
 ```@example geo
 c, s = APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
-(w, h), _ = @to_luxor_picture width=400.0 begin
+lxm, _ = @to_luxor_picture width=400.0 begin
     c
     s
 end
-(w, h)   # height follows to keep the (here already square) aspect ratio
+lxm.width, lxm.height   # height follows to keep the (here already square) aspect ratio
 ```
 
 ```@example geo
 c, s = APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
-(w, h), _ = @to_luxor_picture scale=2.0 begin
+lxm, _ = @to_luxor_picture scale=2.0 begin
     c
     s
 end
-(w, h)   # canvas size is derived from the scaled content, not requested
+lxm.width, lxm.height   # canvas size is derived from the scaled content, not requested
 ```
 
 When `width` and `height` are given together and don't match the
@@ -302,11 +308,11 @@ stretching the content to fill it:
 t = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(3.0, 5.0))
 circ = APCircle2(APPoint(3.0, 2.0), 1.5)
 
-(w, h), (t2, circ2) = @to_luxor_picture width=400.0 height=200.0 margin=10.0 begin
+lxm, lxo = @to_luxor_picture width=400.0 height=200.0 margin=10.0 begin
     t
     circ
 end
-(w, h), circ2   # circ2 is still an APCircle2, never distorted
+(lxm.width, lxm.height), lxo.circ   # the circle is still an APCircle2, never distorted
 ```
 
 `margin` works the same way whether or not `width`/`height` are given:
@@ -314,11 +320,11 @@ with neither, it simply pads the content's own natural size on every side:
 
 ```@example geo
 c, s = APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
-(w, h), _ = @to_luxor_picture margin=3.0 begin
+lxm, _ = @to_luxor_picture margin=3.0 begin
     c
     s
 end
-(w, h)   # the natural 10x10 size, padded by 3 on every side
+lxm.width, lxm.height   # the natural 10x10 size, padded by 3 on every side
 ```
 
 Combining `scale` with `width`/`height` is an error: raised as soon as
@@ -339,17 +345,19 @@ bare reference to a shape defined earlier) to its own translated/scaled
 image, instead of returning copies, the same relationship
 [`@translate!`](@ref) has to [`@translate`](@ref). Since the shapes are
 already accessible under their own names afterward, it returns just the
-`(width=w, height=h)` `NamedTuple`:
+first `NamedTuple` (`lxm`). The non-mutating form does the same job explicitly
+with `(; c3, s3) = lxo`, and leaves the originals alone, so it is the one used
+in this documentation:
 
 ```@example geo
 c3 = APCircle2(APPoint(3.0, -1.0), 5.0)
 s3 = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 
-(w, h) = @to_luxor_picture! width=50.0 begin
+lxm = @to_luxor_picture! width=50.0 begin
     c3
     s3
 end
-(w, h), c3, s3   # c3/s3 themselves now refer to the translated/scaled shapes
+(lxm.width, lxm.height), c3, s3   # c3/s3 themselves now refer to the translated/scaled shapes
 ```
 
 A bare, unnamed expression has nothing to rebind, so this form rejects it

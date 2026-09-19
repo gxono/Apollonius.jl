@@ -1,11 +1,12 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=280 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
     c = APPoint(0.0, 0.0)
     p = APPoint(4.0, 2.5)
     extent = symmetry_construction(p, c; sweep=pi / 4).arcs
 end
+(; c, p, extent) = lxo
 m = symmetry_construction(p, c; sweep=pi / 4)
-@svg_doc(sz, @__FILE__, begin
+@svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
 sethue(julia_green); Luxor.setline(1)
 path(m.arcs, action=:stroke)

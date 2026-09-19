@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture flip=false width=500 height=240 margin=20 begin
     circ = APCircle2(APPoint(0.0, 0.0), 30.0)
     p1, p2 = APPoint(30.0, 0.0), APPoint(0.0, 30.0)
     arc = APCircularArc2(circ, p1, p2)
@@ -10,7 +10,8 @@ sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
     tinv = invert(APTriangle(APPoint(50.0, 20.0), APPoint(90.0, 30.0), APPoint(60.0, 80.0)), APPoint(0.0, 0.0), k = 100)
     gap = interstices(c1, c2, c3)
 end
-@svg_doc(sz, @__FILE__, begin
+(; circ, p1, p2, arc, c1, c2, c3_center, c3, tinv, gap) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue("steelblue"); setopacity(0.4)
 path(APCircularSector2(arc); action=:fill)
 path(APCircularSegment2(arc); action=:fill)

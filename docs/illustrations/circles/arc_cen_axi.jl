@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     c = APCircle2(APPoint(0.0, 0.0), 5.0)
     p1, p2 = APPoint(0.0, 1.0), APPoint(-2.0, 0.0)
     arc = APCircularArc2(c, p1, p2)
@@ -8,7 +8,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     arc_ref_p = reflection(arc, p)
     arc_ref_l = reflection(arc, l)
 end
-@svg_doc(sz, @__FILE__, begin
+(; c, p1, p2, arc, p, l, arc_ref_p, arc_ref_l) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue(julia_blue)
 path(arc, action=:stroke)
 sethue(julia_purple)

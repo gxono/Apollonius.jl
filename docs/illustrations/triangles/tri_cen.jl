@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
     triangle =  APTriangle(A, B, C)
     G = centroid(triangle)
@@ -16,7 +16,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     ep = collect(euler_points(triangle))
     ips = reduce(vcat, intersection.(npc, lados))
 end
-@svg_doc(sz, @__FILE__, begin
+(; A, B, C, triangle, G, O, I, H, l, lados, cc, ic, iv, npc, npc_c, ep, ips) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue("gray80")
 gsave()
 setline(1)

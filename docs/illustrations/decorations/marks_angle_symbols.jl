@@ -1,10 +1,11 @@
 include("../default_config.jl")
 styles = [:tick, :slash, :chevron, :cross, :circle]
-sz = @to_luxor_picture! width=500 height=280 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=280 margin=20 begin
     angs = [APAngle2(APPoint(8.0 * mod(i - 1, 3), -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 6.0, -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 4.0, 4.0 - 6.0 * fld(i - 1, 3))) for i in 1:6]
     rays = [APSegment(a.vertex, x) for a in angs for x in (a.a, a.b)]
 end
-@svg_doc(sz, @__FILE__, begin
+(; angs, rays) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue(julia_blue); Luxor.setline(1.5)
 path(rays, action=:stroke)
 sethue(julia_purple)

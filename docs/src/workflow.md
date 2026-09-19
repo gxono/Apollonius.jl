@@ -62,23 +62,24 @@ distance(A, touch[3]) ≈ distance(A, touch[2])
 ## 3. Fit the canvas
 
 [`@to_luxor_picture`](@ref) scales, centers and flips a whole set of objects
-so they fit a canvas of a given width, and returns the canvas size and the
-transformed objects:
+so they fit a canvas of a given width. It returns two `NamedTuple`s, called
+`lxm` (the "Luxor meta": canvas size, fitting function, drawable area) and
+`lxo` (the "Luxor objects": the fitted objects, under the names they have in
+the block):
 
 ```@example geo
-(w, h), (t2, inc2, ct2) = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     t
     inc
     ct
 end
-w, h
+lxm.width, lxm.height
 ```
 
-From here on, work with `t2`, `inc2` and `ct2`. They are the same objects in
-canvas coordinates: `y` grows downward and one unit is one drawing unit.
-[`@to_luxor_picture!`](@ref) does the same but replaces the variables you
-passed, which is convenient in a script and wrong if the same objects are
-used again elsewhere. The two rules for this step are on the
+From here on, work with `lxo.t`, `lxo.inc` and `lxo.ct`. They are the same
+objects in canvas coordinates: `y` grows downward and one unit is one drawing
+unit. The originals are untouched, so the same objects can be fitted again in
+another figure. The two rules for this step are on the
 [Conventions & FAQ](@ref) page.
 
 ## 4. Decorate
@@ -98,8 +99,8 @@ On the fitted objects the same call gives a small tick. The equal tangent
 segments from each vertex get one, two and three ticks:
 
 ```@example geo
-touch2 = collect(vertices(ct2))
-A2, B2, C2 = vertices(t2)
+touch2 = collect(vertices(lxo.ct))
+A2, B2, C2 = vertices(lxo.t)
 pieces = [(A2, touch2[3], 1), (A2, touch2[2], 1), (B2, touch2[3], 2), (B2, touch2[1], 2),
     (C2, touch2[1], 3), (C2, touch2[2], 3)]
 ticks = [marks(APSegment(p, q); count=k) for (p, q, k) in pieces]
@@ -112,7 +113,7 @@ so it goes straight to `path`. Label positions follow the same idea.
 placing a vertex label away from the centroid keeps it outside the triangle:
 
 ```@example geo
-G2 = centroid(t2)
+G2 = centroid(lxo.t)
 [label_anchor(v, G2).alignment for v in (A2, B2, C2)]
 ```
 
@@ -134,8 +135,8 @@ using Apollonius, Luxor
 @svg begin
     setline(1.5)
     sethue("steelblue")
-    path(t2; action=:stroke)
-    path(inc2; action=:stroke)
+    path(lxo.t; action=:stroke)
+    path(lxo.inc; action=:stroke)
 
     sethue("crimson")
     for ts in ticks
@@ -146,7 +147,7 @@ using Apollonius, Luxor
     for (v, name) in zip((A2, B2, C2), ("A", "B", "C"))
         label(name, label_anchor(v, G2)...)     # splat: (alignment, point)
     end
-end w h
+end lxm.width lxm.height
 ```
 
 `path` takes a single object, a `Vector` of them, or a `Vector` mixing
@@ -162,7 +163,7 @@ type, and [Marks, Labels & Decorations](@ref) for every decoration function.
 | `NaN` in the canvas size | an infinite object (an [`APLine`](@ref), a parabola) in the fitted block | put two points in the block and build the line after fitting, or use [`@unbounded`](@ref) |
 | An arc runs the other way, or an arrow points to the wrong end | fitting flips `y`, so a counterclockwise arc is stored with its endpoints swapped | compute decorations on the fitted arc: they follow what you see |
 | A grid or axes are not where the origin is | [`grid_lines`](@ref) anchors its lines at the origin of the coordinates it receives | build them inside the fitted block, in your own coordinates |
-| Objects change unexpectedly between two figures | [`@to_luxor_picture!`](@ref) replaced the variables | use the version without `!`, or build the objects again |
+| Objects change unexpectedly between two figures | [`@to_luxor_picture!`](@ref) replaced the variables | use the version without `!`, which leaves the originals alone and returns the fitted ones in `lxo` |
 | A construction shows only its result | the shown constructions return the compass traces separately | use the `arcs` and `points` of the returned `NamedTuple`; see [Compass & Ruler Constructions](@ref) |
 
 ## A short checklist

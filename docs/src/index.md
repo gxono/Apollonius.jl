@@ -55,7 +55,7 @@ intersection(l, circumcircle(t))
 ## Example: the same idea, drawn
 
 The four common tangent lines of two circles, sized and centered
-automatically by [`@to_luxor_picture!`](@ref), with the points of
+automatically by [`@to_luxor_picture`](@ref), with the points of
 tangency marked, the angle between the two external tangents shaded, and
 one radius dashed in:
 
@@ -67,13 +67,14 @@ using Luxor: @svg, sethue, setdash, setopacity,
     gsave, grestore
 import Luxor
 
-sz = @to_luxor_picture! width=500 height=320 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=320 margin=20 begin
     circle1 = APCircle2(APPoint(300.0, 300.0), 300.0)
     circle2 = APCircle2(APPoint(900.0, 200.0), 100.0)
     el1, el2 = external_tangent_lines(circle1, circle2)
     il1, il2 = internal_tangent_lines(circle1, circle2)
     ang = APAngle2(el1.p1, circle1.center, el1.p2)
 end
+(; circle1, circle2, el1, el2, il1, il2, ang) = lxo
 
 pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
 
@@ -107,7 +108,7 @@ pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
 
     sethue(julia_red)
     label("A", :NW, circle1.center)
-end sz.width sz.height
+end lxm.width lxm.height
 ```
 
 ```@raw html

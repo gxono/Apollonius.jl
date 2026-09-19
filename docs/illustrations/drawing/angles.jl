@@ -1,11 +1,12 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture flip=false width=500 height=240 margin=20 begin
     t = APTriangle(APPoint(-80.0, 60.0), APPoint(80.0, 60.0), APPoint(-20.0, -80.0))
     ang = APAngle2(t[2], t[1], t[3])
     tv = Apollonius.translate.(t, APVector.([0, 200, 400, 600, 800], 0))
     angv = Apollonius.translate.(ang, APVector.([0, 200, 400, 600, 800], 0))
 end
-@svg_doc(sz, @__FILE__, begin
+(; t, ang, tv, angv) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue(julia_blue)
 path(tv, action=:stroke)
 sethue(julia_purple)

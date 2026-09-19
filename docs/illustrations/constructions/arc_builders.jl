@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=200 margin=45 begin
+lxm, lxo = @to_luxor_picture width=500 height=200 margin=45 begin
     O1, P1 = APPoint(0.0, 0.0), APPoint(3.0, 0.0)
     O2, P2 = APPoint(8.0, 0.0), APPoint(11.0, 0.0)
     O3, P3 = APPoint(16.0, 0.0), APPoint(19.0, 0.0)
@@ -8,7 +8,8 @@ sz = @to_luxor_picture! width=500 height=200 margin=45 begin
     a3 = arc_with_angle(O3, P3, pi / 3)
     a3x = extend_arc(a3, 0.5)
 end
-@svg_doc(sz, @__FILE__, begin
+(; O1, P1, O2, P2, O3, P3, a1, a2, a3, a3x) = lxo
+@svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(14)
 sethue(julia_purple); Luxor.setline(2.5)
 path([a1, a2, a3x], action=:stroke)

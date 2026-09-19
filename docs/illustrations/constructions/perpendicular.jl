@@ -1,12 +1,13 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=280 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
     A, B = APPoint(0.0, 0.0), APPoint(8.0, 1.0)
     p = APPoint(3.0, 4.0)
     extent = perpendicular_construction(APLine(A, B), p; sweep=pi / 4).arcs
 end
+(; A, B, p, extent) = lxo
 l = APLine(A, B)
 m = perpendicular_construction(l, p; sweep=pi / 4)
-@svg_doc(sz, @__FILE__, begin
+@svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
 sethue(julia_green); Luxor.setline(1)
 path(m.arcs, action=:stroke)

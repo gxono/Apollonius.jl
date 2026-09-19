@@ -1,10 +1,11 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=280 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
     s1 = APSegment(APPoint(0.0, 4.0), APPoint(7.0, 4.0))
     s2 = APSegment(APPoint(0.0, 0.0), APPoint(7.0, 0.0))
     s3 = APSegment(APPoint(10.0, 0.0), APPoint(13.0, 5.0))
 end
-@svg_doc(sz, @__FILE__, begin
+(; s1, s2, s3) = lxo
+@svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(14)
 sethue(julia_blue); Luxor.setline(1.5)
 path([s1, s2, s3], action=:stroke)

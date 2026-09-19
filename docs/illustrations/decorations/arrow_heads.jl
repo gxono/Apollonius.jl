@@ -1,10 +1,11 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     segs = [APSegment(APPoint(0.0, 2.0 * (3 - i)), APPoint(7.0, 2.0 * (3 - i))) for i in 1:3]
     names = [APPoint(-2.5, 2.0 * (3 - i)) for i in 1:3]
     arc = APCircularArc2(APCircle2(APPoint(11.0, 0.0), 3.0), APPoint(14.0, 0.0), APPoint(8.0, 0.0))
 end
-@svg_doc(sz, @__FILE__, begin
+(; segs, names, arc) = lxo
+@svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(14)
 sethue(julia_blue); Luxor.setline(1.5)
 path(segs, action=:stroke)

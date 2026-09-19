@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     vt1 = APVector(12.5,0)
     o1 = APPoint(0.0, 0.0)
     o2 = o1 |> translate(vt1)
@@ -13,7 +13,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     arc3 = APCircularArc2(c3, s3, e3)
     sec3 = APAnnularSector2(arc3, 2.0)
 end
-@svg_doc(sz, @__FILE__, begin
+(; vt1, o1, o2, o3, c1, c2, c3, s1, e1, s2, e2, s3, e3, arc1, arc2, arc3, sec3) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue(julia_purple)
 path(APCircularSector2(arc1), action=:fill)
 path(APCircularSegment2(arc2), action=:fill)

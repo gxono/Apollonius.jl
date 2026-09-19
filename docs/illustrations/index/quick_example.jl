@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=320 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 height=320 margin=30 begin
     a, b, c = APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(1.0, 4.0)
     t = APTriangle(a, b, c)
     circ = circumcircle(t)
@@ -9,7 +9,8 @@ sz = @to_luxor_picture! width=500 height=320 margin=30 begin
     height = APSegment(c, foot)
     right = APAngle2(foot, b, c)
 end
-@svg_doc(sz, @__FILE__, begin
+(; a, b, c, t, circ, G, I, foot, height, right) = lxo
+@svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
 sethue(julia_purple); Luxor.setline(1.5)
 path(circ, action=:stroke)

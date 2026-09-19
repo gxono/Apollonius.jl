@@ -3873,9 +3873,11 @@ using Base.MathConstants: golden
             @test sz2m.bb == APBoundingBox(APPoint(-230.0, -100.0), APPoint(230.0, 100.0))
             @test bbox_width(sz2m.bb) == sz2m.width - 40.0 && bbox_height(sz2m.bb) == sz2m.height - 40.0
             c, s = fresh()
-            sz3, c2 = @to_luxor_picture begin
+            sz3, obj3 = @to_luxor_picture begin
                 c
             end
+            c2 = obj3.c
+            @test keys(obj3) == (:c,)
             @test sz3.fct(c) == c2
             c, s = fresh()
             original_center = c.center
@@ -3976,9 +3978,9 @@ using Base.MathConstants: golden
             end
             @test_throws ArgumentError _to_luxor_picture_unnamed_mutating_test()
             c, _ = fresh()
-            (w, h), c2 = @to_luxor_picture c
+            (w, h), obj_c = @to_luxor_picture c
             @test (w, h) == (10.0, 10.0)
-            @test c2 == APCircle2(APPoint(0.0, 0.0), 5.0)
+            @test obj_c.c == APCircle2(APPoint(0.0, 0.0), 5.0)
             centro = APPoint(2.0, 1.0)
             radio = 5.0
             circle = APCircle2(centro, radio)
@@ -4030,9 +4032,39 @@ using Base.MathConstants: golden
             @test norm(v_) > norm(v0)
             @test from_ + v_ ≈ tip_
             @test_throws ArgumentError @to_luxor_picture begin
-                5.0
-                APVector(1.0, 0.0)
+                num = 5.0
+                vec = APVector(1.0, 0.0)
             end
+            # the second value is a NamedTuple with one field per name in the block
+            sz_nt, objs_nt = @to_luxor_picture width = 200.0 begin
+                nt_a = APPoint(0.0, 0.0)
+                nt_c = APCircle2(nt_a, 2.0)
+                nt_p, nt_q = intersection(nt_c, APLine(nt_a, APPoint(1.0, 0.0)))
+                @unbounded nt_l = APLine(nt_a, APPoint(0.0, 1.0))
+            end
+            @test objs_nt isa NamedTuple && keys(objs_nt) == (:nt_a, :nt_c, :nt_p, :nt_q, :nt_l)
+            @test keys(sz_nt) == (:width, :height, :fct, :bb)
+            @test objs_nt.nt_c isa APCircle2 && objs_nt.nt_l isa APLine
+            @test sz_nt.fct(nt_c) == objs_nt.nt_c && sz_nt.fct(nt_p) ≈ objs_nt.nt_p
+            (; nt_a, nt_q) = objs_nt
+            @test nt_a isa APPoint && nt_q isa APPoint
+            @test all(values(objs_nt)[k] == objs_nt[k] for k in 1:5)      # positional access still works
+            # an unnamed expression has no name to be returned under
+            @test_throws ArgumentError @to_luxor_picture begin
+                nt_a2 = APPoint(0.0, 0.0)
+                APCircle2(nt_a2, 1.0)
+            end
+            @test_throws ArgumentError @to_luxor_picture! begin
+                nt_a3 = APPoint(0.0, 0.0)
+                APCircle2(nt_a3, 1.0)
+            end
+            # a name assigned twice keeps its last value (the first value still counts for the size of the canvas)
+            _, dup = @to_luxor_picture begin
+                dup_a = APPoint(0.0, 0.0)
+                dup_b = APPoint(4.0, 0.0)
+                dup_a = APPoint(2.0, 0.0)
+            end
+            @test keys(dup) == (:dup_a, :dup_b) && isapprox(dup.dup_a, APPoint(0.0, 0.0); atol=1e-9)
             c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
             c2 = APCircle2(APPoint(10.0, 0.0), 3.0)
             (w, h) = @to_luxor_picture! width = 200.0 flip = false begin
@@ -5440,7 +5472,7 @@ using Base.MathConstants: golden
         sz, ev_placed = @to_luxor_picture width=500 height=240 margin=20 begin
             evp = raw
         end
-        @test norm(ev_placed.vector) > norm(raw.vector)
+        @test norm(ev_placed.evp.vector) > norm(raw.vector)
     end
     @testset "Luxor extension" begin
         @test isempty(methods(path))

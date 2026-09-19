@@ -1,10 +1,11 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     A, B = APPoint(0.0, 0.0), APPoint(8.0, 0.0)
     ap = apollonius_circle(A, B, 2.0)
     Ptest1, Ptest2 = polar_point_deg.(ap.r, [50.0, 210], ap.center)
 end
-@svg_doc(sz, @__FILE__, begin
+(; A, B, ap, Ptest1, Ptest2) = lxo
+@svg_doc(lxm, @__FILE__, begin
     sethue(julia_purple)
     path(ap, action=:stroke)
     gsave()

@@ -124,24 +124,26 @@ exact canvas size directly. Centering on `(0, 0)` matches Luxor's own
 `origin()` convention, so the result is ready to draw right after
 `origin()`, which `@png` already calls for you:
 
+The macro returns two `NamedTuple`s, and this documentation always calls
+them `lxm` (the "Luxor meta": the canvas size, the fitting function `fct` and
+the drawable area `bb`) and `lxo` (the "Luxor objects": everything the block
+built, already fitted, under the names it was given):
+
 ```julia
 using Apollonius, Luxor
 
-t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
-circ = APCircle2(APPoint(4.0, 1.0), 4.0)
-
-(w, h), (t2, circ2) = @to_luxor_picture width=300.0 margin=10.0 begin
-    t
-    circ
+lxm, lxo = @to_luxor_picture width=300.0 margin=10.0 begin
+    t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
+    circ = APCircle2(APPoint(4.0, 1.0), 4.0)
 end
-# (w, h) = (300.0, 328.0): exactly 300 wide (as requested), tall enough
+# (lxm.width, lxm.height) = (300.0, 328.0): exactly 300 wide (as requested), tall enough
 # to keep t/circ's own aspect ratio, plus a 10-unit margin on every side
 
 @png begin
     sethue("steelblue")
-    path(t2; action=:stroke)
-    path(circ2; action=:stroke)
-end w h
+    path(lxo.t; action=:stroke)
+    path(lxo.circ; action=:stroke)
+end lxm.width lxm.height
 ```
 
 ```@raw html
@@ -153,17 +155,19 @@ Building the `Drawing` by hand instead needs its own `origin()` call
 first, since `Drawing` itself doesn't move `(0, 0)`:
 
 ```julia
-Drawing(w, h, "figure.png")
+Drawing(lxm.width, lxm.height, "figure.png")
 origin()
 background("white")
 sethue("steelblue")
-path(t2; action=:stroke)
-path(circ2; action=:stroke)
+path(lxo.t; action=:stroke)
+path(lxo.circ; action=:stroke)
 finish()
 ```
 
-`t`/`circ` themselves are untouched; see [`@to_luxor_picture!`](@ref) for
-the mutating form, which rebinds them in place instead.
+`t`/`circ` inside the block are ordinary variables and stay as they were: the
+fitted copies are in `lxo`. To bring them into scope under their own names,
+`(; t, circ) = lxo`. [`@to_luxor_picture!`](@ref) is the mutating form, which
+rebinds the names in place instead.
 
 When the requested `width`/`height` don't match the content's own aspect
 ratio, the content is scaled (still uniformly; a circle never becomes an
@@ -172,16 +176,16 @@ beyond `margin` on whichever axis has slack: the same "contain fit" a
 CSS `object-fit: contain` or an image viewer's "fit to window" would give:
 
 ```julia
-(w, h), (t2, circ2) = @to_luxor_picture width=400.0 height=200.0 margin=10.0 begin
-    t
-    circ
+lxm, lxo = @to_luxor_picture width=400.0 height=200.0 margin=10.0 begin
+    t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
+    circ = APCircle2(APPoint(4.0, 1.0), 4.0)
 end
-Drawing(w, h, "figure_wide.png")
+Drawing(lxm.width, lxm.height, "figure_wide.png")
 origin()
 background("white")
 sethue("steelblue")
-path(t2; action=:stroke)
-path(circ2; action=:stroke)
+path(lxo.t; action=:stroke)
+path(lxo.circ; action=:stroke)
 finish()
 ```
 
@@ -195,13 +199,13 @@ subfolder (`triangles/`, `circles/`, ...) and fill in the two blanks:
 ```julia
 include("../default_config.jl")
 
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
-    #to build obj.
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+    # build the objects: name = APObject(...)
 end
+# bring them into scope: (; name1, name2) = lxo
 
-
-@svg_doc(sz, @__FILE__, begin
-    #to plot obj.
+@svg_doc(lxm, @__FILE__, begin
+    # plot the objects
 end)
 ```
 
@@ -223,29 +227,26 @@ along with everything else, only its own `APBoundingBox` is left out of
 the union that decides how far to zoom out:
 
 ```julia
-A = APPoint(1.0, 1.0)
-locus = @unbounded APCircle2(APPoint(0.0, 0.0), 1000.0)   # huge, but not the picture's scale
-B = intersection(locus, APLine(A, APPoint(2.0, 2.0)))[1]
-
-(w, h), (A2, locus2, B2) = @to_luxor_picture width=500.0 height=240.0 margin=20.0 begin
-    A
-    locus
-    B
+lxm, lxo = @to_luxor_picture width=500.0 height=240.0 margin=20.0 begin
+    A = APPoint(1.0, 1.0)
+    @unbounded locus = APCircle2(APPoint(0.0, 0.0), 1000.0)   # huge, but not the picture's scale
+    B = intersection(locus, APLine(A, APPoint(2.0, 2.0)))[1]
 end
-# sized by A/B alone (locus's radius-1000 bounding box never counts) --
+# sized by A/B alone (locus's radius-1000 bounding box never counts):
 # without @unbounded here, A/B would shrink to a speck next to it instead
+lxo.A, lxo.locus, lxo.B
 ```
 
 Wrap either the whole line (`@unbounded locus = APCircle2(...)`) or just
 the right-hand side (`locus = @unbounded APCircle2(...)`), both read the
-same way. Outside a picture block, `@unbounded expr` is simply `expr`, a
+same way. The object is still in `lxo`, fitted like the rest. Outside a picture block, `@unbounded expr` is simply `expr`, a
 harmless no-op, so it's always safe to leave in place regardless of
 context.
 
 Note here how `@unbounded` allows me to ignore the circumcenter when computing the bounding box of the entire figure.
 
 ```julia
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
     triangle =  APTriangle(A, B, C)
     G = centroid(triangle)
@@ -262,6 +263,7 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     ep = euler_points(triangle)   # a Tuple of 3 points, no `collect` needed
     ips = reduce(vcat, intersection.(npc, tsides))
 end
+(; A, B, C, triangle, G, O, I, H, l, tsides, cc, ic, iv, npc, npc_c, ep, ips) = lxo
 ```
 
 ```@raw html
@@ -269,7 +271,7 @@ end
 ```
 
 
-### Applying the same transform outside the block: `sz.fct`
+### Applying the same transform outside the block: `lxm.fct`
 
 Both macros' returned size `NamedTuple` also carries `fct`: the exact same
 translate + homothety + (if `flip`) reflection pipeline applied to every
@@ -279,14 +281,14 @@ the same transformed coordinate space (a label position computed after
 the fact, a point from unrelated data, ...):
 
 ```julia
-sz, (t2, circ2) = @to_luxor_picture width=300.0 margin=10.0 begin
-    t
-    circ
+lxm, lxo = @to_luxor_picture width=300.0 margin=10.0 begin
+    t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
+    circ = APCircle2(APPoint(4.0, 1.0), 4.0)
 end
-sz.fct(centroid(t))   # matches where `centroid(t2)` would land, since t was never re-transformed itself
+lxm.fct(centroid(t))   # matches where `centroid(lxo.t)` lands, since t was never re-transformed itself
 ```
 
-### The drawable area itself: `sz.bb`
+### The drawable area itself: `lxm.bb`
 
 Both macros' returned size `NamedTuple` also carries `bb`: the
 [`APBoundingBox`](@ref) of the canvas's own drawable area, centered on the
@@ -297,19 +299,19 @@ block reaches anywhere near the canvas edges.
 
 The typical use is clipping: something that legitimately extends past the
 canvas on purpose, most often an unbounded region or a large auxiliary
-shape marked [`@unbounded`](@ref), can be clipped to `sz.bb` before
+shape marked [`@unbounded`](@ref), can be clipped to `lxm.bb` before
 stroking or filling it, instead of letting Cairo render (and spend time
 on) geometry that falls outside the printable area anyway:
 
 ```julia
-sz, (t2, circ2) = @to_luxor_picture width=300.0 height=200.0 margin=10.0 begin
-    t
-    circ
+lxm, lxo = @to_luxor_picture width=300.0 height=200.0 margin=10.0 begin
+    t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
+    circ = APCircle2(APPoint(4.0, 1.0), 4.0)
 end
-bbox_width(sz.bb) == sz.width - 20.0    # true: margin subtracted from both sides
-bbox_height(sz.bb) == sz.height - 20.0  # true
-path(sz.bb; action=:clip)
-path(t2; action=:stroke)   # now clipped to the margin-adjusted drawable area
+bbox_width(lxm.bb) == lxm.width - 20.0    # true: margin subtracted from both sides
+bbox_height(lxm.bb) == lxm.height - 20.0  # true
+path(lxm.bb; action=:clip)
+path(lxo.t; action=:stroke)   # now clipped to the margin-adjusted drawable area
 ```
 
 ### Known limitation: plain numbers never scale
@@ -323,11 +325,11 @@ in [`@unbounded`](@ref), after which it passes through completely
 unchanged, regardless of the picture's own scale factor:
 
 ```julia
-sz, (t2, ns2) = @to_luxor_picture width=400.0 begin
+lxm, lxo = @to_luxor_picture width=400.0 begin
     t = APTriangle(A, B, C)
-    ns = @unbounded [1.2, 3.2, 5.3]   # e.g. hand-typed side lengths
+    @unbounded ns = [1.2, 3.2, 5.3]   # e.g. hand-typed side lengths
 end
-ns2 == ns   # true: untouched, regardless of the picture's scale factor
+lxo.ns == ns   # true: untouched, regardless of the picture's scale factor
 ```
 
 This is a fundamental limitation, not a bug that could be fixed by making
@@ -345,17 +347,17 @@ scaled by construction, with no separate "scale this number" step needed
 at all:
 
 ```julia
-sz, t2 = @to_luxor_picture width=400.0 begin
+lxm, lxo = @to_luxor_picture width=400.0 begin
     t = APTriangle(A, B, C)
 end
-side_len_on_canvas = distance(t2[1], t2[2])   # correct: t2 is already in canvas space
+side_len_on_canvas = distance(lxo.t[1], lxo.t[2])   # correct: lxo.t is already in canvas space
 ```
 
-or, for a point that was never one of the block's own shapes, `sz.fct`
+or, for a point that was never one of the block's own shapes, `lxm.fct`
 (see above) applied to each point before measuring between them:
 
 ```julia
-distance(sz.fct(A), sz.fct(B))
+distance(lxm.fct(A), lxm.fct(B))
 ```
 
 ### `current_path_bbox`
@@ -369,14 +371,14 @@ or when the path also has plain Luxor calls mixed in that
 `Apollonius` has no way to know about:
 
 ```julia
-Drawing(w, h, "figure.png")
+Drawing(lxm.width, lxm.height, "figure.png")
 origin()
-path(t2; action=:path)      # action=:path: build the path, don't render yet
-path(circ2; action=:path)
+path(lxo.t; action=:path)      # action=:path: build the path, don't render yet
+path(lxo.circ; action=:path)
 
 current_path_bbox()   # APBoundingBox([-140.0, -154.0] .. [140.0, 154.0])
-                       # matches bbox_union(APBoundingBox(t2), APBoundingBox(circ2)) exactly here,
-                       # since both t2/circ2 draw via a native Cairo primitive (no sampling)
+                       # matches bbox_union(APBoundingBox(lxo.t), APBoundingBox(lxo.circ)) exactly here,
+                       # since both draw via a native Cairo primitive (no sampling)
 
 strokepath()
 current_path_bbox()   # APBoundingBox([0.0, 0.0] .. [0.0, 0.0]): stroking consumes the path,

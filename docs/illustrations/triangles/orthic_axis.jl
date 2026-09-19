@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
     t =  APTriangle(A, B, C)
     l1, l2, l3 = APLine.(sides(t))
@@ -10,7 +10,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     ih2 = intersection(lh2, l2)
     ih3 = intersection(lh3, l3)
 end
-@svg_doc(sz, @__FILE__, begin
+(; A, B, C, t, l1, l2, l3, oa, h1, h2, h3, lh1, lh2, lh3, ih1, ih2, ih3) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue("gray80")
 setdash(:dash)
 gsave()

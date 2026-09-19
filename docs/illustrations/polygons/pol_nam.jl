@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     a, b, c = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(5.0, 2.0)
     d = APPoint(1.0, 0.0)
     pa = parallelogram(a, b, c)
@@ -7,7 +7,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     pr = rectangle_on_segment(a, b, 2.0)
     pp = regular_polygon(a, d, 6)
 end
-@svg_doc(sz, @__FILE__, begin
+(; a, b, c, d, pa, ps, pr, pp) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue(julia_purple)
 path([pa, ps, pr, pp], action=:stroke)
 path([a, b, c, d])

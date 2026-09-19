@@ -301,8 +301,8 @@ The blocks in this section are run when the documentation is built, and each
 figure comes from the code above it; only the geometry is shown. The figures
 use one color code: blue for the given objects, green for the construction
 aids, purple for what is found. In each part, the first block builds the
-objects inside [`@to_luxor_picture!`](@ref), which fits them to the canvas and
-replaces each name with the fitted object.
+objects inside [`@to_luxor_picture`](@ref), which fits them to the canvas and
+returns the fitted objects in `lxo`, under the names they were given.
 
 ### A circle through two points, tangent to a line
 
@@ -328,13 +328,14 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-fsz = @to_luxor_picture! width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     ta = APPoint(-3.0, 0.0)
     tb = APPoint(3.0, 0.0)
     @unbounded tl = APLine(APPoint(-6.0, -4.0), APPoint(6.0, -4.0))
     tsol = only(tangent_circles_through_points(ta, tb, tl))
 end
-figH = ceil(Int, fsz.height) # hide
+(; ta, tb, tl, tsol) = lxo
+figH = ceil(Int, lxm.height) # hide
 nothing # hide
 ```
 
@@ -405,13 +406,14 @@ Three circles that touch each other in pairs leave a curved triangle between
 them. Its corners are the three points of contact.
 
 ```@example geo
-fsz = @to_luxor_picture! width=500 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
     k1 = APCircle2(APPoint(0.0, 0.0), 40.0)
     k2 = APCircle2(APPoint(90.0, 0.0), 50.0)
     k3 = APCircle2(intersection(APCircle2(k1.center, k1.r + 35.0), APCircle2(k2.center, k2.r + 35.0))[1], 35.0)
     tgap = only(interstices(k1, k2, k3))
 end
-figH = ceil(Int, fsz.height) # hide
+(; k1, k2, k3, tgap) = lxo
+figH = ceil(Int, lxm.height) # hide
 nothing # hide
 ```
 

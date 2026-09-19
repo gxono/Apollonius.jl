@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
     t = APTriangle(A, B, C)
     l = APLine.(sides(t))
@@ -8,7 +8,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     pp = projection.(ex, [l[2], l[3], l[1]])
     rangles = APAngle2.(pp, ex, getproperty.(l, :p2))
 end
-@svg_doc(sz, @__FILE__, begin
+(; A, B, C, t, l, ex, exc, pp, rangles) = lxo
+@svg_doc(lxm, @__FILE__, begin
 gsave()
 sethue("gray80")
 setdash(:dash)

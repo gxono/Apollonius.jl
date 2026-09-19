@@ -1,5 +1,5 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     circ = APCircle2(APPoint(0.0, 0.0), 3.0)
     arc = APCircularArc2(circ, APPoint(0.0, 3.0), APPoint(-3.0, 0.0))
     eq = APEllipse2(APPoint(6.0, 0.0), 2.0, 1.0, 0.0)
@@ -8,7 +8,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     s2 = APSegment(APPoint(-3.0, 0.0), earc.p1)
     cq = APCurvilinearQuadrilateral2(earc, s1, arc, s2)
 end
-@svg_doc(sz, @__FILE__, begin
+(; circ, arc, eq, earc, s1, s2, cq) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue(julia_blue)
 path([eq,circ], action=:stroke)
 sethue(julia_purple)

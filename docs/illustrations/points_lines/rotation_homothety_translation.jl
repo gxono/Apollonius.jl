@@ -1,6 +1,6 @@
 include("../default_config.jl")
 using Apollonius: rotate, translate
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(2.0, 6.0)
     R = rotate(C, pi / 2, P)
     angTR = APAngle2(P, C, R)
@@ -11,7 +11,8 @@ sz = @to_luxor_picture! width=500 height=240 margin=20 begin
     B = barycenter(vertices(trian), [1.0, 1.0, 2.0])
     m1, m2, m3 = midpoint.(sides(trian))
 end
-@svg_doc(sz, @__FILE__, begin
+(; P, Q, C, R, angTR, H, vecCT, T, trian, B, m1, m2, m3) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue("gray80")
 path([APSegment(p,m) for (p,m) in zip([C,P,Q], [m1,m2,m3])], action = :stroke)
 path(APTriangle(P, Q, C), action=:stroke)

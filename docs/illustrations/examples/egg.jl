@@ -17,12 +17,13 @@ egg = APCurvilinearQuadrilateral2(
     APCircularArc2(A, B, ip2)
 )
 
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     egg
 end
+(; egg) = lxo
 
 
-@svg_doc(sz, @__FILE__, begin
+@svg_doc(lxm, @__FILE__, begin
     setline(5); setdash("solid")
     path(egg, action=:strokepreserve)
     setopacity(0.8); sethue("ivory"); fillpath()

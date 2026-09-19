@@ -11,11 +11,11 @@ using Luxor: @drawsvg, @svg,
 import Luxor
 plot_point(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
 end
-macro svg_doc(sz, file, content)
+macro svg_doc(lxm, file, content)
     return quote
         local _subfolder = basename(dirname($(esc(file))))
         local _svg_name = replace(basename($(esc(file))), ".jl" => ".svg")
-        Drawing($(esc(sz)).width, $(esc(sz)).height, joinpath("docs", "src", "assets", "img", _subfolder, _svg_name))
+        Drawing($(esc(lxm)).width, $(esc(lxm)).height, joinpath("docs", "src", "assets", "img", _subfolder, _svg_name))
         origin()
         $(esc(content))
         finish()

@@ -295,10 +295,11 @@ or in a `Vector`. This is the usual pattern, on objects already returned by
 ```julia
 using Apollonius, Luxor
 
-(w, h), (seg, ang) = @to_luxor_picture width=400.0 margin=30.0 begin
-    APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
-    APAngle2(APPoint(0.0, 0.0), APPoint(10.0, 0.0), APPoint(4.0, 6.0))
+lxm, lxo = @to_luxor_picture width=400.0 margin=30.0 begin
+    seg = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+    ang = APAngle2(APPoint(0.0, 0.0), APPoint(10.0, 0.0), APPoint(4.0, 6.0))
 end
+(; seg, ang) = lxo
 
 @svg begin
     path(seg; action=:stroke)
@@ -307,7 +308,7 @@ end
     path(arrow_head(seg; at=0.3); action=:fill)        # an arrow a third of the way
     path(brace(seg.p1, seg.p2); action=:stroke)
     label("10", brace_anchor(seg.p1, seg.p2)...)       # splat: (alignment, point)
-end w h
+end lxm.width lxm.height
 ```
 
 Put together, the pieces make a figure like this one: an isosceles triangle with equal-side marks, arcs on the equal angles, an arrow on the base and a brace with its label. The script is `docs/illustrations/decorations/full_figure.jl`.

@@ -1,10 +1,11 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
     p1, p2 = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
     s = APSegment(p1, p2)
     it = egyptian_triangle_on_segment(s)
 end
-@svg_doc(sz, @__FILE__, begin
+(; p1, p2, s, it) = lxo
+@svg_doc(lxm, @__FILE__, begin
 sethue(julia_purple)
 path(it, action=:stroke)
 sethue(julia_blue)

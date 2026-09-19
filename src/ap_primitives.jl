@@ -715,20 +715,14 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
         stmt, unbounded_here = _strip_unbounded(stmt)
         names, run_first = _block_stmt_names(stmt)
         if isempty(names)
-            if mutating
-                push!(body.args, :(throw(ArgumentError($macroname * ": cannot mutate an unnamed expression: assign it to a variable first"))))
-            else
-                push!(body.args, :(push!($shapes, $stmt)))
-                unbounded_here || push!(body.args, :(push!($sizing_shapes, $shapes[end])))
-                push!(slots, nothing)
-            end
+            push!(body.args, :(throw(ArgumentError($macroname * ": an unnamed expression is not allowed (" * $(string(stmt)) * "): assign it to a name"))))
             continue
         end
         run_first && push!(body.args, stmt)
         for name in names
             push!(body.args, :(push!($shapes, $name)))
             unbounded_here || push!(body.args, :(push!($sizing_shapes, $name)))
-            push!(slots, mutating ? name : nothing)
+            push!(slots, name)
         end
     end
     picture_layout = GlobalRef(@__MODULE__, :_picture_layout)
@@ -751,18 +745,20 @@ function _picture_body(mutating::Bool, block, width, height, scale, margin, flip
     push!(body.args, :($results = Any[]))
     for (i, slot) in enumerate(slots)
         transformed = :($place_in_picture($shapes[$i], $bb, $s, $flip))
-        if slot === nothing
-            push!(body.args, :(push!($results, $transformed)))
-        else
+        if mutating
             push!(body.args, :($slot = $transformed), :(push!($results, $slot)))
+        else
+            push!(body.args, :(push!($results, $transformed)))
         end
     end
     size_expr = :((width=$W, height=$H, fct=$fct, bb=$drawbb))
     if mutating
         push!(body.args, size_expr)
     else
-        shapes_expr = length(slots) == 1 ? :($results[1]) : :(($results...,))
-        push!(body.args, :(($size_expr, $shapes_expr)))
+        order = unique(slots)   # a name assigned twice keeps its last value, at its first position
+        last_index = Dict(name => i for (i, name) in enumerate(slots))
+        values = [:($results[$(last_index[name])]) for name in order]
+        push!(body.args, :(($size_expr, NamedTuple{$(Tuple(order))}(($(values...),)))))
     end
     return esc(body)
 end
@@ -785,7 +781,7 @@ but isn't meant to set the picture's own scale: e.g. a big locus circle
 used only to build an intersection point:
 
 ```julia
-sz = @to_luxor_picture! width=500 height=240 begin
+lxm = @to_luxor_picture! width=500 height=240 begin
     A = APPoint(1.0, 1.0)
     locus = @unbounded APCircle2(APPoint(0.0, 0.0), 1000.0)   # huge, but shouldn't zoom the picture out
     B = intersection(locus, APLine(A, APPoint(2.0, 2.0)))[1]
@@ -818,20 +814,26 @@ Prepares every shape named in the block for drawing at a known, exact
 canvas size: translate/scale them so their combined [`APBoundingBox`](@ref)
 fits centered on the *origin*, always preserving aspect ratio (the scale
 factor is always the same in `x` and `y`: a circle always stays a
-circle). Returns `((width=w, height=h, fct=fct, bb=bb), shapes)`: a
-`NamedTuple` with the exact canvas size to pass to `Drawing` (`w, h = ...`
-still works positionally, same as a plain tuple, alongside
-`sz.width`/`sz.height`), `fct`, the exact same translate/scale/flip
+circle). Returns two `NamedTuple`s, called `lxm` (the "Luxor meta") and `lxo`
+(the "Luxor objects") in the examples: `lxm = (width, height, fct, bb)` has the
+exact canvas size to pass to `Drawing` (`lxm.width`, `lxm.height`, or
+positionally `w, h = ...`), `fct`, the exact same translate/scale/flip
 function applied to every shape in the block, so it can be applied
 *outside* the block too, to something that isn't itself part of the
 picture (e.g. a label position computed after the fact) and still land in
 the same transformed coordinate space, and `bb`, the [`APBoundingBox`](@ref)
 of the drawable area itself (the canvas, centered on the origin, with
-`margin` subtracted from every side): handy for e.g. `path(sz.bb;
+`margin` subtracted from every side): handy for e.g. `path(lxm.bb;
 action=:clip)`, independent of what the block's own shapes happen to
-cover. `shapes` are the translated/scaled copies (`c`/`s`/`t` themselves
-are untouched: see [`@to_luxor_picture!`](@ref) for the mutating form),
-in the same order as the block, as a tuple (or bare, for a single shape).
+cover. `lxo` is the second `NamedTuple`, with one field per name in the
+block, holding the translated/scaled copy: `lxo.c`, `lxo.s`, or all at
+once with `(; c, s) = lxo`. Nothing has to be listed twice, so a shape
+built inside the block is returned without writing its name again. The
+originals (`c`/`s`/`t` themselves) are untouched: see
+[`@to_luxor_picture!`](@ref) for the mutating form. It also destructures by
+position, in the order of the block, as a plain tuple would. A name assigned
+more than once keeps its last value, in the position of its first appearance
+(the earlier values still count for the size of the canvas).
 
 Centering on `(0, 0)` matches Luxor's own `origin()` convention (device
 `(0, 0)` moved to the center of the canvas), so the result is ready to
@@ -846,25 +848,25 @@ coordinates instead (e.g. if you're already deliberately working in
 screen/y-down coordinates).
 
 ```julia
-(w, h, fct), (c2, s2) = @to_luxor_picture width=400 begin
+lxm, lxo = @to_luxor_picture width=400 begin
     c = APCircle2(APPoint(3.0, -1.0), 5.0)
     s = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 end
 @png begin
-    path(c2; action=:stroke)
-    path(s2; action=:stroke)
-    label("center", :N, fct(c.center))   # a point that was never one of the block's shapes
-end w h
+    path(lxo.c; action=:stroke)
+    path(lxo.s; action=:stroke)
+    label("center", :N, lxm.fct(c.center))   # a point that was never one of the block's shapes
+end lxm.width lxm.height
 ```
 
 Building the `Drawing` by hand instead needs its own `origin()` call
 first, since `Drawing` itself doesn't move `(0, 0)`:
 
 ```julia
-Drawing(w, h, "out.png")
+Drawing(lxm.width, lxm.height, "out.png")
 origin()
-path(c2; action=:stroke)
-path(s2; action=:stroke)
+path(lxo.c; action=:stroke)
+path(lxo.s; action=:stroke)
 finish()
 ```
 
@@ -890,10 +892,12 @@ Scaling options (mutually exclusive: `scale` cannot be combined with
 content on every side, in output units. `flip` (default `true`) is
 independent of all of the above: see the note above.
 
-Each line in the block is read exactly like [`@boundingbox`](@ref)'s (an
-assignment binds `name` in the enclosing scope as usual, or a bare
-expression contributes without binding anything); a bare, unnamed
-expression works here too since nothing needs to be rebound.
+Each line in the block is a name: an assignment `name = expr` (or a
+destructuring one, `p, q = expr`, which gives `p` and `q` as separate
+names) binds it in the enclosing scope as usual, and the name of a shape
+defined earlier can also be written on its own line. Any other bare
+expression is an `ArgumentError`: it would have no name to return it under,
+so assign it first.
 
 Wrap a line in [`@unbounded`](@ref) (`aux = @unbounded APCircle2(...)`, or
 `@unbounded aux = APCircle2(...)`) to still bind/transform it normally

@@ -1,10 +1,11 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=280 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
     a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
     extent = mediator_construction(a, b; sweep=pi / 4).arcs
 end
+(; a, b, extent) = lxo
 m = mediator_construction(a, b; sweep=pi / 4)
-@svg_doc(sz, @__FILE__, begin
+@svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
 sethue(julia_green); Luxor.setline(1)
 path(m.arcs, action=:stroke)

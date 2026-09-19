@@ -1,11 +1,12 @@
 include("../default_config.jl")
-sz = @to_luxor_picture! width=500 height=280 margin=30 begin
+lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
     A, B = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
     C = argmax(p -> p[2], intersection(APCircle2(A, 6.0), APCircle2(B, 6.0)))
     cA, cB = APCircle2(A, 6.0), APCircle2(B, 6.0)
 end
+(; A, B, C, cA, cB) = lxo
 traces = [compass_trace(A, C; angle=pi / 4), compass_trace(B, C; angle=pi / 4)]
-@svg_doc(sz, @__FILE__, begin
+@svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
 sethue("gray80"); Luxor.setline(1)
 path([cA, cB], action=:stroke)
