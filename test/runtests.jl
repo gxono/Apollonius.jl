@@ -537,6 +537,61 @@ using Base.MathConstants: golden
             @test APHyperbolicArc2(APPoint(0.0, 0.0), 2.0, 1.0, pa, pb; angle=0.1) == harc
         end
     end
+    @testset "tangent_at / marks" begin
+        fd(arc, t) = (d = point_on_arc(arc, t + 1e-6) - point_on_arc(arc, t - 1e-6); d / norm(d))
+        @testset "tangent_at on lines" begin
+            s = APSegment(APPoint(1.0, 1.0), APPoint(1.0, 5.0))
+            f = tangent_at(s, 0.25)
+            @test f.point ≈ APPoint(1.0, 2.0) && f.vector ≈ APVector(0.0, 1.0)
+            @test tangent_at(APLine(APPoint(0.0, 0.0), APPoint(3.0, 0.0)), 2.0).point ≈ APPoint(6.0, 0.0)
+            @test tangent_at(APRay(APPoint(1.0, 0.0), APPoint(1.0, 2.0)), 0.5).vector ≈ APVector(0.0, 1.0)
+            @test_throws ArgumentError tangent_at(APSegment(APPoint(1.0, 1.0), APPoint(1.0, 1.0)), 0.5)
+        end
+        @testset "tangent_at on every arc type, against finite differences (both directions)" begin
+            c = APCircle2(APPoint(1.0, 2.0), 3.0)
+            e = APEllipse2(APPoint(1.0, -1.0), 5.0, 2.0, 0.6)
+            par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
+            h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.3)
+            arcs = [APCircularArc2(c, APPoint(4.0, 2.0), APPoint(1.0, 5.0)),
+                APCircularArc2(c, APPoint(1.0, 5.0), APPoint(4.0, 2.0)),
+                APEllipticArc2(e, point_on_ellipse(e, 0.3), point_on_ellipse(e, 2.0)),
+                APEllipticArc2(e, point_on_ellipse(e, 4.0), point_on_ellipse(e, 1.0)),
+                APParabolicArc2(par, point_on_parabola(par, -2.0), point_on_parabola(par, 3.0)),
+                APParabolicArc2(par, point_on_parabola(par, 3.0), point_on_parabola(par, -2.0)),
+                APHyperbolicArc2(h, point_on_hyperbola(h, -0.5), point_on_hyperbola(h, 1.0)),
+                APHyperbolicArc2(h, point_on_hyperbola(h, 1.0), point_on_hyperbola(h, -0.5)),
+                APHyperbolicArc2(h, point_on_hyperbola(h, -0.5; branch=-1), point_on_hyperbola(h, 1.0; branch=-1))]
+            for a in arcs, t in (0.0, 0.3, 0.5, 1.0)
+                f = tangent_at(a, t)
+                @test f.point ≈ point_on_arc(a, t) atol = 1e-9
+                @test norm(f.vector) ≈ 1.0 atol = 1e-12
+                @test isapprox(f.vector, fd(a, t); atol=1e-5)
+            end
+        end
+        @testset "marks" begin
+            s = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+            tick = only(marks(s))
+            @test tick isa APSegment && tick ≈ APSegment(APPoint(5.0, -3.0), APPoint(5.0, 3.0))
+            three = marks(s; count=3, gap=2.0, size=4.0)
+            @test [m.p1[1] for m in three] ≈ [3.0, 5.0, 7.0]
+            @test all(m -> distance(m.p1, m.p2) ≈ 4.0, three)
+            @test only(marks(s; at=0.2)).p1[1] ≈ 2.0
+            @test length(marks(s; style=:cross)) == 2
+            @test only(marks(s; style=:circle, size=2.0)) ≈ APCircle2(APPoint(5.0, 0.0), 1.0)
+            chev = marks(s; style=:chevron, size=4.0)
+            @test length(chev) == 2 && chev[1].p1 ≈ chev[2].p1   # both arms share the tip
+            slash = only(marks(s; style=:slash, slant=pi / 6, size=2.0))
+            @test direction(slash) ≈ APVector(2 * sin(pi / 6), 2 * cos(pi / 6))   # tilted slant from the perpendicular
+            circ = APCircle2(APPoint(1.0, 2.0), 3.0)
+            arc = APCircularArc2(circ, APPoint(4.0, 2.0), APPoint(1.0, 5.0))
+            mk = only(marks(arc; size=1.0))
+            @test on_line(circ.center, APLine(mk.p1, mk.p2))   # a tick on a circular arc lies along a radius
+            @test distance(midpoint(mk), circ.center) ≈ circ.r atol = 1e-9
+            @test_throws ArgumentError marks(s; style=:bogus)
+            @test_throws ArgumentError marks(s; count=0)
+            @test_throws ArgumentError marks(s; size=0.0)
+        end
+    end
     @testset "APParametricCurve2" begin
         curve = APParametricCurve2(t -> APPoint(2t, t^2), (0.0, 3.0))
         @test point_on_curve(curve, 0.0) == APPoint(0.0, 0.0)
@@ -5079,6 +5134,10 @@ using Base.MathConstants: golden
             @test_throws ArgumentError path(ang; as=:bogus)
             arc = APCircularArc2(Apollonius.APCircle2(APPoint(0.0, 0.0), 30.0), APPoint(30.0, 0.0), APPoint(0.0, 30.0))
             path(arc; action=:stroke)
+            path(APPolyline2(APPoint(-50.0, -50.0), APPoint(-20.0, 20.0), APPoint(10.0, -30.0)); action=:stroke)
+            path(APCurvilinearPolyline2([APSegment(APPoint(-60.0, 0.0), APPoint(30.0, 0.0)), arc]); action=:stroke)
+            path(marks(APSegment(APPoint(-40.0, -40.0), APPoint(40.0, -40.0)); count=2); action=:stroke)
+            path(marks(arc; style=:chevron); action=:stroke)
             path(APCircularSector2(arc); action=:fill)
             path(APCircularSegment2(arc); action=:fill)
             c1 = Apollonius.APCircle2(APPoint(0.0, 0.0), 40.0)

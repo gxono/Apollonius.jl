@@ -266,6 +266,35 @@ function AP.path(curve::AP.APParametricCurve2; n=60, action=:path)
     pts = [_lp(AP.point_on_curve(curve, t)) for t in range(curve.trange[1], curve.trange[2]; length=n)]
     Luxor.poly(pts, action; close=false)
 end
+"""
+    path(pl::APPolyline2; action=:path)
+
+An open chain of straight sides: one polyline through `pl`'s vertices in
+order (never closed, unlike an [`APStraightNgon`](@ref)).
+"""
+function AP.path(pl::AP.APPolyline2; action=:path)
+    Luxor.poly([_lp(p) for p in pl.vertices], action; close=false)
+end
+"""
+    path(pg::APCurvilinearPolyline2; n=60, action=:path)
+
+An open chain of straight and curved sides, in the order given (each side
+already starts where the previous one ends): a straight line for an
+`APSegment` side, a true arc for an `APCircularArc2` side, and an
+`n`-point sampled polyline for any other conic-arc side.
+"""
+function AP.path(pg::AP.APCurvilinearPolyline2; n=60, action=:path)
+    action != :path && Luxor.newpath()
+    Luxor.move(_lp(AP._side_p1(pg.sides[1])))
+    for side in pg.sides
+        if side isa AP.APSegment
+            Luxor.line(_lp(side.p2))
+        else
+            _add_arc!(side, false; n=n)
+        end
+    end
+    Luxor.do_action(action)
+end
 function _add_arc!(arc::AP.APCircularArc2, reversed::Bool; n=60)
     c = _lp(arc.circle.center)
     reversed ? Luxor.carc2r(c, _lp(arc.p2), _lp(arc.p1)) : Luxor.arc2r(c, _lp(arc.p1), _lp(arc.p2))
