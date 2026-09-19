@@ -1,10 +1,16 @@
 """
     is_collinear(a::APPoint, b::APPoint, c::APPoint; atol=1e-9)
 
-Whether points `a`, `b` and `c` lie on a common line.
+Whether points `a`, `b` and `c` lie on a common line. The tolerance is `atol`
+times the product of the lengths, plus the rounding error that coordinates far
+from the origin carry, so a point computed at `x = 1e8` still tests as on its line.
 """
-is_collinear(a::APPoint, b::APPoint, c::APPoint; atol=1e-9) =
-    abs(cross2(b - a, c - a)) <= atol * norm(b - a) * norm(c - a)
+function is_collinear(a::APPoint, b::APPoint, c::APPoint; atol=1e-9)
+    u, v = b - a, c - a
+    # coordinates far from the origin carry a rounding error of their own size
+    noise = 8 * eps(float(max(maximum(abs, a), maximum(abs, b), maximum(abs, c)))) * (norm(u) + norm(v))
+    return abs(cross2(u, v)) <= atol * norm(u) * norm(v) + noise
+end
 """
     is_coplanar(a::APPoint{3}, b::APPoint{3}, c::APPoint{3}, d::APPoint{3}; atol=1e-9)
 

@@ -183,6 +183,16 @@ Circle(s) tangent to `c1`, `c2` and `c3`: the classical Apollonius
 problem. Returns a `Vector{APCircle2{Float64}}` with up to 8 solutions.
 """
 function tangent_circles(c1::APCircle2, c2::APCircle2, c3::APCircle2; atol=1e-9)
+    # solve relative to c3's center, so the result does not degrade far from the origin
+    o = c3.center
+    local_circle(c) = APCircle2(APPoint(zero(o[1]), zero(o[2])) + (c.center - o), c.r)
+    sols = _tangent_circles_ccc(local_circle(c1), local_circle(c2), local_circle(c3); atol=atol)
+    # a radius a million times the size of the problem is a line in disguise, produced by rounding
+    size = max(c1.r, c2.r, c3.r, distance(c1.center, c3.center), distance(c2.center, c3.center))
+    filter!(s -> s.r <= 1e6 * size, sols)
+    return [APCircle2(s.center + APVector(o[1], o[2]), s.r) for s in sols]
+end
+function _tangent_circles_ccc(c1::APCircle2, c2::APCircle2, c3::APCircle2; atol=1e-9)
     Cc1, R1 = c1.center, c1.r
     Cc2, R2 = c2.center, c2.r
     Cc3, R3 = c3.center, c3.r

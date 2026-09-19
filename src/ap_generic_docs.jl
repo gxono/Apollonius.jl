@@ -50,6 +50,9 @@ combinations, in both argument orders:
 | [`APLine`](@ref), [`APSegment`](@ref), [`APRay`](@ref) | each other, and any [`APCircle2`](@ref), [`APEllipse2`](@ref), [`APHyperbola2`](@ref), [`APParabola2`](@ref) |
 | any conic | any other conic (up to 4 points; two circles use their own exact method) |
 | any conic arc | a line, segment, ray, full conic, or another arc of any type (only the points on the arc are kept) |
+| a polyline, polygon, chain, bounding box, angle, half-plane or strip | anything above, and each other: the points where the curves (the sides, or the boundary) meet |
+| an [`APParametricCurve2`](@ref) | a line, segment, ray, conic, conic arc, or any composite above (found by sampling) |
+| an [`APPoint`](@ref) | any curve or boundary above, and another point: `[p]` if it lies on it |
 
 Two coincident curves return an empty vector rather than infinitely many
 points. Segments and rays keep only the points within their own extent.

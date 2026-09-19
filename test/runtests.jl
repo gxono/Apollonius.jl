@@ -5833,3 +5833,66 @@ end
         @test area(q) ≈ 10.5
     end
 end
+
+@testset "intersection of composite objects, points and parametric curves" begin
+    P(x, y) = APPoint(x, y)
+    pg = APStraightNgon([P(0.0, 0.0), P(5.0, 0.0), P(6.0, 3.0), P(2.0, 4.0), P(-1.0, 2.0)])
+    l = APLine(P(-2.0, 1.0), P(7.0, 2.5))
+    pts = intersection(pg, l)
+    @test length(pts) == 2 && all(p -> on_line(p, l) && Apollonius.distance(p, pg; mode=:boundary) < 1e-9, pts)
+    @test length(intersection(l, pg)) == 2
+    # a vertex shared by two sides is reported once
+    @test length(intersection(pg, APLine(P(-1.0, 2.0), P(0.0, 0.0)))) == 2
+    pg2 = APStraightNgon([P(3.0, -1.0), P(8.0, -1.0), P(8.0, 2.0), P(3.0, 2.0)])
+    @test length(intersection(pg, pg2)) == 2
+    @test length(intersection(APBoundingBox(pg), l)) == 2
+    @test length(intersection(APPolyline2(P(0.0, -1.0), P(2.0, 5.0), P(4.0, -1.0)), pg)) == 4
+    @test length(intersection(APAngle2(P(0.0, 0.0), P(4.0, 0.0), P(0.0, 4.0)), APCircle2(P(0.0, 0.0), 2.0))) == 2
+    @test length(intersection(APStrip2(APLine(P(0.0, 0.0), P(1.0, 0.0)), APLine(P(0.0, 3.0), P(1.0, 3.0))), APCircle2(P(0.0, 1.0), 2.0))) == 3
+    sec = APCircularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 3.0), P(3.0, 0.0), P(0.0, 3.0)))
+    @test length(intersection(sec, APLine(P(-4.0, 1.0), P(4.0, 1.0)))) == 2
+    @test length(intersection(pg, APCircle2(P(2.0, 2.0), 2.0))) == 4
+    @test isempty(intersection(pg, APCircle2(P(40.0, 40.0), 1.0)))
+    # points
+    @test intersection(P(1.0, 0.0), APSegment(P(0.0, 0.0), P(2.0, 0.0))) == [P(1.0, 0.0)]
+    @test isempty(intersection(P(1.0, 1.0), APSegment(P(0.0, 0.0), P(2.0, 0.0))))
+    @test isempty(intersection(P(4.0, 0.0), pg2))
+    @test length(intersection(P(3.0, 0.5), pg2)) == 1
+    @test intersection(P(0.0, 0.0), P(0.0, 0.0)) == [P(0.0, 0.0)]
+    # parametric curves
+    sine = APParametricCurve2(x -> P(x, sin(x)), (0.0, 6.0))
+    ps = intersection(sine, APLine(P(0.0, 0.5), P(1.0, 0.5)))
+    @test length(ps) == 2 && all(p -> abs(p[2] - 0.5) < 1e-9 && abs(sin(p[1]) - 0.5) < 1e-9, ps)
+    @test length(intersection(sine, APCircle2(P(3.0, 0.0), 1.0))) == 2
+    @test length(intersection(sine, pg2)) == 1
+    @test length(intersection(APRay(P(3.0, -1.0), P(3.0, 0.0)), sine)) == 1
+end
+
+@testset "parametric curves against conics and arcs" begin
+    P(x, y) = APPoint(x, y)
+    sine = APParametricCurve2(x -> P(x, sin(x)), (0.0, 6.0))
+    e = APEllipse2(P(3.0, 0.0), 2.0, 0.8)
+    @test length(intersection(sine, e)) == 2 && all(p -> is_on_ellipse(p, e; atol=1e-6), intersection(e, sine))
+    par = APParabola2(P(3.0, 2.0), APLine(P(0.0, -2.0), P(1.0, -2.0)))
+    @test all(p -> is_on_parabola(p, par; atol=1e-6), intersection(sine, par))
+    arc = APCircularArc2(APCircle2(P(3.0, 0.0), 1.0), P(2.0, 0.0), P(4.0, 0.0))
+    @test length(intersection(sine, arc)) == 1
+end
+
+@testset "more constructions far from the origin" begin
+    P(b, x, y) = APPoint(x + b, y + b)
+    for b in (1e6, 1e8, 1e10)
+        pg = APStraightNgon([P(b, 0.0, 0.0), P(b, 5.0, 0.0), P(b, 6.0, 3.0), P(b, 2.0, 4.0), P(b, -1.0, 2.0)])
+        @test length(intersection(pg, APLine(P(b, -1.0, 1.0), P(b, 5.0, 2.0)))) == 2
+        t = APTriangle(P(b, 0.0, 0.0), P(b, 8.0, 0.0), P(b, 3.0, 6.0))
+        e0 = steiner_inellipse(APTriangle(P(0.0, 0.0, 0.0), P(0.0, 8.0, 0.0), P(0.0, 3.0, 6.0)))
+        e = steiner_inellipse(t)
+        @test isapprox(e.a, e0.a; rtol=1e-5) && isapprox(e.b, e0.b; rtol=1e-5)
+        ec = excircles(t)
+        sols = tangent_circles(ec.A, ec.B, ec.C)
+        @test length(sols) == 5
+        @test apollonius_circle_of_triangle(t).r ≈ apollonius_circle_of_triangle(APTriangle(P(0.0, 0.0, 0.0), P(0.0, 8.0, 0.0), P(0.0, 3.0, 6.0))).r rtol = 1e-5
+        @test is_collinear(P(b, 0.0, 0.0), P(b, 1.0, 1.0), P(b, 2.0, 2.0))
+        @test !is_collinear(P(b, 0.0, 0.0), P(b, 1.0, 1.0), P(b, 2.0, 2.5))
+    end
+end

@@ -1145,11 +1145,10 @@ the foci are the two roots of the derivative of `(z-z1)*(z-z2)*(z-z3)`.
 """
 function steiner_inellipse(t::APTriangle)
     A, B, C = t[1], t[2], t[3]
-    z1, z2, z3 = complex(A[1], A[2]), complex(B[1], B[2]), complex(C[1], C[2])
-    s, sp = z1 + z2 + z3, z1 * z2 + z1 * z3 + z2 * z3
-    disc = sqrt(s^2 - 3sp)
-    f1, f2 = (s + disc) / 3, (s - disc) / 3
-    F1, F2 = APPoint(real(f1), imag(f1)), APPoint(real(f2), imag(f2))
+    g = centroid(t)   # relative to the centroid, so the result does not degrade far from the origin
+    w1, w2, w3 = complex(A[1] - g[1], A[2] - g[2]), complex(B[1] - g[1], B[2] - g[2]), complex(C[1] - g[1], C[2] - g[2])
+    disc = sqrt(-3 * (w1 * w2 + w1 * w3 + w2 * w3))
+    F1, F2 = g + APVector(real(disc) / 3, imag(disc) / 3), g - APVector(real(disc) / 3, imag(disc) / 3)
     return APEllipse2(F1, F2, midpoint(A, B))
 end
 """
