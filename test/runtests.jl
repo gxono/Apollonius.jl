@@ -637,6 +637,23 @@ using Base.MathConstants: golden
             @test_throws ArgumentError compass_trace(c0, p0; angle=7.0)
         end
     end
+    @testset "grid_lines / axes_lines" begin
+        bb = Apollonius.APBoundingBox(APPoint(0.0, 0.0), APPoint(3.0, 2.0))
+        g = grid_lines(bb)
+        @test length(g) == 4 + 3 && all(s -> s isa APSegment, g)
+        @test g[1] == APSegment(APPoint(0.0, 0.0), APPoint(0.0, 2.0))     # vertical lines first, full height
+        @test g[5] == APSegment(APPoint(0.0, 0.0), APPoint(3.0, 0.0))     # then horizontal ones, full width
+        shifted = Apollonius.APBoundingBox(APPoint(0.5, -0.5), APPoint(3.5, 1.5))   # anchored at the origin, not at the box corner
+        gs = grid_lines(shifted)
+        @test [s.p1[1] for s in gs[1:3]] == [1.0, 2.0, 3.0] && [s.p1[2] for s in gs[4:end]] == [0.0, 1.0]
+        @test length(grid_lines(bb; xstep=1.5, ystep=1.0)) == 3 + 3
+        @test length(grid_lines(bb; step=0.5)) == 7 + 5
+        @test isempty(grid_lines(Apollonius.APBoundingBox()))
+        @test_throws ArgumentError grid_lines(bb; step=0.0)
+        @test axes_lines(bb) == [APSegment(APPoint(0.0, 0.0), APPoint(3.0, 0.0)), APSegment(APPoint(0.0, 0.0), APPoint(0.0, 2.0))]
+        @test axes_lines(Apollonius.APBoundingBox(APPoint(1.0, -1.0), APPoint(3.0, 1.0))) == [APSegment(APPoint(1.0, 0.0), APPoint(3.0, 0.0))]   # only the x axis crosses this box
+        @test isempty(axes_lines(Apollonius.APBoundingBox(APPoint(1.0, 1.0), APPoint(3.0, 3.0))))
+    end
     @testset "label_anchor" begin
         h = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
         @test label_anchor(h) == (alignment=:N, point=APPoint(5.0, 0.0))   # screen coordinates: y grows downward, left of travel is up
@@ -5437,6 +5454,31 @@ using Base.MathConstants: golden
                 @test occursin("<path ", svg)
                 @test !occursin(" L ", svg)
             end
+        end
+        @testset "clip_out keeps only the outside of a shape (pixel check)" begin
+            painted(m, x, y) = Luxor.Colors.red(m[y, x]) > 0.5 && Luxor.Colors.green(m[y, x]) < 0.5   # red, not white
+            Luxor.Drawing(200, 200, :image)
+            Luxor.origin()
+            Luxor.background("white")
+            clip_out(APCircle2(APPoint(-50.0, 0.0), 30.0))
+            clip_out(APCircle2(APPoint(50.0, 0.0), 30.0))   # a second call narrows further: outside both circles
+            Luxor.sethue("red")
+            Luxor.paint()
+            m = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test !painted(m, 50, 101) && !painted(m, 150, 101)   # centers of the two circles stay white
+            @test painted(m, 100, 101) && painted(m, 10, 10)      # between them and in a corner: painted
+            Luxor.Drawing(200, 200, :image)   # restores the previous fill rule and works on a polygon and a vector
+            Luxor.origin()
+            Luxor.background("white")
+            @test Luxor.getfillrule() == :winding
+            clip_out([APTriangle(APPoint(-40.0, 40.0), APPoint(40.0, 40.0), APPoint(0.0, -40.0)), APCircle2(APPoint(0.0, 0.0), 10.0)])
+            @test Luxor.getfillrule() == :winding
+            Luxor.sethue("red"); Luxor.paint()
+            m2 = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test !painted(m2, 100, 130) && painted(m2, 10, 10)   # a point inside the triangle is protected
+            @test !painted(m2, 100, 101)   # and so is the nested circle's interior (one clip per shape, no even-odd toggling)
         end
         @testset "path(::APAngle2) as=:rarc/:rsector -- the parallelogram-law angle marker" begin
             ang90 = APAngle2(APPoint(0.0, 0.0), APPoint(50.0, 0.0), APPoint(0.0, 50.0))

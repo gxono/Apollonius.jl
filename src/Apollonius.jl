@@ -34,6 +34,7 @@ include("ap_constructions.jl")
 include("ap_marks.jl")
 include("ap_show_constructions.jl")
 include("ap_labels.jl")
+include("ap_grid.jl")
 include("ap_tangency.jl")
 include("ap_radical_axis.jl")
 include("ap_inversion.jl")
@@ -52,6 +53,7 @@ export measure, normalized_measure, is_direct
 export arc_length, point_on_arc, arc_with_angle, arc_with_length, tangent_at, marks, semicircle, extend_arc, compass_trace
 export mediator_construction, perpendicular_construction, parallel_construction, bisector_construction, label_anchor
 export projection_construction, reflection_construction, symmetry_construction, translation_construction
+export grid_lines, axes_lines, clip_out
 export interstices
 export is_collinear, is_parallel, is_perpendicular, on_line, on_segment, on_ray, side_of_line, is_concyclic,
        line_circle_position, circles_position, is_coplanar, line_line_position

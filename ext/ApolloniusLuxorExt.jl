@@ -471,4 +471,21 @@ function AP.current_path_bbox()
     x1, y1, x2, y2 = Luxor.path_extents(Luxor.currentdrawing().cr)
     return AP.APBoundingBox(AP.APPoint(x1, y1), AP.APPoint(x2, y2))
 end
+function AP.clip_out(v::Union{AbstractArray{<:AP.APObject},NTuple{N,<:AP.APObject} where N}; kwargs...)
+    for x in v   # one clip per shape: even-odd on a single path would toggle wherever shapes overlap or nest
+        AP.clip_out(x; kwargs...)
+    end
+    return nothing
+end
+function AP.clip_out(obj; bound::Real=1e5, kwargs...)
+    previous = Luxor.getfillrule()
+    Luxor.newpath()
+    Luxor.box(Luxor.O, 2bound, 2bound, :path)
+    Luxor.newsubpath()
+    AP.path(obj; action=:path, kwargs...)
+    Luxor.setfillrule(:even_odd)
+    Luxor.clip()
+    Luxor.setfillrule(previous)
+    return nothing
+end
 end
