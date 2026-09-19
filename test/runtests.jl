@@ -592,6 +592,51 @@ using Base.MathConstants: golden
             @test_throws ArgumentError marks(s; size=0.0)
         end
     end
+    @testset "angle marks and compass arcs" begin
+        @testset "marks(::APAngle2)" begin
+            ang = APAngle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0))
+            arcs3 = marks(ang; count=3, size=1.0, gap=0.5)
+            @test arcs3 isa Vector{<:APCircularArc2} && length(arcs3) == 3
+            @test [a.circle.r for a in arcs3] ≈ [1.0, 1.5, 2.0]
+            @test all(a -> a.circle.center ≈ ang.vertex && measure(a) ≈ pi / 2, arcs3)
+            @test only(marks(ang)).circle.r ≈ 0.15 * 4.0   # default radius, as path(::APAngle2) uses
+            ticks = marks(ang; style=:tick, count=2, size=1.0, gap=0.3, mark_size=0.4)
+            @test length(ticks) == 2 && all(t -> t isa APSegment && distance(t.p1, t.p2) ≈ 0.4, ticks)
+            @test all(t -> isapprox(distance(midpoint(t), ang.vertex), 1.0; atol=0.05), ticks)   # ticks sit on the arc of radius 1
+            @test_throws ArgumentError marks(APAngle2(APPoint(0.0, 0.0), APPoint(0.0, 0.0), APPoint(0.0, 4.0)))
+            @test_throws ArgumentError marks(ang; count=0)
+            @test_throws ArgumentError marks(ang; style=:bogus)
+        end
+        c0, p0 = APPoint(0.0, 0.0), APPoint(5.0, 0.0)
+        @testset "APCircularArc2(center, r, θ1, θ2)" begin
+            @test isapprox(APCircularArc2(c0, 5.0, 0.0, pi / 2), APCircularArc2(c0, 5.0, p0, APPoint(0.0, 5.0)); atol=1e-9)
+            @test measure(APCircularArc2(c0, 5.0, pi / 2, 0.0; ccw=false)) ≈ pi / 2
+            @test measure(APCircularArc2(c0, 5.0, 0.0, 3pi / 2)) ≈ 3pi / 2
+        end
+        @testset "semicircle / extend_arc" begin
+            sc = semicircle(c0, p0)
+            @test measure(sc) ≈ pi && sc.p2 ≈ APPoint(-5.0, 0.0)
+            @test isapprox(semicircle(c0, p0; ccw=false).p1, APPoint(-5.0, 0.0); atol=1e-9) && isapprox(semicircle(c0, p0; ccw=false).p2, p0; atol=1e-9)
+            a = APCircularArc2(c0, 5.0, 0.0, pi / 2)
+            e = extend_arc(a, 0.1)
+            @test measure(e) ≈ pi / 2 + 0.2 && e.circle == a.circle
+            @test e.p1 ≈ APPoint(5cos(-0.1), 5sin(-0.1))
+            @test measure(extend_arc(a, -0.1)) ≈ pi / 2 - 0.2
+            @test_throws ArgumentError extend_arc(a, -pi)
+            @test_throws ArgumentError extend_arc(a, 3.0)
+        end
+        @testset "compass_trace" begin
+            t = compass_trace(c0, p0; angle=pi / 3)
+            @test t isa APCircularArc2 && measure(t) ≈ pi / 3 && isapprox(midpoint(t), p0; atol=1e-9)
+            @test t.circle.r ≈ 5.0
+            tl = compass_trace(c0, p0; length=5.0)
+            @test arc_length(tl) ≈ 5.0 && isapprox(midpoint(tl), p0; atol=1e-9)
+            @test_throws ArgumentError compass_trace(c0, p0)
+            @test_throws ArgumentError compass_trace(c0, p0; angle=1.0, length=1.0)
+            @test_throws ArgumentError compass_trace(c0, c0; angle=1.0)
+            @test_throws ArgumentError compass_trace(c0, p0; angle=7.0)
+        end
+    end
     @testset "APParametricCurve2" begin
         curve = APParametricCurve2(t -> APPoint(2t, t^2), (0.0, 3.0))
         @test point_on_curve(curve, 0.0) == APPoint(0.0, 0.0)

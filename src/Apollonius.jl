@@ -47,7 +47,7 @@ export sides, diagonals, diagonal_intersection, is_cyclic
 export direction, slope_angle, midpoint, distance, polar_point, polar_point_deg, antipode
 export norm, dot, normalize, angle_between, angle_at
 export measure, normalized_measure, is_direct
-export arc_length, point_on_arc, arc_with_angle, arc_with_length, tangent_at, marks
+export arc_length, point_on_arc, arc_with_angle, arc_with_length, tangent_at, marks, semicircle, extend_arc, compass_trace
 export interstices
 export is_collinear, is_parallel, is_perpendicular, on_line, on_segment, on_ray, side_of_line, is_concyclic,
        line_circle_position, circles_position, is_coplanar, line_line_position

@@ -126,3 +126,30 @@ function marks(obj::Union{APSegment,APCircularArc2,APEllipticArc2,APParabolicArc
     count::Integer=1, style::Symbol=:tick, at::Real=0.5, size::Real=6.0, gap::Real=4.0, slant::Real=pi / 6)
     return _marks_at(tangent_at(obj, at), count, style, size, gap, slant)
 end
+"""
+    marks(ang::APAngle2; count=1, style=:arcs, at=0.5, size=nothing, gap=4.0, mark_size=6.0, slant=π/6)
+
+The equality marks of an angle. With the default `style = :arcs`, `count`
+concentric [`APCircularArc2`](@ref)s centered at the vertex and swept from
+`ang.a` to `ang.b`: the first of radius `size`, each further one `gap`
+larger (one, two or three arcs is the usual way to say two angles are
+equal). `size` defaults to `0.15` times the shorter of the two rays, the
+same radius [`path`](@ref)`(ang)` uses.
+
+Any other `style` (`:tick`, `:slash`, `:chevron`, `:cross`, `:circle`, see
+[`marks`](@ref)) instead puts `count` symbols of size `mark_size` on the arc
+of radius `size`, centered at parameter `at` of it. To combine arcs and a
+symbol, call `marks` twice and concatenate, passing the same `size`.
+Throws an `ArgumentError` if a ray has zero length.
+"""
+function marks(ang::APAngle2; count::Integer=1, style::Symbol=:arcs, at::Real=0.5,
+    size::Union{Nothing,Real}=nothing, gap::Real=4.0, mark_size::Real=6.0, slant::Real=pi / 6)
+    count >= 1 || throw(ArgumentError("marks: count must be at least 1"))
+    va, vb = ang.a - ang.vertex, ang.b - ang.vertex
+    (norm(va) > 0 && norm(vb) > 0) || throw(ArgumentError("marks: the angle has a ray of zero length"))
+    r = size === nothing ? 0.15 * min(norm(va), norm(vb)) : size
+    r > 0 || throw(ArgumentError("marks: size must be positive"))
+    arc_at(radius) = APCircularArc2(ang.vertex, radius, ang.vertex + va, ang.vertex + vb)
+    style === :arcs && return [arc_at(r + (i - 1) * gap) for i in 1:count]
+    return _marks_at(tangent_at(arc_at(r), at), count, style, mark_size, gap, slant)
+end
