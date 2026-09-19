@@ -637,6 +637,60 @@ using Base.MathConstants: golden
             @test_throws ArgumentError compass_trace(c0, p0; angle=7.0)
         end
     end
+    @testset "extend_line (tkz add, relative)" begin
+        l = APLine(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+        @test extend_line(l, 0.2) == APSegment(APPoint(-2.0, 0.0), APPoint(12.0, 0.0))
+        @test extend_line(l, 0.5, 0.0) == APSegment(APPoint(-5.0, 0.0), APPoint(10.0, 0.0))
+        @test extend_line(l, 0.0, -0.3) == APSegment(APPoint(0.0, 0.0), APPoint(7.0, 0.0))   # a negative fraction shortens
+        @test extend_line(APSegment(APPoint(0.0, 0.0), APPoint(0.0, 4.0)), 0.25) == APSegment(APPoint(0.0, -1.0), APPoint(0.0, 5.0))
+        scaled = APLine(APPoint(0.0, 0.0), APPoint(100.0, 0.0))   # relative: twice the length adds twice the units
+        @test extend_line(scaled, 0.2).p1[1] ≈ -20.0
+        @test_throws ArgumentError extend_line(l, -0.6, -0.5)
+        @test_throws ArgumentError extend_line(APLine(APPoint(1.0, 1.0), APPoint(1.0, 1.0)), 0.2)
+    end
+    @testset "arrow_head / brace / coordinate_guides" begin
+        s = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+        @testset "arrow_head" begin
+            hd = arrow_head(s)
+            @test hd isa APTriangle
+            h = 10.0 * cos(pi / 8)
+            @test hd[1] ≈ APPoint(5.0 + h / 2, 0.0)   # tip ahead of the middle: the head is centered on the point
+            @test distance(hd[1], hd[2]) ≈ 10.0 && distance(hd[1], hd[3]) ≈ 10.0   # arms of length `size`
+            @test hd[2][1] ≈ hd[3][1] ≈ 5.0 - h / 2 && hd[2][2] ≈ -hd[3][2]
+            @test arrow_head(s; place=:tip)[1] ≈ APPoint(5.0, 0.0)
+            @test arrow_head(s; at=1.0, place=:tip)[1] ≈ s.p2
+            arc = APCircularArc2(APPoint(0.0, 0.0), 5.0, 0.0, pi / 2)
+            @test isapprox(arrow_head(arc; at=1.0, place=:tip)[1], arc.p2; atol=1e-9)   # an arrow at the end of an arc
+            @test area(arrow_head(s; size=4.0)) < area(hd)
+            @test_throws ArgumentError arrow_head(s; size=0.0)
+            @test_throws ArgumentError arrow_head(s; angle=pi / 2)
+            @test_throws ArgumentError arrow_head(s; place=:middle)
+        end
+        @testset "brace" begin
+            b = brace(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0)
+            @test length(b) == 6 && count(x -> x isa APCircularArc2, b) == 4 && count(x -> x isa APSegment, b) == 2
+            @test sum(x isa APCircularArc2 ? arc_length(x) : distance(x.p1, x.p2) for x in b) ≈ 2pi * 5 + 80
+            tips = [q for x in b for q in (x isa APCircularArc2 ? (x.p1, x.p2) : (x.p1, x.p2))]
+            has(q) = any(t -> isapprox(t, q; atol=1e-9), tips)
+            @test has(APPoint(0.0, 0.0)) && has(APPoint(100.0, 0.0)) && has(APPoint(50.0, -10.0))   # ends on the segment, point up on screen (left)
+            @test has(APPoint(50.0, 10.0)) == false
+            @test any(t -> isapprox(t, APPoint(50.0, 10.0); atol=1e-9), [q for x in brace(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0, side=:right) for q in (x.p1, x.p2)])
+            @test all(x -> x isa APCircularArc2 ? measure(x) ≈ pi / 2 : true, b)   # quarter arcs
+            @test length(brace(APPoint(0.0, 0.0), APPoint(20.0, 0.0); height=10.0)) == 4   # the two straight pieces vanish at the maximum height
+            @test length(brace(APPoint(0.0, 0.0), APPoint(50.0, 0.0))) == 6   # default height 10
+            @test_throws ArgumentError brace(APPoint(0.0, 0.0), APPoint(10.0, 0.0); height=6.0)
+            @test_throws ArgumentError brace(APPoint(0.0, 0.0), APPoint(0.0, 0.0))
+            @test_throws ArgumentError brace(APPoint(0.0, 0.0), APPoint(10.0, 0.0); side=:up)
+        end
+        @testset "coordinate_guides" begin
+            g = coordinate_guides(APPoint(3.0, 4.0))
+            @test g == [APSegment(APPoint(3.0, 4.0), APPoint(3.0, 0.0)), APSegment(APPoint(3.0, 4.0), APPoint(0.0, 4.0))]
+            @test coordinate_guides(APPoint(3.0, 0.0)) == [APSegment(APPoint(3.0, 0.0), APPoint(0.0, 0.0))]
+            @test isempty(coordinate_guides(APPoint(0.0, 0.0)))
+            @test coordinate_guides(APPoint(3.0, 4.0); origin=APPoint(1.0, 1.0)) ==
+                  [APSegment(APPoint(3.0, 4.0), APPoint(3.0, 1.0)), APSegment(APPoint(3.0, 4.0), APPoint(1.0, 4.0))]
+        end
+    end
     @testset "grid_lines / axes_lines" begin
         bb = Apollonius.APBoundingBox(APPoint(0.0, 0.0), APPoint(3.0, 2.0))
         g = grid_lines(bb)
@@ -5321,6 +5375,10 @@ using Base.MathConstants: golden
             path(shown.arcs; action=:stroke)
             path(shown.result; action=:stroke)
             Luxor.label("a", label_anchor(APSegment(APPoint(-50.0, -40.0), APPoint(50.0, -40.0)))...)   # splats into Luxor's label(txt, alignment, pos)
+            path(brace(APPoint(-40.0, 60.0), APPoint(40.0, 60.0)); action=:stroke)
+            path(arrow_head(APSegment(APPoint(-40.0, 30.0), APPoint(40.0, 30.0))); action=:fill)
+            path(arrow_head(arc; at=1.0, place=:tip); action=:fill)
+            path(coordinate_guides(APPoint(30.0, -20.0)); action=:stroke)
             @testset "point shapes, dimension and tickline" begin
                 for shape in (:circle, :square, :cross, :plus)
                     path(APPoint(0.0, 0.0); as=shape, radius=4, action=:stroke)
@@ -5369,6 +5427,13 @@ using Base.MathConstants: golden
                 @test Luxor.ispolyclockwise(pts_of(tri)) != Luxor.ispolyclockwise(pts_of(tri; reverse=true))
                 sec = APCircularSector2(arc)   # a closed curved region: same start point, opposite orientation
                 @test Luxor.ispolyclockwise(pts_of(sec)) != Luxor.ispolyclockwise(pts_of(sec; reverse=true))
+                aline = APLine(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+                addfw, addbw = pts_of(aline; add=0.2), pts_of(aline; add=(0.5, 0.0), reverse=true)
+                @test near(first(addfw), -2, 0) && near(last(addfw), 12, 0)   # add is relative to distance(p1, p2)
+                @test near(first(addbw), 10, 0) && near(last(addbw), -5, 0)
+                @test near(first(pts_of(aline; add=0.2, extend=99.0)), -2, 0)   # add replaces extend
+                @test near(first(pts_of(aline; extend=(0.0, 3.0))), 0, 0)      # extend is unchanged
+                path(aline; add=(0.1, 0.1), as=:arrow)
                 path(seg; as=:arrow, reverse=true)   # arrows: runs without error, the head goes to p1
                 path([seg, APPoint(1.0, 1.0)]; reverse=true, action=:stroke)   # a vector mixing curves and points
                 Luxor.newpath()

@@ -153,3 +153,87 @@ function marks(ang::APAngle2; count::Integer=1, style::Symbol=:arcs, at::Real=0.
     style === :arcs && return [arc_at(r + (i - 1) * gap) for i in 1:count]
     return _marks_at(tangent_at(arc_at(r), at), count, style, mark_size, gap, slant)
 end
+"""
+    arrow_head(obj; at=0.5, size=10.0, angle=π/8, place=:center)
+
+An arrowhead on `obj`, as an [`APTriangle`](@ref) to draw with
+`path(head; action=:fill)`: at parameter `at` of `obj` (see
+[`tangent_at`](@ref)), pointing in the direction of travel. `size` is the
+length of each side arm and `angle` the half-opening angle, the same
+meaning as Luxor's `arrowheadlength` and `arrowheadangle`. With
+`place = :center` (the default) the head is centered on the point, which is
+what a mid-arrow on a segment or an arc wants; with `place = :tip` its tip
+is on the point, which is what an arrow at the end of an arc wants
+(`at = 1.0`). Defined for an [`APSegment`](@ref), an [`APLine`](@ref), an
+[`APRay`](@ref) and the four conic arcs; `size` is in the units of the
+coordinates of `obj`, as for [`marks`](@ref). Throws an `ArgumentError` for
+`size <= 0`, an `angle` outside `(0, π/2)` or an unknown `place`.
+"""
+function arrow_head(obj::Union{APSegment,APLine,APRay,APCircularArc2,APEllipticArc2,APParabolicArc2,APHyperbolicArc2};
+    at::Real=0.5, size::Real=10.0, angle::Real=pi / 8, place::Symbol=:center)
+    size > 0 || throw(ArgumentError("arrow_head: size must be positive"))
+    0 < angle < pi / 2 || throw(ArgumentError("arrow_head: angle must be in (0, π/2)"))
+    place in (:center, :tip) || throw(ArgumentError("arrow_head: place must be :center or :tip, got $(repr(place))"))
+    frame = tangent_at(obj, at)
+    P, T = frame.point, frame.vector
+    N = orthogonal(T)
+    h, w = size * cos(angle), size * sin(angle)
+    tip = place === :tip ? P : P + (h / 2) * T
+    base = tip - h * T
+    return APTriangle(tip, base + w * N, base - w * N)
+end
+"""
+    brace(p1::APPoint, p2::APPoint; height=nothing, side=:left)
+
+A curly brace along `[p1, p2]`, the mark that says "this whole length is
+so much", as a `Vector` of quarter [`APCircularArc2`](@ref)s and straight
+[`APSegment`](@ref)s to draw with `path(brace(...); action=:stroke)`. The
+brace is `height` deep (default `10` or half the length if that is smaller),
+its two ends touching `p1` and `p2` and its point in the middle, on `side`
+(`:left` or `:right` of `p1 -> p2` as seen on screen: call it on the
+objects as they will be drawn, like [`label_anchor`](@ref)). `height` must be
+at most half of `distance(p1, p2)`. Every piece keeps its own natural
+orientation, so they are separate pieces rather than one chained curve.
+"""
+function brace(p1::APPoint, p2::APPoint; height::Union{Nothing,Real}=nothing, side::Symbol=:left)
+    side in (:left, :right) || throw(ArgumentError("brace: side must be :left or :right, got $(repr(side))"))
+    L = distance(p1, p2)
+    L > 0 || throw(ArgumentError("brace: p1 and p2 must differ"))
+    h = height === nothing ? min(10.0, L / 2) : height
+    h > 0 || throw(ArgumentError("brace: height must be positive"))
+    r = h / 2
+    4r <= L * (1 + 1e-12) || throw(ArgumentError("brace: height must be at most half the distance between p1 and p2"))
+    ex = (p2 - p1) / L
+    n = orthogonal(ex)
+    ey = side === :left ? -n : n
+    G(x, y) = p1 + x * ex + y * ey
+    function quarter(cx, cy, xa, ya, xb, yb)
+        c, pa, pb = G(cx, cy), G(xa, ya), G(xb, yb)
+        return APCircularArc2(c, r, pa, pb; ccw=cross2(pa - c, pb - c) > 0)
+    end
+    m = L / 2
+    out = APObject[quarter(r, 0, 0, 0, r, r)]
+    m - 2r > 1e-12 * L && push!(out, APSegment(G(r, r), G(m - r, r)))
+    push!(out, quarter(m - r, 2r, m - r, r, m, 2r))
+    push!(out, quarter(m + r, 2r, m, 2r, m + r, r))
+    m - 2r > 1e-12 * L && push!(out, APSegment(G(m + r, r), G(L - r, r)))
+    push!(out, quarter(L - r, 0, L - r, r, L, 0))
+    return identity.(out)
+end
+"""
+    coordinate_guides(p::APPoint; origin=APPoint(0.0, 0.0))
+
+The two guide segments that show the coordinates of `p`: the one from `p`
+straight to the x axis (the line `y = origin[2]`) and the one from `p`
+straight to the y axis (`x = origin[1]`), as a `Vector` of
+[`APSegment`](@ref)s, ready for `path`; draw them dashed
+(`setdash("dot")` in Luxor) for the usual look. A guide of length zero (a
+point on an axis) is left out, so the vector has two, one or no segments.
+"""
+function coordinate_guides(p::APPoint; origin::APPoint=APPoint(0.0, 0.0))
+    px, py, ox, oy = Float64.((p[1], p[2], origin[1], origin[2]))
+    out = APSegment{2,Float64}[]
+    py != oy && push!(out, APSegment(APPoint(px, py), APPoint(px, oy)))
+    px != ox && push!(out, APSegment(APPoint(px, py), APPoint(ox, py)))
+    return out
+end

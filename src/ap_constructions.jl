@@ -245,3 +245,23 @@ function compass_trace(center::APPoint, p::APPoint; angle::Union{Nothing,Real}=n
     0 < total < 2pi || throw(ArgumentError("compass_trace: the sweep must be strictly between 0 and 2π"))
     return arc_with_angle(center, rotate(p, -total / 2, center), total)
 end
+"""
+    extend_line(l::APLine, before, after=before)
+    extend_line(s::APSegment, before, after=before)
+
+The segment obtained by lengthening the line through `l.p1` and `l.p2` (or
+the segment `s`) by the fractions `before` and `after` of `distance(p1, p2)`
+past `p1` and past `p2` respectively: `extend_line(l, 0.2)` adds 20% of the
+length at each end. This is tkz-euclide's `add = a and b`, relative to the
+two points that define the line, unlike the absolute `extend` of `path`. A
+negative fraction shortens that end. Returns an [`APSegment`](@ref). Throws
+an `ArgumentError` if the two points coincide or the result would be empty
+(`1 + before + after <= 0`).
+"""
+function extend_line(l::APLine, before::Real, after::Real=before)
+    d = l.p2 - l.p1
+    norm(d) > 0 || throw(ArgumentError("extend_line: the two defining points coincide"))
+    1 + before + after > 0 || throw(ArgumentError("extend_line: before + after must be greater than -1"))
+    return APSegment(l.p1 - before * d, l.p2 + after * d)
+end
+extend_line(s::APSegment, before::Real, after::Real=before) = extend_line(APLine(s.p1, s.p2), before, after)

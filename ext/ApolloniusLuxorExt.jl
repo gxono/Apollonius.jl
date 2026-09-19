@@ -125,7 +125,13 @@ function AP.path(s::AP.APSegment; as::Symbol=:plain, action=:path, reverse::Bool
     return Luxor.line(_lp(a), _lp(b), action)
 end
 """
-    path(l::APLine; extend=1000.0, as=:plain, action=:path, kwargs...)
+    path(l::APLine; extend=1000.0, add=nothing, as=:plain, action=:path, kwargs...)
+
+Pass `add` (a number, or a 2-tuple `(before, after)`) to lengthen the line
+by *fractions* of `distance(l.p1, l.p2)` past each defining point instead
+of absolute units, as tkz-euclide's `add = a and b` does (see
+[`extend_line`](@ref)); `add` then replaces `extend`, and negative values
+shorten that end.
 
 `APLine` is infinite, so it's added as a long finite segment: `extend`
 units past each of `l.p1`/`l.p2` along its direction. Pass `extend=0.0`
@@ -140,10 +146,16 @@ a different amount -- e.g. `extend=(0.0, 50.0)` draws from `l.p1` itself
 `as=:arrow` draws it as an arrow instead -- see
 [`path(::APSegment)`](@ref) for what that changes.
 """
-function AP.path(l::AP.APLine; extend::Union{Real,Tuple{Real,Real}}=1000.0, as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
-    past_p1, past_p2 = extend isa Tuple ? extend : (extend, extend)
-    u = AP.direction(l) / AP.norm(AP.direction(l))
-    p1, p2 = l.p1 - past_p1 * u, l.p2 + past_p2 * u
+function AP.path(l::AP.APLine; extend::Union{Real,Tuple{Real,Real}}=1000.0, add::Union{Nothing,Real,Tuple{Real,Real}}=nothing,
+    as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
+    if add === nothing
+        past_p1, past_p2 = extend isa Tuple ? extend : (extend, extend)
+        u = AP.direction(l) / AP.norm(AP.direction(l))
+        p1, p2 = l.p1 - past_p1 * u, l.p2 + past_p2 * u
+    else
+        seg = add isa Tuple ? AP.extend_line(l, add[1], add[2]) : AP.extend_line(l, add)
+        p1, p2 = seg.p1, seg.p2
+    end
     reverse && ((p1, p2) = (p2, p1))
     as == :arrow && return _arrow(_lp(p1), _lp(p2); kwargs...)
     return Luxor.line(_lp(p1), _lp(p2), action)
