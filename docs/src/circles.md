@@ -364,6 +364,10 @@ point_on_arc(arc, 0.0) ≈ p1   # t=0 is p1, t=1 is p2
 midpoint(arc)                   # point_on_arc(arc, 0.5)
 ```
 
+```@raw html
+<img src="../assets/img/circles/arc.svg" alt="" style="width:100%; max-width: 700px;">
+```
+
 `APCircularArc2(center, r, p1, p2)` builds the same arc straight from the
 circle's raw center and radius, without an `APCircle2` in hand first
 (`APCircularArc2(center, p1, p2)`, with no `r`, is the same thing again
@@ -371,31 +375,6 @@ with `r` taken to be `distance(center, p1)`):
 
 ```@example geo
 APCircularArc2(c.center, c.r, p1, p2) == arc
-```
-
-### Compass arcs
-
-In a ruler-and-compass construction the second end of an arc is rarely
-a point you already have: you set the compass to a radius and swing it
-through some angle or distance. [`arc_with_angle`](@ref)`(center, p, angle)`
-and [`arc_with_length`](@ref)`(center, p, len)` build exactly that: the arc
-of the circle centered at `center` through `p`, starting at `p` and
-sweeping a given angle (radians) or arc length. A negative value sweeps
-clockwise, and since an `APCircularArc2` always runs counterclockwise from
-`p1` to `p2`, that case comes back with `p` stored as `arc.p2`:
-
-```@example geo
-tick = arc_with_angle(c.center, p1, pi / 6)
-measure(tick) ≈ pi / 6, tick.p1 ≈ p1
-```
-
-```@example geo
-back = arc_with_length(c.center, p1, -1.0)   # 1 unit of arc length, clockwise
-arc_length(back) ≈ 1.0, back.p2 ≈ p1
-```
-
-```@raw html
-<img src="../assets/img/circles/arc.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 Swapping `p1` and `p2` gives the *complementary* arc (the other `3/4` of
@@ -441,6 +420,44 @@ An `APCircularArc2` also intersects `APLine`/`APSegment`/`APRay`, a full
 `APCircle2`, or another circular arc; see
 [Intersecting an arc](@ref) for the general story (including the arc
 types below).
+
+### Compass arcs
+
+In a ruler-and-compass construction the second end of an arc is rarely
+a point you already have: you set the compass to a radius and swing it
+through some angle or distance. [`arc_with_angle`](@ref)`(center, p, angle)`
+and [`arc_with_length`](@ref)`(center, p, len)` build exactly that: the arc
+of the circle centered at `center` through `p`, starting at `p` and
+sweeping a given angle (radians) or arc length. A negative value sweeps
+clockwise, and since an `APCircularArc2` always runs counterclockwise from
+`p1` to `p2`, that case comes back with `p` stored as `arc.p2`:
+
+```@example geo
+tick = arc_with_angle(c.center, p1, pi / 6)
+measure(tick) ≈ pi / 6, tick.p1 ≈ p1
+```
+
+```@example geo
+back = arc_with_length(c.center, p1, -1.0)   # 1 unit of arc length, clockwise
+arc_length(back) ≈ 1.0, back.p2 ≈ p1
+```
+
+When the arc is given by polar angles instead of points,
+`APCircularArc2(center, r, θ1, θ2)` builds it from the two angles
+(counterclockwise by default, `ccw=false` for clockwise).
+[`semicircle`](@ref)`(center, p)` is the half circle starting at `p`, and
+[`extend_arc`](@ref)`(arc, δ)` lengthens an arc by `δ` radians at each end
+(a negative `δ` shortens it), always on the same circle:
+
+```@example geo
+quarter = APCircularArc2(c.center, c.r, 0.0, pi / 2)
+half = semicircle(c.center, p1)
+measure(quarter) ≈ pi / 2, measure(half) ≈ pi, measure(extend_arc(quarter, 0.1)) ≈ pi / 2 + 0.2
+```
+
+[`compass_trace`](@ref), the arc centered on a point that a compass leaves
+on paper, and the constructions built on it are on the
+[Compass & Ruler Constructions](@ref) page.
 
 ## Circular sectors, segments and annuli
 

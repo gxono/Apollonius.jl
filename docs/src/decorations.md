@@ -1,0 +1,258 @@
+```@meta
+CurrentModule = Apollonius
+```
+
+# Marks, Labels & Decorations
+
+The little things that turn a construction into a figure: the ticks that say
+two sides are equal, the arcs that mark equal angles, arrowheads, braces,
+labels placed next to the right point, dotted guides to the axes, a grid.
+
+Every one of them follows the same plan. The function computes *geometry*,
+a `Vector` of ordinary objects ([`APSegment`](@ref), [`APCircularArc2`](@ref),
+[`APTriangle`](@ref)...), and [`path`](@ref) draws it. Nothing here needs Luxor
+until the drawing step, so all the examples on this page run without it.
+
+Two rules from [Conventions & FAQ](@ref) matter here. Sizes are in the units
+of the objects you pass, so build decorations from the objects returned by
+[`@to_luxor_picture`](@ref) to get sizes in canvas units. And functions that
+choose a side or a compass direction read the coordinates as drawn, with `y`
+growing downward.
+
+| You want | Function |
+|:---------|:---------|
+| The point and direction at some position of a curve | [`tangent_at`](@ref) |
+| Ticks or symbols on a segment, arc or angle | [`marks`](@ref) |
+| An arrowhead in the middle or at the end | [`arrow_head`](@ref) |
+| A curly brace and its label position | [`brace`](@ref), [`brace_anchor`](@ref) |
+| Where to put a text label | [`label_anchor`](@ref) |
+| Dotted lines from a point to the axes | [`coordinate_guides`](@ref) |
+| A grid and the coordinate axes | [`grid_lines`](@ref), [`axes_lines`](@ref) |
+| A line lengthened by a fraction of its length | [`extend_line`](@ref) |
+
+## A point and a direction: `tangent_at`
+
+[`tangent_at`](@ref)`(obj, t)` gives the point of `obj` at parameter `t`
+and the unit tangent there, as an [`APEquipollentVector`](@ref): a vector
+with a point of application, which is exactly what a decoration needs. It
+works on segments, lines, rays and the four conic arcs, with the same `t`
+as [`point_on_arc`](@ref), and the tangent points in the direction of
+travel.
+
+```@example geo
+using Apollonius
+
+s = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+f = tangent_at(s, 0.25)
+f.point, f.vector
+```
+
+On an arc the tangent turns with the curve, and at every point it is
+perpendicular to the radius:
+
+```@example geo
+circ = APCircle2(APPoint(0.0, 0.0), 5.0)
+arc = APCircularArc2(circ, APPoint(5.0, 0.0), APPoint(0.0, 5.0))
+mid = tangent_at(arc, 0.5)
+mid.point, dot(mid.vector, mid.point - circ.center) ≈ 0.0
+```
+
+## Equality marks: `marks`
+
+[`marks`](@ref)`(obj)` returns `count` marks centered at parameter `at` of
+a segment or arc, `gap` apart along the tangent. `size` is the full length
+of one mark.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `count` | `1` | how many marks |
+| `style` | `:tick` | the shape, see below |
+| `at` | `0.5` | where along `obj`, in `[0, 1]` |
+| `size` | `6.0` | length of one mark |
+| `gap` | `4.0` | distance between neighbouring marks |
+| `slant` | `π/6` | tilt of a `:slash`, from the perpendicular |
+
+| `style` | Mark |
+|:--------|:-----|
+| `:tick` | a stroke perpendicular to the curve |
+| `:slash` | a stroke tilted `slant` from the perpendicular |
+| `:chevron` | a `>` along the direction of travel, the usual mark for parallel lines |
+| `:cross` | an `x`, two strokes per mark |
+| `:circle` | a small circle |
+
+```@example geo
+two_ticks = marks(s; count=2)
+length(two_ticks), only(marks(s; style=:circle, size=2.0))
+```
+
+Marks lie on the tangent at `at`, so with a small `gap` they follow the
+curve closely. On a circular arc a tick lies along a radius:
+
+```@example geo
+tick = only(marks(arc; size=1.0))
+on_line(circ.center, APLine(tick.p1, tick.p2))
+```
+
+### Marks on an angle
+
+For an [`APAngle2`](@ref), `marks` has two modes. The default `style = :arcs`
+gives `count` concentric arcs centered at the vertex, the classic way to
+say two angles are equal. Any other style puts `count` symbols on the arc
+instead, with the size of each symbol in `mark_size`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `count` | `1` | arcs, or symbols |
+| `style` | `:arcs` | `:arcs`, or any style from the table above |
+| `size` | `0.15 ×` the shorter ray | radius of the first arc |
+| `gap` | `4.0` | radial gap between arcs, or gap between symbols |
+| `mark_size` | `6.0` | size of each symbol, when `style` is not `:arcs` |
+| `at` | `0.5` | where the symbols sit along the arc |
+
+```@example geo
+ang = APAngle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0))
+arcs = marks(ang; count=2, size=0.8, gap=0.3)
+[a.circle.r for a in arcs]
+```
+
+To combine arcs and a symbol, call `marks` twice with the same `size` and
+concatenate the results.
+
+## Arrowheads: `arrow_head`
+
+`path(segment; as=:arrow)` puts an arrowhead at the end of a segment, and
+nowhere else. [`arrow_head`](@ref) places one anywhere on a segment, a line,
+a ray or an arc, as a shape you draw yourself.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `at` | `0.5` | where along `obj` |
+| `size` | `10.0` | length of each side arm |
+| `angle` | `π/8` | half the opening angle |
+| `place` | `:center` | `:center` puts the head's middle on the point, `:tip` puts its tip there |
+| `style` | `:triangle` | see below |
+
+| `style` | Head | Returns | Draw with |
+|:--------|:-----|:--------|:----------|
+| `:triangle` | a filled triangle | [`APTriangle`](@ref) | `action=:fill` |
+| `:stealth` | a triangle with a notch in the back | [`APStraightNgon`](@ref) | `action=:fill` |
+| `:open` | two arms, a `>` | [`APPolyline2`](@ref) | `action=:stroke` |
+
+Use `place=:center` for an arrow in the middle of a line, and `place=:tip`
+with `at=1.0` for an arrow at the end of an arc:
+
+```@example geo
+head = arrow_head(arc; at=1.0, place=:tip)
+isapprox(head[1], arc.p2; atol=1e-9)
+```
+
+## Braces: `brace` and `brace_anchor`
+
+[`brace`](@ref)`(p1, p2)` is a curly brace along the segment, `height`
+deep (default `10`, or half the length if that is smaller) on the `side`
+(`:left` or `:right`) of `p1 → p2`. It comes back as its six pieces, four
+quarter arcs and two straight segments, so `path` draws it in one call.
+`height` cannot exceed half the length, and at that limit the two straight
+pieces disappear.
+
+```@example geo
+b = brace(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0)
+count(x -> x isa APCircularArc2, b), count(x -> x isa APSegment, b)
+```
+
+[`brace_anchor`](@ref) with the same arguments gives the point of the brace
+and the alignment that puts a label beyond it; see the next section.
+
+## Labels: `label_anchor`
+
+Luxor places text with `label(text, alignment, point)`, where `alignment` is
+a compass symbol such as `:N` or `:SE`. [`label_anchor`](@ref) picks both
+the point and the alignment for you, so the text sits on the outside:
+
+| Call | Anchor |
+|:-----|:-------|
+| `label_anchor(obj, t; side=:left)` | on a segment or arc at parameter `t`, on the left or right of the direction of travel |
+| `label_anchor(ang; dist=nothing)` | on an angle's bisector, `dist` from the vertex (default `0.25 ×` the shorter ray), pointing away from the vertex |
+| `label_anchor(circle, θ)` | on the circle at polar angle `θ`, outward |
+| `label_anchor(p, from)` | at the point `p`, pointing away from the point `from`; use the centroid as `from` to keep vertex labels outside a figure |
+| [`brace_anchor`](@ref)`(p1, p2; height, side)` | at the point of a brace |
+
+The result is a `NamedTuple` `(alignment, point)` in the argument order of
+Luxor's `label`.
+
+```@example geo
+label_anchor(s), label_anchor(s; side=:right)
+```
+
+A horizontal segment going from left to right has its `:left` side on top
+on screen, so the first is `:N` and the second `:S`. To label the vertices
+of a triangle so none falls inside it, pass the centroid:
+
+```@example geo
+t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
+[label_anchor(v, centroid(t)).alignment for v in vertices(t)]
+```
+
+## Guides and grids
+
+[`coordinate_guides`](@ref)`(p)` returns the two segments from `p` to the
+axes, the ones drawn dotted to show a point's coordinates. A guide of length
+zero is left out, so a point on an axis gets one segment and the origin
+none. Pass `origin` to measure against other axes.
+
+```@example geo
+coordinate_guides(APPoint(3.0, 4.0))
+```
+
+[`grid_lines`](@ref)`(bb; step)` returns the lines of a grid over an
+[`APBoundingBox`](@ref), vertical lines first. The grid is anchored at the
+origin: its lines are at whole multiples of the step, not measured from the
+corner of the box. `xstep` and `ystep` set the two directions apart, and a
+finer subgrid is a second call with a smaller `step`. [`axes_lines`](@ref)
+returns the axes that cross the box.
+
+```@example geo
+bb = APBoundingBox(APPoint(-2.0, -1.0), APPoint(3.0, 2.0))
+length(grid_lines(bb)), length(grid_lines(bb; step=0.5)), length(axes_lines(bb))
+```
+
+## Lengthening a line: `extend_line`
+
+[`extend_line`](@ref)`(l, before, after)` lengthens the line through
+`l.p1` and `l.p2` by fractions of `distance(l.p1, l.p2)` past each point,
+and returns the resulting [`APSegment`](@ref). It is the relative
+counterpart of the absolute `extend` of `path`: `0.2` adds a fifth of the
+length at each end, whatever the length is. A negative fraction shortens
+that end.
+
+```@example geo
+l = APLine(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+extend_line(l, 0.2), extend_line(l, 0.0, -0.3)
+```
+
+## Drawing all of it
+
+The decorations are ordinary objects, so `path` takes them directly, alone
+or in a `Vector`. This is the usual pattern, on objects already returned by
+[`@to_luxor_picture`](@ref):
+
+```julia
+using Apollonius, Luxor
+
+(w, h), (seg, ang) = @to_luxor_picture width=400.0 margin=30.0 begin
+    APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+    APAngle2(APPoint(0.0, 0.0), APPoint(10.0, 0.0), APPoint(4.0, 6.0))
+end
+
+@svg begin
+    path(seg; action=:stroke)
+    path(marks(seg; count=2); action=:stroke)          # two ticks in the middle
+    path(marks(ang; count=2); action=:stroke)          # two arcs on the angle
+    path(arrow_head(seg; at=0.3); action=:fill)        # an arrow a third of the way
+    path(brace(seg.p1, seg.p2); action=:stroke)
+    label("10", brace_anchor(seg.p1, seg.p2)...)       # splat: (alignment, point)
+end w h
+```
+
+The `label` method for `APPoint`s and the `dimension` and `tickline`
+wrappers come with the Luxor extension; see [Drawing with Luxor.jl](@ref).

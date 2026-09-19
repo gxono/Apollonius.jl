@@ -243,6 +243,25 @@ the hood, so the more natural `p in l` reads just as well:
 APPoint(6.0, 8.0) in l, APPoint(10.0, 0.0) in r
 ```
 
+## Lengthening a line or segment
+
+[`extend_line`](@ref)`(l, before, after)` lengthens the line through
+`l.p1` and `l.p2` by fractions of `distance(l.p1, l.p2)` past each point
+and returns the resulting [`APSegment`](@ref). The fractions are relative to
+the two defining points, so the same value adds more length to a longer
+line. A negative fraction shortens that end, and an [`APSegment`](@ref) is
+accepted too.
+
+```@example geo
+base = APLine(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+ext = extend_line(base, 0.5)         # half of 10.0 more, at each end
+ext.p1, ext.p2, distance(ext.p1, ext.p2)
+```
+
+The same lengthening is available when drawing, as the `add` keyword of
+`path`; see [Drawing with Luxor.jl](@ref). More on this function is in
+[Marks, Labels & Decorations](@ref).
+
 ## Distance to a line, segment or ray
 
 [`distance`](@ref) also works between a point and any of `APLine`,

@@ -209,8 +209,14 @@ m isa APTransform, m isa APObject   # (true, false) -- APTransform is its own se
 
 ## Where to go next
 
+* [Conventions & FAQ](@ref) for angles, orientation, naming, `==` versus
+  `≈`, and the two rules that govern drawing.
 * [Drawing with Luxor.jl](@ref) for `path`, `@to_luxor_picture`, and
   everything else this package adds for illustration.
+* [Marks, Labels & Decorations](@ref) for equality marks, arrowheads,
+  braces, label placement, guides and grids, and
+  [Compass & Ruler Constructions](@ref) for figures that show the
+  compass traces.
 * [Points, Lines & Rays](@ref), [Circles](@ref),
   [Triangles & Triangle Centers](@ref), [Tangency & Apollonius Problems](@ref),
   [Polygons & Bounding Boxes](@ref) and

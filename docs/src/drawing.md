@@ -401,9 +401,9 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 
 | Type | Adds to the path as | Type-specific keywords |
 |:-----|:---------------------|:------------------------|
-| `APPoint` | a small circle | `radius=3` |
+| `APPoint` | a small mark: a circle by default, or a square, an `x` or a `+` | `radius=3`; `as=:circle` (also `:square`, `:cross`, `:plus`; the last two are two strokes, so they only show with `action=:stroke`) |
 | `APSegment` | a straight line between its two points, or (pass `as=:arrow`) an arrow (see [Arrows](@ref) below) | `as=:plain` (default) |
-| `APLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point, or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow` |
+| `APLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point, or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow` ; `add=(before, after)`: lengthen by fractions of `distance(l.p1, l.p2)` instead of absolute units (see [`extend_line`](@ref)), replacing `extend` |
 | `APRay` | likewise, extended only past `through` (not past `origin`); `extend=0.0` draws the exact finite segment from `origin` to `through` | `extend=1000.0`; `as=:plain`/`:arrow` |
 | `APCircle2` | Luxor's native circle | (none) |
 | any [`APPolygon`](@ref) | every side, chained end to end into one closed path: a straight line for an `APSegment` side, a true arc for an `APCircularArc2` side, an `n`-point sampled polyline for any other conic-arc side (see below); covers `APTriangle`, `APQuadrilateral`, `APStraightNgon`, `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2` and `APCurvilinearNgon2`, **one** method for the whole family | `n=60` (only matters if some side needs sampling) |
@@ -417,9 +417,12 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | `APVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=APPoint(0.0, 0.0)`, `as=:plain`/`:arrow` |
 | `APHalfPlane2` | unbounded, so this draws its boundary line only (see `APLine` above) | `extend=1000.0` |
 | `APStrip2` | likewise unbounded: both boundary lines, one call each | `extend=1000.0` |
+| `APEquipollentVector` | the segment from its point of application to its tip | `as=:plain`/`:arrow` |
+| `APPolyline2` | an open chain of straight sides through its vertices, never closed | (none) |
+| `APCurvilinearPolyline2` | an open chain of straight and curved sides in the order given: a line for an `APSegment`, a true arc for an `APCircularArc2`, a sampled polyline for any other conic arc | `n=60` |
 | `AbstractVector{<:APObject}` | each element in turn, with the same `kwargs` every time (see below) | whatever that element's own type takes |
 
-The last row is what lets a plain `Vector` (what [`intersection`](@ref)/
+Every method for a curve also takes `reverse=true` (see [Reversing a path](@ref)). The last row is what lets a plain `Vector` (what [`intersection`](@ref)/
 [`tangent_points`](@ref) return, since they can give 0, 1 or 2 points
 depending on the geometry) get drawn directly, without unwrapping it by
 hand first:
@@ -510,6 +513,11 @@ Luxor's `arrow` always strokes the shaft and fills the arrowhead
 immediately, with no deferred form, so `action` is ignored when
 `as=:arrow`. Keyword arguments other than `as`/`extend` (`arrowheadlength`,
 `arrowheadangle`, `linewidth`, ...) are forwarded straight to `Luxor.arrow`.
+
+`as=:arrow` always puts the head at the end of a straight shaft. For an
+arrowhead in the middle of a line, or at the end of an arc, build it with
+[`arrow_head`](@ref) and draw it like any other shape; see
+[Marks, Labels & Decorations](@ref).
 
 ### `APAngle2`: rays, arc, sector, or the parallelogram-law marker
 
@@ -627,6 +635,86 @@ path(skew(sec); action=:stroke)   # an APCurvilinearTriangle2 with one elliptic-
 `path(::APPolygon)` handles this transparently: a side is drawn with
 `arc2r` if it's an `APCircularArc2`, or sampled at `n` points (the same
 `n` `path` itself takes) if it's any of the other three arc types.
+
+## Reversing a path
+
+Every `path` method for a curve takes `reverse::Bool=false`: the very same
+points, traversed backwards. It matters wherever the direction of travel
+shows: which end an arrow points to, where a dash pattern starts, and how
+subpaths combine under a fill rule.
+
+```julia
+seg = APSegment(APPoint(-80.0, 0.0), APPoint(80.0, 0.0))
+path(seg; as=:arrow)                  # the head is at seg.p2
+path(seg; as=:arrow, reverse=true)    # the head is at seg.p1
+
+arc = APCircularArc2(APCircle2(APPoint(0.0, 0.0), 60.0), APPoint(60.0, 0.0), APPoint(0.0, 60.0))
+setdash("dash")
+path(arc; action=:stroke)                 # the dashes start at arc.p1
+path(arc; reverse=true, action=:stroke)   # the same arc, dashes starting at arc.p2
+```
+
+This is not the same as [`reverse`](@ref)`(obj)`, which builds a new object.
+For a circular or elliptic arc that object is the *complementary* arc, the
+rest of the circle. `path(arc; reverse=true)` draws the same arc.
+
+The keyword also exists on `APPoint` (a point has no direction, so it is
+ignored), so `path(v; reverse=true)` works on a `Vector` that mixes points
+with curves; it is forwarded to every element, without reversing the order
+of the elements.
+
+## Clipping the outside
+
+`path(obj; action=:clip)` restricts later drawing to the inside of `obj`.
+[`clip_out`](@ref)`(obj)` restricts it to the *outside*, which is what lunes,
+arbelos and "a circle minus two circles" figures need. It works on anything
+`path` draws as a closed shape (a circle, an ellipse, a polygon or curved
+region, a bounding box), and without approximating any arc.
+
+```julia
+@layer begin
+    clip_out(APCircle2(APPoint(-50.0, 0.0), 30.0))
+    clip_out(APCircle2(APPoint(50.0, 0.0), 30.0))   # a second call narrows it further
+    sethue("red")
+    paint()                                          # everything except the two discs
+end
+```
+
+Two calls keep what is outside both shapes, and a `Vector` argument does the
+same in one call, one clip per element. Like any Luxor clip, it lasts until
+`clipreset()` or the end of the enclosing `@layer`, so wrap it.
+
+Internally it clips the region between a big box and the shape, using
+Luxor's even-odd fill rule. The box has half-side `bound` (default `1e5`),
+centered on the current origin, so raise `bound` if you have translated the
+origin far from the drawing.
+
+## Dimensions, tick lines and labels
+
+Three Luxor functions come with methods for `APPoint`s, the same way `label`
+does, so you never convert by hand.
+
+| Call | What it does |
+|:-----|:-------------|
+| `Luxor.label(text, alignment, p; kwargs...)` | Luxor's `label` at an `APPoint`. `alignment` is a compass symbol (`:N`, `:SE`, ...) or an angle. |
+| `Luxor.dimension(p1, p2; kwargs...)`, `Luxor.dimension(segment; kwargs...)` | the dimension line for the distance between two points, with extension lines, two arrowheads and the measured text. Drawn immediately; returns `(distance, text)`. |
+| `Luxor.tickline(p1, p2; kwargs...)` | a line with ticks and numbers between two points. Returns the tick positions `(major, minor)` as vectors of `APPoint`; with `vertices=true` it draws nothing and only returns them. |
+
+The keywords go straight to Luxor (`offset`, `format`, `major`, `minor`,
+`startnumber`, and so on); see Luxor's own documentation for them. One
+thing worth knowing from there: `dimension` expects `p1` to be the point
+lower on the page, that is with the larger `y`.
+
+```julia
+d, text = Luxor.dimension(APPoint(-80.0, 60.0), APPoint(80.0, 60.0); offset=15)   # (160.0, "160.0")
+
+major, minor = Luxor.tickline(APPoint(-100.0, 0.0), APPoint(100.0, 0.0);
+    major=4, minor=1, vertices=true)                                              # positions only
+path(major; radius=2, action=:fill)                                              # draw them as dots
+```
+
+To choose where a label goes and how it is aligned, see
+[`label_anchor`](@ref) on the [Marks, Labels & Decorations](@ref) page.
 
 ## Worked example: the package logo
 

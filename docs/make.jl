@@ -13,7 +13,10 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Conventions & FAQ" => "conventions.md",
         "Drawing with Luxor.jl" => "drawing.md",
+        "Marks, Labels & Decorations" => "decorations.md",
+        "Compass & Ruler Constructions" => "constructions.md",
         "Points, Lines & Rays" => "points_lines.md",
         "Circles" => "circles.md",
         "Triangles & Triangle Centers" => "triangles.md",
