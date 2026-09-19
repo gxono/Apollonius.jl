@@ -89,9 +89,11 @@ orthic_axis(t), brocard_axis(t), lemoine_axis(t)
 The blocks in this section are run when the documentation is built, and each
 figure comes from the code above it; only the geometry is shown. The figures
 use one color code: blue for the given triangle, green for the construction
-aids, purple for what is found. In each part, one block fits the triangle (and
-the circle, when there is one) to the canvas, and the steps call the functions
-of this page on the fitted triangle.
+aids, purple for what is found. In each part, the first block builds the
+triangle (the one of the running example) and what is derived from it inside
+[`@to_luxor_picture!`](@ref), which fits it to the canvas and replaces each
+name with the fitted object. The steps then call the functions of this page on
+the fitted triangle.
 
 ### The circumcenter and the circumcircle
 
@@ -113,67 +115,77 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-(fw, fh), (t2, circ2) = @to_luxor_picture width=500 margin=30 begin
-    t
-    circumcircle(t)
+fsz = @to_luxor_picture! width=500 margin=30 begin
+    tri = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
+    circ = circumcircle(tri)
 end
-figH = ceil(Int, fh) # hide
+figH = ceil(Int, fsz.height) # hide
 nothing # hide
 ```
 
 **Step 1.** The triangle.
 
 ```@example geo
-@show is_degenerate(t2)
+!is_degenerate(tri)
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t2) # hide
-    fig_dots(vertices(t2), julia_blue) # hide
-    fig_vtags(t2) # hide
+    fig_given(tri) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_vtags(tri) # hide
 end # hide
 ```
 
 **Step 2.** The perpendicular bisectors of two sides.
 
 ```@example geo
-m1, m2 = mediator(t2, 1), mediator(t2, 2)
-@show is_perpendicular(m1, APLine(t2[1], t2[2]))
+m1, m2 = mediator(tri, 1), mediator(tri, 2)
+is_perpendicular(m1, APLine(tri[2], tri[3]))
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t2) # hide
+    fig_given(tri) # hide
     fig_aid([m1, m2]) # hide
-    fig_dots(vertices(t2), julia_blue) # hide
-    fig_vtags(t2) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_vtags(tri) # hide
 end # hide
 ```
 
 **Step 3.** They meet at the circumcenter, and the third bisector goes through the same point.
 
 ```@example geo
-O2 = circumcenter(t2)
-@show O2 ≈ only(intersection(m1, m2))
-@show on_line(O2, mediator(t2, 3))
+o = circumcenter(tri)
+(isapprox(o, only(intersection(m1, m2)); atol=1e-9), on_line(o, mediator(tri, 3)))
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t2) # hide
-    fig_aid([m1, m2, mediator(t2, 3)]) # hide
-    fig_dots(vertices(t2), julia_blue) # hide
-    fig_dots([O2], julia_purple) # hide
-    fig_vtags(t2) # hide
-    fig_tags(("O", :SE, O2)) # hide
+    fig_given(tri) # hide
+    fig_aid([m1, m2, mediator(tri, 3)]) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([o], julia_purple) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("O", :SE, o)) # hide
 end # hide
 ```
 
 **Step 4.** The circle around the circumcenter through a vertex passes through the other two.
 
 ```@example geo
-cc = circumcircle(t2)
-@show distance(O2, t2[1]) ≈ cc.r ≈ distance(O2, t2[3])
+distance(o, tri[1]) ≈ circ.r ≈ distance(o, tri[3])
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t2) # hide
-    fig_aid([APSegment(O2, v) for v in vertices(t2)]) # hide
-    fig_result(cc) # hide
-    fig_dots(vertices(t2), julia_blue) # hide
-    fig_dots([O2], julia_purple) # hide
-    fig_vtags(t2) # hide
-    fig_tags(("O", :SE, O2)) # hide
+    fig_given(tri) # hide
+    fig_aid([APSegment(o, v) for v in vertices(tri)]) # hide
+    fig_result(circ) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([o], julia_purple) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("O", :SE, o)) # hide
 end # hide
 ```
 
@@ -183,70 +195,77 @@ The incenter is where the angle bisectors meet, and it is the center of the
 circle that touches the three sides.
 
 ```@example geo
-(fw, fh), (t3, inc3) = @to_luxor_picture width=500 margin=30 begin
-    t
-    incircle(t)
+fsz = @to_luxor_picture! width=500 margin=30 begin
+    tri = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
+    inc = incircle(tri)
 end
-figH = ceil(Int, fh) # hide
+figH = ceil(Int, fsz.height) # hide
 nothing # hide
 ```
 
 **Step 1.** The triangle.
 
 ```@example geo
-@show area(t3) > 0
+area(tri) > 0
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t3) # hide
-    fig_dots(vertices(t3), julia_blue) # hide
-    fig_vtags(t3) # hide
+    fig_given(tri) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_vtags(tri) # hide
 end # hide
 ```
 
 **Step 2.** The bisectors of two angles.
 
 ```@example geo
-b1, b2 = bisector(t3, 1), bisector(t3, 2)
+b1, b2 = bisector(tri, 1), bisector(tri, 2)
 fig_draw(500, figH) do # hide
-    fig_given(t3) # hide
+    fig_given(tri) # hide
     fig_aid([b1, b2]) # hide
-    fig_dots(vertices(t3), julia_blue) # hide
-    fig_vtags(t3) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_vtags(tri) # hide
 end # hide
 ```
 
 **Step 3.** They meet at the incenter, which is at the same distance from the three sides. The feet of the perpendiculars are the points where the incircle will touch.
 
 ```@example geo
-I3 = incenter(t3)
-@show I3 ≈ only(intersection(b1, b2))
-tpts = [projection(I3, APLine(t3[i], t3[mod1(i + 1, 3)])) for i in 1:3]
-@show distance(I3, tpts[1]) ≈ distance(I3, tpts[2]) ≈ distance(I3, tpts[3])
+i = incenter(tri)
+feet = [projection(i, APLine(tri[k], tri[mod1(k + 1, 3)])) for k in 1:3]
+(isapprox(i, only(intersection(b1, b2)); atol=1e-9), distance(i, feet[1]) ≈ distance(i, feet[2]) ≈ distance(i, feet[3]))
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t3) # hide
+    fig_given(tri) # hide
     fig_aid([b1, b2]) # hide
-    fig_aid([APSegment(I3, q) for q in tpts]) # hide
-    fig_dots(vertices(t3), julia_blue) # hide
-    fig_dots([I3], julia_purple) # hide
-    fig_dots(tpts, julia_green) # hide
-    fig_vtags(t3) # hide
-    fig_tags(("I", :NE, I3)) # hide
+    fig_aid([APSegment(i, q) for q in feet]) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([i], julia_purple) # hide
+    fig_dots(feet, julia_green) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("I", :NE, i)) # hide
 end # hide
 ```
 
 **Step 4.** The circle around the incenter through those feet is the incircle.
 
 ```@example geo
-ic = incircle(t3)
-@show ic.r ≈ distance(I3, tpts[1])
+inc.r ≈ distance(i, feet[1])
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t3) # hide
-    fig_aid([APSegment(I3, q) for q in tpts]) # hide
-    fig_result(ic) # hide
-    fig_dots(vertices(t3), julia_blue) # hide
-    fig_dots([I3], julia_purple) # hide
-    fig_dots(tpts, julia_green) # hide
-    fig_vtags(t3) # hide
-    fig_tags(("I", :NE, I3)) # hide
+    fig_given(tri) # hide
+    fig_aid([APSegment(i, q) for q in feet]) # hide
+    fig_result(inc) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([i], julia_purple) # hide
+    fig_dots(feet, julia_green) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("I", :NE, i)) # hide
 end # hide
 ```
 
@@ -257,71 +276,82 @@ Each comes from a different set of lines: medians, perpendicular bisectors and
 altitudes.
 
 ```@example geo
-(fw, fh), (t4, G4, O4, H4) = @to_luxor_picture width=500 margin=30 begin
-    t
-    centroid(t)
-    circumcenter(t)
-    orthocenter(t)
+fsz = @to_luxor_picture! width=500 margin=30 begin
+    tri = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
+    cen = centroid(tri)
+    cir = circumcenter(tri)
+    ort = orthocenter(tri)
 end
-figH = ceil(Int, fh) # hide
+figH = ceil(Int, fsz.height) # hide
 nothing # hide
 ```
 
 **Step 1.** The medians meet at the centroid.
 
 ```@example geo
-@show all(on_line(G4, median(t4, i)) for i in 1:3)
+all(on_line(cen, median(tri, k)) for k in 1:3)
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t4) # hide
-    fig_aid([median(t4, i) for i in 1:3]) # hide
-    fig_dots(vertices(t4), julia_blue) # hide
-    fig_dots([G4], julia_purple) # hide
-    fig_vtags(t4) # hide
-    fig_tags(("G", :W, G4)) # hide
+    fig_given(tri) # hide
+    fig_aid([median(tri, k) for k in 1:3]) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([cen], julia_purple) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("G", :W, cen)) # hide
 end # hide
 ```
 
 **Step 2.** The altitudes meet at the orthocenter.
 
 ```@example geo
-@show all(on_line(H4, altitude(t4, i)) for i in 1:3)
+all(on_line(ort, altitude(tri, k)) for k in 1:3)
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t4) # hide
-    fig_aid([altitude(t4, i) for i in 1:3]) # hide
-    fig_dots(vertices(t4), julia_blue) # hide
-    fig_dots([G4, H4], julia_purple) # hide
-    fig_vtags(t4) # hide
-    fig_tags(("G", :W, G4), ("H", :NE, H4)) # hide
+    fig_given(tri) # hide
+    fig_aid([altitude(tri, k) for k in 1:3]) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([cen, ort], julia_purple) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("G", :W, cen), ("H", :NE, ort)) # hide
 end # hide
 ```
 
 **Step 3.** The perpendicular bisectors meet at the circumcenter.
 
 ```@example geo
-@show all(on_line(O4, mediator(t4, i)) for i in 1:3)
+all(on_line(cir, mediator(tri, k)) for k in 1:3)
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t4) # hide
-    fig_aid([mediator(t4, i) for i in 1:3]) # hide
-    fig_dots(vertices(t4), julia_blue) # hide
-    fig_dots([G4, H4, O4], julia_purple) # hide
-    fig_vtags(t4) # hide
-    fig_tags(("G", :W, G4), ("H", :NE, H4), ("O", :SE, O4)) # hide
+    fig_given(tri) # hide
+    fig_aid([mediator(tri, k) for k in 1:3]) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([cen, ort, cir], julia_purple) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("G", :W, cen), ("H", :NE, ort), ("O", :SE, cir)) # hide
 end # hide
 ```
 
 **Step 4.** The three centers are collinear, and `G` divides `OH` in the ratio `1:2`.
 
 ```@example geo
-el4 = euler_line(t4)
-@show all(on_line(q, el4) for q in (G4, O4, H4))
-@show H4 ≈ O4 + 3 * (G4 - O4)
+el = euler_line(tri)
+(all(on_line(q, el) for q in (cen, cir, ort)), isapprox(ort, cir + 3 * (cen - cir); atol=1e-9))
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(t4) # hide
-    fig_result(el4) # hide
-    fig_dots(vertices(t4), julia_blue) # hide
-    fig_dots([G4, H4, O4], julia_purple) # hide
-    fig_vtags(t4) # hide
-    fig_tags(("G", :W, G4), ("H", :NE, H4), ("O", :SE, O4)) # hide
+    fig_given(tri) # hide
+    fig_result(el) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([cen, ort, cir], julia_purple) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("G", :W, cen), ("H", :NE, ort), ("O", :SE, cir)) # hide
 end # hide
 ```
 

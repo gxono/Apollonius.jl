@@ -236,7 +236,7 @@ asks for circles of exactly that radius tangent to two lines, a line and a
 circle, or two circles:
 
 ```@example geo
-l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))   # the y-axis
+l1 = APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0))   # the y-axis
 l2 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))   # the x-axis
 sols_r = tangent_circles_with_radius(l1, l2, 3.0)   # radius 3, tangent to both axes
 length(sols_r), all(s -> s.r == 3.0, sols_r)   # 4 solutions, one per quadrant
@@ -300,13 +300,17 @@ there is concentric with `c`, never tangent to it.
 The blocks in this section are run when the documentation is built, and each
 figure comes from the code above it; only the geometry is shown. The figures
 use one color code: blue for the given objects, green for the construction
-aids, purple for what is found.
+aids, purple for what is found. In each part, the first block builds the
+objects inside [`@to_luxor_picture!`](@ref), which fits them to the canvas and
+replaces each name with the fitted object.
 
 ### A circle through two points, tangent to a line
 
 The center of the circle is at the same distance from `a` and from `b`, so it
 is on the perpendicular bisector of `[a, b]`. It is also at that same distance
-from the line, which is what tangency means.
+from the line, which is what tangency means. The line is infinite, so it is
+marked `@unbounded`: it is fitted like the rest but does not set the size of
+the canvas.
 
 ```@example geo
 using Luxor: sethue, setline, setdash, fontsize, label, julia_blue, julia_green, julia_red, julia_purple # hide
@@ -324,72 +328,74 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-ta, tb = APPoint(-3.0, 0.0), APPoint(3.0, 0.0)
-tl0, tl1 = APPoint(-6.0, -4.0), APPoint(6.0, -4.0)     # two points of the line, for the fit
-sol = only(tangent_circles_through_points(ta, tb, APLine(tl0, tl1)))
-
-(fw, fh), (ta2, tb2, tl0_2, tl1_2, sol2) = @to_luxor_picture width=500 margin=30 begin
-    ta
-    tb
-    tl0
-    tl1
-    sol
+fsz = @to_luxor_picture! width=500 margin=30 begin
+    ta = APPoint(-3.0, 0.0)
+    tb = APPoint(3.0, 0.0)
+    @unbounded tl = APLine(APPoint(-6.0, -4.0), APPoint(6.0, -4.0))
+    tsol = only(tangent_circles_through_points(ta, tb, tl))
 end
-tl2 = APLine(tl0_2, tl1_2)
-figH = ceil(Int, fh) # hide
+figH = ceil(Int, fsz.height) # hide
 nothing # hide
 ```
 
 **Step 1.** The two points and the line.
 
 ```@example geo
-@show on_line(ta2, tl2)
+!on_line(ta, tl)
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(tl2) # hide
-    fig_dots([ta2, tb2], julia_blue) # hide
-    fig_tags(("a", :NW, ta2), ("b", :NE, tb2)) # hide
+    fig_given(tl) # hide
+    fig_dots([ta, tb], julia_blue) # hide
+    fig_tags(("a", :NW, ta), ("b", :NE, tb)) # hide
 end # hide
 ```
 
 **Step 2.** The perpendicular bisector of `[a, b]`: the center has to be on it.
 
 ```@example geo
-bax = perpendicular_bisector(ta2, tb2)
+bax = perpendicular_bisector(ta, tb)
 fig_draw(500, figH) do # hide
-    fig_given(tl2) # hide
+    fig_given(tl) # hide
     fig_aid(bax) # hide
-    fig_dots([ta2, tb2], julia_blue) # hide
-    fig_tags(("a", :NW, ta2), ("b", :NE, tb2)) # hide
+    fig_dots([ta, tb], julia_blue) # hide
+    fig_tags(("a", :NW, ta), ("b", :NE, tb)) # hide
 end # hide
 ```
 
 **Step 3.** The one point of the bisector that is as far from the line as from `a`.
 
 ```@example geo
-ctr = sol2.center
-@show on_line(ctr, bax)
-@show distance(ctr, tl2) ≈ distance(ctr, ta2)
+ctr = tsol.center
+(on_line(ctr, bax), distance(ctr, tl) ≈ distance(ctr, ta))
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(tl2) # hide
+    fig_given(tl) # hide
     fig_aid(bax) # hide
-    fig_dots([ta2, tb2], julia_blue) # hide
+    fig_dots([ta, tb], julia_blue) # hide
     fig_dots([ctr], julia_purple) # hide
-    fig_tags(("a", :NW, ta2), ("b", :NE, tb2), ("center", :E, ctr)) # hide
+    fig_tags(("a", :NW, ta), ("b", :NE, tb), ("center", :E, ctr)) # hide
 end # hide
 ```
 
 **Step 4.** The circle around that center through `a` and `b`, touching the line at the foot of the perpendicular from the center.
 
 ```@example geo
-ftp = projection(ctr, tl2)
-@show distance(ctr, ftp) ≈ sol2.r
+foot = projection(ctr, tl)
+distance(ctr, foot) ≈ tsol.r
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given(tl2) # hide
-    fig_aid([bax, APSegment(ctr, ftp)]) # hide
-    fig_result(sol2) # hide
-    fig_dots([ta2, tb2], julia_blue) # hide
-    fig_dots([ctr, ftp], julia_purple) # hide
-    fig_tags(("a", :NW, ta2), ("b", :NE, tb2), ("center", :E, ctr)) # hide
+    fig_given(tl) # hide
+    fig_aid([bax, APSegment(ctr, foot)]) # hide
+    fig_result(tsol) # hide
+    fig_dots([ta, tb], julia_blue) # hide
+    fig_dots([ctr, foot], julia_purple) # hide
+    fig_tags(("a", :NW, ta), ("b", :NE, tb), ("center", :E, ctr)) # hide
 end # hide
 ```
 
@@ -399,38 +405,36 @@ Three circles that touch each other in pairs leave a curved triangle between
 them. Its corners are the three points of contact.
 
 ```@example geo
-k1 = APCircle2(APPoint(0.0, 0.0), 40.0)
-k2 = APCircle2(APPoint(90.0, 0.0), 50.0)
-k3 = APCircle2(intersection(APCircle2(k1.center, k1.r + 35.0), APCircle2(k2.center, k2.r + 35.0))[1], 35.0)
-tgap = only(interstices(k1, k2, k3))
-
-(fw, fh), (k1_2, k2_2, k3_2, tgap2) = @to_luxor_picture width=500 margin=30 begin
-    k1
-    k2
-    k3
-    tgap
+fsz = @to_luxor_picture! width=500 margin=30 begin
+    k1 = APCircle2(APPoint(0.0, 0.0), 40.0)
+    k2 = APCircle2(APPoint(90.0, 0.0), 50.0)
+    k3 = APCircle2(intersection(APCircle2(k1.center, k1.r + 35.0), APCircle2(k2.center, k2.r + 35.0))[1], 35.0)
+    tgap = only(interstices(k1, k2, k3))
 end
-figH = ceil(Int, fh) # hide
+figH = ceil(Int, fsz.height) # hide
 nothing # hide
 ```
 
 **Step 1.** Three circles, each tangent to the other two.
 
 ```@example geo
-@show circles_position(k1_2, k2_2), circles_position(k2_2, k3_2), circles_position(k1_2, k3_2)
+circles_position(k1, k2), circles_position(k2, k3), circles_position(k1, k3)
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_given([k1_2, k2_2, k3_2]) # hide
+    fig_given([k1, k2, k3]) # hide
 end # hide
 ```
 
 **Step 2.** The points of contact, and the triangle of the three centers.
 
 ```@example geo
-contacts = [only(intersection(a, b)) for (a, b) in ((k1_2, k2_2), (k2_2, k3_2), (k1_2, k3_2))]
+contacts = [only(intersection(u, v)) for (u, v) in ((k1, k2), (k2, k3), (k1, k3))]
 fig_draw(500, figH) do # hide
-    fig_given([k1_2, k2_2, k3_2]) # hide
-    fig_aid(APTriangle(k1_2.center, k2_2.center, k3_2.center)) # hide
-    fig_dots([k1_2.center, k2_2.center, k3_2.center], julia_blue) # hide
+    fig_given([k1, k2, k3]) # hide
+    fig_aid(APTriangle(k1.center, k2.center, k3.center)) # hide
+    fig_dots([k1.center, k2.center, k3.center], julia_blue) # hide
     fig_dots(contacts, julia_green) # hide
 end # hide
 ```
@@ -438,12 +442,14 @@ end # hide
 **Step 3.** The gap is bounded by one arc of each circle, between two contact points.
 
 ```@example geo
-@show length(sides(tgap2))
-@show area(tgap2) > 0
+(length(sides(tgap)), area(tgap) > 0)
+```
+
+```@example geo
 fig_draw(500, figH) do # hide
-    fig_fill(tgap2) # hide
-    fig_given([k1_2, k2_2, k3_2]) # hide
-    fig_result(tgap2) # hide
+    fig_fill(tgap) # hide
+    fig_given([k1, k2, k3]) # hide
+    fig_result(tgap) # hide
     fig_dots(contacts, julia_green) # hide
 end # hide
 ```

@@ -369,7 +369,7 @@ function clawson_point(t::APTriangle; atol=1e-9)
     A, B, C = angle_at(t[1], t[2], t[3]), angle_at(t[2], t[1], t[3]), angle_at(t[3], t[1], t[2])
     any(ang -> isapprox(ang, pi / 2; atol=atol), (A, B, C)) &&
         throw(ArgumentError("clawson_point: undefined for a right triangle (X(19) is a point at infinity here)"))
-    return barycentric_point(t, tan(A), tan(B), tan(C))
+    return trilinear_point(t, tan(A), tan(B), tan(C))
 end
 """
     de_longchamps_point(t::APTriangle)

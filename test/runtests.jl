@@ -2027,9 +2027,10 @@ using Base.MathConstants: golden
         scalene = APTriangle(APPoint(0.0, 0.0), APPoint(7.0, 0.0), APPoint(2.0, 4.0))
         A, B, C = angle_at(scalene[1], scalene[2], scalene[3]), angle_at(scalene[2], scalene[1], scalene[3]), angle_at(scalene[3], scalene[1], scalene[2])
         cw = clawson_point(scalene)
-        wA, wB, wC = barycentric_coordinates(scalene, cw)
-        @test wA / tan(A) ≈ wB / tan(B) atol = 1e-9
-        @test wB / tan(B) ≈ wC / tan(C) atol = 1e-9
+        xA, xB, xC = trilinear_coordinates(scalene, cw)   # X(19) has trilinears tan A : tan B : tan C
+        @test xA / tan(A) ≈ xB / tan(B) atol = 1e-9
+        @test xB / tan(B) ≈ xC / tan(C) atol = 1e-9
+        @test cw ≈ trilinear_point(scalene, tan(A), tan(B), tan(C))
         eq = APTriangle(APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(1.0, sqrt(3.0)))
         g = centroid(eq)
         for center in (circumcenter(eq), incenter(eq), orthocenter(eq),
