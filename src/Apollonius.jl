@@ -133,15 +133,24 @@ already what Luxor's own `sethue`, `setopacity`, `label`, etc. do well.
 Every method accepts `action` (`:path` by default, meaning "add to the
 current path and do nothing else": pass `:stroke`, `:fill`, `:fillstroke`
 or `:clip` to render/use it immediately, exactly as Luxor's own shape
-functions do) plus whatever shape-specific keywords the curve needs
-(`extend` for the unbounded `APLine`/`APRay`, `srange`/`n` for
-`APParabola2`, `trange`/`n`/`branch` for `APHyperbola2`, `as`/`radius` for
-`APAngle2`, `n` for `APEllipticArc2`/`APParabolicArc2`/`APHyperbolicArc2`
-and for any `APPolygon` with such a side). `APSegment`/`APLine`/`APRay`
-also take `as=:arrow` to draw as an arrow instead of a plain line: the
-one exception to the "just adds to the path" rule, since it draws
-immediately (`action` is ignored in that case). See
-[Drawing with Luxor.jl](@ref) for the full per-type reference.
+functions do) plus whatever shape-specific keywords the curve needs:
+
+| Keyword | Default | Applies to | Meaning |
+|:--------|:--------|:-----------|:--------|
+| `action` | `:path` | every method | what to do with the path |
+| `reverse` | `false` | every curve | traverse the same points backwards |
+| `extend` | `1000.0` | `APLine`, `APRay`, `APHalfPlane2`, `APStrip2` | how far past the defining points, or a 2-tuple `(before, after)` |
+| `add` | `nothing` | same as `extend` | lengthen by fractions of `distance(p1, p2)`, replacing `extend` |
+| `as` | `:plain` | `APSegment`, `APLine`, `APRay`, vectors | `:arrow` draws an arrow instead of a line; it draws immediately and ignores `action` |
+| `as` | `:circle` | `APPoint` | `:circle`, `:square`, `:cross` or `:plus` |
+| `as` | `:arc` | `APAngle2` | `:arc`, `:rays`, `:sector`, `:rarc` or `:rsector` |
+| `radius` | `3` (`APPoint`) | `APPoint`, `APAngle2` | size of the mark, or of the arc or sector |
+| `srange` | `(-100.0, 100.0)` | `APParabola2` | parameter range that is sampled |
+| `trange` | `(-2.0, 2.0)` | `APHyperbola2` | parameter range that is sampled |
+| `branch` | `1` | `APHyperbola2` | which branch, `1` or `-1` |
+| `n` | `60` | sampled curves and polygons with such sides | number of sample points |
+
+See [Drawing with Luxor.jl](@ref) for the full per-type reference.
 
 Note: `APBoundingBox` is ambiguous when both packages are loaded with
 `using` (Luxor has its own `BoundingBox` type): write

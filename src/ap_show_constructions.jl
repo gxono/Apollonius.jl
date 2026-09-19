@@ -18,6 +18,11 @@ bisector. Returns a `NamedTuple`:
     first.
 
 Throws an `ArgumentError` if `a == b` or `radius` is too small to cross.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `radius` | `0.75 * distance(a, b)` | radius of the two circles, greater than half of `distance(a, b)` |
+| `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function mediator_construction(a::APPoint, b::APPoint; radius::Union{Nothing,Real}=nothing, sweep::Real=pi / 6)
     d = distance(a, b)
@@ -48,6 +53,12 @@ If `p` is on `l`: the circle centered at `p` of `radius` (default half of
 `distance(l.p1, l.p2)`) cuts `l` at `x1` and `x2`, and the perpendicular is
 the [`mediator_construction`](@ref) of `[x1, x2]` (with `radius2`); `points`
 is `[x1, x2, y1, y2]`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `radius` | `1.5 * distance(p, l)` (half of `distance(l.p1, l.p2)` if `p` is on `l`) | radius of the first circle |
+| `radius2` | `0.75` times the distance between the two points found first | radius of the second pair of circles |
+| `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function perpendicular_construction(l::APLine, p::APPoint; radius::Union{Nothing,Real}=nothing,
     radius2::Union{Nothing,Real}=nothing, sweep::Real=pi / 6)
@@ -85,6 +96,10 @@ and at `p` meet again at `E`; the line `p, E` is parallel to `l`. Returns a
 `NamedTuple` like [`mediator_construction`](@ref): `result` (the parallel),
 `arcs` (four compass traces) and `points` (`[D, E]`). Throws an
 `ArgumentError` if `p` is on `l`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function parallel_construction(l::APLine, p::APPoint; sweep::Real=pi / 6)
     on_line(p, l) && throw(ArgumentError("parallel_construction: p lies on l, the parallel is l itself"))
@@ -110,6 +125,12 @@ rays at `x1` and `x2`, and two circles of `radius2` (default `0.75` times
 [`mediator_construction`](@ref): `result`, `arcs` and `points`
 (`[x1, x2, y]`). Throws an `ArgumentError` for a degenerate angle (a zero
 length ray, or rays that are parallel or opposite).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `radius` | half of the shorter ray | radius of the first circle, centered at `vertex` |
+| `radius2` | `0.75` times the distance between the two points found first | radius of the second pair of circles |
+| `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function bisector_construction(vertex::APPoint, p1::APPoint, p2::APPoint;
     radius::Union{Nothing,Real}=nothing, radius2::Union{Nothing,Real}=nothing, sweep::Real=pi / 6)
@@ -140,6 +161,12 @@ The ruler-and-compass construction of the orthogonal projection of `p` onto
 `NamedTuple` `(result, arcs, points)` where `result` is the foot (an
 [`APPoint`](@ref)) and `arcs` and `points` are those of the perpendicular
 construction.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `radius` | `1.5 * distance(p, l)` | radius of the first circle |
+| `radius2` | `0.75` times the distance between the two points found first | radius of the second pair of circles |
+| `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function projection_construction(p::APPoint, l::APLine; radius::Union{Nothing,Real}=nothing,
     radius2::Union{Nothing,Real}=nothing, sweep::Real=pi / 6)
@@ -157,6 +184,11 @@ Returns a `NamedTuple` `(result, arcs, points)`: `result` is the image (an
 [`APPoint`](@ref)), `arcs` six compass traces (around `x1`, `x2`, `p` and the
 image) and `points` is `[x1, x2]`. If `p` is on `l` it is its own image, with
 no arcs.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `radius` | `1.5 * distance(p, l)` | radius of the three circles, greater than that distance |
+| `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function reflection_construction(p::APPoint, l::APLine; radius::Union{Nothing,Real}=nothing, sweep::Real=pi / 6)
     on_line(p, l) && return (result=p, arcs=APCircularArc2{Float64}[], points=APPoint{2,Float64}[])
@@ -181,6 +213,10 @@ the line `p, center` again on the other side. Returns a `NamedTuple`
 `(result, arcs, points)`: `result` is the image, `arcs` two compass traces
 (around `p` and around the image) and `points` is empty. Throws an
 `ArgumentError` if `p == center`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function symmetry_construction(p::APPoint, center::APPoint; sweep::Real=pi / 6)
     distance(p, center) > 0 || throw(ArgumentError("symmetry_construction: p must differ from center"))
@@ -198,6 +234,10 @@ translation that takes `a` to `b`, as a parallelogram: the circle centered at
 `(result, arcs, points)`: `result` is the image, `arcs` two compass traces
 (around the image) and `points` is empty. If `a == b` the translation is the
 identity, with no arcs. Throws an `ArgumentError` if `p == a`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function translation_construction(p::APPoint, a::APPoint, b::APPoint; sweep::Real=pi / 6)
     v = b - a

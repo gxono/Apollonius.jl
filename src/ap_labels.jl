@@ -31,6 +31,11 @@ Alignments are read in screen coordinates, the ones Luxor draws in (`y`
 grows downward, so `:N` is up): call this on the objects as they will be
 drawn, for example the ones [`@to_luxor_picture`](@ref) returns, and `:left`
 is then the left of the direction of travel as seen on screen.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `side` | `:left` | for a segment or an arc: `:left` or `:right` of the direction of travel, as drawn |
+| `dist` | `0.25` times the shorter ray | for an angle: distance from the vertex along the bisector |
 """
 function label_anchor(obj::Union{APSegment,APCircularArc2,APEllipticArc2,APParabolicArc2,APHyperbolicArc2}, t::Real=0.5;
     side::Symbol=:left)
@@ -62,6 +67,11 @@ with the alignment that puts the label beyond it, as a `NamedTuple`
 `(alignment, point)` like [`label_anchor`](@ref), so that
 `label("60", brace_anchor(p1, p2)...)` works. Same conventions as `brace`:
 screen coordinates, and the same errors for a `height` that is too large.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `height` | `min(10.0, L/2)` | depth of the brace, as in [`brace`](@ref) |
+| `side` | `:left` | `:left` or `:right` of `p1 -> p2` as drawn |
 """
 function brace_anchor(p1::APPoint, p2::APPoint; height::Union{Nothing,Real}=nothing, side::Symbol=:left)
     L, r, ex, ey = _brace_frame(p1, p2, height, side)

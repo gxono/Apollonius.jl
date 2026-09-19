@@ -200,6 +200,120 @@ And the translation completes a parallelogram:
 If the point is its own image (a point on `l` for a reflection, a zero
 translation) the result is the point itself and `arcs` is empty.
 
+## Watching a construction step by step
+
+The blocks on this page are run when the documentation is built, and the
+figures below come from them: each one draws what the code above it just
+computed. Drawing needs Luxor, so the block that loads it is hidden. Only the
+geometry is shown, and the drawing lines are hidden too (they follow the
+colors used across these figures: blue for the given objects, green for the
+construction aids, purple for the result).
+
+The example is the perpendicular bisector of `[a, b]`, built by hand instead of
+with [`mediator_construction`](@ref). First the objects and one fit of all of
+them to the canvas, so that every step uses the same frame:
+
+```@example geo
+using Luxor: @drawsvg, background, sethue, setline, setdash, fontsize, label, julia_blue, julia_green, julia_red, julia_purple # hide
+import Luxor # hide
+a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
+r = 0.75 * distance(a, b)            # any radius above half of distance(a, b) works
+c1, c2 = APCircle2(a, r), APCircle2(b, r)
+p, q = intersection(c1, c2)          # the two crossings of the circles
+
+(w, h), (a2, b2, c1_2, c2_2, p2, q2) = @to_luxor_picture width=500 margin=30 begin
+    a
+    b
+    c1
+    c2
+    p
+    q
+end
+H = ceil(Int, h) # hide
+nothing # hide
+```
+
+**Step 1.** The given segment.
+
+```@example geo
+segment = APSegment(a2, b2)
+Luxor.@drawsvg begin # hide
+    Luxor.origin() # hide
+    fontsize(15) # hide
+    sethue(julia_blue); setline(2) # hide
+    path(segment; action=:stroke) # hide
+    path([a2, b2]; radius=3, action=:fill) # hide
+    sethue(julia_red) # hide
+    label("A", :W, a2); label("B", :E, b2) # hide
+end 500 H # hide
+```
+
+**Step 2.** A circle around each end, with the same radius.
+
+```@example geo
+@show c1.r == c2.r == r
+Luxor.@drawsvg begin # hide
+    Luxor.origin() # hide
+    fontsize(15) # hide
+    sethue("gray80"); setline(1); setdash("dash") # hide
+    path([c1_2, c2_2]; action=:stroke) # hide
+    setdash("solid") # hide
+    sethue(julia_blue); setline(2) # hide
+    path(segment; action=:stroke) # hide
+    path([a2, b2]; radius=3, action=:fill) # hide
+    sethue(julia_red) # hide
+    label("A", :W, a2); label("B", :E, b2) # hide
+end 500 H # hide
+```
+
+**Step 3.** The circles cross at two points, and each one is at the same distance from `a` and from `b`.
+
+```@example geo
+@show distance(p, a) ≈ distance(p, b)
+@show distance(q, a) ≈ distance(q, b)
+Luxor.@drawsvg begin # hide
+    Luxor.origin() # hide
+    fontsize(15) # hide
+    sethue("gray80"); setline(1); setdash("dash") # hide
+    path([c1_2, c2_2]; action=:stroke) # hide
+    setdash("solid") # hide
+    sethue(julia_blue); setline(2) # hide
+    path(segment; action=:stroke) # hide
+    path([a2, b2]; radius=3, action=:fill) # hide
+    sethue(julia_green) # hide
+    path([p2, q2]; radius=3, action=:fill) # hide
+    sethue(julia_red) # hide
+    label("A", :W, a2); label("B", :E, b2); label("P", :N, p2); label("Q", :S, q2) # hide
+end 500 H # hide
+```
+
+**Step 4.** The line through the two crossings is the result.
+
+```@example geo
+bisector = APLine(p2, q2)
+@show is_perpendicular(bisector, APLine(a2, b2))
+@show on_line(midpoint(a2, b2), bisector)
+Luxor.@drawsvg begin # hide
+    Luxor.origin() # hide
+    fontsize(15) # hide
+    sethue("gray80"); setline(1); setdash("dash") # hide
+    path([c1_2, c2_2]; action=:stroke) # hide
+    setdash("solid") # hide
+    sethue(julia_blue); setline(2) # hide
+    path(segment; action=:stroke) # hide
+    path([a2, b2]; radius=3, action=:fill) # hide
+    sethue(julia_purple); setline(2) # hide
+    path(bisector; extend=(40, 40), action=:stroke) # hide
+    sethue(julia_green) # hide
+    path([p2, q2]; radius=3, action=:fill) # hide
+    sethue(julia_red) # hide
+    label("A", :W, a2); label("B", :E, b2); label("P", :N, p2); label("Q", :S, q2) # hide
+end 500 H # hide
+```
+
+This is the same line that `mediator_construction(a, b).result` returns, and
+the same construction the static figure above shows with its compass traces.
+
 ## Drawing the steps
 
 The traces are ordinary arcs and the result is an ordinary line or point,

@@ -117,8 +117,9 @@ G2 = centroid(t2)
 ```
 
 The alignment is read as drawn, with `y` downward, so `:N` is above the
-point on the screen. That is also why the labels of the bottom vertices come
-out as `:SW` and `:SE`, and the top one as `:N`.
+point on the screen. Each label points away from the centroid: `A` is at the
+lower left, so its label goes `:SW`, and `C` is at the top, so its label
+goes `:N`.
 
 ## 5. Draw
 

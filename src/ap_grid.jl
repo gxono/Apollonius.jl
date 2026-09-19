@@ -8,6 +8,12 @@ at the corner of `bb`) that fall inside `bb`, each running the full height
 or width of `bb`. For a finer subgrid call it again with a smaller step and
 draw it thinner. Empty for an empty box. Throws an `ArgumentError` for a
 step that is not positive.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `step` | `1.0` | spacing of the vertical and the horizontal lines |
+| `xstep` | `step` | spacing of the vertical lines |
+| `ystep` | `step` | spacing of the horizontal lines |
 """
 function grid_lines(bb::APBoundingBox; step::Real=1.0, xstep::Real=step, ystep::Real=step)
     (xstep > 0 && ystep > 0) || throw(ArgumentError("grid_lines: the steps must be positive"))
@@ -52,5 +58,10 @@ calls keep only what is outside both shapes). This is what makes lunes,
 arbelos and "circles minus circles" figures possible without approximating
 the arcs. Like [`path`](@ref), this is a package extension: only callable
 once Luxor is also loaded.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `bound` | `1e5` | half-side of the box that `obj` is cut out of, in the current coordinates |
+| other keywords | | passed to [`path`](@ref) |
 """
 function clip_out end

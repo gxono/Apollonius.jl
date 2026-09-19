@@ -114,9 +114,15 @@ sides or arcs are congruent), as a `Vector` of geometric objects ready for
 [`tangent_at`](@ref); `0.5` is the middle), `gap` apart along the tangent
 there. Defined for an [`APSegment`](@ref) and the four conic arcs.
 
-`size` is the full length of one mark (the diameter for `:circle`, whose
-neighbours are never closer than tangent, so `gap` smaller than `size` is
-raised to `size`); both
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `count` | `1` | number of marks |
+| `style` | `:tick` | shape of each mark, see below |
+| `at` | `0.5` | where along `obj`, in `[0, 1]` |
+| `size` | `6.0` | full length of one mark: the diameter of a `:circle`, the height of a `:z` or `:s` |
+| `gap` | `4.0` | distance between neighbouring marks along the tangent; raised to `size` for `:circle`, `:z` and `:s` so they do not overlap |
+| `slant` | `π/6` | tilt of a `:slash` from the perpendicular |
+
 `size` and `gap` are in the units of the coordinates of `obj`, so build the
 marks from objects already transformed to the drawing (for example the ones
 [`@to_luxor_picture`](@ref) returns) to get a size in canvas units.
@@ -149,6 +155,17 @@ concentric [`APCircularArc2`](@ref)s centered at the vertex and swept from
 larger (one, two or three arcs is the usual way to say two angles are
 equal). `size` defaults to `0.15` times the shorter of the two rays, the
 same radius [`path`](@ref)`(ang)` uses.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `count` | `1` | number of arcs, or of symbols |
+| `style` | `:arcs` | `:arcs`, or any style of [`marks`](@ref) for symbols |
+| `at` | `0.5` | where the symbols sit along the arc |
+| `size` | `0.15` times the shorter ray | radius of the first arc |
+| `gap` | `4.0` | radial gap between arcs, or gap between symbols |
+| `mark_size` | `6.0` | size of each symbol, when `style` is not `:arcs` |
+| `slant` | `π/6` | tilt of a `:slash` |
+| `arcs` | `0` | with a symbol style, also draw this many arcs, see below |
 
 Any other `style` (`:tick`, `:slash`, `:chevron`, `:cross`, `:circle`, `:z`, `:s`, see
 [`marks`](@ref)) instead puts `count` symbols of size `mark_size` on the arc
@@ -187,6 +204,14 @@ is on the point, which is what an arrow at the end of an arc wants
 (`at = 1.0`). Defined for an [`APSegment`](@ref), an [`APLine`](@ref), an
 [`APRay`](@ref) and the four conic arcs; `size` is in the units of the
 coordinates of `obj`, as for [`marks`](@ref).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `at` | `0.5` | where along `obj`, in `[0, 1]` |
+| `size` | `10.0` | length of each side arm |
+| `angle` | `π/8` | half the opening angle, in `(0, π/2)` |
+| `place` | `:center` | `:center` puts the middle of the head on the point, `:tip` its tip |
+| `style` | `:triangle` | shape of the head, see below |
 
 `style` picks the shape:
 
@@ -240,6 +265,11 @@ its two ends touching `p1` and `p2` and its point in the middle, on `side`
 objects as they will be drawn, like [`label_anchor`](@ref)). `height` must be
 at most half of `distance(p1, p2)`. Every piece keeps its own natural
 orientation, so they are separate pieces rather than one chained curve.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `height` | `min(10.0, L/2)` | depth of the brace, at most half of `L = distance(p1, p2)` |
+| `side` | `:left` | `:left` or `:right` of `p1 -> p2` as drawn |
 """
 function brace(p1::APPoint, p2::APPoint; height::Union{Nothing,Real}=nothing, side::Symbol=:left)
     L, r, ex, ey = _brace_frame(p1, p2, height, side)
@@ -266,6 +296,10 @@ straight to the y axis (`x = origin[1]`), as a `Vector` of
 [`APSegment`](@ref)s, ready for `path`; draw them dashed
 (`setdash("dot")` in Luxor) for the usual look. A guide of length zero (a
 point on an axis) is left out, so the vector has two, one or no segments.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `origin` | `APPoint(0.0, 0.0)` | the point where the two axes cross |
 """
 function coordinate_guides(p::APPoint; origin::APPoint=APPoint(0.0, 0.0))
     px, py, ox, oy = Float64.((p[1], p[2], origin[1], origin[2]))

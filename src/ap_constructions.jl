@@ -235,6 +235,13 @@ the total arc length. The result is an [`APCircularArc2`](@ref), drawn with
 `path` like any other. Throws an `ArgumentError` if both or neither are
 given, or if `p == center`. To start the arc at `p` instead of centering it
 there, see [`arc_with_angle`](@ref) and [`arc_with_length`](@ref).
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `angle` | `nothing` | total sweep of the trace, in radians |
+| `length` | `nothing` | total arc length of the trace |
+
+Give exactly one of the two.
 """
 function compass_trace(center::APPoint, p::APPoint; angle::Union{Nothing,Real}=nothing, length::Union{Nothing,Real}=nothing)
     (angle === nothing) == (length === nothing) &&
