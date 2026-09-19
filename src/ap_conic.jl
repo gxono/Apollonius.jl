@@ -623,7 +623,7 @@ struct APCircularArc2{T<:Real} <: APConicArc2{T}
     end
 end
 function APCircularArc2(circle::APCircle2, p1::APPoint, p2::APPoint)
-    T = promote_type(eltype(circle.center), eltype(p1), eltype(p2))
+    T = float(promote_type(eltype(circle.center), eltype(circle.r), eltype(p1), eltype(p2)))   # the projection onto the circle is not integral
     return APCircularArc2{T}(APCircle2{T}(APPoint{2,T}(circle.center.coords), T(circle.r)), APPoint{2,T}(p1.coords), APPoint{2,T}(p2.coords))
 end
 """

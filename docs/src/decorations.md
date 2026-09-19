@@ -122,6 +122,7 @@ instead, with the size of each symbol in `mark_size`.
 | `gap` | `4.0` | radial gap between arcs, or gap between symbols |
 | `mark_size` | `6.0` | size of each symbol, when `style` is not `:arcs` |
 | `at` | `0.5` | where the symbols sit along the arc |
+| `arcs` | `0` | with a symbol style, also draw this many arcs and center the symbols across them |
 
 ```@example geo
 ang = APAngle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0))
@@ -133,10 +134,17 @@ arcs = marks(ang; count=2, size=0.8, gap=0.3)
 <img src="../assets/img/decorations/marks_angle.svg" alt="One, two and three arcs on an angle" style="width:100%; max-width: 700px;">
 ```
 
-To combine arcs and a symbol, call `marks` twice with the same `size` and
-concatenate the results.
+To combine arcs and a symbol, pass `arcs`: the result has that many
+concentric arcs plus the symbols, centered between the first and the last
+arc and at least as long as the arcs are spread out plus one `gap`, so a
+`:tick` crosses every arc.
 
-In the first panel a tick crosses two arcs: the tick is centered between their radii and is longer than the gap between them. The other five panels show each symbol style.
+```@example geo
+m = marks(ang; style=:tick, arcs=2, size=0.8, gap=0.3, mark_size=0.3)
+count(x -> x isa APCircularArc2, m), count(x -> x isa APSegment, m)
+```
+
+In the first panel `arcs=2` puts a tick across two arcs. The other five panels show each symbol style.
 
 ```@raw html
 <img src="../assets/img/decorations/marks_angle_symbols.svg" alt="Arcs with a tick, and each symbol style on an angle" style="width:100%; max-width: 700px;">

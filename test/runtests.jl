@@ -602,6 +602,19 @@ using Base.MathConstants: golden
             arcs3 = marks(ang; count=3, size=1.0, gap=0.5)
             @test arcs3 isa Vector{<:APCircularArc2} && length(arcs3) == 3
             @test [a.circle.r for a in arcs3] ≈ [1.0, 1.5, 2.0]
+            # `arcs=n` adds n arcs and centers the symbols across them
+            crossed = marks(ang; style=:tick, arcs=2, size=1.0, gap=0.5, mark_size=0.5)
+            @test length(crossed) == 3 && crossed[1] isa APCircularArc2 && crossed[3] isa APSegment
+            @test [a.circle.r for a in crossed[1:2]] ≈ [1.0, 1.5]
+            rs = sort([distance(crossed[3].p1, ang.vertex), distance(crossed[3].p2, ang.vertex)])
+            @test rs[1] < 1.0 && rs[2] > 1.5   # the tick crosses both arcs
+            @test length(marks(ang; style=:cross, count=2, arcs=3)) == 3 + 4
+            @test marks(ang; style=:tick, arcs=0) == marks(ang; style=:tick)
+            @test_throws ArgumentError marks(ang; style=:tick, arcs=-1)
+            # integer coordinates are accepted (the arcs are built in floating point)
+            iang = APAngle2(APPoint(-150, 60), APPoint(150, 60), APPoint(-40, -90))
+            @test length(marks(iang; count=2, size=25, gap=5)) == 2
+            @test measure(APCircularArc2(APCircle2(APPoint(0, 0), 3), APPoint(3, 0), APPoint(0, 3))) ≈ pi / 2
             @test all(a -> a.circle.center ≈ ang.vertex && measure(a) ≈ pi / 2, arcs3)
             @test only(marks(ang)).circle.r ≈ 0.15 * 4.0   # default radius, as path(::APAngle2) uses
             ticks = marks(ang; style=:tick, count=2, size=1.0, gap=0.3, mark_size=0.4)
