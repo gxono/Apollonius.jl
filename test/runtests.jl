@@ -637,6 +637,61 @@ using Base.MathConstants: golden
             @test_throws ArgumentError compass_trace(c0, p0; angle=7.0)
         end
     end
+    @testset "shown compass-and-ruler constructions" begin
+        a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
+        @testset "mediator_construction" begin
+            m = mediator_construction(a, b)
+            @test isapprox(m.result, perpendicular_bisector(a, b); atol=1e-9)
+            p, q = m.points
+            @test distance(p, a) ≈ distance(p, b) ≈ 0.75 * distance(a, b)
+            @test Apollonius.cross2(b - a, p - a) > 0 > Apollonius.cross2(b - a, q - a)   # left crossing first
+            @test length(m.arcs) == 4 && all(x -> x isa APCircularArc2 && measure(x) ≈ pi / 6, m.arcs)
+            @test all(x -> any(c -> isapprox(x.circle.center, c; atol=1e-9), (a, b)) && x.circle.r ≈ 0.75 * distance(a, b), m.arcs)
+            @test all(x -> any(c -> isapprox(midpoint(x), c; atol=1e-9), (p, q)), m.arcs)   # each trace is centered on a crossing
+            @test measure(mediator_construction(a, b; sweep=0.4).arcs[1]) ≈ 0.4
+            @test_throws ArgumentError mediator_construction(a, a)
+            @test_throws ArgumentError mediator_construction(a, b; radius=1.0)
+        end
+        l = APLine(APPoint(0.0, 0.0), APPoint(5.0, 1.0))
+        @testset "perpendicular_construction" begin
+            p = APPoint(2.0, 4.0)
+            pc = perpendicular_construction(l, p)
+            @test is_perpendicular(pc.result, l) && on_line(p, pc.result)
+            x1, x2, y = pc.points
+            @test on_line(x1, l) && on_line(x2, l) && distance(p, x1) ≈ distance(p, x2)
+            @test side_of_line(y, l) != side_of_line(p, l)   # the second pair of circles crosses on the other side
+            @test length(pc.arcs) == 4 && all(x -> x isa APCircularArc2, pc.arcs)
+            p_on = APPoint(2.5, 0.5)   # on l
+            pc2 = perpendicular_construction(l, p_on)
+            @test is_perpendicular(pc2.result, l) && on_line(p_on, pc2.result)
+            @test length(pc2.arcs) == 6 && length(pc2.points) == 4
+            @test_throws ArgumentError perpendicular_construction(l, p; radius=0.1)
+        end
+        @testset "parallel_construction" begin
+            p = APPoint(2.0, 4.0)
+            par = parallel_construction(l, p)
+            @test is_parallel(par.result, l) && on_line(p, par.result) && !on_line(p, l)
+            D, E = par.points
+            @test on_line(D, l) && distance(D, l.p1) ≈ distance(p, l.p1)
+            @test distance(E, D) ≈ distance(p, l.p1) ≈ distance(E, p)   # a rhombus: all four sides equal
+            @test length(par.arcs) == 4
+            @test_throws ArgumentError parallel_construction(l, APPoint(2.5, 0.5))
+        end
+        @testset "bisector_construction" begin
+            v, p1, p2 = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 3.0)
+            bc = bisector_construction(v, p1, p2)
+            y = bc.points[3]
+            @test angle_at(v, p1, y) ≈ angle_at(v, y, p2)
+            @test angle_at(v, p1, y) ≈ angle_at(v, p1, p2) / 2
+            @test on_line(y, bc.result) && on_line(v, bc.result)
+            @test length(bc.arcs) == 4
+            wide = bisector_construction(v, APPoint(-3.0, 1.0), APPoint(2.0, -4.0); radius=1.0, radius2=1.2)   # obtuse angle, explicit radii
+            @test angle_at(v, APPoint(-3.0, 1.0), wide.points[3]) ≈ angle_at(v, wide.points[3], APPoint(2.0, -4.0))
+            @test_throws ArgumentError bisector_construction(v, p1, APPoint(-2.0, 0.0))   # opposite rays
+            @test_throws ArgumentError bisector_construction(v, p1, APPoint(8.0, 0.0))    # same direction
+            @test_throws ArgumentError bisector_construction(v, v, p2)
+        end
+    end
     @testset "APParametricCurve2" begin
         curve = APParametricCurve2(t -> APPoint(2t, t^2), (0.0, 3.0))
         @test point_on_curve(curve, 0.0) == APPoint(0.0, 0.0)
@@ -5183,6 +5238,9 @@ using Base.MathConstants: golden
             path(APCurvilinearPolyline2([APSegment(APPoint(-60.0, 0.0), APPoint(30.0, 0.0)), arc]); action=:stroke)
             path(marks(APSegment(APPoint(-40.0, -40.0), APPoint(40.0, -40.0)); count=2); action=:stroke)
             path(marks(arc; style=:chevron); action=:stroke)
+            shown = mediator_construction(APPoint(-50.0, -40.0), APPoint(50.0, -40.0))
+            path(shown.arcs; action=:stroke)
+            path(shown.result; action=:stroke)
             @testset "reverse=true traverses the same path backwards" begin
                 pts_of(obj; kwargs...) = (Luxor.newpath(); path(obj; action=:path, kwargs...); first(Luxor.pathtopoly()))
                 near(p, x, y) = isapprox(p.x, x; atol=0.02) && isapprox(p.y, y; atol=0.02)   # Cairo stores path points in 1/256 units
