@@ -53,3 +53,17 @@ function label_anchor(c::APCircle2, θ::Real)
     return (alignment=_compass_alignment(u), point=c.center + c.r * u)
 end
 label_anchor(p::APPoint, from::APPoint) = (alignment=_compass_alignment(p - from), point=p)
+"""
+    brace_anchor(p1::APPoint, p2::APPoint; height=nothing, side=:left)
+
+Where to put the text of a [`brace`](@ref) with the same arguments: the
+point of the brace (in the middle, `height` away from `[p1, p2]` on `side`),
+with the alignment that puts the label beyond it, as a `NamedTuple`
+`(alignment, point)` like [`label_anchor`](@ref), so that
+`label("60", brace_anchor(p1, p2)...)` works. Same conventions as `brace`:
+screen coordinates, and the same errors for a `height` that is too large.
+"""
+function brace_anchor(p1::APPoint, p2::APPoint; height::Union{Nothing,Real}=nothing, side::Symbol=:left)
+    L, r, ex, ey = _brace_frame(p1, p2, height, side)
+    return (alignment=_compass_alignment(ey), point=p1 + (L / 2) * ex + 2r * ey)
+end

@@ -665,6 +665,14 @@ using Base.MathConstants: golden
             @test_throws ArgumentError arrow_head(s; size=0.0)
             @test_throws ArgumentError arrow_head(s; angle=pi / 2)
             @test_throws ArgumentError arrow_head(s; place=:middle)
+            @test_throws ArgumentError arrow_head(s; style=:fancy)
+            st = arrow_head(s; style=:stealth)
+            @test st isa APStraightNgon && length(vertices(st)) == 4
+            @test st[1] ≈ hd[1] && st[2] ≈ hd[2] && st[4] ≈ hd[3]   # same tip and back corners as the triangle
+            @test 0 < area(st) < area(hd) && st[3][1] < st[1][1] && st[3][1] > st[2][1]   # a notch between the back corners and the tip
+            op = arrow_head(s; style=:open)
+            @test op isa APPolyline2 && length(op) == 3 && op[2] ≈ hd[1]
+            @test distance(op[1], op[2]) ≈ 10.0 && distance(op[3], op[2]) ≈ 10.0
         end
         @testset "brace" begin
             b = brace(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0)
@@ -681,6 +689,12 @@ using Base.MathConstants: golden
             @test_throws ArgumentError brace(APPoint(0.0, 0.0), APPoint(10.0, 0.0); height=6.0)
             @test_throws ArgumentError brace(APPoint(0.0, 0.0), APPoint(0.0, 0.0))
             @test_throws ArgumentError brace(APPoint(0.0, 0.0), APPoint(10.0, 0.0); side=:up)
+            ba = brace_anchor(APPoint(0.0, 0.0), APPoint(100.0, 0.0))
+            @test ba == (alignment=:N, point=APPoint(50.0, -10.0))   # the point of the brace, label beyond it (screen coordinates)
+            @test brace_anchor(APPoint(0.0, 0.0), APPoint(100.0, 0.0); side=:right, height=6.0) == (alignment=:S, point=APPoint(50.0, 6.0))
+            @test brace_anchor(APPoint(0.0, 0.0), APPoint(0.0, 100.0)).alignment == :E
+            @test any(q -> isapprox(q, ba.point; atol=1e-9), [q for x in b for q in (x.p1, x.p2)])   # it is a point of the brace itself
+            @test_throws ArgumentError brace_anchor(APPoint(0.0, 0.0), APPoint(10.0, 0.0); height=6.0)
         end
         @testset "coordinate_guides" begin
             g = coordinate_guides(APPoint(3.0, 4.0))
@@ -5378,6 +5392,9 @@ using Base.MathConstants: golden
             path(brace(APPoint(-40.0, 60.0), APPoint(40.0, 60.0)); action=:stroke)
             path(arrow_head(APSegment(APPoint(-40.0, 30.0), APPoint(40.0, 30.0))); action=:fill)
             path(arrow_head(arc; at=1.0, place=:tip); action=:fill)
+            path(arrow_head(arc; at=0.5, style=:stealth); action=:fill)
+            path(arrow_head(arc; at=0.2, style=:open); action=:stroke)
+            Luxor.label("80", brace_anchor(APPoint(-40.0, 60.0), APPoint(40.0, 60.0))...)
             path(coordinate_guides(APPoint(30.0, -20.0)); action=:stroke)
             @testset "point shapes, dimension and tickline" begin
                 for shape in (:circle, :square, :cross, :plus)

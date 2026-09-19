@@ -154,10 +154,9 @@ function marks(ang::APAngle2; count::Integer=1, style::Symbol=:arcs, at::Real=0.
     return _marks_at(tangent_at(arc_at(r), at), count, style, mark_size, gap, slant)
 end
 """
-    arrow_head(obj; at=0.5, size=10.0, angle=π/8, place=:center)
+    arrow_head(obj; at=0.5, size=10.0, angle=π/8, place=:center, style=:triangle)
 
-An arrowhead on `obj`, as an [`APTriangle`](@ref) to draw with
-`path(head; action=:fill)`: at parameter `at` of `obj` (see
+An arrowhead on `obj`, to draw with `path`: at parameter `at` of `obj` (see
 [`tangent_at`](@ref)), pointing in the direction of travel. `size` is the
 length of each side arm and `angle` the half-opening angle, the same
 meaning as Luxor's `arrowheadlength` and `arrowheadangle`. With
@@ -166,12 +165,24 @@ what a mid-arrow on a segment or an arc wants; with `place = :tip` its tip
 is on the point, which is what an arrow at the end of an arc wants
 (`at = 1.0`). Defined for an [`APSegment`](@ref), an [`APLine`](@ref), an
 [`APRay`](@ref) and the four conic arcs; `size` is in the units of the
-coordinates of `obj`, as for [`marks`](@ref). Throws an `ArgumentError` for
-`size <= 0`, an `angle` outside `(0, π/2)` or an unknown `place`.
+coordinates of `obj`, as for [`marks`](@ref).
+
+`style` picks the shape:
+
+| `style` | Head | Returns | Draw with |
+|:--------|:-----|:--------|:----------|
+| `:triangle` | a filled triangle | [`APTriangle`](@ref) | `action=:fill` |
+| `:stealth` | a triangle with a notch in its back | [`APStraightNgon`](@ref) | `action=:fill` |
+| `:open` | two arms (a `>`) | [`APPolyline2`](@ref) | `action=:stroke` |
+
+Throws an `ArgumentError` for `size <= 0`, an `angle` outside `(0, π/2)` or
+an unknown `place` or `style`.
 """
 function arrow_head(obj::Union{APSegment,APLine,APRay,APCircularArc2,APEllipticArc2,APParabolicArc2,APHyperbolicArc2};
-    at::Real=0.5, size::Real=10.0, angle::Real=pi / 8, place::Symbol=:center)
+    at::Real=0.5, size::Real=10.0, angle::Real=pi / 8, place::Symbol=:center, style::Symbol=:triangle)
     size > 0 || throw(ArgumentError("arrow_head: size must be positive"))
+    style in (:triangle, :stealth, :open) ||
+        throw(ArgumentError("arrow_head: style must be :triangle, :stealth or :open, got $(repr(style))"))
     0 < angle < pi / 2 || throw(ArgumentError("arrow_head: angle must be in (0, π/2)"))
     place in (:center, :tip) || throw(ArgumentError("arrow_head: place must be :center or :tip, got $(repr(place))"))
     frame = tangent_at(obj, at)
@@ -180,7 +191,21 @@ function arrow_head(obj::Union{APSegment,APLine,APRay,APCircularArc2,APEllipticA
     h, w = size * cos(angle), size * sin(angle)
     tip = place === :tip ? P : P + (h / 2) * T
     base = tip - h * T
-    return APTriangle(tip, base + w * N, base - w * N)
+    style === :triangle && return APTriangle(tip, base + w * N, base - w * N)
+    style === :stealth && return APStraightNgon(tip, base + w * N, tip - 0.65h * T, base - w * N)
+    return APPolyline2(base + w * N, tip, base - w * N)
+end
+function _brace_frame(p1::APPoint, p2::APPoint, height, side::Symbol)
+    side in (:left, :right) || throw(ArgumentError("brace: side must be :left or :right, got $(repr(side))"))
+    L = distance(p1, p2)
+    L > 0 || throw(ArgumentError("brace: p1 and p2 must differ"))
+    h = height === nothing ? min(10.0, L / 2) : height
+    h > 0 || throw(ArgumentError("brace: height must be positive"))
+    r = h / 2
+    4r <= L * (1 + 1e-12) || throw(ArgumentError("brace: height must be at most half the distance between p1 and p2"))
+    ex = (p2 - p1) / L
+    n = orthogonal(ex)
+    return L, r, ex, side === :left ? -n : n
 end
 """
     brace(p1::APPoint, p2::APPoint; height=nothing, side=:left)
@@ -196,16 +221,7 @@ at most half of `distance(p1, p2)`. Every piece keeps its own natural
 orientation, so they are separate pieces rather than one chained curve.
 """
 function brace(p1::APPoint, p2::APPoint; height::Union{Nothing,Real}=nothing, side::Symbol=:left)
-    side in (:left, :right) || throw(ArgumentError("brace: side must be :left or :right, got $(repr(side))"))
-    L = distance(p1, p2)
-    L > 0 || throw(ArgumentError("brace: p1 and p2 must differ"))
-    h = height === nothing ? min(10.0, L / 2) : height
-    h > 0 || throw(ArgumentError("brace: height must be positive"))
-    r = h / 2
-    4r <= L * (1 + 1e-12) || throw(ArgumentError("brace: height must be at most half the distance between p1 and p2"))
-    ex = (p2 - p1) / L
-    n = orthogonal(ex)
-    ey = side === :left ? -n : n
+    L, r, ex, ey = _brace_frame(p1, p2, height, side)
     G(x, y) = p1 + x * ex + y * ey
     function quarter(cx, cy, xa, ya, xb, yb)
         c, pa, pb = G(cx, cy), G(xa, ya), G(xb, yb)
