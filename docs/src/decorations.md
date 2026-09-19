@@ -61,7 +61,8 @@ mid.point, dot(mid.vector, mid.point - circ.center) ≈ 0.0
 <img src="../assets/img/decorations/tangent_at.svg" alt="Five tangent vectors along a semicircle" style="width:100%; max-width: 700px;">
 ```
 
-The direction of travel is the stored one, from `p1` to `p2`. `@to_luxor_picture` flips the `y` axis, so an arc that runs counterclockwise in your coordinates comes back with its endpoints swapped and runs clockwise on the screen. Compute the decorations on the transformed objects and they follow what you see.
+!!! warning "The direction of an arc changes when the figure is fitted"
+    The direction of travel is the stored one, from `p1` to `p2`. `@to_luxor_picture` flips the `y` axis, so an arc that runs counterclockwise in your coordinates comes back with its endpoints swapped and runs clockwise on the screen. Compute the decorations on the fitted objects and they follow what you see.
 
 ## Equality marks: `marks`
 
@@ -111,6 +112,9 @@ on_line(circ.center, APLine(tick.p1, tick.p2))
 <img src="../assets/img/decorations/marks_arc.svg" alt="A tick, two chevrons and a circle on an arc" style="width:100%; max-width: 700px;">
 ```
 
+!!! warning "Sizes are in the units of the object"
+    `size` and `gap` use the units of the object you pass. On the original coordinates of a small figure the default mark, 6 units long, can be longer than the side it marks. Decorate the fitted objects, as in [Workflow: From Construction to Figure](@ref).
+
 ### Marks on an angle
 
 For an [`APAngle2`](@ref), `marks` has two modes. The default `style = :arcs`
@@ -153,6 +157,9 @@ In the first panel `arcs=2` puts a tick across two arcs. The other five panels s
 ```@raw html
 <img src="../assets/img/decorations/marks_angle_symbols.svg" alt="Arcs with a tick, and each symbol style on an angle" style="width:100%; max-width: 700px;">
 ```
+
+!!! warning "The order of the rays matters"
+    An [`APAngle2`](@ref) is the wedge swept counterclockwise from `a` to `b`, and the marks go on that wedge. Swapping `a` and `b` marks the other one. If you give the points in drawn coordinates (`y` downward), the counterclockwise wedge looks reversed on the screen.
 
 ## Arrowheads: `arrow_head`
 
@@ -207,6 +214,9 @@ count(x -> x isa APCircularArc2, b), count(x -> x isa APSegment, b)
 [`brace_anchor`](@ref) with the same arguments gives the point of the brace
 and the alignment that puts a label beyond it; see the next section.
 
+!!! warning "A brace cannot be deeper than half its length"
+    A `height` greater than half of `distance(p1, p2)` throws an `ArgumentError`. Only the default is reduced by itself, to half the length when that is smaller than `10`.
+
 ## Labels: `label_anchor`
 
 Luxor places text with `label(text, alignment, point)`, where `alignment` is
@@ -241,6 +251,9 @@ t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
 <img src="../assets/img/decorations/label_anchor.svg" alt="A triangle with vertex, side and angle labels placed outside" style="width:100%; max-width: 700px;">
 ```
 
+!!! warning "Compass directions and sides are read as drawn"
+    `:N` is above the point and `:left` is the left of the direction of travel as seen on the screen, with `y` growing downward. Call [`label_anchor`](@ref) and [`brace_anchor`](@ref) on the fitted objects. On coordinates with `y` upward the same call gives the mirrored answer.
+
 ## Guides and grids
 
 [`coordinate_guides`](@ref)`(p)` returns the two segments from `p` to the
@@ -267,6 +280,9 @@ length(grid_lines(bb)), length(grid_lines(bb; step=0.5)), length(axes_lines(bb))
 ```@raw html
 <img src="../assets/img/decorations/guides_grid.svg" alt="A grid, the axes and dotted coordinate guides for a point" style="width:100%; max-width: 700px;">
 ```
+
+!!! warning "The grid is anchored at the origin of the coordinates it receives"
+    [`grid_lines`](@ref) puts its lines at whole multiples of the step, measured from the origin of the box you give it. Build the grid inside the block that is fitted, in your own coordinates, so the lines fall where the axes are. From an already fitted box, the multiples are in drawing units.
 
 ## Lengthening a line: `extend_line`
 

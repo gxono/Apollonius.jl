@@ -4035,6 +4035,14 @@ using Base.MathConstants: golden
                 num = 5.0
                 vec = APVector(1.0, 0.0)
             end
+            single_pt = APPoint(1.0, 2.0)
+            @test_throws ArgumentError @to_luxor_picture width = 100.0 begin
+                single_pt
+            end   # a single point has no extent to scale to a width
+            _, sp = @to_luxor_picture begin
+                single_pt
+            end   # without a width or height there is nothing to divide by
+            @test sp.single_pt ≈ APPoint(0.0, 0.0)
             # the second value is a NamedTuple with one field per name in the block
             sz_nt, objs_nt = @to_luxor_picture width = 200.0 begin
                 nt_a = APPoint(0.0, 0.0)

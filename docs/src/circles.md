@@ -23,7 +23,6 @@ APCircle2(APPoint(0.0, 0.0), APPoint(3.0, 4.0))   # radius 5, same as APCircle2(
 <img src="../assets/img/circles/circle_cp.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
-
 Three points on the circumference work too: `APCircle2(p1, p2, p3)` is
 their circumcircle, computed directly (the same formula
 [`circumcenter`](@ref) uses on an [`APTriangle`](@ref), without needing to
@@ -36,7 +35,6 @@ APCircle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0))
 ```@raw html
 <img src="../assets/img/circles/circle_3p.svg" alt="" style="width:100%; max-width: 700px;">
 ```
-
 
 It throws an `ArgumentError` if the three points are (or are too close
 to) collinear, same as [`affine_map`](@ref) does for its three source
@@ -171,7 +169,6 @@ inv5(APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0))) isa APCircle2
 map(inv5, [APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0)), APLine(APPoint(-3.0, 0.0), APPoint(-3.0, 1.0))])
 ```
 
-
 ```@raw html
 <img src="../assets/img/circles/inversion_line.svg" alt="" style="width:100%; max-width: 700px;">
 ```
@@ -247,19 +244,15 @@ area(cp), perimeter(cp)
 
 In the first example, none of the triangle's sides passes through the inversion center, so all three become circular arcs. If one side does lie on a line through the center, that side stays straight; the other two still become arcs.
 
-
 ```@raw html
 <img src="../assets/img/circles/inversion_triangle2.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 Same rule for any straight-sided polygon: each side inverts on its own, straight if its line passes through the center, an arc otherwise, so the result can freely mix both.
 
-
-
 ```@raw html
 <img src="../assets/img/circles/inversion_ngon.svg" alt="" style="width:100%; max-width: 700px;">
 ```
-
 
 `area`/`perimeter` are the same generic, sides-based [`APPolygon`](@ref)
 formulas every closed shape in the package shares (a straight side's own
@@ -360,6 +353,9 @@ c1 = APCircle2(APPoint(0.0, 0.0), 5.0)
 intersection_angle(c1, orthogonal_circle(c1, APPoint(13.0, 0.0))) ≈ pi / 2
 ```
 
+!!! warning "The order of the intersections is fixed for two cases only"
+    A line and a circle give their points along the line, and two circles give the point on the left first. For any other pair the order is not specified: choose with [`nearest_point`](@ref) or [`other_intersection`](@ref).
+
 ## How two circles (or a line and a circle) relate
 
 [`circles_position`](@ref) and [`line_circle_position`](@ref) classify the
@@ -455,6 +451,9 @@ An `APCircularArc2` also intersects `APLine`/`APSegment`/`APRay`, a full
 `APCircle2`, or another circular arc; see
 [Intersecting an arc](@ref) for the general story (including the arc
 types below).
+
+!!! warning "An arc always runs counterclockwise"
+    [`APCircularArc2`](@ref)`(circle, p1, p2)` sweeps counterclockwise from `p1` to `p2`. Swapping the two points gives the complementary arc, and `reverse` does the same.
 
 ### Compass arcs
 
@@ -633,13 +632,11 @@ derived from circles:
 | [`APCurvilinearQuadrilateral2`](@ref) | 4 |
 | [`APCurvilinearNgon2`](@ref) | any number ≥ 3, given as a vector |
 
-
 ```@example geo
 circ = APCircle2(APPoint(0.0, 0.0), 3.0)
 arc = APCircularArc2(circ, APPoint(0.0, 3.0), APPoint(-3.0, 0.0))
 rad1 = APSegment(APPoint(0.0, 3.0), APPoint(0.0, 0.0))
 rad2 = APSegment(APPoint(0.0, 0.0), APPoint(-3.0, 0.0))
-
 
 ct = APCurvilinearTriangle2(rad1, arc, rad2)   # one curved side, two straight
 area(ct), perimeter(ct)

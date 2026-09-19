@@ -264,6 +264,9 @@ capability under [Reading the block](@ref) above), e.g. the result of
 `intersection.(ext1, [c1, c2])`, and it's repositioned element-wise right
 alongside everything else.
 
+!!! warning "Every line of the block needs a name"
+    A bare expression such as `circumcircle(t)` on its own line is an `ArgumentError`: assign it, `cc = circumcircle(t)`, and it comes back as `lxo.cc`. Plain numbers and numeric vectors are returned too, but they are never scaled.
+
 ### Sizing options
 
 | Option | Effect |
@@ -364,6 +367,9 @@ A bare, unnamed expression has nothing to rebind, so this form rejects it
 (same as `@translate!` and the rest of that family); see
 [Drawing with Luxor.jl](@ref) for the complete pipeline, from a bare set
 of `APPoint`/`APTriangle`/etc. all the way to a finished PNG.
+
+!!! warning "`@to_luxor_picture!` replaces your variables"
+    After the block, each name refers to the fitted object, and the original is gone from that name. If the same objects appear in another figure, use `@to_luxor_picture` and take the fitted ones from `lxo`.
 
 ## `@translate` / `@translate!`
 

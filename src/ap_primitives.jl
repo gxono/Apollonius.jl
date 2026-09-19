@@ -651,6 +651,9 @@ macro boundingbox(block)
     return esc(body)
 end
 function _picture_layout(bw::Real, bh::Real, width, height, scale, margin::Real)
+    fit_width, fit_height = width !== nothing && scale === nothing, height !== nothing && scale === nothing
+    ((fit_width && !fit_height && bw == 0) || (fit_height && !fit_width && bh == 0) || (fit_width && fit_height && bw == 0 && bh == 0)) &&
+        throw(ArgumentError("@to_luxor_picture: the content has no extent in the direction to fit (a single point, for example), so it cannot be scaled to width/height"))
     if scale !== nothing
         s = Float64(scale)
         W = bw * s + 2margin

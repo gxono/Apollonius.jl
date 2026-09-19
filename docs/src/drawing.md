@@ -51,7 +51,6 @@ preview()
 <img src="../assets/img/drawing/ej1.png" alt="" style="width:100%; max-width: 400px;">
 ```
 
-
 If you only ever `using Apollonius` and never load Luxor, `path`
 simply doesn't exist as a callable function (`methods(path)` is empty).
 There is no partial/broken state to worry about.
@@ -150,7 +149,6 @@ end lxm.width lxm.height
 <img src="../assets/img/drawing/to_luxor1.svg" alt="" style="width:100%;">
 ```
 
-
 Building the `Drawing` by hand instead needs its own `origin()` call
 first, since `Drawing` itself doesn't move `(0, 0)`:
 
@@ -215,7 +213,6 @@ in literally at the call site (a macro can never recover *its caller's*
 file on its own, only its own defining file), rather than typed as a
 `fmt_name`/path computation in every single illustration file by hand.
 
-
 ### Excluding a shape from sizing: `@unbounded`
 
 Every shape named in a `@to_luxor_picture` block counts toward the
@@ -270,6 +267,8 @@ end
 <img src="../assets/img/triangles/tri_cen.svg" alt="" style="width:100%;">
 ```
 
+!!! warning "A block with no extent cannot be fitted to a width"
+    If everything in the block has zero size, a single point for example, and `width` or `height` is given, the scale would be infinite and the macro throws an `ArgumentError`. Add another object, or drop `width` and `height`.
 
 ### Applying the same transform outside the block: `lxm.fct`
 
@@ -589,7 +588,6 @@ c2 = APCircle2(APPoint(90.0, 0.0), 50.0)   # tangent to c1: distance 90 == 40 + 
 c3_center = intersection(APCircle2(c1.center, c1.r + 35.0), APCircle2(c2.center, c2.r + 35.0))[1]
 c3 = APCircle2(c3_center, 35.0)            # tangent to both c1 and c2
 
-
 sethue("red"); setopacity(0.5)
 path(interstices(c1, c2, c3); action=:fill)
 
@@ -623,7 +621,6 @@ path(earc; action=:stroke)
 ```@raw html
 <img src="../assets/img/drawing/earcs.svg" alt="" style="width:100%;">
 ```
-
 
 They can also turn up as a *side* of a curvilinear region, not from
 building one directly (there's no `APEllipticSector2`), but as the result
@@ -666,9 +663,8 @@ path(arc; reverse=true, action=:stroke)   # the same arc, dashes starting at arc
 <img src="../assets/img/drawing/path_reverse.svg" alt="The same segment drawn with an arrow forward and reversed" style="width:100%; max-width: 700px;">
 ```
 
-This is not the same as [`reverse`](@ref)`(obj)`, which builds a new object.
-For a circular or elliptic arc that object is the *complementary* arc, the
-rest of the circle. `path(arc; reverse=true)` draws the same arc.
+!!! warning "`reverse=true` is not `reverse(obj)`"
+    [`reverse`](@ref)`(obj)` builds a new object. For a circular or elliptic arc that object is the *complementary* arc, the rest of the circle. `path(arc; reverse=true)` draws the same arc, from the other end.
 
 The keyword also exists on `APPoint` (a point has no direction, so it is
 ignored), so `path(v; reverse=true)` works on a `Vector` that mixes points
@@ -706,6 +702,9 @@ Internally it clips the region between a big box and the shape, using
 Luxor's even-odd fill rule. The box has half-side `bound` (default `1e5`),
 centered on the current origin, so raise `bound` if you have translated the
 origin far from the drawing.
+
+!!! warning "A clip stays until it is reset"
+    Both `clip_out` and `path(obj; action=:clip)` last until `clipreset()` or the end of the enclosing `@layer`. Everything drawn after them is clipped, including the labels, so wrap the clip in a `@layer` and draw the rest outside it.
 
 ## Dimensions, tick lines and labels
 
@@ -755,6 +754,9 @@ label(L"lpha^2 + eta_1", :N, APPoint(0.0, 0.0))
 
 To choose where a label goes and how it is aligned, see
 [`label_anchor`](@ref) on the [Marks, Labels & Decorations](@ref) page.
+
+!!! warning "`dimension` measures the distance you pass"
+    The text is the distance between the two points, in the units of those points. On fitted objects that is a length in drawing units, not in the units of your problem. Use `format` to show the value you mean, and `textrotation=-pi / 2` to keep the text upright on a horizontal line.
 
 ## Worked example: the package logo
 

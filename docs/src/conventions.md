@@ -57,6 +57,9 @@ e1, e2 = APEllipse2(f1, f2, 5.0), APEllipse2(f2, f1, 5.0)
 e1 == e2, e1 ≈ e2
 ```
 
+!!! warning "`==` is exact, and `≈` fails against zero"
+    `==` compares every coordinate exactly, so two constructions of the same point can differ in the last digit. Use `≈`. It compares with a relative tolerance, which cannot tell a value from `0`: when a coordinate can be zero, use `isapprox(a, b; atol=1e-9)`.
+
 ## What functions return
 
 | Kind of function | Returns |
@@ -91,6 +94,9 @@ on a segment going from left to right on screen is above it, and `:N` is
 up. Call them on the transformed objects and it all lines up.
 
 The [Marks, Labels & Decorations](@ref) page has the details.
+
+!!! warning "Fit first, then decorate"
+    Marks, arrows, braces and label positions are computed in the units of the objects you give them, and the compass and side arguments read the screen convention. Give them the objects that [`@to_luxor_picture`](@ref) returns. The order of the steps is in [Workflow: From Construction to Figure](@ref).
 
 ## Frequently asked questions
 
