@@ -315,12 +315,12 @@ the canvas.
 ```@example geo
 using Luxor: sethue, setline, setdash, fontsize, label, julia_blue, julia_green, julia_red, julia_purple # hide
 import Luxor # hide
-fig_given(x; w=2) = (sethue(julia_blue); setline(w); path(x; action=:stroke)) # hide
-fig_faint(x) = (sethue("gray80"); setline(1); setdash("dash"); path(x; action=:stroke); setdash("solid")) # hide
-fig_aid(x) = (sethue(julia_green); setline(1); setdash("dash"); path(x; action=:stroke); setdash("solid")) # hide
-fig_result(x; w=2) = (sethue(julia_purple); setline(w); path(x; action=:stroke)) # hide
+fig_given(x) = (sethue(julia_blue); path(x; action=:stroke)) # hide
+fig_faint(x) = (Luxor.gsave(); setline(1); setdash("dash"); sethue("gray80"); path(x; action=:stroke); Luxor.grestore()) # hide
+fig_aid(x) = (Luxor.gsave(); setline(1); setdash("dash"); sethue(julia_green); path(x; action=:stroke); Luxor.grestore()) # hide
+fig_result(x) = (sethue(julia_purple); path(x; action=:stroke)) # hide
 fig_fill(x; a=0.25) = (sethue(julia_purple); Luxor.setopacity(a); path(x; action=:fill); Luxor.setopacity(1.0)) # hide
-fig_dots(pts, c) = (sethue(c); path(pts; radius=3, action=:fill)) # hide
+fig_dots(pts, c) = (path(pts); sethue("white"); Luxor.fillpreserve(); sethue(c); Luxor.strokepath()) # hide
 fig_tags(ts...) = (sethue(julia_red); for (t, al, p) in ts; label(t, al, p); end) # hide
 fig_vtags(t) = (sethue(julia_red); g = centroid(t); for (n, v) in zip(("A", "B", "C"), vertices(t)); label(n, label_anchor(v, g)...); end) # hide
 function fig_draw(f, w, h) # hide

@@ -7,7 +7,7 @@ end
 (; segs, names) = lxo
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(14)
-sethue(julia_blue); Luxor.setline(1.5)
+sethue(julia_blue)
 path(segs, action=:stroke)
 sethue(julia_purple)
 for (s, style) in zip(segs, styles)

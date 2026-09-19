@@ -481,11 +481,23 @@ the two happen to look identical, since each element renders and clears
 on its own regardless: but for the default `action=:path`, only `path(v)`
 batches safely; `path.(v)` (or a hand-written loop without `newsubpath()`)
 reproduces the stray-line bug this method exists to avoid.
+
+With `action=:fillpreserve` or `:strokepreserve`, every element is added to
+one path and the action is applied once to all of them, so the whole vector
+is preserved. (Any action but `:path` starts a new path for the shape it is
+given, so a single call per element would keep only the last one.)
 """
-function AP.path(v::Union{AbstractArray{<:AP.APObject},NTuple{N,<:AP.APObject} where N}; kwargs...)
+function AP.path(v::Union{AbstractArray{<:AP.APObject},NTuple{N,<:AP.APObject} where N}; action=:path, kwargs...)
+    if action === :fillpreserve || action === :strokepreserve   # one path for the whole vector, preserved once
+        for x in v
+            Luxor.newsubpath()
+            AP.path(x; action=:path, kwargs...)
+        end
+        return Luxor.do_action(action)
+    end
     for x in v
         Luxor.newsubpath()
-        AP.path(x; kwargs...)
+        AP.path(x; action=action, kwargs...)
     end
 end
 function AP.current_path_bbox()

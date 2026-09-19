@@ -5,10 +5,13 @@ end
 (; a, b) = lxo
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(14)
-sethue(julia_blue); Luxor.setline(2)
+sethue(julia_blue)
 path(APSegment(a, b), action=:stroke)
 path([a, b])
 plot_point(julia_blue)
-sethue(julia_green); Luxor.setline(1)
+gsave()
+setline(1)
+sethue(julia_green)
 Luxor.dimension(a, b; offset=40, format=d -> "7.0", textrotation=-pi / 2, textgap=25)
+grestore()
 end)

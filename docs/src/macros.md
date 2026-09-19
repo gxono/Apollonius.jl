@@ -105,6 +105,10 @@ end
 bbox_union(APBoundingBox(t), APBoundingBox(circ))   # exactly what @boundingbox computed above
 ```
 
+```@raw html
+<img src="../assets/img/macros/boundingbox.svg" alt="A triangle and a circle with the dashed bounding box around both" style="width:100%; max-width: 700px;">
+```
+
 Blocks like this often mix in plain construction helpers alongside the
 actual shapes: a center point, a radius, a scalar computed along the
 way. `APBoundingBox` handles every one of those without erroring:
@@ -383,6 +387,10 @@ end
 T1
 ```
 
+```@raw html
+<img src="../assets/img/macros/translate.svg" alt="A triangle and a segment with their translated images" style="width:100%; max-width: 700px;">
+```
+
 `t`/`s` themselves are untouched by `@translate`; `@translate!` instead
 rebinds each *named* shape's own variable to its translated image (the
 object itself never mutates, since these are all immutable structs; only
@@ -420,6 +428,10 @@ end
 R1
 ```
 
+```@raw html
+<img src="../assets/img/macros/rotate.svg" alt="A triangle and a circle rotated a quarter turn about a point" style="width:100%; max-width: 700px;">
+```
+
 ```@example geo
 t4 = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
 @rotate! (pi / 2) t4
@@ -436,6 +448,10 @@ H1, H2 = @homothety 2.0 begin
     circ
 end
 H1
+```
+
+```@raw html
+<img src="../assets/img/macros/homothety.svg" alt="A triangle and a circle scaled by 2 about the origin" style="width:100%; max-width: 700px;">
 ```
 
 ```@example geo
@@ -456,6 +472,10 @@ M1, M2 = @reflection mirror begin
     circ
 end
 M1
+```
+
+```@raw html
+<img src="../assets/img/macros/reflection.svg" alt="A triangle and a circle reflected across a line" style="width:100%; max-width: 700px;">
 ```
 
 ```@example geo
@@ -480,6 +500,10 @@ I1, I2 = @invert center 3.0 begin
     circ
 end
 I1   # an APCircle2: far_line doesn't pass through center
+```
+
+```@raw html
+<img src="../assets/img/macros/invert.svg" alt="A line and a circle inverted with respect to a circle centered at the origin" style="width:100%; max-width: 700px;">
 ```
 
 `@invert!` is the mutating form, exactly like every other macro's `!`
@@ -512,6 +536,10 @@ T7, C7 = @affinemap m begin
     circ
 end
 T7   # circ, being non-similarity-mapped, would come back as an APEllipse2, see Affine Maps
+```
+
+```@raw html
+<img src="../assets/img/macros/affinemap.svg" alt="A triangle and a circle under an affine map: the circle becomes an ellipse" style="width:100%; max-width: 700px;">
 ```
 
 ```@example geo

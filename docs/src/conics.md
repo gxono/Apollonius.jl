@@ -61,6 +61,10 @@ always a real circle, of radius `sqrt(a² + b²)`, centered at `e.center`.
 orthoptic(e)   # APCircle2(center, sqrt(5^2+3^2)) ≈ APCircle2(center, 5.83)
 ```
 
+```@raw html
+<img src="../assets/img/conics/ellipse_foci.svg" alt="An ellipse with its foci, vertices and director circle, and a point whose distances to the foci add up to 2a" style="width:100%; max-width: 700px;">
+```
+
 ## Parabola
 
 ```@example geo
@@ -104,6 +108,10 @@ and hyperbola's orthoptics are circles, not lines):
 orthoptic(par) == par.directrix
 ```
 
+```@raw html
+<img src="../assets/img/conics/parabola.svg" alt="A parabola with its focus, directrix and vertex, and a point equally far from the focus and the directrix" style="width:100%; max-width: 700px;">
+```
+
 ## Hyperbola
 
 ```@example geo
@@ -126,6 +134,10 @@ opposite inequality from the ellipse, since here `c > a`).
 foci(h)         # the two foci, at distance sqrt(a²+b²) from the center
 asymptotes(h)   # the two asymptote lines, through the center
 vertices(h)     # the two points where each branch meets the transverse axis, at distance a from the center
+```
+
+```@raw html
+<img src="../assets/img/conics/hyperbola.svg" alt="A hyperbola with its two branches, asymptotes, foci and vertices" style="width:100%; max-width: 700px;">
 ```
 
 [`orthoptic`](@ref) (the director circle) exists for a hyperbola only when
@@ -205,6 +217,10 @@ tangent_points(e, p)
 tangent_lines(e, p)
 ```
 
+```@raw html
+<img src="../assets/img/conics/tangents.svg" alt="The two tangent lines from an outside point to an ellipse, the points of tangency and the polar line" style="width:100%; max-width: 700px;">
+```
+
 For an `APHyperbola2` specifically, note that being far from the curve doesn't
 guarantee real tangents (or the lack of them) the way it does for an
 ellipse. It depends on which side of which branch `p` sits on;
@@ -219,6 +235,10 @@ circle against a parabola, ...), returning up to 4 real points:
 
 ```@example geo
 intersection(e, h)
+```
+
+```@raw html
+<img src="../assets/img/conics/intersect.svg" alt="An ellipse and a hyperbola meeting in four points" style="width:100%; max-width: 700px;">
 ```
 
 Two circles are the one pairing with its own dedicated, exact method
@@ -261,6 +281,10 @@ same idea as [`APCircularArc2`](@ref)`(center, r, p1, p2)` in
 APEllipticArc2(e.center, e.a, e.b, earc.p1, earc.p2; angle=e.angle) == earc
 ```
 
+```@raw html
+<img src="../assets/img/conics/arcs.svg" alt="An elliptic, a parabolic and a hyperbolic arc, each on its full conic" style="width:100%; max-width: 700px;">
+```
+
 Unlike a circular or elliptic arc (where "the arc from `p1` to `p2`" means
 one of two complementary, closed possibilities), a single hyperbola branch
 or a parabola is an *open* curve, so two points on it always determine
@@ -296,6 +320,10 @@ l = APLine(APPoint(-10.0, 1.0), APPoint(10.0, 1.0))
 intersection(l, earc)   # only one of the two ellipse crossings is on this short arc
 ```
 
+```@raw html
+<img src="../assets/img/conics/arc_intersect.svg" alt="A segment crossing an ellipse twice but its elliptic arc only once" style="width:100%; max-width: 700px;">
+```
+
 An arc also intersects a full conic of any kind, not just the one it's
 cut from, and another arc of any kind, the same way: intersect the two
 underlying full conics, then keep only the points within every arc's own
@@ -326,6 +354,10 @@ is_on_ellipse(rand(e), e)   # true, but not uniformly spread along the perimeter
 in(rand(earc), earc), in(rand(parc), parc), in(rand(harc), harc)
 ```
 
+```@raw html
+<img src="../assets/img/conics/random_points.svg" alt="Random points on an ellipse, denser near the flatter parts" style="width:100%; max-width: 700px;">
+```
+
 ## Transforming conics
 
 `rotate`, `reflection` and `homothety` work on all three types. For
@@ -338,6 +370,10 @@ never reverses orientation:
 ```@example geo
 rotate(e, pi / 6)
 homothety(e, -2.0)   # a, b both scale by 2 (abs(-2.0)); angle unchanged
+```
+
+```@raw html
+<img src="../assets/img/conics/transform.svg" alt="An ellipse, its rotation and its homothety of ratio -0.5" style="width:100%; max-width: 700px;">
 ```
 
 `reflection` needs two separate methods here, the same way the base
@@ -374,6 +410,10 @@ two a line):
 ```@example geo
 pts = [point_on_ellipse(APEllipse2(APPoint(1.0, 2.0), 6.0, 4.0, 0.3), t) for t in (0.1, 1.0, 2.0, 3.0, 4.5)]
 conic_through_points(pts...)
+```
+
+```@raw html
+<img src="../assets/img/conics/fit.svg" alt="Five points and the ellipse through them" style="width:100%; max-width: 700px;">
 ```
 
 It throws an `ArgumentError` when the five points don't determine a unique

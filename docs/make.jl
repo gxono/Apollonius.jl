@@ -12,6 +12,7 @@ makedocs(;
         size_threshold_ignore=["api.md"],
         size_threshold_warn=400 * 1024,
         size_threshold=800 * 1024,
+        search_size_threshold_warn=1024 * 1024,
     ),
     pages=[
         "Home" => "index.md",

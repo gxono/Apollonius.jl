@@ -132,12 +132,13 @@ Deliberately thin: `path` never touches color, fill, or labels: that's
 already what Luxor's own `sethue`, `setopacity`, `label`, etc. do well.
 Every method accepts `action` (`:path` by default, meaning "add to the
 current path and do nothing else": pass `:stroke`, `:fill`, `:fillstroke`
-or `:clip` to render/use it immediately, exactly as Luxor's own shape
-functions do) plus whatever shape-specific keywords the curve needs:
+or `:clip` to render/use it immediately, or `:fillpreserve` /
+`:strokepreserve` to render it and keep the path, exactly as Luxor's own
+shape functions do) plus whatever shape-specific keywords the curve needs:
 
 | Keyword | Default | Applies to | Meaning |
 |:--------|:--------|:-----------|:--------|
-| `action` | `:path` | every method | what to do with the path |
+| `action` | `:path` | every method | `:path`, `:stroke`, `:fill`, `:fillstroke`, `:fillpreserve`, `:strokepreserve` or `:clip` |
 | `reverse` | `false` | every curve | traverse the same points backwards |
 | `extend` | `1000.0` | `APLine`, `APRay`, `APHalfPlane2`, `APStrip2` | how far past the defining points, or a 2-tuple `(before, after)` |
 | `add` | `nothing` | same as `extend` | lengthen by fractions of `distance(p1, p2)`, replacing `extend` |

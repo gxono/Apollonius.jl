@@ -1,0 +1,25 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+    c = APCircle2(APPoint(0.0, 0.0), 5.0)
+    @unbounded l = APLine(APPoint(-5.0, 0.0), APPoint(0.0, 3.0))
+    known = APPoint(-5.0, 0.0)
+    other = other_intersection(l, c, known)
+    c2 = APCircle2(APPoint(6.0, 0.0), 5.0)
+    pts = intersection(c, c2)
+    ref = APPoint(3.0, 8.0)
+    chosen = nearest_point(pts, ref)
+end
+(; c, l, known, other, c2, pts, ref, chosen) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+sethue(julia_blue)
+path([c, c2], action=:stroke)
+path(l, action=:stroke, extend=40)
+path([known, ref]); plot_point(julia_blue)
+sethue(julia_purple)
+path([other, chosen]); plot_point(julia_purple)
+sethue("gray80")
+path([p for p in pts if p != chosen]); plot_point("gray80")
+sethue(julia_red)
+label("known", :NW, known); label("other", :N, other); label("p", :N, ref)
+end)

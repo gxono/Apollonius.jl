@@ -121,6 +121,19 @@ rotate(pg::APCurvilinearPolyline2, angle::Real, center::APPoint{2}=APPoint(0.0, 
 homothety(pg::APCurvilinearPolyline2, k::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     APCurvilinearPolyline2([homothety(s, k, center) for s in pg.sides])
 reflection(pg::APCurvilinearPolyline2, about) = APCurvilinearPolyline2([reflection(s, about) for s in pg.sides])
+"""
+    reflection(pg::APCurvilinearPolyline2, about::APLine)
+
+The mirror image of `pg`. A mirror reverses the sweep of a circular or
+elliptic arc, which then comes back with its endpoints swapped, so the chain
+is assembled from the last side to the first (segments and open arcs
+reversed, closed arcs as reflected) to keep every side starting where the
+previous one ends. The result is the same curve, traversed the other way.
+"""
+function reflection(pg::APCurvilinearPolyline2, about::APLine)
+    mirrored = [s isa Union{APCircularArc2,APEllipticArc2} ? reflection(s, about) : reverse(reflection(s, about)) for s in Base.reverse(pg.sides)]
+    return APCurvilinearPolyline2(mirrored)
+end
 translate(pg::APCurvilinearPolyline2, v::APVector) = APCurvilinearPolyline2([translate(s, v) for s in pg.sides])
 """
     p in pg::APCurvilinearPolyline2

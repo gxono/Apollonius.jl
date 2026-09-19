@@ -75,6 +75,10 @@ circle lists the points in the direction of the line, and of two circles
 lists first the point to the left of the direction from the first center to
 the second. Do not rely on the order of [`tangent_circles`](@ref).
 
+```@raw html
+<img src="../assets/img/conventions/result_order.svg" alt="The order of the points from a line and a circle, and from two circles" style="width:100%; max-width: 700px;">
+```
+
 ## Drawing: coordinates and sizes
 
 Two rules govern every function that decorates a figure.
@@ -92,6 +96,10 @@ with `y` growing downward, so the functions that pick a side
 coordinates they receive are the ones about to be drawn. A `:left` label
 on a segment going from left to right on screen is above it, and `:N` is
 up. Call them on the transformed objects and it all lines up.
+
+```@raw html
+<img src="../assets/img/conventions/screen_directions.svg" alt="Luxor's compass alignments as they appear on the screen around a point" style="width:100%; max-width: 700px;">
+```
 
 The [Marks, Labels & Decorations](@ref) page has the details.
 

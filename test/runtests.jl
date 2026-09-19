@@ -1099,6 +1099,11 @@ using Base.MathConstants: golden
             @test reverse(rcpl) == cpl
             tr = translate(cpl, APVector(1.0, 1.0))
             @test tr[1] == translate(arc, APVector(1.0, 1.0))
+            mirror = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
+            mcpl = reflection(cpl, mirror)   # a mirror swaps the arc's endpoints: the chain must still be continuous
+            @test arc_length(mcpl) ≈ arc_length(cpl)
+            @test reflection(midpoint(arc), mirror) in mcpl && reflection(midpoint(seg), mirror) in mcpl
+            @test reflection(cpl, APPoint(1.0, 1.0)) isa APCurvilinearPolyline2
             @test midpoint(arc) in cpl
             @test !(APPoint(100.0, 100.0) in cpl)
             @test distance(midpoint(seg), cpl) == 0.0
@@ -1188,6 +1193,9 @@ using Base.MathConstants: golden
         end
         p1, p2, p3 = APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(1.0, 0.0)
         @test_throws ArgumentError affine_map((p1, p2, p3), (p1, p2, p3))
+        pair_map = affine_map(src[1] => dst[1], src[2] => dst[2], src[3] => dst[3])   # three source => image pairs
+        @test pair_map == m
+        @test_throws ArgumentError affine_map(p1 => p1, p2 => p2, p3 => p3)   # collinear sources
         v = APVector(3.0, -2.0)
         p = APPoint(1.0, 1.0)
         tmap = translation_map(v)
@@ -1262,7 +1270,7 @@ using Base.MathConstants: golden
         @test composed_map isa APAffineMap
         @test isapprox(composed_map(t), rotate(translate(t, v), pi / 2); atol=1e-9)
         @test isapprox(t |> translation_map(v) |> rotation_map(pi / 2, O), composed_map(t); atol=1e-9)
-        @test translation_map(v)(c) isa APEllipse2
+        @test translation_map(v)(c) isa APCircle2
         mapped_map = map(rotation_map(pi / 2, O), [t, t])
         @test isapprox(mapped_map[1], rotate(t, pi / 2); atol=1e-9) && isapprox(mapped_map[2], rotate(t, pi / 2); atol=1e-9)
         center = APPoint(0.0, 0.0)
@@ -2718,7 +2726,10 @@ using Base.MathConstants: golden
             @test is_on_ellipse(skew(p), e; atol=1e-6)
         end
         e2 = rm(c)
-        @test e2.a ≈ e2.b atol = 1e-9
+        @test e2 isa APCircle2
+        @test e2.r ≈ c.r atol = 1e-9
+        @test rotation_map(pi / 3, APPoint(0.0, 0.0))(APCircularArc2(c, APPoint(6.0, 2.0), APPoint(1.0, 7.0))) isa APCircularArc2
+        @test reflection_map(APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))(APCircularArc2(c, APPoint(6.0, 2.0), APPoint(1.0, 7.0))) ≈ reflection(APCircularArc2(c, APPoint(6.0, 2.0), APPoint(1.0, 7.0)), APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))
         @test e2.center ≈ rm(c.center)
         @test_throws ArgumentError affine_map((APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(2.0, 0.0)), dst)
     end
@@ -5674,6 +5685,24 @@ using Base.MathConstants: golden
                 @test !occursin(" L ", svg)
             end
         end
+        @testset "the preserve actions keep the path" begin
+            Luxor.Drawing(100, 100, :image); Luxor.origin(); Luxor.background("white")
+            circle_p = APCircle2(APPoint(0.0, 0.0), 30.0)
+            Luxor.sethue("red"); path(circle_p; action=:fillpreserve)
+            Luxor.sethue("green"); Luxor.fillpath()   # the path is still there
+            m_pre = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test Luxor.Colors.green(m_pre[50, 50]) > 0.4 && Luxor.Colors.red(m_pre[50, 50]) < 0.1
+            for obj in (APPoint(0.0, 0.0), APSegment(APPoint(0.0, 0.0), APPoint(10.0, 5.0)), APEllipse2(APPoint(0.0, 0.0), 20.0, 10.0),
+                        APTriangle(APPoint(0.0, 0.0), APPoint(20.0, 0.0), APPoint(0.0, 20.0)))
+                for act in (:fillpreserve, :strokepreserve)
+                    Luxor.Drawing(50, 50, :image); Luxor.origin()
+                    path(obj; action=act)
+                    @test length(Luxor.getpath()) > 0
+                    Luxor.finish()
+                end
+            end
+        end
         @testset "clip_out keeps only the outside of a shape (pixel check)" begin
             painted(m, x, y) = Luxor.Colors.red(m[y, x]) > 0.5 && Luxor.Colors.green(m[y, x]) < 0.5   # red, not white
             Luxor.Drawing(200, 200, :image)
@@ -5771,4 +5800,23 @@ using Base.MathConstants: golden
             end
         end
     end
+end
+
+@testset "affine map on chains, vectors and parametric curves; similarities keep circles" begin
+    O = APPoint(0.0, 0.0)
+    ch = APCurvilinearPolyline2([APSegment(APPoint(0.0, -5.0), APPoint(3.0, -5.0)), APCircularArc2(APCircle2(APPoint(3.0, -3.0), 2.0), APPoint(3.0, -5.0), APPoint(5.0, -3.0))])
+    for m in (APAffineMap(1.0, 0.5, 0.2, -1.0, 1.0, 2.0), APAffineMap(1.0, 0.5, 0.2, 1.0, 1.0, 2.0))
+        @test m(ch) isa APCurvilinearPolyline2
+    end
+    m = APAffineMap(1.0, 0.5, 0.2, 1.0, 1.0, 2.0)
+    @test m(APPolyline2(O, APPoint(1.0, 1.0), APPoint(2.0, 0.0))) ≈ APPolyline2(m(O), m(APPoint(1.0, 1.0)), m(APPoint(2.0, 0.0)))
+    e = m(APEquipollentVector(APVector(1.0, 0.0), O))
+    @test e.vector ≈ APVector(1.0, 0.2) && e.point ≈ APPoint(1.0, 2.0)
+    @test m(APParametricCurve2(x -> APPoint(x, sin(x)), (0.0, 1.0))).f(0.5) ≈ m(APPoint(0.5, sin(0.5)))
+    c = APCircle2(APPoint(1.0, 2.0), 3.0)
+    s = rotation_map(0.3, O) ∘ homothety_map(2.0, O)
+    @test s(c) isa APCircle2 && s(c).r ≈ 6.0
+    sec = APCircularSector2(APCircularArc2(c, APPoint(4.0, 2.0), APPoint(1.0, 5.0)))
+    @test s(sec) isa APCircularSector2
+    @test m(sec) isa APCurvilinearTriangle2
 end

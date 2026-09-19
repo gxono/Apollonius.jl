@@ -1,0 +1,26 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
+    O = APPoint(0.0, 0.0)
+    B = polar_point_deg(4.0, 40.0, O)
+    xaxis = APSegment(O, APPoint(5.0, 0.0))
+    radius = APSegment(O, B)
+    ang = APAngle2(O, APPoint(4.0, 0.0), B)
+end
+(; O, B, xaxis, radius, ang) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+gsave()
+setline(1)
+sethue("gray80")
+path(xaxis, action=:stroke)
+sethue(julia_green)
+path(radius, action=:stroke)
+grestore()
+sethue(julia_purple)
+path(marks(ang; size=45); action=:stroke)
+path([B]); plot_point(julia_purple)
+path([O]); plot_point(julia_blue)
+sethue(julia_red)
+label("40°", label_anchor(ang; dist=70)...)
+label("r = 4", :NW, midpoint(O, B))
+end)

@@ -4,7 +4,7 @@ lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
 end
 (; arc) = lxo
 @svg_doc(lxm, @__FILE__, begin
-sethue(julia_blue); Luxor.setline(1.5)
+sethue(julia_blue)
 path(arc, action=:stroke)
 sethue(julia_purple)
 path(marks(arc; at=0.2, count=1, style=:tick, size=14); action=:stroke)

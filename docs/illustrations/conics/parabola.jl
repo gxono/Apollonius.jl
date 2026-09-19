@@ -1,0 +1,27 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+    focus = APPoint(0.0, 1.0)
+    dl = APSegment(APPoint(-6.0, -1.0), APPoint(6.0, -1.0))
+    @unbounded par = APParabola2(focus, APLine(dl.p1, dl.p2))
+    arc = APParabolicArc2(par, point_on_parabola(par, -5.0), point_on_parabola(par, 5.0))
+    p = point_on_parabola(par, 3.0)
+    foot = projection(p, APLine(dl.p1, dl.p2))
+    vtx = vertex(par)
+end
+(; focus, dl, par, arc, p, foot, vtx) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+sethue(julia_blue)
+path(dl, action=:stroke)
+gsave()
+setline(1); setdash("dash")
+sethue(julia_green)
+path([APSegment(p, focus), APSegment(p, foot)], action=:stroke)
+grestore()
+sethue(julia_purple)
+path(arc, action=:stroke)
+path([vtx, p, foot]); plot_point(julia_purple)
+path([focus]); plot_point(julia_blue)
+sethue(julia_red)
+label("F", :N, focus); label("P", :E, p); label("directrix", :S, dl.p2)
+end)

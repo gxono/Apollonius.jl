@@ -6,7 +6,7 @@ end
 (; s1, s2) = lxo
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(14)
-sethue(julia_blue); Luxor.setline(2)
+sethue(julia_blue)
 path(s1; as=:arrow, action=:stroke)
 sethue(julia_purple)
 path(s2; as=:arrow, reverse=true, action=:stroke)

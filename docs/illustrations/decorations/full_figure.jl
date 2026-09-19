@@ -12,7 +12,7 @@ end
 G = centroid(t)
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
-sethue(julia_blue); Luxor.setline(1.5)
+sethue(julia_blue)
 path(t, action=:stroke)
 sethue(julia_purple)
 path(marks(left; size=14); action=:stroke)

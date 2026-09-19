@@ -101,6 +101,10 @@ d = direction(l)    # an APVector, not an APPoint
 typeof(d)
 ```
 
+```@raw html
+<img src="../assets/img/points_lines/line_types.svg" alt="The same two points define a segment, a line and a ray" style="width:100%; max-width: 700px;">
+```
+
 Both types support the same arithmetic and the standard linear-algebra
 functions `norm`, `dot` and `normalize`, re-exported from `LinearAlgebra`
 purely so `using Apollonius` alone is enough to get the full
@@ -195,6 +199,10 @@ Bpolar = polar_point_deg(4.0, 40.0, O)   # 4 units out from O, at 40°
 distance(O, Bpolar)                       # 4.0, regardless of the angle
 ```
 
+```@raw html
+<img src="../assets/img/points_lines/polar.svg" alt="A point at distance 4 and angle 40 degrees from a center" style="width:100%; max-width: 700px;">
+```
+
 This is exactly the point/angle/modulus relationship [`slope_angle`](@ref)
 and [`distance`](@ref) give you the other way around:
 `polar_point(distance(O, p), slope_angle(APLine(O, p)), O)` recovers `p`
@@ -215,6 +223,10 @@ point_on_line(s, 0.5) ≈ midpoint(s), point_on_line(l, 2.0), point_on_line(r, -
 ```@example geo
 c = APCircle2(APPoint(1.0, 2.0), 5.0)
 point_on_circle(c, 0.0), point_on_circle(c, pi / 2)
+```
+
+```@raw html
+<img src="../assets/img/points_lines/by_parameter.svg" alt="Points of a line at several parameters and points of a circle at several angles" style="width:100%; max-width: 700px;">
 ```
 
 ## Direction, slope and predicates
@@ -260,6 +272,10 @@ the hood, so the more natural `p in l` reads just as well:
 APPoint(6.0, 8.0) in l, APPoint(10.0, 0.0) in r
 ```
 
+```@raw html
+<img src="../assets/img/points_lines/direction_slope.svg" alt="A line with its direction vector, its slope angle and a point on it" style="width:100%; max-width: 700px;">
+```
+
 ## Lengthening a line or segment
 
 [`extend_line`](@ref)`(l, before, after)` lengthens the line through
@@ -303,6 +319,10 @@ distance(far_point, l), distance(far_point, s), distance(far_point, r)
 ```@example geo
 pts = [APPoint(2.0, 0.0), APPoint(2.0, 1.0), APPoint(-1.0, 0.0)]
 filter(on_ray(r), pts)   # only the point that's on r
+```
+
+```@raw html
+<img src="../assets/img/points_lines/distance_curves.svg" alt="The distance from a point to a line, a segment and a ray" style="width:100%; max-width: 700px;">
 ```
 
 ## Projection, reflection and the perpendicular foot
@@ -437,6 +457,10 @@ is_direct(ang)           # true: measure(ang) > 0
 (O + APVector(1.0, 1.0)) in ang   # true: inside the wedge
 ```
 
+```@raw html
+<img src="../assets/img/points_lines/angle_wedge.svg" alt="An angle as a wedge, with a point inside and a point outside" style="width:100%; max-width: 700px;">
+```
+
 [`normalized_measure`](@ref) is [`measure`](@ref) shifted into `[0, 2π)`
 instead of `(-π, π]`, for when you'd rather not deal with negative angles.
 Swapping `a` and `b` flips the sign of `measure` (and `is_direct`) but
@@ -475,6 +499,10 @@ points again:
 ```@example geo
 angle_bisectors(ang)     # (APAngle2(O,P1,bisector), APAngle2(O,bisector,P2))
 angle_trisectors(ang)    # the 3 equal thirds of ang, each its own APAngle2
+```
+
+```@raw html
+<img src="../assets/img/points_lines/angle_split.svg" alt="A right angle with its two trisectors and its bisector" style="width:100%; max-width: 700px;">
 ```
 
 [`distance`](@ref)`(p, ang)` follows the same `mode = :region`/`:boundary`
@@ -529,6 +557,10 @@ P = APPoint(2.0, 0.0)
 
 Pgold = golden_ratio_point(A, B)     # ≈ [4.944, 0.0]
 Pconj = harmonic_conjugate(A, B, P)  # [-4.0, 0.0]: P's harmonic conjugate
+```
+
+```@raw html
+<img src="../assets/img/points_lines/harmonic.svg" alt="Two points, a third between them, its harmonic conjugate and the golden ratio point" style="width:100%; max-width: 700px;">
 ```
 
 `P'` falls *outside* `[A,B]`, on the opposite side from `B`: that is exactly
@@ -607,6 +639,10 @@ pts = rand(s, 5)          # the dims... form: a Vector of 5 independent draws
 length(pts) == 5 && all(q -> on_segment(q, s), pts)
 ```
 
+```@raw html
+<img src="../assets/img/points_lines/random_disk.svg" alt="Random points on a circle and inside it" style="width:100%; max-width: 700px;">
+```
+
 Every other page repeats this for its own types where it matters: see
 [Circles](@ref), [Conics: Ellipse, Parabola & Hyperbola](@ref) and
 [Polygons & Bounding Boxes](@ref).
@@ -643,4 +679,8 @@ poke outside the box it returns.
 ```@example geo
 box = APBoundingBox(sine_curve)
 box.min[2], box.max[2]   # ≈ (-1.0, 1.0), the true range of sin, already tight at the default n
+```
+
+```@raw html
+<img src="../assets/img/points_lines/parametric.svg" alt="A sine curve, the same curve raised by 2 and the bounding box of the first" style="width:100%; max-width: 700px;">
 ```

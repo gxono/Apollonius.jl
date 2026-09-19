@@ -37,6 +37,18 @@ dst = (APPoint(2.0, 3.0), APPoint(5.0, 3.0), APPoint(2.0, 7.0))
 m = affine_map(src, dst)
 ```
 
+The same map can be written as three `source => image` pairs, which keeps
+each correspondence next to its own points and cannot mix up the order of
+two separate tuples:
+
+```@example geo
+affine_map(src[1] => dst[1], src[2] => dst[2], src[3] => dst[3]) == m
+```
+
+```@raw html
+<img src="../assets/img/affine/create.svg" alt="A triangle and its image under the affine map defined by three point pairs" style="width:100%; max-width: 700px;">
+```
+
 It throws an `ArgumentError` if the three source points are (or are too
 close to) collinear, since then no unique affine map is determined (there
 are either none or infinitely many, depending on `dst`).
@@ -82,8 +94,8 @@ composition without a shape already in hand. Unlike
 these are **plain functions**, not `APAffineMap`s: each is just
 `shape -> rotate(shape, angle, center)` (and likewise for the other
 three), so they *preserve* whatever specific type the direct call already
-returns: a circle piped through stays an `APCircle2`, not an
-`APEllipse2`:
+returns, and they compose without building a matrix. A circle piped
+through stays an `APCircle2`:
 
 ```@example geo
 t = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
@@ -94,6 +106,10 @@ t |> translate(APVector(2.0, 0.0)) |> rotate(pi / 2)  # pipe several in a row, e
 # circumcircle(t) stays an APCircle2 all the way through, in contrast with
 # map(homothety_map(2.0, APPoint(0.0,0.0)), ...) below, which widens it
 map(homothety(2.0), [t, circumcircle(t)])
+```
+
+```@raw html
+<img src="../assets/img/affine/one_argument.svg" alt="A triangle and its circumcircle, with the results of the one-argument rotate, translate and homothety" style="width:100%; max-width: 700px;">
 ```
 
 The cost of that exactness: composing two of these with `∘` builds
@@ -112,7 +128,7 @@ strict upgrade either way:
 
 | | `rotate(angle)` etc. | `rotation_map(angle, center)` etc. |
 |:--|:--|:--|
-| Result type | preserved exactly (`APCircle2` stays `APCircle2`) | always generic (a circle → `APEllipse2`) |
+| Result type | always the type of the shape | an `APCircle2` stays one under a similarity, becomes an `APEllipse2` otherwise |
 | `∘`/pipe result | a plain `Function` (chain of exact calls) | one combined, reusable `APAffineMap` |
 | Reapplying many times | re-walks the chain every time | cheap: one precomputed matrix |
 
@@ -155,16 +171,18 @@ interior point, rather than carried over unchanged.
 
 ## Conics: type is preserved, but never a circle
 
-A circle, ellipse, hyperbola or parabola all stay their *own* conic
-type under any invertible affine map, this is a basic invariant (by
-Sylvester's law of inertia, the map acts on a conic's defining quadratic
-form as a congruence, which can't change how many of its eigenvalues are
-positive/negative/zero). Concretely:
+An ellipse, hyperbola or parabola stays its *own* conic type under any
+invertible affine map (a basic invariant: by Sylvester's law of inertia,
+the map acts on a conic's defining quadratic form as a congruence, which
+can't change how many of its eigenvalues are positive, negative or zero).
+A circle is the one case that depends on the map. Concretely:
 
-- `m(c::APCircle2)` always returns an [`APEllipse2`](@ref), never another
-  `APCircle2`. Only a *similarity* (rotation/homothety/reflection/
-  translation, or a combination) sends a circle to a circle, and this
-  covers every affine map, so the return type doesn't special-case that.
+- `m(c::APCircle2)` returns an [`APCircle2`](@ref) when the linear part of
+  `m` is a *similarity* (a rotation, homothety, reflection or translation,
+  or a combination), and an [`APEllipse2`](@ref) otherwise. The same holds
+  for circular arcs, sectors, segments, annular sectors and interstices,
+  which keep their type under a similarity. The check is on the values of
+  `m`, so the return type of `m(circle)` is not known from the type of `m`.
 - `m(e::APEllipse2)` returns another `APEllipse2`, `m(h::APHyperbola2)`
   another `APHyperbola2`, `m(par::APParabola2)` another `APParabola2`,
   each computed exactly (no sampling or fitting): the conic's own
@@ -179,7 +197,11 @@ positive/negative/zero). Concretely:
 c = APCircle2(APPoint(1.0, 2.0), 5.0)
 skew = APAffineMap(2.0, 0.5, -0.3, 1.4, 3.0, -1.0)
 skew(c)          # a genuine APEllipse2: the linear part isn't a similarity
-rm(c)            # rm is a pure rotation, so this APEllipse2 has a == b
+rm(c)            # rm is a pure rotation: still an APCircle2
+```
+
+```@raw html
+<img src="../assets/img/affine/conic_map.svg" alt="A circle and its image under a skewing affine map, an ellipse" style="width:100%; max-width: 700px;">
 ```
 
 ## Conic arcs: orientation-reversing maps need an endpoint swap
@@ -199,6 +221,10 @@ silently become the *complementary* arc instead. `APHyperbolicArc2`/
 parabola is open, so two points on it always determine one unambiguous
 arc regardless of orientation.
 
+```@raw html
+<img src="../assets/img/affine/arc_map.svg" alt="An elliptic arc and its mirror image, with the endpoints swapped so it is still the same piece of curve" style="width:100%; max-width: 700px;">
+```
+
 ## Circular-arc regions become curvilinear
 
 `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2` and
@@ -216,6 +242,10 @@ sec = APCircularSector2(arc)
 skew(sec)   # an APCurvilinearTriangle2: 2 straight sides + 1 elliptic arc
 ```
 
+```@raw html
+<img src="../assets/img/affine/regions.svg" alt="A circular sector and its image, a curvilinear triangle with an elliptic side" style="width:100%; max-width: 700px;">
+```
+
 `APCurvilinearTriangle2`/`APCurvilinearQuadrilateral2`/`APCurvilinearNgon2`
 themselves are already general enough to be closed under this: `m` just
 maps each of their sides through itself, whatever mix of segments and
@@ -227,6 +257,10 @@ like any other Julia functions: `(m2 ∘ m1)(p) == m2(m1(p))`:
 ```@example geo
 composed = rm ∘ tm     # first translate, then rotate
 composed(APPoint(0.0, 0.0))
+```
+
+```@raw html
+<img src="../assets/img/affine/composed.svg" alt="A triangle, its translation and the composition of the translation and a rotation" style="width:100%; max-width: 700px;">
 ```
 
 This builds a single new `APAffineMap` (not a closure), so applying
@@ -244,6 +278,10 @@ T1, C1 = @affinemap skew begin
     circ = APCircle2(APPoint(1.0, 2.0), 5.0)
 end
 T1, C1
+```
+
+```@raw html
+<img src="../assets/img/affine/several.svg" alt="A triangle and a circle with their images under the same affine map" style="width:100%; max-width: 700px;">
 ```
 
 `tri`/`circ` themselves are untouched. [`@affinemap!`](@ref) is the

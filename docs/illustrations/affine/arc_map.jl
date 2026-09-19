@@ -1,0 +1,26 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+    e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+    earc = APEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
+    @unbounded refm = reflection_map(APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))
+    imgarc = refm(earc)
+    mirror = APSegment(APPoint(-4.0, -4.0), APPoint(4.0, 4.0))
+end
+(; e, earc, refm, imgarc, mirror) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+gsave()
+setline(1); setdash("dash")
+sethue("gray80")
+path(mirror, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(earc, action=:stroke)
+path([earc.p1, earc.p2]); plot_point(julia_blue)
+sethue(julia_purple)
+path(imgarc, action=:stroke)
+path([imgarc.p1, imgarc.p2]); plot_point(julia_purple)
+sethue(julia_red)
+label("p1", :N, earc.p1); label("p2", :W, earc.p2)
+label("p1'", :E, imgarc.p1); label("p2'", :S, imgarc.p2)
+end)

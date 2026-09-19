@@ -1,0 +1,32 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=500 height=320 margin=30 begin
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    cc = circumcircle(t)
+    P = polar_point(circumradius(t), 0.7, circumcenter(t))
+    feet = [projection(P, APLine(s.p1, s.p2)) for s in sides(t)]
+    @unbounded sl = simson_line(t, P)
+    @unbounded stl = steiner_line(t, P)
+    H = orthocenter(t)
+end
+(; A, B, C, t, cc, P, feet, sl, stl, H) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+gsave()
+sethue("gray80")
+path(cc, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+path([A, B, C]); plot_point(julia_blue)
+sethue(julia_purple)
+path(sl, action=:stroke, extend=30)
+gsave()
+setline(1); setdash("dash")
+path(stl, action=:stroke, extend=30)
+grestore()
+path(feet); plot_point(julia_purple)
+path([P, H]); plot_point(julia_blue)
+sethue(julia_red)
+label("P", :NE, P); label("H", :E, H)
+end)

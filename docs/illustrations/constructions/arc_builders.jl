@@ -11,7 +11,7 @@ end
 (; O1, P1, O2, P2, O3, P3, a1, a2, a3, a3x) = lxo
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(14)
-sethue(julia_purple); Luxor.setline(2.5)
+sethue(julia_purple)
 path([a1, a2, a3x], action=:stroke)
 sethue(julia_blue)
 path(a3, action=:stroke)

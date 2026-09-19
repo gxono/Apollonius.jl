@@ -1,0 +1,25 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+    O = APPoint(0.0, 0.0)
+    A = APPoint(3.0, 4.0)
+    @unbounded l = APLine(O, A)
+    s = APSegment(O, A)
+    far = APPoint(7.0, 7.0)
+    foot = projection(far, l)
+    to_line = APSegment(far, foot)
+    to_segment = APSegment(far, A)
+end
+(; O, A, l, s, far, foot, to_line, to_segment) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+sethue(julia_blue)
+path(l, action=:stroke, extend=40)
+path([O, A]); plot_point(julia_blue)
+path([far]); plot_point(julia_blue)
+sethue(julia_purple)
+path([to_line, to_segment], action=:stroke)
+path([foot]); plot_point(julia_purple)
+sethue(julia_red)
+label("line and ray", :E, midpoint(far, foot))
+label("segment", :W, midpoint(far, A))
+end)

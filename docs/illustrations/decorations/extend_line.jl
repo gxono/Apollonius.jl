@@ -7,10 +7,10 @@ lxm, lxo = @to_luxor_picture width=500 height=240 margin=30 begin
 end
 (; l, longer, l2, shorter) = lxo
 @svg_doc(lxm, @__FILE__, begin
-sethue(julia_purple); Luxor.setline(3)
+sethue(julia_purple)
 path(longer, action=:stroke)
 path(shorter, action=:stroke)
-sethue(julia_blue); Luxor.setline(1.5)
+sethue(julia_blue)
 path(APSegment(l.p1, l.p2), action=:stroke)
 path(APSegment(l2.p1, l2.p2), action=:stroke)
 path([l.p1, l.p2, l2.p1, l2.p2])

@@ -188,10 +188,18 @@ m1 = only(midcircle(c1, c4))
 invert(c1, m1.center; k=m1.r) ≈ c4
 ```
 
+```@raw html
+<img src="../assets/img/circles/midcircle.svg" alt="Two circles and the midcircle that swaps them by inversion" style="width:100%; max-width: 700px;">
+```
+
 ```@example geo
 l4 = APLine(APPoint(-10.0, 5.0), APPoint(10.0, 5.0))
 m2 = only(midcircle(c1, l4))
 invert(c1, m2.center; k=m2.r) ≈ l4
+```
+
+```@raw html
+<img src="../assets/img/circles/midcircle_line.svg" alt="A circle, a line and the midcircle that swaps them" style="width:100%; max-width: 700px;">
 ```
 
 How many midcircles there are, and where, depends on how `c1` and `c2`
@@ -353,6 +361,10 @@ c1 = APCircle2(APPoint(0.0, 0.0), 5.0)
 intersection_angle(c1, orthogonal_circle(c1, APPoint(13.0, 0.0))) ≈ pi / 2
 ```
 
+```@raw html
+<img src="../assets/img/circles/intersection_choice.svg" alt="Choosing the second point where a line meets a circle, and the nearest point of two circles' intersection" style="width:100%; max-width: 700px;">
+```
+
 !!! warning "The order of the intersections is fixed for two cases only"
     A line and a circle give their points along the line, and two circles give the point on the left first. For any other pair the order is not specified: choose with [`nearest_point`](@ref) or [`other_intersection`](@ref).
 
@@ -369,10 +381,18 @@ circles_position(APCircle2(APPoint(0.0, 0.0), 5.0), APCircle2(APPoint(2.0, 0.0),
 line_circle_position(APLine(APPoint(0.0, 5.0), APPoint(1.0, 5.0)), APCircle2(APPoint(0.0, 0.0), 5.0))   # :tangent
 ```
 
+```@raw html
+<img src="../assets/img/circles/circle_positions.svg" alt="The six relative positions of two circles, with the symbol circles_position returns for each" style="width:100%; max-width: 700px;">
+```
+
 `circles_position` returns one of `:identical`, `:concentric`,
 `:disjoint_ext`, `:tangent_ext`, `:secant`, `:tangent_int` or
 `:disjoint_int`; `line_circle_position` returns one of `:disjoint`,
 `:tangent` or `:secant`.
+
+```@raw html
+<img src="../assets/img/circles/line_circle_positions.svg" alt="A line and a circle, disjoint, tangent and secant" style="width:100%; max-width: 700px;">
+```
 
 ## Circular arcs
 
@@ -487,6 +507,10 @@ When the arc is given by polar angles instead of points,
 quarter = APCircularArc2(c.center, c.r, 0.0, pi / 2)
 half = semicircle(c.center, p1)
 measure(quarter) ≈ pi / 2, measure(half) ≈ pi, measure(extend_arc(quarter, 0.1)) ≈ pi / 2 + 0.2
+```
+
+```@raw html
+<img src="../assets/img/circles/compass_arcs.svg" alt="Arcs swept from a point of a circle by a given angle and by a given length" style="width:100%; max-width: 700px;">
 ```
 
 [`compass_trace`](@ref), the arc centered on a point that a compass leaves
@@ -716,4 +740,8 @@ iteration the same as [`APSegment`](@ref)/[`APLine`](@ref):
 
 ```@example geo
 reverse(zigzag)[1] == vertices(zigzag)[end]
+```
+
+```@raw html
+<img src="../assets/img/circles/open_chains.svg" alt="An open polyline and an open chain made of a straight side and an arc" style="width:100%; max-width: 700px;">
 ```

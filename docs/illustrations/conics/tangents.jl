@@ -1,0 +1,25 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
+    e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+    p = APPoint(13.0, 0.0)
+    tp = tangent_points(e, p)
+    @unbounded tl = tangent_lines(e, p)
+    @unbounded pol = polar_line(e, p)
+end
+(; e, p, tp, tl, pol) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+gsave()
+setline(1); setdash("dash")
+sethue(julia_green)
+path(pol, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(e, action=:stroke)
+sethue(julia_purple)
+path(tl, action=:stroke, extend=0)
+path(tp); plot_point(julia_purple)
+path([p]); plot_point(julia_blue)
+sethue(julia_red)
+label("P", :N, p)
+end)

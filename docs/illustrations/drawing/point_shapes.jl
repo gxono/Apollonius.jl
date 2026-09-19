@@ -6,7 +6,7 @@ end
 shapes = (:circle, :square, :cross, :plus)
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(14)
-sethue(julia_blue); Luxor.setline(2)
+sethue(julia_blue)
 for (p, s) in zip(pts, shapes)
     path(p; radius=14, as=s, action=:stroke)
 end

@@ -6,7 +6,7 @@ lxm, lxo = @to_luxor_picture width=500 height=280 margin=20 begin
 end
 (; angs, rays) = lxo
 @svg_doc(lxm, @__FILE__, begin
-sethue(julia_blue); Luxor.setline(1.5)
+sethue(julia_blue)
 path(rays, action=:stroke)
 sethue(julia_purple)
 # two arcs and a tick that crosses both

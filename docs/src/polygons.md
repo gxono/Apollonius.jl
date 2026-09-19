@@ -73,12 +73,20 @@ distance(APPoint(2.0, 1.0), pg; mode=:boundary)     # > 0.0: distance to the nea
 distance(APPoint(6.0, 1.0), pg)                     # outside: both modes agree
 ```
 
+```@raw html
+<img src="../assets/img/polygons/distance_polygon.svg" alt="A polygon, a point inside and a point outside, each with the segment to its nearest side" style="width:100%; max-width: 700px;">
+```
+
 ## Convexity and containment
 
 ```@example geo
 is_convex(pg)                                # true
 point_in_polygon(APPoint(2.0, 1.0), pg)        # true: strictly inside
 point_in_polygon(APPoint(5.0, 1.0), pg)        # false: strictly outside
+```
+
+```@raw html
+<img src="../assets/img/polygons/containment.svg" alt="A polygon with the points inside it in purple and those outside in gray" style="width:100%; max-width: 700px;">
 ```
 
 [`point_in_polygon`](@ref) uses the standard ray-casting (even-odd) rule,
@@ -221,6 +229,10 @@ pb = rand(bb)
 pb in bb                  # same idea for a bounding box's own edge
 ```
 
+```@raw html
+<img src="../assets/img/polygons/random_perimeter.svg" alt="Random points on the perimeter of a polygon and of its bounding box" style="width:100%; max-width: 700px;">
+```
+
 ## Named polygon constructors
 
 A handful of constructors build common quadrilaterals and regular polygons
@@ -277,6 +289,10 @@ area(q), perimeter(q), is_convex(q)
 sides(q)        # the 4 sides, as APSegments a-b, b-c, c-d, d-a
 diagonals(q)     # the 2 diagonals, as APSegments a-c and b-d
 diagonal_intersection(q)  # where the diagonals cross (nothing if they're parallel)
+```
+
+```@raw html
+<img src="../assets/img/polygons/quadrilateral.svg" alt="A quadrilateral with its two diagonals and the point where they cross" style="width:100%; max-width: 700px;">
 ```
 
 ```@example geo

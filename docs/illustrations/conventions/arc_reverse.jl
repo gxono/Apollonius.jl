@@ -6,10 +6,10 @@ end
 (; arc, comp) = lxo
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
-sethue(julia_purple); setdash("dash"); Luxor.setline(2)
+sethue(julia_purple); setdash("dash")
 path(comp, action=:stroke)
 setdash("solid")
-sethue(julia_blue); Luxor.setline(3)
+sethue(julia_blue)
 path(arc, action=:stroke)
 path([arc.p1, arc.p2])
 plot_point(julia_blue)

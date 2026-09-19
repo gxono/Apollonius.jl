@@ -80,30 +80,22 @@ pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
 
 @svg begin
     sethue(julia_blue)
-    path(circle1, action = :stroke)
-    path(circle2, action = :stroke)
+    path([circle1, circle2], action = :stroke)
 
-    gsave()
-        sethue(julia_purple)
-        setopacity(0.5)
-        path(ang, action = :fill, as = :rsector, radius = 20)
-    grestore()
+    sethue(julia_purple); setopacity(0.5)
+    path(ang, action = :fill, as = :rsector, radius = 20)
+    
+    setopacity(1)
+    path([il1, il2, el1, el2], action = :stroke)
+    
+    sethue(julia_green); setdash(:dash)
+    path(APSegment(circle1.center, el1.p1), action = :stroke)
 
-    sethue(julia_purple)
-    path([il1, il2], action = :stroke, extend = 20)
-    path([el1, el2], action = :stroke, extend = 0)
-
-    gsave()
-        sethue(julia_green)
-        setdash(:dash)
-        path(APSegment(circle1.center, el1.p1), action = :stroke)
-    grestore()
-
-    path(pts)
-    sethue("white"); fillpreserve()
+    sethue("white"); setdash(:solid)
+    path(pts, action=:fillpreserve)
     sethue(julia_purple); strokepath()
-    path([circle1.center, circle2.center])
-    sethue("white"); fillpreserve()
+    sethue("white")
+    path([circle1.center, circle2.center], action=:fillpreserve)
     sethue(julia_blue); strokepath()
 
     sethue(julia_red)
@@ -132,16 +124,16 @@ APObject{Dim,T}
 │   │   ├── APLine{Dim,T}
 │   │   ├── APRay{Dim,T}
 │   │   ├── APSegment{Dim,T}
-│   │   ├── APPolyline2{T}                    # an open chain of straight sides
-│   │   ├── APCurvilinearPolyline2{T}         # an open chain of straight/curved sides
-│   │   ├── APEquipollentVector{Dim,T}        # a free vector, tied to a point of application
-│   │   ├── APParametricCurve2{T}             # an arbitrary f(t), for anything outside this list
-│   │   ├── APConic2{T}                       # circle, ellipse, parabola, hyperbola
+│   │   ├── APPolyline2{T}
+│   │   ├── APCurvilinearPolyline2{T}
+│   │   ├── APEquipollentVector{Dim,T}
+│   │   ├── APParametricCurve2{T}
+│   │   ├── APConic2{T}
 │   │   │   ├── APCircle2{T}
 │   │   │   ├── APEllipse2{T}
 │   │   │   ├── APParabola2{T}
 │   │   │   └── APHyperbola2{T}
-│   │   └── APConicArc2{T}                    # a bounded piece of one of the conics above
+│   │   └── APConicArc2{T}
 │   │       ├── APCircularArc2{T}
 │   │       ├── APEllipticArc2{T}
 │   │       ├── APParabolicArc2{T}

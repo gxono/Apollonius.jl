@@ -76,7 +76,11 @@ take it:
   `Luxor.fillpath()`, `Luxor.clip()`, or add more shapes to the same path
   first) or when you're going to reuse the same call with several actions.
 * `:stroke`, `:fill`, `:fillstroke`: build the path *and* render it
-  immediately, the one-call convenience:
+  immediately, the one-call convenience.
+* `:fillpreserve`, `:strokepreserve`: render it and *keep* the path, so the
+  next call can use it again: the way to fill and stroke the same shape
+  with two colors, without building it twice (see below).
+* `:clip`: use the path as the clip region, see [Clipping the outside](@ref).
 
 ```julia
 sethue("steelblue")
@@ -97,6 +101,23 @@ path(t; action=:fill)
 sethue("steelblue"); setopacity(1.0)
 path(t; action=:stroke)
 ```
+
+Or keep the path after the fill, so the outline needs no second call to
+`path`:
+
+```julia
+sethue("steelblue"); setopacity(0.15)
+path(t; action=:fillpreserve)   # fills and keeps the path
+sethue("steelblue"); setopacity(1.0)
+Luxor.strokepath()               # strokes the same path and clears it
+```
+
+A preserved path stays until something renders it or `Luxor.newpath()`
+clears it. Any action other than `:path` starts a new path for the shape it
+is given, so a second `path(obj; action=...)` replaces it. To preserve
+several shapes together, give them as a vector:
+`path([a, b, c]; action=:fillpreserve)` adds all of them to one path, fills
+it once and keeps it.
 
 And for a label, `Luxor.label` (or plain `Luxor.text`) at whatever anchor
 point makes sense for that shape, which is almost always a point the
@@ -463,6 +484,8 @@ this package, but one `path(::AbstractVector)` takes care of for you.
     handling above applies. For an immediately-rendering action
     (`:stroke`, `:fill`, `:fillstroke`) the two look identical, since each
     element renders and clears on its own regardless of how it got there.
+    The `preserve` actions are the exception in the other direction: with the
+    dot, every element starts a new path, so only the last one is kept.
     But for the default `action=:path`, only the no-dot form `path(pts)`
     batches safely; `path.(pts)` (or a hand-written loop without its own
     `newsubpath()` calls) reproduces the stray-line bug this method exists

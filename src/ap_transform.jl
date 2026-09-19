@@ -72,24 +72,31 @@ generically become elliptic ones (see `(m::APAffineMap)(arc::APCircularArc2)`
 above), which no longer fits an
 `APCircularSector2`/`APCircularSegment2`/`APAnnularSector2`/
 `APInterstice2` (each holds a concrete `APCircularArc2` field, not any
-conic arc): so the result is the more general
+conic arc): so, unless `m` is a similarity (see
+`(m::APAffineMap)(c::APCircle2)`, which then keeps the original type), the
+result is the more general
 [`APCurvilinearTriangle2`](@ref)/[`APCurvilinearQuadrilateral2`](@ref)/
 [`APCurvilinearNgon2`](@ref) with the same sides, each mapped through `m`
 (reusing [`sides`](@ref) rather than each type's own fields, so this
 automatically stays correct if those ever change).
 """
 function (m::APAffineMap)(s::APCircularSector2)
+    _affine_map_scale(m) === nothing || return APCircularSector2(m(s.arc))
     s1, s2, s3 = sides(s)
     return APCurvilinearTriangle2((m(s1), m(s2), m(s3)))
 end
 function (m::APAffineMap)(s::APCircularSegment2)
+    _affine_map_scale(m) === nothing || return APCircularSegment2(m(s.arc))
     return APCurvilinearNgon2([m(side) for side in sides(s)])
 end
 function (m::APAffineMap)(s::APAnnularSector2)
+    k = _affine_map_scale(m)
+    k === nothing || return APAnnularSector2(m(s.outer), k * s.r_inner)
     s1, s2, s3, s4 = sides(s)
     return APCurvilinearQuadrilateral2((m(s1), m(s2), m(s3), m(s4)))
 end
 function (m::APAffineMap)(g::APInterstice2)
+    _affine_map_scale(m) === nothing || return APInterstice2(m(g.arc1), m(g.arc2), m(g.arc3))
     return APCurvilinearTriangle2((m(g.arc1), m(g.arc2), m(g.arc3)))
 end
 """
@@ -107,17 +114,25 @@ conic arcs: already knows how to transform itself under `m`).
 """
     (m::APAffineMap)(c::APCircle2)
 
-The image of `c` under `m`: in general an [`APEllipse2`](@ref) (a circle
-is only mapped to another circle by the *conformal* affine maps, a
-rotation, translation, or uniform scaling, and this covers all affine
-maps, so it always returns an `APEllipse2`, never an `APCircle2`, even
-when `m` happens to be conformal).
+The image of `c` under `m`: an [`APCircle2`](@ref) when `m` is a
+similarity (a rotation, translation, reflection or uniform scaling, or any
+composition of them), otherwise an [`APEllipse2`](@ref). The type therefore
+depends on the values of `m`, not only on its type.
 
 The linear part of `m` maps the unit circle to an ellipse whose semi-axes
 are its singular values and whose axes are its left singular vectors;
 `c`'s own radius scales those semi-axes, and its center maps pointwise.
 """
+# sqrt of the area scale if the linear part is a similarity (equal, orthogonal rows), else nothing
+function _affine_map_scale(m::APAffineMap; rtol=1e-12)
+    a, b, cc, d = m.a11, m.a12, m.a21, m.a22
+    p, s, q = a^2 + b^2, cc^2 + d^2, a * cc + b * d
+    scale = max(p, s)
+    return (abs(p - s) <= rtol * scale && abs(q) <= rtol * scale && scale > 0) ? sqrt((p + s) / 2) : nothing
+end
 function (m::APAffineMap)(c::APCircle2)
+    k = _affine_map_scale(m)
+    k === nothing || return APCircle2(m(c.center), k * c.r)
     a, b, cc, d = m.a11, m.a12, m.a21, m.a22
     p, s, q = a^2 + b^2, cc^2 + d^2, a * cc + b * d
     tr, det = p + s, p * s - q^2
@@ -205,9 +220,9 @@ _affine_map_det(m::APAffineMap) = m.a11 * m.a22 - m.a12 * m.a21
 """
     (m::APAffineMap)(arc::APCircularArc2)
 
-The image of `arc` under `m`: an [`APEllipticArc2`](@ref), not another
-`APCircularArc2` (matching `(m::APAffineMap)(c::APCircle2)`'s convention:
-a general affine map turns a circle into an ellipse).
+The image of `arc` under `m`: an [`APCircularArc2`](@ref) when `m` is a
+similarity, otherwise an [`APEllipticArc2`](@ref) (matching
+`(m::APAffineMap)(c::APCircle2)`).
 
 Like [`reflection(::APCircularArc2, ::APLine)`](@ref), this needs to know
 whether `m` preserves or reverses orientation: for a *closed* conic, "the
@@ -219,6 +234,9 @@ the correct (not the complementary) arc.
 """
 function (m::APAffineMap)(arc::APCircularArc2)
     e2 = m(arc.circle)
+    if e2 isa APCircle2
+        return _affine_map_det(m) >= 0 ? APCircularArc2(e2, m(arc.p1), m(arc.p2)) : APCircularArc2(e2, m(arc.p2), m(arc.p1))
+    end
     return _affine_map_det(m) >= 0 ? APEllipticArc2(e2, m(arc.p1), m(arc.p2)) : APEllipticArc2(e2, m(arc.p2), m(arc.p1))
 end
 """
@@ -247,9 +265,31 @@ no swap is needed even when `m` reverses orientation (matching
 (m::APAffineMap)(arc::APHyperbolicArc2) = APHyperbolicArc2(m(arc.hyperbola), m(arc.p1), m(arc.p2))
 (m::APAffineMap)(arc::APParabolicArc2) = APParabolicArc2(m(arc.parabola), m(arc.p1), m(arc.p2))
 """
-    affine_map(src::NTuple{3,APPoint}, dst::NTuple{3,APPoint})
+    (m::APAffineMap)(pl::APPolyline2)
+    (m::APAffineMap)(pg::APCurvilinearPolyline2)
+    (m::APAffineMap)(e::APEquipollentVector)
+    (m::APAffineMap)(curve::APParametricCurve2)
 
-The unique affine map sending `src[i]` to `dst[i]` for `i = 1, 2, 3`.
+The image under `m` of an open chain, an anchored vector or a parametric
+curve, of the same type. The vector part of an `APEquipollentVector` goes
+through the linear part of `m` alone. When `m` reverses orientation, a
+curvilinear polyline comes back traversed the other way, as with
+[`reflection`](@ref).
+"""
+(m::APAffineMap)(pl::APPolyline2) = APPolyline2([m(p) for p in pl.vertices])
+(m::APAffineMap)(e::APEquipollentVector) = APEquipollentVector(m(e.vector), m(e.point))
+(m::APAffineMap)(curve::APParametricCurve2) = APParametricCurve2(t -> m(curve.f(t)), curve.trange)
+function (m::APAffineMap)(pg::APCurvilinearPolyline2)
+    _affine_map_det(m) >= 0 && return APCurvilinearPolyline2([m(side) for side in pg.sides])
+    return APCurvilinearPolyline2([side isa Union{APCircularArc2,APEllipticArc2} ? m(side) : reverse(m(side)) for side in Base.reverse(pg.sides)])
+end
+"""
+    affine_map(src::NTuple{3,APPoint}, dst::NTuple{3,APPoint})
+    affine_map(a => a2, b => b2, c => c2)
+
+The unique affine map sending `src[i]` to `dst[i]` for `i = 1, 2, 3`, given
+either as two tuples of points or as three `source => image` pairs (the
+same map, with each correspondence written next to its own points).
 `src` must be non-collinear.
 """
 function affine_map(src::NTuple{3,<:APPoint{2}}, dst::NTuple{3,<:APPoint{2}}; atol=1e-9)
@@ -267,6 +307,9 @@ function affine_map(src::NTuple{3,<:APPoint{2}}, dst::NTuple{3,<:APPoint{2}}; at
     ty = q1[2] - (a21 * p1[1] + a22 * p1[2])
     return APAffineMap(a11, a12, a21, a22, tx, ty)
 end
+function affine_map(p1::Pair{<:APPoint{2},<:APPoint{2}}, p2::Pair{<:APPoint{2},<:APPoint{2}}, p3::Pair{<:APPoint{2},<:APPoint{2}}; atol=1e-9)
+    return affine_map((first(p1), first(p2), first(p3)), (last(p1), last(p2), last(p3)); atol=atol)
+end
 """
     translation_map(v::APVector)
     translation_map(v::APPoint)
@@ -279,13 +322,11 @@ and works uniformly across every type this file already handles (see
 
 The tradeoff for that generality: applying an `APAffineMap`, this one
 included, can't preserve an exotic type the way `translate(shape, v)`
-itself does (a circle piped through here comes back as an `APEllipse2`,
-never `APCircle2`, since nothing in the map's own type says it happens to
-be conformal). [`translate`](@ref)'s own one-argument form
-(`translate(v)`) is the type-preserving alternative: a plain function
-rather than an `APAffineMap`, so it doesn't compose into one combined
-object, but chains of direct, exact `translate(shape, v)` calls instead.
-Reach for whichever tradeoff the situation calls for.
+itself does (the type of the result of mapping a circle is decided at run time: an
+`APCircle2` for a similarity, an `APEllipse2` otherwise, so the result of
+`m(circle)` is not type-stable). [`translate`](@ref)'s own one-argument form
+(`translate(v)`) is a plain function rather than an `APAffineMap`, so it
+doesn't compose into one combined object, but it always preserves the type.
 """
 translation_map(v::APPointOrVector{2}) = APAffineMap(one(v[1]), zero(v[1]), zero(v[1]), one(v[1]), v[1], v[2])
 """

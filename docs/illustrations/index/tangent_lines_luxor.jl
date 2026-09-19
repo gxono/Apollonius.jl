@@ -20,8 +20,7 @@ gsave()
 grestore()
 
 sethue(julia_purple)
-path([il1, il2], action = :stroke, extend = 20)
-path([el1, el2], action = :stroke, extend = 0)
+path([il1, il2, el1, el2], action = :stroke)
 
 gsave()
     sethue(julia_green)

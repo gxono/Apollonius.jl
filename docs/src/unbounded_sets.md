@@ -74,6 +74,10 @@ distance(APPoint(1.0, 0.0), hp1), distance(APPoint(-3.0, 0.0), hp1)   # (0.0, 3.
 distance(APPoint(1.0, 0.0), hp1; mode=:boundary)   # 1.0, even though the point is already inside
 ```
 
+```@raw html
+<img src="../assets/img/unbounded/halfplane.svg" alt="A half-plane bounded by a vertical line: points inside in purple, outside in gray, and the distance from one outside point to the boundary" style="width:100%; max-width: 700px;">
+```
+
 `rotate`/`homothety`/`translate` move the boundary and leave `side`
 unchanged: a rotation or a homothety of any ratio is always
 orientation-preserving in 2D, so "the same physical side" is still the
@@ -122,6 +126,10 @@ APPoint(0.5, 1.5) in s, APPoint(0.5, 5.0) in s
 
 ```@example geo
 distance(APPoint(0.5, 5.0), s), distance(APPoint(0.5, 5.0), s; mode=:boundary)
+```
+
+```@raw html
+<img src="../assets/img/unbounded/strip.svg" alt="A strip between two parallel lines, with points inside in purple and outside in gray" style="width:100%; max-width: 700px;">
 ```
 
 ```@example geo

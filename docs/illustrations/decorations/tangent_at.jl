@@ -5,7 +5,7 @@ end
 (; arc) = lxo
 frames = [tangent_at(arc, t) for t in (0.0, 0.25, 0.5, 0.75, 1.0)]
 @svg_doc(lxm, @__FILE__, begin
-sethue(julia_blue); Luxor.setline(1.8)
+sethue(julia_blue)
 path(arc, action=:stroke)
 sethue(julia_purple)
 for f in frames

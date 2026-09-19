@@ -37,6 +37,10 @@ inc = incircle(t)
 ct = contact_triangle(t)     # its vertices are the touch points, opposite A, B and C
 ```
 
+```@raw html
+<img src="../assets/img/workflow/construct.svg" alt="A triangle, its incircle and the three touch points" style="width:100%; max-width: 700px;">
+```
+
 Keep the origin and the units that make the problem simple. Nothing here
 depends on how big the figure will be.
 
@@ -115,6 +119,10 @@ placing a vertex label away from the centroid keeps it outside the triangle:
 ```@example geo
 G2 = centroid(lxo.t)
 [label_anchor(v, G2).alignment for v in (A2, B2, C2)]
+```
+
+```@raw html
+<img src="../assets/img/workflow/decorate.svg" alt="The touch points with equal tangent segments marked by one, two and three ticks, and the vertex labels placed outside the triangle" style="width:100%; max-width: 700px;">
 ```
 
 The alignment is read as drawn, with `y` downward, so `:N` is above the
