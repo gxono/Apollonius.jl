@@ -111,6 +111,7 @@ conic arcs: already knows how to transform itself under `m`).
 (m::APAffineMap)(t::APCurvilinearTriangle2) = APCurvilinearTriangle2(map(m, t.sides))
 (m::APAffineMap)(q::APCurvilinearQuadrilateral2) = APCurvilinearQuadrilateral2(map(m, q.sides))
 (m::APAffineMap)(pg::APCurvilinearNgon2) = APCurvilinearNgon2([m(side) for side in pg.sides])
+# sqrt of the area scale if the linear part is a similarity (equal, orthogonal rows), else nothing
 """
     (m::APAffineMap)(c::APCircle2)
 
@@ -123,7 +124,6 @@ The linear part of `m` maps the unit circle to an ellipse whose semi-axes
 are its singular values and whose axes are its left singular vectors;
 `c`'s own radius scales those semi-axes, and its center maps pointwise.
 """
-# sqrt of the area scale if the linear part is a similarity (equal, orthogonal rows), else nothing
 function _affine_map_scale(m::APAffineMap; rtol=1e-12)
     a, b, cc, d = m.a11, m.a12, m.a21, m.a22
     p, s, q = a^2 + b^2, cc^2 + d^2, a * cc + b * d
