@@ -52,6 +52,61 @@ intersection(l, circumcircle(t))
 <img src="assets/img/index/quick_example.svg" alt="Triangle with vertices A, B, C marked, its circumcircle, centroid G, incenter I, the altitude from C with its foot and right-angle marker" style="width:100%; max-width: 700px;">
 ```
 
+
+
+!!! details "See script"
+
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=320 margin=30 begin
+        a, b, c = APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(1.0, 4.0)
+        t = APTriangle(a, b, c)
+        circ = circumcircle(t)
+        G = centroid(t)
+        I = incenter(t)
+        foot = projection(c, APLine(a, b))
+        height = APSegment(c, foot)
+        right = APAngle2(foot, b, c)
+    end
+
+    Drawing(lxm.width, lxm.height, :svg)
+    Luxor.fontsize(15)
+    
+    #circle and height
+    sethue(julia_purple)
+    path([circ, height], action=:stroke)
+    
+    #angle mark
+    sethue(julia_green)
+    path(right; as=:rarc, radius=12, action=:stroke)
+    
+    #triangle
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    
+    #points
+    sethue("white")
+    path([a, b, c], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path([G, I, foot], action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+    
+    #labels 
+    sethue(julia_red)
+    label("A", :SW, a, offset=8)
+    label("B", :SE, b, offset=8)
+    label("C", :NW, c, offset=8)
+    label("G", :NE, G, offset=8)
+    label("I", :SW, I, offset=8)
+
+    finish()
+    preview()
+    ```
+
+
 ## Example: the same idea, drawn
 
 The four common tangent lines of two circles, sized and centered
@@ -59,40 +114,51 @@ automatically by [`@to_luxor_picture`](@ref), with the points of
 tangency marked, the angle between the two external tangents shaded, and
 one radius dashed in:
 
-```julia
-using Apollonius
-using Luxor: @svg, sethue, setdash, setopacity,
-     fillpreserve, strokepath,
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore
-import Luxor
 
-lxm, lxo = @to_luxor_picture width=500 height=320 margin=20 begin
-    circle1 = APCircle2(APPoint(300.0, 300.0), 300.0)
-    circle2 = APCircle2(APPoint(900.0, 200.0), 100.0)
-    el1, el2 = external_tangent_lines(circle1, circle2)
-    il1, il2 = internal_tangent_lines(circle1, circle2)
-    ang = APAngle2(el1.p1, circle1.center, el1.p2)
-end
-(; circle1, circle2, el1, el2, il1, il2, ang) = lxo
+```@raw html
+<img src="assets/img/index/tangent_lines_luxor.svg" alt="Two circles with their four common tangent lines, tangent points marked, the angle between the external tangents shaded, and one radius dashed in" style="width:100%; max-width: 700px;">
+```
 
-pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
+!!! details "See script"
 
-@svg begin
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm, lxo = @to_luxor_picture width=500 height=320 margin=20 begin
+        circle1 = APCircle2(APPoint(300.0, 300.0), 300.0)
+        circle2 = APCircle2(APPoint(900.0, 200.0), 100.0)
+        el1, el2 = external_tangent_lines(circle1, circle2)
+        il1, il2 = internal_tangent_lines(circle1, circle2)
+        ang = APAngle2(el1.p1, circle1.center, el1.p2)
+    end
+
+    (; circle1, circle2, el1, el2, il1, il2, ang) = lxo
+
+    pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    #circles
     sethue(julia_blue)
     path([circle1, circle2], action = :stroke)
 
-    sethue(julia_purple); setopacity(0.5)
-    path(ang, action = :fill, as = :rsector, radius = 20)
-    
-    setopacity(1)
+    #radius and angle
+    @layer begin
+        sethue(julia_green); setdash(:dash)
+        path(APSegment(circle1.center, el1.p1), action = :stroke)
+        setopacity(0.5)
+        path(ang, action = :fill, as = :rsector, radius = 20)
+    end
+
+    #lines
+    sethue(julia_purple)
     path([il1, il2, el1, el2], action = :stroke)
-    
-    sethue(julia_green); setdash(:dash)
-    path(APSegment(circle1.center, el1.p1), action = :stroke)
 
     sethue(julia_red); setdash(:solid)
-    label("A", :NW, circle1.center)
+    label("A", :NW, circle1.center, offset=8)
 
     sethue("white")
     path(pts, action=:fillpreserve)
@@ -100,12 +166,9 @@ pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
     sethue("white")
     path([circle1.center, circle2.center], action=:fillpreserve)
     sethue(julia_blue); strokepath()
-end lxm.width lxm.height
-```
-
-```@raw html
-<img src="assets/img/index/tangent_lines_luxor.svg" alt="Two circles with their four common tangent lines, tangent points marked, the angle between the external tangents shaded, and one radius dashed in" style="width:100%; max-width: 700px;">
-```
+    finish()
+    preview()
+    ```
 
 Everything here (the circles, the tangent lines, the angle, the points)
 is a real Apollonius object right up until it's drawn. `external_tangent_lines`

@@ -14,19 +14,32 @@ end
 
 @svg_doc(lxm, @__FILE__, begin
     Luxor.fontsize(15)
+    
+    #circle and height
     sethue(julia_purple)
-    path(circ, action=:stroke)
-    path(height, action=:stroke)
+    path([circ, height], action=:stroke)
+    
+    #angle mark
     sethue(julia_green)
     path(right; as=:rarc, radius=12, action=:stroke)
+    
+    #triangle
     sethue(julia_blue)
     path(t, action=:stroke)
+    
+    #points
+    sethue("white")
+    path([a, b, c], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path([G, I, foot], action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+    
+    #labels 
     sethue(julia_red)
-    label("A", :SW, a)
-    label("B", :SE, b)
-    label("C", :NW, c)
-    label("G", :NE, G)
-    label("I", :SW, I)
-    path([a, b, c]); plot_point(julia_blue)
-    path([G, I, foot]); plot_point(julia_purple)
+    label("A", :SW, a, offset=8)
+    label("B", :SE, b, offset=8)
+    label("C", :NW, c, offset=8)
+    label("G", :NE, G, offset=8)
+    label("I", :SW, I, offset=8)
 end)

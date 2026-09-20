@@ -75,6 +75,7 @@ canvas and returns them in canvas coordinates, ready to draw:
 
 ```julia
 using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
     t
@@ -95,6 +96,47 @@ The full version of this figure, with the vertices, the two centers and their la
 ```@raw html
 <img src="../assets/img/getting_started/first_figure.svg" alt="A triangle with its circumcircle and incircle, the two centers and the labels A, B, C, O and I" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=300 margin=30 begin
+      A, B, C = APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(1.5, 4.0)
+      t = APTriangle(A, B, C)
+      cc = circumcircle(t)
+      inc = incircle(t)
+      O = circumcenter(t)
+    end
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    
+    sethue(julia_purple)
+    path([cc, inc], action=:stroke)
+    
+    sethue(julia_red)
+    label("A", :SW, A, offset=8) 
+    label("B", :SE, B, offset=8)
+    label("C", :N, C, offset=8)
+    label("O", :S, O, offset=8)
+    label("I", :W, inc.center, offset=8)
+
+    sethue("white")
+    path([A, B, C], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path([O, inc.center], action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    ```
+
 
 The order of the steps (construct, check, fit, decorate, draw) is what makes
 a figure easy to change. [Workflow: From Construction to Figure](@ref) walks
