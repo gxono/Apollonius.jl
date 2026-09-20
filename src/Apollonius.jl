@@ -44,6 +44,12 @@ include("ap_named_polygons.jl")
 include("ap_triangle_on_segment.jl")
 include("ap_conic_fit.jl")
 include("ap_triangle.jl")
+include("ap_shape_constructors.jl")
+export point_at_distance, divide_segment, equally_spaced_points, angle_with_measure, fillet, round_corners, tangent_line, normal_line
+export regular_polygon_on_segment, rhombus_on_segment, square_from_diagonal, rectangle_from_diagonal, rectangle_with_center, square_with_center
+export isosceles_trapezoid_on_segment, right_trapezoid_on_segment, kite_on_diagonal, star_polygon, offset_polygon, circumscribed_triangle
+export offset_circle, chord, diameter, arc_through_points, arc_with_radius, tangent_circle_at_point, tangent_circles_at_point
+export similarity_map, scaling_map, shear_map, conic_with_focus, ellipse_with_axis, hyperbola_with_asymptotes, parabola_through_points, inflate
 include("utils.jl")
 include("ap_rand.jl")
 include("ap_generic_docs.jl")

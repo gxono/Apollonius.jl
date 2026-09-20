@@ -212,6 +212,37 @@ This is what lets [`@boundingbox`](@ref)/[`@to_luxor_picture`](@ref) (see
 value named in a block (construction helpers included) without needing
 to special-case the ones that were never meant to be drawn or sized.
 
+### Boxes from a center and a size
+
+`APBoundingBox(center, width, height)` builds the box with the given center and
+size, and [`inflate`](@ref)`(bb, margin)` grows a box by `margin` on every side
+(or by `mx` and `my` on the two directions), or shrinks it when negative. An
+empty box stays empty:
+
+```@example geo
+bx = APBoundingBox(APPoint(1.0, 1.0), 4.0, 2.0)
+bx, inflate(bx, 1.0), inflate(bx, 1.0, 0.5)
+```
+
+## Offsetting a polygon
+
+[`offset_polygon`](@ref)`(pg, d)` is the polygon parallel to `pg` at distance `d`:
+outward for a positive `d`, inward for a negative one. Each side moves along its
+normal, and every new vertex is where two neighbouring moved sides meet. A
+concave polygon, or an inward offset larger than the polygon, can cross itself.
+To round the corners instead, see [`round_corners`](@ref) in
+[Circle constructions step by step](@ref).
+
+```@example geo
+sq_o = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0), APPoint(0.0, 4.0)])
+area(offset_polygon(sq_o, 1.0)), area(offset_polygon(sq_o, -1.0))
+```
+
+```@raw html
+<img src="../assets/img/polygons/offset_box.svg" alt="A pentagon with its outward and inward offsets, and a box with its inflated box" style="width:100%; max-width: 700px;">
+```
+
+
 ## Random points on a perimeter
 
 [`rand`](@ref) draws a uniformly random point on a polygon's or a
@@ -263,6 +294,43 @@ regular_polygon(APPoint(0.0, 0.0), APPoint(1.0, 0.0), 6)  # a regular hexagon
 (default `true`) to build on the other side of `[a,b]` instead, useful
 when the side you're extending from is itself part of a larger polygon and
 you need to stay outside (or inside) it consistently.
+
+## Polygons on a segment, from a diagonal or from a center
+
+The named constructors above have relatives that start from other data. All of
+them take the base or the diagonal in the order given, and `ccw` (default `true`)
+picks the side or the direction of the vertices where it exists.
+
+| Function | Builds | Returns |
+|:---------|:-------|:--------|
+| [`regular_polygon_on_segment`](@ref)`(a, b, n)` | the regular `n`-gon with side `[a, b]` | `APStraightNgon` |
+| [`star_polygon`](@ref)`(center, vertex, n, k)` | the star `{n/k}` on the regular `n`-gon, `{5/2}` being the pentagram | `APStraightNgon` |
+| [`rhombus_on_segment`](@ref)`(a, b, angle)` | the rhombus with side `[a, b]` and the given angle at `a` | `APQuadrilateral` |
+| [`square_from_diagonal`](@ref)`(a, c)` | the square with diagonal `[a, c]` | `APQuadrilateral` |
+| [`rectangle_from_diagonal`](@ref)`(a, c, angle)` | the rectangle with diagonal `[a, c]`, at `angle` with the side from `a` | `APQuadrilateral` |
+| [`rectangle_with_center`](@ref)`(center, w, h)`, [`square_with_center`](@ref)`(center, side)` | a rectangle or square of a given size, turned by the keyword `angle` | `APQuadrilateral` |
+| [`isosceles_trapezoid_on_segment`](@ref)`(a, b, top, height)` | the trapezoid on base `[a, b]` with equal legs | `APQuadrilateral` |
+| [`right_trapezoid_on_segment`](@ref)`(a, b, top, height)` | the trapezoid with right angles at `a` and at the other end of the leg | `APQuadrilateral` |
+| [`kite_on_diagonal`](@ref)`(a, c, t, half_width)` | the kite with axis `[a, c]`, its other corners at the fraction `t` | `APQuadrilateral` |
+
+```@example geo
+pa, pb = APPoint(0.0, 0.0), APPoint(3.0, 0.0)
+area(regular_polygon_on_segment(pa, pb, 6)), area(rhombus_on_segment(pa, pb, pi / 3))
+```
+
+```@example geo
+sd = square_from_diagonal(APPoint(0.0, 0.0), APPoint(2.0, 2.0))
+area(sd), area(rectangle_with_center(APPoint(1.0, 1.0), 4.0, 2.0; angle=pi / 6)), area(kite_on_diagonal(pa, APPoint(0.0, 6.0), 0.4, 2.0))
+```
+
+```@raw html
+<img src="../assets/img/polygons/on_segment_family.svg" alt="A regular pentagon, hexagon and triangle built on segments, and a pentagram" style="width:100%; max-width: 700px;">
+```
+
+```@raw html
+<img src="../assets/img/polygons/quad_family.svg" alt="A rhombus, a square, a rectangle, an isosceles trapezoid, a right trapezoid, a kite and a turned rectangle" style="width:100%; max-width: 700px;">
+```
+
 
 ## Quadrilaterals
 
@@ -318,3 +386,23 @@ pointwise, same as for any other polygon:
 ```@example geo
 rotate(q, pi / 6)
 ```
+
+### Circles inside and around a quadrilateral
+
+[`circumcircle`](@ref) and [`incircle`](@ref) also work for a quadrilateral, and
+for any polygon with straight sides, when the circle exists. The circle through
+all the vertices needs them to be concyclic (a cyclic quadrilateral, a regular
+polygon), and the one that touches all the sides needs a *tangential* polygon
+(a quadrilateral with `a + c = b + d` for its sides, a regular polygon). Both
+throw an `ArgumentError` otherwise. An isosceles trapezoid is cyclic and a kite
+is tangential:
+
+```@example geo
+circumcircle(isosceles_trapezoid_on_segment(APPoint(0.0, 0.0), APPoint(6.0, 0.0), 2.0, 3.0)),
+incircle(kite_on_diagonal(APPoint(0.0, 0.0), APPoint(0.0, 7.0), 0.35, 2.0))
+```
+
+```@raw html
+<img src="../assets/img/polygons/quad_circles.svg" alt="An isosceles trapezoid with its circumcircle and a kite with its incircle" style="width:100%; max-width: 700px;">
+```
+

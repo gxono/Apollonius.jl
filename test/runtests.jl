@@ -5905,3 +5905,178 @@ end
     @test angle_at(point_on_circle(c, 1.0), a, b) ≈ pi / 2
     @test circle_with_diameter(APPoint(0, 0), APPoint(4, 0)) ≈ APCircle2(APPoint(2.0, 0.0), 2.0)
 end
+
+@testset "shape constructors" begin
+    P(x, y) = APPoint(x, y)
+    O = P(0.0, 0.0)
+    near(a, b) = isapprox(a, b; atol=1e-9)
+    @testset "lines, points, angles" begin
+        @test APLine(P(1.0, 1.0), APVector(1.0, 2.0)) == APLine(P(1.0, 1.0), P(2.0, 3.0))
+        @test is_parallel(APLine(O, pi / 4), APLine(O, P(1.0, 1.0)))
+        @test near(APRay(O, pi / 2).through, P(0.0, 1.0))
+        @test APSegment(P(1.0, 1.0), APVector(2.0, 0.0)) == APSegment(P(1.0, 1.0), P(3.0, 1.0))
+        @test Apollonius.distance(APSegment(O, 5.0, pi / 3).p1, APSegment(O, 5.0, pi / 3).p2) ≈ 5.0
+        @test_throws ArgumentError APLine(O, APVector(0.0, 0.0))
+        s = APSegment(O, P(3.0, 4.0))
+        @test point_at_distance(s, 2.5) ≈ P(1.5, 2.0)
+        @test point_at_distance(APRay(O, P(0.0, 2.0)), 3.0) ≈ P(0.0, 3.0)
+        @test divide_segment(APSegment(O, P(6.0, 0.0)), 3) ≈ [P(2.0, 0.0), P(4.0, 0.0)]
+        @test divide_segment(APSegment(O, P(6.0, 0.0)), 1, 2) ≈ P(2.0, 0.0)
+        @test divide_segment(APSegment(O, P(6.0, 0.0)), 3, -1) ≈ P(9.0, 0.0)
+        @test length(equally_spaced_points(APCircle2(O, 1.0), 6)) == 6
+        @test equally_spaced_points(APSegment(O, P(6.0, 0.0)), 4)[2] ≈ P(2.0, 0.0)
+        arc = APCircularArc2(APCircle2(O, 1.0), P(1.0, 0.0), P(0.0, 1.0))
+        @test near(equally_spaced_points(arc, 3)[2], P(sqrt(0.5), sqrt(0.5)))
+        @test length(equally_spaced_points(APEllipse2(O, 3.0, 2.0), 5)) == 5
+        @test measure(angle_with_measure(O, P(1.0, 0.0), pi / 3)) ≈ pi / 3
+        @test measure(APAngle2(APLine(O, P(1.0, 0.0)), APLine(O, P(1.0, 1.0)))) ≈ pi / 4
+        @test_throws ArgumentError APAngle2(APLine(O, P(1.0, 0.0)), APLine(P(0.0, 1.0), P(1.0, 1.0)))
+    end
+    @testset "fillet and round_corners" begin
+        for b in (P(4.0, 5.0), P(4.0, -5.0))
+            f = fillet(P(0.0, 0.0), P(6.0, 0.0), b, 1.5)
+            @test measure(f.arc) < pi
+            @test Apollonius.distance(f.center, APLine(P(0.0, 0.0), P(6.0, 0.0))) ≈ 1.5
+            @test Apollonius.distance(f.center, APLine(P(6.0, 0.0), b)) ≈ 1.5
+        end
+        @test_throws ArgumentError fillet(O, P(1.0, 0.0), P(2.0, 0.0), 0.5)
+        @test_throws ArgumentError fillet(O, P(1.0, 0.0), P(1.0, 1.0), 5.0)
+        sq = APStraightNgon([P(0.0, 0.0), P(4.0, 0.0), P(4.0, 4.0), P(0.0, 4.0)])
+        rc = round_corners(sq, 1.0)
+        @test length(sides(rc)) == 8 && area(rc) ≈ 16 - (4 - pi)
+        @test area(round_corners(APStraightNgon(reverse(collect(vertices(sq)))), 1.0)) ≈ 16 - (4 - pi)
+        @test_throws ArgumentError round_corners(APStraightNgon([P(0.0, 0.0), P(4.0, 0.0), P(1.0, 1.0), P(0.0, 4.0)]), 0.2)
+        @test length(sides(round_corners(APPolyline2(P(0.0, 0.0), P(4.0, 0.0), P(4.0, 4.0), P(0.0, 4.0)), 1.0))) == 5
+        @test length(sides(round_corners(APPolyline2(P(0.0, 0.0), P(4.0, 0.0), P(4.0, -4.0)), 1.0))) == 3
+        @test_throws ArgumentError round_corners(APPolyline2(P(0.0, 0.0), P(4.0, 0.0), P(4.0, 4.0), P(8.0, 4.0)), 1.0)
+    end
+    @testset "tangent_line and normal_line" begin
+        c = APCircle2(O, 5.0)
+        @test is_perpendicular(tangent_line(c, P(3.0, 4.0)), APLine(O, P(3.0, 4.0)))
+        @test_throws ArgumentError tangent_line(c, P(1.0, 1.0))
+        e = APEllipse2(O, 5.0, 3.0)
+        pe = point_on_ellipse(e, 1.0)
+        @test on_line(pe, tangent_line(e, pe)) && on_line(O, normal_line(c, P(3.0, 4.0)))
+        h = APHyperbola2(O, 3.0, 2.0)
+        ph = point_on_hyperbola(h, 0.5)
+        @test on_line(ph, tangent_line(h, ph)) && line_circle_position(tangent_line(c, P(3.0, 4.0)), c) == :tangent
+        par = APParabola2(P(0.0, 1.0), APLine(P(0.0, -1.0), P(1.0, -1.0)))
+        pp = point_on_parabola(par, 2.0)
+        @test on_line(pp, tangent_line(par, pp))
+        arc = APCircularArc2(c, P(5.0, 0.0), P(0.0, 5.0))
+        @test tangent_line(arc, P(3.0, 4.0)) ≈ tangent_line(c, P(3.0, 4.0))
+        @test_throws ArgumentError tangent_line(arc, P(-3.0, 4.0))
+        @test tangent_line(APSegment(O, P(2.0, 0.0)), P(1.0, 0.0)) ≈ APLine(O, P(1.0, 0.0))
+    end
+    @testset "polygons" begin
+        h = regular_polygon_on_segment(P(0.0, 0.0), P(2.0, 0.0), 6)
+        @test near(vertices(h)[2], P(2.0, 0.0)) && area(h) ≈ 6sqrt(3)
+        h2 = regular_polygon_on_segment(P(0.0, 0.0), P(2.0, 0.0), 5; ccw=false)
+        @test near(vertices(h2)[2], P(2.0, 0.0)) && vertices(h2)[3][2] < 0
+        @test area(rhombus_on_segment(O, P(2.0, 0.0), pi / 3)) ≈ 4sin(pi / 3)
+        @test isapprox(rhombus_on_segment(O, P(2.0, 0.0), pi / 2), square_on_segment(O, P(2.0, 0.0)); atol=1e-9)
+        sq = square_from_diagonal(O, P(2.0, 2.0))
+        @test area(sq) ≈ 4 && near(sq.b, P(2.0, 0.0))
+        r = rectangle_from_diagonal(O, P(4.0, 3.0), 0.3)
+        @test near(r.c, P(4.0, 3.0)) && is_perpendicular(APLine(r.a, r.b), APLine(r.b, r.c)) && area(r) ≈ 25 * sin(0.3) * cos(0.3)
+        @test isapprox(rectangle_from_diagonal(O, P(2.0, 2.0), pi / 4), sq; atol=1e-9)
+        @test area(rectangle_with_center(P(1.0, 1.0), 4.0, 2.0; angle=0.4)) ≈ 8 && near(centroid(rectangle_with_center(P(1.0, 1.0), 4.0, 2.0; angle=0.4)), P(1.0, 1.0))
+        @test area(square_with_center(P(1.0, 1.0), 3.0)) ≈ 9
+        @test area(isosceles_trapezoid_on_segment(O, P(6.0, 0.0), 2.0, 3.0)) ≈ 12
+        tr = right_trapezoid_on_segment(O, P(6.0, 0.0), 2.0, 3.0)
+        @test area(tr) ≈ 12 && near(tr.d, P(0.0, 3.0))
+        k = kite_on_diagonal(O, P(0.0, 6.0), 0.4, 2.0)
+        @test is_convex(k) && area(k) ≈ 12
+        @test length(vertices(star_polygon(O, P(3.0, 0.0), 5, 2))) == 5
+        @test_throws ArgumentError star_polygon(O, P(3.0, 0.0), 6, 2)
+        sqr = APStraightNgon([P(0.0, 0.0), P(4.0, 0.0), P(4.0, 4.0), P(0.0, 4.0)])
+        @test area(offset_polygon(sqr, 1.0)) ≈ 36 && area(offset_polygon(sqr, -1.0)) ≈ 4
+        @test area(offset_polygon(APStraightNgon(reverse(collect(vertices(sqr)))), 1.0)) ≈ 36
+        @test circumcircle(APQuadrilateral(P(1.0, 0.0), P(0.0, 1.0), P(-1.0, 0.0), P(0.0, -1.0))) ≈ APCircle2(O, 1.0)
+        @test circumcircle(regular_polygon(P(1.0, 1.0), P(3.0, 1.0), 7)).r ≈ 2
+        @test_throws ArgumentError circumcircle(APQuadrilateral(P(0.0, 0.0), P(4.0, 0.0), P(4.0, 3.0), P(0.0, 5.0)))
+        @test incircle(APQuadrilateral(P(0.0, 0.0), P(2.0, 0.0), P(2.0, 2.0), P(0.0, 2.0))) ≈ APCircle2(P(1.0, 1.0), 1.0)
+        @test incircle(regular_polygon(O, P(2.0, 0.0), 6)).r ≈ 2cos(pi / 6)
+        @test_throws ArgumentError incircle(APQuadrilateral(P(0.0, 0.0), P(4.0, 0.0), P(4.0, 1.0), P(0.0, 3.0)))
+        c = APCircle2(O, 1.0)
+        t = circumscribed_triangle(c, point_on_circle(c, 0.5), point_on_circle(c, 2.5), point_on_circle(c, 4.5))
+        @test isapprox(incircle(t), c; atol=1e-9)
+        @test_throws ArgumentError circumscribed_triangle(c, P(1.0, 0.0), P(-1.0, 0.0), P(0.0, 1.0))
+    end
+    @testset "circles and arcs" begin
+        @test offset_circle(APCircle2(O, 3.0), 1.0).r == 4.0 && offset_circle(APCircle2(O, 3.0), -1.0).r == 2.0
+        @test_throws ArgumentError offset_circle(APCircle2(O, 3.0), -3.0)
+        @test near(chord(APCircle2(O, 1.0), 0.0, pi).p2, P(-1.0, 0.0))
+        @test Apollonius.distance(diameter(APCircle2(O, 2.0)).p1, diameter(APCircle2(O, 2.0)).p2) ≈ 4
+        a = arc_through_points(P(1.0, 0.0), P(0.0, 1.0), P(-1.0, 0.0))
+        @test a.p1 ≈ P(1.0, 0.0) && measure(a) ≈ pi
+        b = arc_through_points(P(1.0, 0.0), P(0.0, -1.0), P(-1.0, 0.0))
+        @test P(0.0, -1.0) in b
+        @test_throws ArgumentError arc_through_points(O, P(1.0, 0.0), P(2.0, 0.0))
+        s = arc_with_radius(O, P(2.0, 0.0), 2.0)
+        @test near(s.circle.center, P(1.0, sqrt(3))) && measure(s) < pi
+        @test measure(arc_with_radius(O, P(2.0, 0.0), 2.0; large=true)) > pi
+        @test_throws ArgumentError arc_with_radius(O, P(2.0, 0.0), 0.5)
+        l = APLine(O, P(1.0, 0.0))
+        tc = tangent_circle_at_point(l, P(2.0, 0.0), P(0.0, 2.0))
+        @test tc.center ≈ P(2.0, 2.0) && line_circle_position(l, tc) == :tangent
+        @test [c.center for c in tangent_circles_at_point(l, P(2.0, 0.0), 1.5)] ≈ [P(2.0, 1.5), P(2.0, -1.5)]
+        @test_throws ArgumentError tangent_circle_at_point(l, P(2.0, 1.0), P(0.0, 2.0))
+    end
+    @testset "maps" begin
+        @test near(similarity_map(2.0, pi / 2)(P(1.0, 0.0)), P(0.0, 2.0))
+        @test near(similarity_map(1.0, pi, P(1.0, 1.0))(P(2.0, 1.0)), P(0.0, 1.0))
+        m = similarity_map(O => P(1.0, 1.0), P(1.0, 0.0) => P(1.0, 2.0))
+        @test near(m(O), P(1.0, 1.0)) && near(m(P(1.0, 0.0)), P(1.0, 2.0))
+        @test similarity_map(2.0, 0.3)(APCircle2(P(1.0, 1.0), 1.0)) isa APCircle2
+        @test_throws ArgumentError similarity_map(O => O, O => P(1.0, 0.0))
+        @test scaling_map(2.0, 3.0)(P(1.0, 1.0)) ≈ P(2.0, 3.0) && scaling_map(2.0, 3.0, P(1.0, 1.0))(P(2.0, 2.0)) ≈ P(3.0, 4.0)
+        @test scaling_map(2.0, 3.0)(APCircle2(O, 1.0)) isa APEllipse2
+        @test shear_map(1.0)(P(0.0, 2.0)) ≈ P(2.0, 2.0) && shear_map(0.0, 1.0)(P(2.0, 0.0)) ≈ P(2.0, 2.0)
+        @test shear_map(1.0, 0.0, P(0.0, 1.0))(P(0.0, 2.0)) ≈ P(1.0, 2.0)
+    end
+    @testset "conics" begin
+        F, d = O, APLine(P(4.0, -1.0), P(4.0, 1.0))
+        e = conic_with_focus(F, d, 0.5)
+        @test e isa APEllipse2 && all(t -> (p = point_on_ellipse(e, t); Apollonius.distance(p, F) ≈ 0.5 * Apollonius.distance(p, d)), 0:0.7:6)
+        @test conic_with_focus(F, d, 1.0) isa APParabola2
+        h = conic_with_focus(F, d, 2.0)
+        @test h isa APHyperbola2 && all(t -> (p = point_on_hyperbola(h, t); Apollonius.distance(p, F) ≈ 2 * Apollonius.distance(p, d)), -1:0.5:1)
+        @test all(t -> (p = point_on_hyperbola(h, t; branch=-1); Apollonius.distance(p, F) ≈ 2 * Apollonius.distance(p, d)), -1:0.5:1)
+        @test_throws ArgumentError conic_with_focus(P(4.0, 0.0), d, 0.5)
+        el = ellipse_with_axis(O, P(5.0, 0.0), P(3.0, 2.4))
+        @test el.a ≈ 5 && el.b ≈ 3 && is_on_ellipse(P(3.0, 2.4), el)
+        @test is_on_ellipse(P(3.0, 1.0), ellipse_with_axis(O, P(0.0, 2.0), P(3.0, 1.0)))
+        @test_throws ArgumentError ellipse_with_axis(O, P(5.0, 0.0), P(6.0, 1.0))
+        hy = hyperbola_with_asymptotes(APLine(O, P(1.0, 1.0)), APLine(O, P(1.0, -1.0)), P(2.0, 0.0))
+        @test hy.a ≈ 2 && hy.b ≈ 2 && is_on_hyperbola(P(2.0, 0.0), hy)
+        hr = hyperbola_with_asymptotes(APLine(P(1.0, 1.0), P(3.0, 2.0)), APLine(P(1.0, 1.0), P(3.0, 0.0)), P(0.0, 1.0))
+        @test is_on_hyperbola(P(0.0, 1.0), hr)
+        @test_throws ArgumentError hyperbola_with_asymptotes(APLine(O, P(1.0, 0.0)), APLine(P(0.0, 1.0), P(1.0, 1.0)), P(2.0, 2.0))
+        pa = parabola_through_points(P(-2.0, 4.0), O, P(1.0, 1.0), APVector(0.0, 1.0))
+        @test is_on_parabola(P(-2.0, 4.0), pa) && is_on_parabola(P(1.0, 1.0), pa) && pa.focus ≈ P(0.0, 0.25)
+        pt = parabola_through_points(O, P(2.0, 1.0), P(-1.0, 3.0), APVector(1.0, 1.0))
+        @test all(p -> is_on_parabola(p, pt; atol=1e-6), [O, P(2.0, 1.0), P(-1.0, 3.0)])
+        @test_throws ArgumentError parabola_through_points(O, P(1.0, 1.0), P(2.0, 2.0), APVector(0.0, 1.0))
+    end
+    @testset "regions and boxes" begin
+        s = APStrip2(APLine(O, P(1.0, 0.0)), 2.0)
+        @test P(0.0, 1.0) in s && !(P(0.0, 3.0) in s) && strip_width(s) ≈ 2
+        hp = APHalfPlane2(P(0.0, 1.0), APVector(0.0, 1.0))
+        @test P(0.0, 2.0) in hp && !(P(0.0, 0.0) in hp)
+        bb = APBoundingBox(P(1.0, 1.0), 4.0, 2.0)
+        @test bb == APBoundingBox(P(-1.0, 0.0), P(3.0, 2.0))
+        @test inflate(bb, 1.0) == APBoundingBox(P(-2.0, -1.0), P(4.0, 3.0))
+        @test inflate(bb, 1.0, 0.5) == APBoundingBox(P(-2.0, -0.5), P(4.0, 2.5))
+        @test isempty(inflate(APBoundingBox(), 1.0))
+    end
+end
+
+@testset "circle through three points and ellipse membership far from the origin" begin
+    for b in (1e6, 1e8, 1e10)
+        c = APCircle2(APPoint(b + 1.0, b), APPoint(b, b + 1.0), APPoint(b - 1.0, b))
+        @test isapprox(c.center[1] - b, 0.0; atol=1e-4) && isapprox(c.center[2] - b, 0.0; atol=1e-4) && isapprox(c.r, 1.0; rtol=1e-4)
+        e = APEllipse2(APPoint(b, b), 5.0, 3.0)
+        @test all(t -> is_on_ellipse(point_on_ellipse(e, t), e), 0.0:0.9:6.0)
+    end
+end

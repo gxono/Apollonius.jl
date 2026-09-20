@@ -295,6 +295,31 @@ external tangency survives, at `r = 2*c.r`), and there are none at all
 when `center` coincides with `c`'s own center: every circle centered
 there is concentric with `c`, never tangent to it.
 
+## Tangent at a given point
+
+The circles of the sections above touch a line wherever the problem puts them.
+When the point of contact is given, the circle is easier to find. With one more
+point to pass through, [`tangent_circle_at_point`](@ref)`(l, p, q)` is the one
+circle tangent to `l` at `p` and through `q`. With a radius instead,
+[`tangent_circles_at_point`](@ref)`(l, p, r)` gives the two circles of that
+radius, one on each side of the line:
+
+```@example geo
+lt = APLine(APPoint(-3.0, 0.0), APPoint(9.0, 0.0))
+tangent_circle_at_point(lt, APPoint(2.0, 0.0), APPoint(0.0, 2.0))
+```
+
+```@example geo
+[c.center for c in tangent_circles_at_point(lt, APPoint(2.0, 0.0), 1.2)]
+```
+
+```@raw html
+<img src="../assets/img/tangency/tangent_at_point.svg" alt="A line, a point on it and a point off it, the circle tangent at the first through the second, and the two circles of radius 1.2 tangent at the first" style="width:100%; max-width: 700px;">
+```
+
+For a circle tangent to a line through *two* given points, see
+[Through two points, tangent to a line](@ref).
+
 ## Watching two constructions step by step
 
 The blocks in this section are run when the documentation is built, and each

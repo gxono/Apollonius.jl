@@ -91,6 +91,16 @@ reflection(hp1, APPoint(1.0, 1.0)).side,                                       #
     reflection(hp1, APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))).side          # line reflection: side flips (+1)
 ```
 
+### From a point and a normal
+
+`APHalfPlane2(p, normal)` builds the half-plane whose boundary passes through
+`p` perpendicular to `normal`, on the side that `normal` points to:
+
+```@example geo
+hp_n = APHalfPlane2(APPoint(0.0, 1.0), APVector(0.0, 1.0))
+APPoint(0.0, 2.0) in hp_n, APPoint(0.0, 0.0) in hp_n
+```
+
 ## `APStrip2`
 
 The closed band between two **parallel** lines: think of it as an
@@ -141,3 +151,14 @@ See [Drawing with Luxor.jl](@ref) for how `APHalfPlane2`/`APStrip2` render
 (as their boundary line(s), since the region itself is unbounded) and
 [Affine Maps](@ref) for how a general [`APAffineMap`](@ref) applies to
 both.
+
+### From a line and a width
+
+`APStrip2(l, width)` is the strip between `l` and the parallel line at distance
+`width` on its left (on its right for a negative `width`), built with
+[`offset_line`](@ref):
+
+```@example geo
+st_w = APStrip2(APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), 2.0)
+APPoint(0.0, 1.0) in st_w, APPoint(0.0, 3.0) in st_w, strip_width(st_w)
+```

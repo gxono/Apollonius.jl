@@ -414,6 +414,28 @@ line_circle_position(APLine(APPoint(0.0, 5.0), APPoint(1.0, 5.0)), APCircle2(APP
 <img src="../assets/img/circles/line_circle_positions.svg" alt="A line and a circle, disjoint, tangent and secant" style="width:100%; max-width: 700px;">
 ```
 
+## Chords, diameters and offset circles
+
+[`chord`](@ref)`(c, θ1, θ2)` is the segment between the points of a circle at two
+polar angles, and [`diameter`](@ref)`(c, angle)` the one through the point at
+`angle` and its [`antipode`](@ref). [`offset_circle`](@ref)`(c, d)` is the
+concentric circle whose radius is `c.r + d`, the counterpart of
+[`offset_line`](@ref) (a negative `d` shrinks it, and it must stay positive):
+
+```@example geo
+c_o = APCircle2(APPoint(0.0, 0.0), 3.0)
+chord(c_o, 0.5, 2.4), diameter(c_o, 5.0)
+```
+
+```@example geo
+offset_circle(c_o, 1.0), offset_circle(c_o, -1.0)
+```
+
+```@raw html
+<img src="../assets/img/circles/chord_diameter.svg" alt="A circle with a chord, a diameter and the two circles offset by plus and minus one" style="width:100%; max-width: 700px;">
+```
+
+
 ## Circle constructions step by step
 
 The blocks in this section are run when the documentation is built, and each
@@ -826,6 +848,28 @@ measure(quarter) ≈ pi / 2, measure(half) ≈ pi, measure(extend_arc(quarter, 0
 on paper, and the constructions built on it are on the
 [Compass & Ruler Constructions](@ref) page.
 
+### Arcs from other data
+
+[`arc_through_points`](@ref)`(a, b, c)` is the arc from `a` to `c` that passes
+through `b`. Arcs run counterclockwise, so when `a → b → c` goes clockwise the
+result has `c` as its first point. [`arc_with_radius`](@ref)`(a, b, r)` is the
+arc of radius `r` that goes counterclockwise from `a` to `b`: the short one by
+default, and the long one with `large=true`:
+
+```@example geo
+arc_through_points(APPoint(0.0, 0.0), APPoint(2.0, 1.5), APPoint(4.0, 0.0))
+```
+
+```@example geo
+a_r, b_r = APPoint(7.0, 0.0), APPoint(10.0, 0.0)
+measure(arc_with_radius(a_r, b_r, 2.0)), measure(arc_with_radius(a_r, b_r, 2.0; large=true))
+```
+
+```@raw html
+<img src="../assets/img/circles/arcs_from_data.svg" alt="An arc through three points, and the short and the long arc of radius 2 between two points" style="width:100%; max-width: 700px;">
+```
+
+
 ## Circular sectors, segments and annuli
 
 An arc alone is just a curve; closing it up gives a genuine region: a
@@ -1163,3 +1207,28 @@ end # hide
 ```
 
 The chain is shorter than the polyline it rounds, and it is an ordinary curve: it can be reversed, reflected or drawn like any other.
+
+### The same in one call
+
+[`fillet`](@ref)`(a, v, b, r)` does steps 2 to 4 at once. It returns a `NamedTuple` with the arc that faces the corner, its center and the two points of contact `t1` and `t2`. The arc runs counterclockwise, so its endpoints are `t1` and `t2` when the corner turns left and `t2` and `t1` when it turns right.
+
+```@example geo
+ff = fillet(fa, fv, fb, fr)
+isapprox(ff.center, fo; atol=1e-6), isapprox(ff.t1, ft1; atol=1e-6)
+```
+
+[`round_corners`](@ref)`(shape, r)` rounds every corner of a convex polygon, giving an
+[`APCurvilinearNgon2`](@ref), or every interior corner of a polyline, giving an
+[`APCurvilinearPolyline2`](@ref). All the interior corners of a polyline must
+turn the same way. When they turn right, the chain is traversed from the end,
+so that they turn left, which is the direction an arc runs.
+
+```@example geo
+sq_rc = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0), APPoint(0.0, 4.0)])
+rc_sq = round_corners(sq_rc, 1.0)
+length(sides(rc_sq)), area(rc_sq)
+```
+
+```@raw html
+<img src="../assets/img/circles/round_corners.svg" alt="A pentagon and a polyline with their corners rounded, the originals dashed" style="width:100%; max-width: 700px;">
+```

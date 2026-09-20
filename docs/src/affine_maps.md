@@ -84,6 +84,35 @@ for the other three); the map versions exist purely so the transformation
 itself can be stored, composed and reused, rather than re-specifying
 `angle`/`center` (or `k`/`center`, or `l`) on every call.
 
+## Similarities, scalings and shears
+
+Three functions build the maps that come up most often, without writing the six
+numbers by hand.
+
+| Function | Map |
+|:---------|:----|
+| [`similarity_map`](@ref)`(k, angle, center)` | scale by `k` and turn by `angle` about `center` (the origin by default) |
+| [`similarity_map`](@ref)`(p1 => q1, p2 => q2)` | the unique similarity that sends `p1` to `q1` and `p2` to `q2` |
+| [`scaling_map`](@ref)`(sx, sy, center)` | scale by `sx` along `x` and by `sy` along `y` |
+| [`shear_map`](@ref)`(kx, ky, center)` | send `(x, y)` to `(x + kx·y, y + ky·x)`, relative to `center` |
+
+A similarity keeps circles as circles; a scaling with `sx != sy` or a shear
+turns them into ellipses (see below).
+
+```@example geo
+m_sim = similarity_map(APPoint(0.0, 0.0) => APPoint(1.0, 1.0), APPoint(1.0, 0.0) => APPoint(1.0, 2.0))
+m_sim(APPoint(0.0, 1.0)), similarity_map(2.0, pi / 2)(APPoint(1.0, 0.0))
+```
+
+```@example geo
+scaling_map(2.0, 3.0)(APCircle2(APPoint(0.0, 0.0), 1.0)) isa APEllipse2, shear_map(1.0)(APPoint(0.0, 2.0))
+```
+
+```@raw html
+<img src="../assets/img/affine/similarity_shear.svg" alt="A square and its images under a similarity, a scaling and a shear" style="width:100%; max-width: 700px;">
+```
+
+
 ## `rotate`/`homothety`/`translate`/`reflection`, called with one argument
 
 `rotate`, `homothety`, `translate` and `reflection` also have a
@@ -169,7 +198,7 @@ can reverse orientation, which would flip which side of the transformed
 boundary is "inside", so its `side` field is recomputed fresh from an
 interior point, rather than carried over unchanged.
 
-## Conics: type is preserved, but never a circle
+## Conics: type is preserved, and a circle stays one under a similarity
 
 An ellipse, hyperbola or parabola stays its *own* conic type under any
 invertible affine map (a basic invariant: by Sylvester's law of inertia,

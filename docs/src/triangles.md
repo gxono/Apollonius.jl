@@ -1095,6 +1095,25 @@ on_segment(cev[1], APSegment(t[2], t[3])), on_line(ccev[1], APLine(t[1], incente
 <img src="../assets/img/triangles/derived_cevian.svg" alt="The cevian triangle and circumcevian triangle of the incenter" style="width:100%; max-width: 700px;">
 ```
 
+### A triangle around a circle
+
+[`circumscribed_triangle`](@ref)`(c, p1, p2, p3)` is the triangle whose sides
+touch the circle `c` at the three points, each side lying on the tangent at its
+point. Vertex `i` is opposite the side that touches at `p_i`, and `c` is the
+incircle of the result when the points are not in a half circle:
+
+```@example geo
+cc_t = APCircle2(APPoint(0.0, 0.0), 1.0)
+ps_t = [point_on_circle(cc_t, a) for a in (0.5, 2.5, 4.5)]
+tt_c = circumscribed_triangle(cc_t, ps_t...)
+isapprox(incircle(tt_c), cc_t; atol=1e-9)
+```
+
+```@raw html
+<img src="../assets/img/triangles/circumscribed.svg" alt="A circle with three points on it and the triangle whose sides touch the circle at them" style="width:100%; max-width: 700px;">
+```
+
+
 ## Inscribed squares
 
 [`square_inscribed`](@ref)`(t, i)` builds the square with one side on the

@@ -86,6 +86,29 @@ makes sense for an `APSegment`, [`slope_angle`](@ref) treats `APLine` and
 `APRay` as pointing one way and an `APSegment` as pointing from its first
 point to its second).
 
+## From a direction
+
+A line or a ray can also be built from a point and a direction, given as a
+vector or as an angle (radians, counterclockwise from the positive x-axis). A
+segment can be built from a point and a vector, or from a length and an angle:
+
+```@example geo
+p0 = APPoint(1.0, 1.0)
+APLine(p0, APVector(2.0, 1.0)), APLine(p0, pi / 6)
+```
+
+```@example geo
+APRay(p0, pi / 2), APSegment(p0, APVector(3.0, 0.0)), APSegment(p0, 5.0, pi / 3)
+```
+
+```@raw html
+<img src="../assets/img/points_lines/from_direction.svg" alt="A line from a point and a vector, a ray from a point and an angle and a segment from a point, a length and an angle" style="width:100%; max-width: 700px;">
+```
+
+The forms with a vector use the two points `p` and `p + v`, so `l.p2 - l.p1` is
+`v` itself. The forms with an angle use a unit vector. A zero vector raises an
+`ArgumentError`.
+
 ## Points vs. vectors
 
 A point minus a point is *still a point*, not a vector. `A - O` above
@@ -227,6 +250,46 @@ point_on_circle(c, 0.0), point_on_circle(c, pi / 2)
 
 ```@raw html
 <img src="../assets/img/points_lines/by_parameter.svg" alt="Points of a line at several parameters and points of a circle at several angles" style="width:100%; max-width: 700px;">
+```
+
+## By distance, by ratio and evenly spaced
+
+[`point_on_line`](@ref) takes a *fraction* of the way from the first point to
+the second. When you know a *length* instead, use [`point_at_distance`](@ref),
+which works on a line, a ray or a segment and goes the other way for a
+negative length. [`divide_segment`](@ref) cuts a segment in `n` equal parts, or
+finds the point that divides it in a ratio `m : n`, from outside when `n` is
+negative:
+
+```@example geo
+sg = APSegment(APPoint(0.0, 0.0), APPoint(8.0, 0.0))
+point_at_distance(sg, 6.5), divide_segment(sg, 4)
+```
+
+```@example geo
+divide_segment(sg, 1, 2), divide_segment(sg, 3, -1)   # 1 : 2 inside, 3 : -1 outside
+```
+
+```@raw html
+<img src="../assets/img/points_lines/divide_points.svg" alt="A segment with its three quarter points, the point at distance 6.5, the point that divides it 1 to 2 and the external point 3 to -1" style="width:100%; max-width: 700px;">
+```
+
+[`equally_spaced_points`](@ref)`(obj, n)` spreads `n` points along a curve:
+
+| Object | Points | Spacing |
+|:-------|:-------|:--------|
+| [`APSegment`](@ref) | both ends and the ones between, `n >= 2` | equal lengths |
+| [`APCircularArc2`](@ref) | both ends and the ones between, `n >= 2` | equal arc lengths |
+| [`APCircle2`](@ref) | `n` points, from the angle `start` | equal arc lengths |
+| [`APEllipse2`](@ref) | `n` points, from the parameter `start` | equal parameter, not equal arc length |
+
+```@example geo
+equally_spaced_points(APCircle2(APPoint(0.0, 0.0), 1.0), 4)
+```
+
+```@example geo
+arc_eq = APCircularArc2(APCircle2(APPoint(0.0, 0.0), 1.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
+equally_spaced_points(arc_eq, 3)
 ```
 
 ## Direction, slope and predicates
@@ -542,6 +605,30 @@ measure/display it) and don't want to unwrap it by hand first:
 ```@example geo
 rotate(P1, ang, O) == rotate(P1, measure(ang), O)   # true: same rotation, just driven by ang directly
 ```
+
+### Angles from a measure or from two lines
+
+[`angle_with_measure`](@ref)`(vertex, p, θ)` builds the angle whose first ray
+goes through `p` and whose second is `θ` radians counterclockwise from it, a
+negative `θ` opening it clockwise. `APAngle2(l1, l2)` is the angle at the point
+where two lines cross, from the direction of `l1` to the direction of `l2`,
+counterclockwise. It is more than a straight angle when `l2` is clockwise from
+`l1`, so swap the lines to get the other one:
+
+```@example geo
+a60 = angle_with_measure(APPoint(0.0, 0.0), APPoint(4.0, 0.0), pi / 3)
+rad2deg(measure(a60))
+```
+
+```@example geo
+la, lb = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
+rad2deg(measure(APAngle2(la, lb))), rad2deg(measure(APAngle2(lb, la)))
+```
+
+```@raw html
+<img src="../assets/img/points_lines/angle_from_measure.svg" alt="An angle of 60 degrees built from a ray and a measure, and the angle between two crossing lines" style="width:100%; max-width: 700px;">
+```
+
 
 ## Harmonic conjugate and the golden ratio point
 

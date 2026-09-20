@@ -1,0 +1,25 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+    c = APPoint(0.0, 0.0)
+    a1 = APSegment(APPoint(-6.0, -4.0), APPoint(6.0, 4.0))
+    a2 = APSegment(APPoint(-6.0, 4.0), APPoint(6.0, -4.0))
+    p = APPoint(3.0, 1.0)
+    @unbounded hh = hyperbola_with_asymptotes(APLine(a1.p1, a1.p2), APLine(a2.p1, a2.p2), p)
+    b1 = APHyperbolicArc2(hh, point_on_hyperbola(hh, -1.6), point_on_hyperbola(hh, 1.6))
+    b2 = APHyperbolicArc2(hh, point_on_hyperbola(hh, -1.6; branch=-1), point_on_hyperbola(hh, 1.6; branch=-1))
+end
+(; c, a1, a2, p, hh, b1, b2) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+gsave()
+setline(1); setdash("dash")
+sethue(julia_blue)
+path([a1, a2], action=:stroke)
+grestore()
+sethue(julia_blue)
+path([p]); plot_point(julia_blue)
+sethue(julia_purple)
+path([b1, b2], action=:stroke)
+sethue(julia_red)
+label("p", :S, p)
+end)

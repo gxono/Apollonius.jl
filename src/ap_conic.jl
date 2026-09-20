@@ -70,14 +70,11 @@ circle passes through all three.
 function APCircle2(p1::APPoint, p2::APPoint, p3::APPoint; atol=1e-9)
     is_collinear(p1, p2, p3; atol=atol) &&
         throw(ArgumentError("APCircle2: p1, p2, p3 must not be collinear (no finite circle through them)"))
-    x1, y1 = p1[1], p1[2]
-    x2, y2 = p2[1], p2[2]
-    x3, y3 = p3[1], p3[2]
-    d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
-    s1, s2, s3 = x1^2 + y1^2, x2^2 + y2^2, x3^2 + y3^2
-    ux = (s1 * (y2 - y3) + s2 * (y3 - y1) + s3 * (y1 - y2)) / d
-    uy = (s1 * (x3 - x2) + s2 * (x1 - x3) + s3 * (x2 - x1)) / d
-    center = APPoint(ux, uy)
+    # relative to p1, so the result does not degrade far from the origin
+    u, v = p2 - p1, p3 - p1
+    d = 2 * (u[1] * v[2] - u[2] * v[1])
+    u2, v2 = u[1]^2 + u[2]^2, v[1]^2 + v[2]^2
+    center = p1 + APVector((v[2] * u2 - u[2] * v2) / d, (u[1] * v2 - v[1] * u2) / d)
     return APCircle2(center, distance(center, p1))
 end
 Base.:(==)(a::APCircle2, b::APCircle2) = a.center == b.center && a.r == b.r
@@ -180,8 +177,10 @@ point_on_ellipse(e::APEllipse2, t::Real) = _from_ellipse_local(e.a * cos(t), e.b
 """
 function is_on_ellipse(p::APPoint, e::APEllipse2; atol=1e-9)
     lx, ly = _to_ellipse_local(p, e)
-    return abs((lx / e.a)^2 + (ly / e.b)^2 - 1) <= atol
+    return abs((lx / e.a)^2 + (ly / e.b)^2 - 1) <= atol + _implicit_noise(p, e.center, abs(lx) / e.a^2 + abs(ly) / e.b^2)
 end
+# rounding error that coordinates far from the origin carry into an implicit form whose gradient is `grad`
+_implicit_noise(p, c, grad) = 16 * eps(float(max(maximum(abs, p), maximum(abs, c)))) * grad
 area(e::APEllipse2) = pi * e.a * e.b
 function perimeter(e::APEllipse2)
     a, b = e.a, e.b
@@ -352,7 +351,7 @@ end
 """
 function is_on_hyperbola(p::APPoint, h::APHyperbola2; atol=1e-9)
     lx, ly = _to_hyperbola_local(p, h)
-    return abs((lx / h.a)^2 - (ly / h.b)^2 - 1) <= atol
+    return abs((lx / h.a)^2 - (ly / h.b)^2 - 1) <= atol + _implicit_noise(p, h.center, abs(lx) / h.a^2 + abs(ly) / h.b^2)
 end
 """
     foci(h::APHyperbola2)
