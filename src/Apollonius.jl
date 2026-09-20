@@ -48,7 +48,7 @@ include("ap_shape_constructors.jl")
 include("ap_elementary.jl")
 export polar_angle, center, radius, cross2, orthogonal
 include("ap_metrics.jl")
-export eccentricity, linear_eccentricity, semi_major, semi_minor, curvature, chord_length, sagitta, side_lengths, semiperimeter, signed_area, interior_angles
+export eccentricity, linear_eccentricity, semi_major, semi_minor, curvature, signed_curvature, chord_length, sagitta, side_lengths, semiperimeter, signed_area, interior_angles
 export point_at_distance, divide_segment, equally_spaced_points, angle_with_measure, fillet, round_corners, tangent_line, normal_line
 export regular_polygon_on_segment, rhombus_on_segment, square_from_diagonal, rectangle_from_diagonal, rectangle_with_center, square_with_center
 export isosceles_trapezoid_on_segment, right_trapezoid_on_segment, kite_on_diagonal, star_polygon, offset_polygon, circumscribed_triangle

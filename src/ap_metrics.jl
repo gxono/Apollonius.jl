@@ -73,6 +73,46 @@ function curvature(par::APParabola2, p::APPoint; atol=1e-9)
     return q^2 / (q^2 + x^2)^1.5
 end
 
+# central differences, one-sided (4 points) within a step of the ends of the range
+function _curve_derivatives(c::APParametricCurve2, t::Real)
+    lo, hi = c.trange
+    lo <= t <= hi || throw(ArgumentError("curvature: t = $t is outside the range $(c.trange)"))
+    h = 1e-4 * (hi - lo)
+    if t - h < lo || t + h > hi
+        σ = t - h < lo ? 1 : -1
+        f0 = c.f(t)
+        g1, g2, g3 = (c.f(t + σ * k * h) - f0 for k in 1:3)
+        return σ * (18 * g1 - 9 * g2 + 2 * g3) / (6h), (-5 * g1 + 4 * g2 - g3) / h^2
+    end
+    p0 = c.f(t)
+    a, b = c.f(t + h) - p0, c.f(t - h) - p0
+    return (a - b) / (2h), (a + b) / h^2
+end
+"""
+    signed_curvature(c::APParametricCurve2, t)
+
+The curvature of a parametric curve at parameter `t` with a sign: positive when
+the curve turns counterclockwise (to its left) as `t` grows, negative when it
+turns clockwise, and zero on a straight stretch. It is `(x′y″ − y′x″) / (x′² +
+y′²)^(3/2)`, with the derivatives found by finite differences, so it is
+approximate (about seven digits) and the curve must have a nonzero derivative at
+`t`.
+"""
+function signed_curvature(c::APParametricCurve2, t::Real)
+    d1, d2 = _curve_derivatives(c, t)
+    speed = norm(d1)
+    iszero(speed) && throw(ArgumentError("curvature: the curve has no direction at t = $t"))
+    return cross2(d1, d2) / speed^3
+end
+"""
+    curvature(c::APParametricCurve2, t)
+
+The curvature of a parametric curve at parameter `t`: the absolute value of
+[`signed_curvature`](@ref), computed numerically. The radius of the osculating
+circle is its inverse.
+"""
+curvature(c::APParametricCurve2, t::Real) = abs(signed_curvature(c, t))
+
 # ---- arcs ----
 """
     chord_length(arc)

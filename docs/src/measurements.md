@@ -11,9 +11,13 @@ this page puts them side by side and says what each one accepts.
 | You want | Function | Accepts |
 |:---------|:---------|:--------|
 | Distance | [`distance`](@ref) | points, lines, rays, segments, circles, conics, arcs, polylines, polygons, bounding boxes, angles, half-planes, strips |
-| Area | [`area`](@ref) | any polygon (including curvilinear ones), circle, ellipse |
-| Perimeter | [`perimeter`](@ref) | any polygon, circle, ellipse |
-| Length of a curve | [`arc_length`](@ref) | circular, elliptic, parabolic and hyperbolic arcs, polylines |
+| Area | [`area`](@ref), [`signed_area`](@ref) | any polygon (including curvilinear ones), circle, ellipse, bounding box; the signed one for straight polygons |
+| Perimeter | [`perimeter`](@ref), [`semiperimeter`](@ref) | any polygon, circle, ellipse, bounding box |
+| Length of a curve | [`arc_length`](@ref) | segments, circular, elliptic, parabolic and hyperbolic arcs, polylines |
+| Sides and angles of a polygon | [`side_lengths`](@ref), [`interior_angles`](@ref) | polygons; the angles for straight ones |
+| Shape of a conic | [`eccentricity`](@ref), [`linear_eccentricity`](@ref), [`semi_major`](@ref), [`semi_minor`](@ref), [`focal_parameter`](@ref) | ellipses, hyperbolas, parabolas |
+| Curvature | [`curvature`](@ref), [`signed_curvature`](@ref) | circles, circular arcs, conics at a point, parametric curves at a parameter |
+| Chord and sagitta | [`chord_length`](@ref), [`sagitta`](@ref) | arcs; the sagitta of circular arcs |
 | Angle swept | [`measure`](@ref) | angles, circular and elliptic arcs |
 | Angle between things | [`angle_at`](@ref), [`angle_between`](@ref), [`intersection_angle`](@ref), [`slope_angle`](@ref) | points, vectors, circles, lines |
 | Middle | [`midpoint`](@ref) | two points, a segment, any arc |
@@ -114,6 +118,77 @@ angle_at(v, APPoint(1.0, 0.0), APPoint(0.0, -1.0)), angle_between(APVector(1.0, 
 The first is the plain opening between the two rays, the second says the
 turn from the first vector to the second is clockwise. See
 [Points, Lines & Rays](@ref) for the angle type and its marks.
+
+## Shape of conics, arcs and polygons
+
+The eccentricity says how far a conic is from a circle: `0` for a circle, below
+`1` for an ellipse, `1` for a parabola and above `1` for a hyperbola.
+[`linear_eccentricity`](@ref) is the distance from the center to each focus.
+An ellipse stores the semi-axes `a` and `b` along its own axes, and either can
+be the longer, so [`semi_major`](@ref) and [`semi_minor`](@ref) give them by
+size.
+
+```@example geo
+el = APEllipse2(APPoint(0.0, 0.0), 3.0, 5.0)
+semi_major(el), semi_minor(el), linear_eccentricity(el), eccentricity(el)
+```
+
+```@raw html
+<img src="../assets/img/measurements/ellipse_axes.svg" alt="An ellipse with its semi-axes, its foci and the linear eccentricity" style="width:100%; max-width: 700px;">
+```
+
+[`curvature`](@ref) is `1 / r` for a circle or a circular arc and depends on
+the point for the other conics, which must lie on the curve. On an ellipse it
+is largest at the ends of the major axis:
+
+```@example geo
+curvature(el, APPoint(0.0, 5.0)), curvature(el, APPoint(3.0, 0.0))
+```
+
+For an [`APParametricCurve2`](@ref) the curvature is taken at a parameter `t` and
+computed numerically, to about seven digits. [`signed_curvature`](@ref) keeps
+the sign: positive where the curve turns counterclockwise as `t` grows and
+negative where it turns clockwise, so it also tells the two sides of an
+inflection point apart:
+
+```@example geo
+cubic = APParametricCurve2(t -> APPoint(t, t^3), (-1.0, 1.0))
+signed_curvature(cubic, -0.5), signed_curvature(cubic, 0.5), curvature(cubic, 0.0)
+```
+
+```@raw html
+<img src="../assets/img/measurements/curvature_cubic.svg" alt="A cubic curve with its osculating circles on both sides of the inflection point, one turning each way" style="width:100%; max-width: 700px;">
+```
+
+An arc has a [`chord_length`](@ref) (the distance between its endpoints) and,
+if it is circular, a [`sagitta`](@ref), the height of the arc over its chord:
+
+```@example geo
+circ3 = APCircle2(APPoint(0.0, 0.0), 3.0)
+bow = APCircularArc2(circ3, point_on_circle(circ3, π / 9), point_on_circle(circ3, 8π / 9))
+chord_length(bow), sagitta(bow), arc_length(bow)
+```
+
+```@raw html
+<img src="../assets/img/measurements/arc_chord_sagitta.svg" alt="A circular arc with its chord and its sagitta" style="width:100%; max-width: 700px;">
+```
+
+For a polygon, [`side_lengths`](@ref) lists the sides in order and
+[`interior_angles`](@ref) the angle at each vertex, above `π` at a reflex
+vertex. [`signed_area`](@ref) is positive when the vertices run
+counterclockwise, which is a quick test of their order:
+
+```@example geo
+L = APStraightNgon([APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(2.0, 1.0), APPoint(1.0, 1.0), APPoint(1.0, 2.0), APPoint(0.0, 2.0)])
+rad2deg.(interior_angles(L)), side_lengths(L), signed_area(L), semiperimeter(L)
+```
+
+```@raw html
+<img src="../assets/img/measurements/polygon_angles.svg" alt="An L-shaped polygon with the interior angle marked at each vertex, 270 degrees at the reflex one" style="width:100%; max-width: 700px;">
+```
+
+An [`APBoundingBox`](@ref) has an [`area`](@ref) and a [`perimeter`](@ref) too,
+next to its `bbox_width` and `bbox_height`.
 
 ## Points derived from an object
 

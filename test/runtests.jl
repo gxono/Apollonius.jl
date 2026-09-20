@@ -6182,4 +6182,13 @@ end
     @test side_lengths(L) ≈ [2.0, 1.0, 1.0, 1.0, 1.0, 2.0] && semiperimeter(L) ≈ 4
     bb = APBoundingBox(O, P(2.0, 3.0))
     @test area(bb) ≈ 6 && perimeter(bb) ≈ 10
+    circ = APParametricCurve2(t -> P(2cos(t), 2sin(t)), (0.0, 2π))
+    @test isapprox(curvature(circ, 1.0), 0.5; rtol=1e-6) && isapprox(signed_curvature(circ, 0.3), 0.5; rtol=1e-6)
+    cw = APParametricCurve2(t -> P(2cos(-t), 2sin(-t)), (0.0, 2π))
+    @test isapprox(signed_curvature(cw, 0.3), -0.5; rtol=1e-6)
+    par = APParametricCurve2(t -> P(t, t^2), (-2.0, 2.0))
+    @test isapprox(curvature(par, 0.0), 2.0; rtol=1e-6) && isapprox(curvature(par, 2.0), 2 / 17^1.5; rtol=1e-6)
+    @test isapprox(curvature(par, -2.0), 2 / 17^1.5; rtol=1e-6)
+    @test isapprox(signed_curvature(APParametricCurve2(t -> P(t, 2t), (0.0, 1.0)), 0.5), 0.0; atol=1e-6)
+    @test_throws ArgumentError curvature(par, 3.0)
 end
