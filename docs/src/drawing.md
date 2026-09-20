@@ -290,6 +290,61 @@ end
 <img src="../assets/img/triangles/tri_cen.svg" alt="" style="width:100%;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+        A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
+        triangle =  APTriangle(A, B, C)
+        G = centroid(triangle)
+        O = circumcenter(triangle)
+        I = incenter(triangle)
+        H = orthocenter(triangle)
+        l = euler_line(triangle)
+        lados = APLine.(sides(triangle))
+        @unbounded cc = circumcircle(triangle)
+        ic = incircle(triangle)
+        iv = projection.(I, lados)
+        npc = nine_point_circle(triangle)
+        npc_c = nine_point_center(triangle)
+        ep = collect(euler_points(triangle))
+        ips = reduce(vcat, intersection.(npc, lados))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue("gray80")
+    @layer begin
+        setline(1); setdash(:dash)
+        path([cc, ic, APSegment.([O,I], [A,iv[2]])...], action=:stroke)
+    end
+
+    sethue(julia_purple)
+    path([l, npc], action=:stroke)
+    sethue(julia_blue)
+    path(triangle, action=:stroke)
+
+    sethue("white")
+    path([G,O,I,H,[iv; ips; ep]...], action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+    sethue("white")
+    path([A,B,C], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path(npc_c, action=:fillpreserve)
+    sethue("gray80"); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 !!! warning "A block with no extent cannot be fitted to a width"
     If everything in the block has zero size, a single point for example, and `width` or `height` is given, the scale would be infinite and the macro throws an `ArgumentError`. Add another object, or drop `width` and `height`.
 
@@ -306,8 +361,9 @@ the fact, a point from unrelated data, ...):
 lxm, lxo = @to_luxor_picture width=300.0 margin=10.0 begin
     t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
     circ = APCircle2(APPoint(4.0, 1.0), 4.0)
+    cp = centroid(t)
 end
-lxm.fct(centroid(t))   # matches where `centroid(lxo.t)` lands, since t was never re-transformed itself
+lxm.fct(centroid(t)) ≈ cp   # true
 ```
 
 ### The drawable area itself: `lxm.bb`
@@ -540,6 +596,33 @@ path(l; extend=0.0, as=:arrow, arrowheadlength=15)   # extend=0.0: the exact fin
 <img src="../assets/img/drawing/arrows.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+        s = APSegment(APPoint(-80.0, 0.0), APPoint(80.0, 0.0))
+        l = APLine(APPoint(0.0, -60.0), APPoint(0.0, 60.0))
+        d = translate(s, APVector(0.0, 40.0))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(s, as=:arrow)
+    path(l, extend=0.0, as=:arrow, arrowheadlength=15)
+    path(d, as=:doublearrow)
+
+    finish()
+    preview()
+    end
+    ```
+
 This is the one case where `path` doesn't just add to the current path:
 Luxor's `arrow` always strokes the shaft and fills the arrowhead
 immediately, with no deferred form, so `action` is ignored when
@@ -580,6 +663,40 @@ path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
 ```@raw html
 <img src="../assets/img/drawing/angles.svg" alt="" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Apollonius: translate
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
+        t = APTriangle(APPoint(-80.0, 60.0), APPoint(80.0, 60.0), APPoint(-20.0, -80.0))
+        ang = APAngle2(t[2], t[1], t[3])
+        tv = translate.(t, APVector.([0, 200, 400, 600, 800], 0))
+        angv = translate.(ang, APVector.([0, 200, 400, 600, 800], 0))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(tv, action=:stroke)
+
+    sethue(julia_purple)
+    path(angv[1]; as=:rays, action=:stroke)
+    path(angv[2]; as=:arc, action=:stroke)
+    path(angv[3]; as=:sector, action=:fill)
+    path(angv[4]; as=:rarc, action=:stroke)
+    path(angv[5]; as=:rsector, action=:fill)
+
+    finish()
+    preview()
+    end
+    ```
 
 `radius` defaults to `0.15` times the shorter of the distances from the
 vertex to `ang.a` and `ang.b`, so it looks reasonable at the figure's own
@@ -698,6 +815,51 @@ path(arc; reverse=true, action=:stroke)   # the same arc, dashes starting at arc
 <img src="../assets/img/drawing/path_reverse.svg" alt="The same segment drawn with an arrow forward and reversed" style="width:100%; max-width: 700px;">
 ```
 
+
+```@raw html
+<img src="../assets/img/drawing/oe_rule.svg" style="width:100%;">
+```
+
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Apollonius: translate
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
+        ta1 = APTriangle(APPoint(-80.0, 60.0), APPoint(80.0, 60.0), APPoint(-20.0, -80.0))
+        ca = circumcenter(ta1)
+        ta2 = homothety(ta1, 1/2, ca)
+        tb1, cb, tb2 = translate.([ta1, ca, ta2], APVector(200.0, 0))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    @layer begin
+        setopacity(0.25)
+        path([ta1])
+        path(ta2)
+        fillpath()
+        
+        path(tb1)
+        path(tb2, reverse=true) #see fill-rule on Luxor doc.
+        fillpath()
+    end
+
+    path([ta1, ta2, tb1, tb2], action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
+
+
 !!! warning "`reverse=true` is not `reverse(obj)`"
     [`reverse`](@ref)`(obj)` builds a new object. For a circular or elliptic arc that object is the *complementary* arc, the rest of the circle. `path(arc; reverse=true)` draws the same arc, from the other end.
 
@@ -808,7 +970,7 @@ and to the previous circle of the chain, another call to `tangent_circles`, and
 the chain stops when the radius falls to `Δr`. Every circle then gives up `Δr`
 of its radius, which opens the gaps between them, and drawing the chain three
 times, [`rotate`](@ref)d by 120° each time and one color per copy, completes the
-figure:
+figure. For a more detailed explanation, see the Examples section.
 
 ```julia
 begin
@@ -877,19 +1039,14 @@ that call site:
 
 * Qualify it explicitly: `Apollonius.midpoint(...)` or
   `Luxor.rotate(...)`.
-* In your own scripts (not needed just to follow this page), prefer
-  `using Apollonius` together with `import Luxor` instead of
-  `using Luxor`; then only `Apollonius`'s bindings are unqualified,
-  and every Luxor call is written as `Luxor.something`, which sidesteps
-  the ambiguity entirely rather than resolving it case by case. This is
-  the convention this package's own test suite uses internally.
-* Or the other way around: plain `using Apollonius` (every one of
-  its names unqualified, colliding or not), plus `using Luxor: f1, f2, ...`
-  naming only the handful of Luxor functions actually called, instead of
-  blanket `using Luxor`, since `distance`/`rotate` are then never brought
-  in from Luxor at all, there's no collision left to resolve. Add a plain
-  `import Luxor` alongside so `Luxor.something` (e.g. `Luxor.julia_green`)
-  still works for anything not explicitly named. This is what the logo
-  example above does: `using Luxor: Drawing, origin, sethue, finish` for
-  the few Luxor calls it makes, `Apollonius` dominant and
-  unqualified everywhere else.
+
+* The recommended approach is to import both packages normally and explicitly import the conflicting bindings from Apollonius:
+  ```julia
+  using Apollonius
+  using Luxor
+  import Apollonius: midpoint, rotate, translate
+  ```
+  This makes the Apollonius versions available unqualified at the call site,
+  while the corresponding Luxor functions remain available as
+  `Luxor.midpoint`, `Luxor.rotate`, etc. For names that do not conflict,
+  both packages can still be used normally.

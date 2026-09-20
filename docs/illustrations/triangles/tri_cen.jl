@@ -19,22 +19,24 @@ end
 (; A, B, C, triangle, G, O, I, H, l, lados, cc, ic, iv, npc, npc_c, ep, ips) = lxo
 @svg_doc(lxm, @__FILE__, begin
 sethue("gray80")
-gsave()
-setline(1)
-setdash(:dash)
-path([cc, ic], action=:stroke)
-path(APSegment(O, A), action=:stroke)
-path(APSegment(I, iv[2]), action=:stroke)
-grestore()
+@layer begin
+	setline(1); setdash(:dash)
+	path([cc, ic, APSegment.([O,I], [A,iv[2]])...], action=:stroke)
+end
+
 sethue(julia_purple)
 path([l, npc], action=:stroke)
 sethue(julia_blue)
 path(triangle, action=:stroke)
-path(iv)
-path(ips)
-newsubpath()
-path([G,O,I,H]); plot_point(julia_purple)
-path([A,B,C]); plot_point(julia_blue)
-path(npc_c); plot_point("gray80")
-path(ep); plot_point(julia_purple)
+
+sethue("white")
+path([G,O,I,H,[iv; ips; ep]...], action=:fillpreserve)
+sethue(julia_purple); strokepath()
+sethue("white")
+path([A,B,C], action=:fillpreserve)
+sethue(julia_blue); strokepath()
+sethue("white")
+path(npc_c, action=:fillpreserve)
+sethue("gray80"); strokepath()
 end)
+
