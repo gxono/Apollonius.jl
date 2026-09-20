@@ -100,6 +100,41 @@ length(two_ticks), only(marks(s; style=:circle, size=2.0))
 <img src="../assets/img/decorations/marks_segment.svg" alt="The five mark styles on a segment, two marks each" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    styles = [:tick, :slash, :chevron, :cross, :circle]
+    lxm = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin  
+        segs = [APSegment(APPoint(4.0, 2.0 * (5 - i)), APPoint(10.0, 2.0 * (5 - i))) for i in 1:5]
+        names = [APPoint(0.0, 2.0 * (5 - i)) for i in 1:5]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(segs, action=:stroke)
+
+    sethue(julia_purple)
+    for (s, style) in zip(segs, styles)
+        path(marks(s; count=2, style=style, size=20, gap=12); action=:stroke)
+    end
+
+    sethue(julia_red)
+    for (p, style) in zip(names, styles)
+        label(":" * string(style), :E, p)
+    end
+
+    finish()
+    preview()
+    end
+    ```
+
+
 Marks lie on the tangent at `at`, so with a small `gap` they follow the
 curve closely. On a circular arc a tick lies along a radius:
 
@@ -111,6 +146,35 @@ on_line(circ.center, APLine(tick.p1, tick.p2))
 ```@raw html
 <img src="../assets/img/decorations/marks_arc.svg" alt="A tick, two chevrons and a circle on an arc" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        arc = APCircularArc2(APCircle2(APPoint(0.0, 0.0), 5.0), APPoint(5.0, 0.0), APPoint(-5.0, 0.0))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(arc, action=:stroke)
+
+    sethue(julia_purple)
+    path(marks(arc; at=0.2, count=1, style=:tick, size=14); action=:stroke)
+    path(marks(arc; at=0.5, count=2, style=:chevron, size=14, gap=9); action=:stroke)
+    path(marks(arc; at=0.8, count=1, style=:circle, size=10); action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
+
 
 !!! warning "Sizes are in the units of the object"
     `size` and `gap` use the units of the object you pass. On the original coordinates of a small figure the default mark, 6 units long, can be longer than the side it marks. Decorate the fitted objects, as in [Workflow: From Construction to Figure](@ref).
@@ -138,9 +202,43 @@ arcs = marks(ang; count=2, size=0.8, gap=0.3)
 [a.circle.r for a in arcs]
 ```
 
+
 ```@raw html
 <img src="../assets/img/decorations/marks_angle.svg" alt="One, two and three arcs on an angle" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+        angs = [APAngle2(
+                    APPoint(8.0 * (i - 1), 0.0), 
+                    APPoint(8.0 * (i - 1) + 6.0, 0.0), 
+                    APPoint(8.0 * (i - 1) + 4.0, 4.0)) for i in 1:3]
+        rays = [APSegment(a.vertex, x) for a in angs for x in (a.a, a.b)] #for bb
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(rays, action=:stroke)
+
+    sethue(julia_purple)
+    for (i, a) in enumerate(angs)
+        path(marks(a; count=i, size=26, gap=6); action=:stroke)
+    end
+
+    finish()
+    preview()
+    end
+    ```
+
 
 To combine arcs and a symbol, pass `arcs`: the result has that many
 concentric arcs plus the symbols, centered between the first and the last
@@ -157,6 +255,37 @@ In the first panel `arcs=2` puts a tick across two arcs. The other five panels s
 ```@raw html
 <img src="../assets/img/decorations/marks_angle_symbols.svg" alt="Arcs with a tick, and each symbol style on an angle" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    styles = [:tick, :slash, :chevron, :cross, :circle]
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        angs = [APAngle2(APPoint(8.0 * mod(i - 1, 3), -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 6.0, -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 4.0, 4.0 - 6.0 * fld(i - 1, 3))) for i in 1:6]
+        rays = [APSegment(a.vertex, x) for a in angs for x in (a.a, a.b)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(rays, action=:stroke)
+
+    sethue(julia_purple)
+    path(marks(angs[1]; style=:tick, arcs=2, size=26, gap=6); action=:stroke)
+
+    for (a, style) in zip(angs[2:end], styles)
+        path(marks(a; count=2, style=style, size=36, mark_size=16, gap=13); action=:stroke)
+    end
+
+    finish()
+    preview()
+    end
+    ```
 
 !!! warning "The order of the rays matters"
     An [`APAngle2`](@ref) is the wedge swept counterclockwise from `a` to `b`, and the marks go on that wedge. Swapping `a` and `b` marks the other one. If you give the points in drawn coordinates (`y` downward), the counterclockwise wedge looks reversed on the screen.
@@ -193,6 +322,45 @@ isapprox(head[1], arc.p2; atol=1e-9)
 <img src="../assets/img/decorations/arrow_heads.svg" alt="The three arrowhead styles on segments, and a tip arrow on an arc" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        segs = [APSegment(APPoint(0.0, 2.0 * (3 - i)), APPoint(7.0, 2.0 * (3 - i))) for i in 1:3]
+        names = [APPoint(-2.5, 2.0 * (3 - i)) for i in 1:3]
+        arc = APCircularArc2(
+                        APCircle2(APPoint(11.0, 0.0), 3.0), 
+                        APPoint(14.0, 0.0), 
+                        APPoint(8.0, 0.0))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path([segs..., arc], action=:stroke)
+
+    sethue(julia_purple)
+    path(arrow_head(segs[1]; style=:triangle, size=14); action=:fill)
+    path(arrow_head(segs[2]; style=:stealth, size=14); action=:fill)
+    path(arrow_head(segs[3]; style=:open, size=14); action=:stroke)
+    path(arrow_head(arc; at=1.0, place=:tip, size=14); action=:fill)
+
+    sethue(julia_red)
+    for (p, style) in zip(names, (:triangle, :stealth, :open))
+        label(":" * string(style), :E, p)
+    end
+
+    finish()
+    preview()
+    end
+    ```
+
+
 ## Braces: `brace` and `brace_anchor`
 
 [`brace`](@ref)`(p1, p2)` is a curly brace along the segment, `height`
@@ -210,6 +378,40 @@ count(x -> x isa APCircularArc2, b), count(x -> x isa APSegment, b)
 ```@raw html
 <img src="../assets/img/decorations/braces.svg" alt="Braces on the left and right of a segment, horizontal and diagonal, with labels" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        s1 = APSegment(APPoint(0.0, 4.0), APPoint(7.0, 4.0))
+        s2 = APSegment(APPoint(0.0, 0.0), APPoint(7.0, 0.0))
+        s3 = APSegment(APPoint(10.0, 0.0), APPoint(13.0, 5.0))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path([s1, s2, s3], action=:stroke)
+
+    sethue(julia_purple)
+    path(brace(s1.p1, s1.p2; height=14, side=:left); action=:stroke)
+    path(brace(s2.p1, s2.p2; height=14, side=:right); action=:stroke)
+    path(brace(s3.p1, s3.p2; height=14, side=:right); action=:stroke)
+
+    sethue(julia_red)
+    label("a", brace_anchor(s1.p1, s1.p2; height=14, side=:left)...)
+    label("b", brace_anchor(s2.p1, s2.p2; height=14, side=:right)...)
+    label("c", brace_anchor(s3.p1, s3.p2; height=14, side=:right)...)
+
+    finish()
+    preview()
+    end
+    ```
 
 [`brace_anchor`](@ref) with the same arguments gives the point of the brace
 and the alignment that puts a label beyond it; see the next section.
@@ -251,6 +453,45 @@ t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
 <img src="../assets/img/decorations/label_anchor.svg" alt="A triangle with vertex, side and angle labels placed outside" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        sides = [APSegment(A, B), APSegment(B, C), APSegment(C, A)]
+        ang = APAngle2(A, B, C)
+    end
+
+    G = centroid(t)
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+
+    sethue(julia_purple)
+    path(marks(ang; count=1, size=40); action=:stroke)
+
+    sethue(julia_red)
+    for (v, n) in zip(vertices(t), ("A", "B", "C"))
+        label(n, label_anchor(v, G)...)
+    end
+    for (s, n) in zip(sides, ("c", "a", "b"))
+        label(n, label_anchor(s; side=:right)...)
+    end
+
+    label("α", label_anchor(ang; dist=20)...)
+
+    finish()
+    preview()
+    end
+    ```
+
 !!! warning "Compass directions and sides are read as drawn"
     `:N` is above the point and `:left` is the left of the direction of travel as seen on the screen, with `y` growing downward. Call [`label_anchor`](@ref) and [`brace_anchor`](@ref) on the fitted objects. On coordinates with `y` upward the same call gives the mirrored answer.
 
@@ -280,6 +521,48 @@ length(grid_lines(bb)), length(grid_lines(bb; step=0.5)), length(axes_lines(bb))
 ```@raw html
 <img src="../assets/img/decorations/guides_grid.svg" alt="A grid, the axes and dotted coordinate guides for a point" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        grid = grid_lines(APBoundingBox(APPoint(-1.0, -1.0), APPoint(7.0, 5.0)); step=1.0)
+        axes = axes_lines(APBoundingBox(APPoint(-1.0, -1.0), APPoint(7.0, 5.0)))
+        P = APPoint(4.0, 3.0)
+        guides = coordinate_guides(P)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+    setline(1); sethue("gray80")
+    path(grid, action=:stroke)
+    end
+
+    sethue(julia_blue)
+    path(axes, action=:stroke)
+
+    @layer begin
+    setline(5); setdash("dot"); sethue(julia_purple)
+    path(guides, action=:stroke)
+    end
+
+    sethue(julia_red)
+    label("P", :NE, P)
+
+    sethue("white")
+    path(P, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 !!! warning "The grid is anchored at the origin of the coordinates it receives"
     [`grid_lines`](@ref) puts its lines at whole multiples of the step, measured from the origin of the box you give it. Build the grid inside the block that is fitted, in your own coordinates, so the lines fall where the axes are. From an already fitted box, the multiples are in drawing units.
@@ -332,6 +615,49 @@ Put together, the pieces make a figure like this one: an isosceles triangle with
 ```@raw html
 <img src="../assets/img/decorations/full_figure.svg" alt="An isosceles triangle with marks, an arrow, a brace and labels" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(10.0, 0.0), APPoint(5.0, 6.0)
+        t = APTriangle(A, B, C)
+        base, right, left = sides(t)
+        angA = APAngle2(A, B, C)
+        angB = APAngle2(B, C, A)
+        G = centroid(t)
+    end
+
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+
+    sethue(julia_purple)
+    path(marks(left; size=14); action=:stroke)
+    path(marks(right; size=14); action=:stroke)
+    path(marks(angA; count=2, size=34, gap=6); action=:stroke)
+    path(marks(angB; count=2, size=34, gap=6); action=:stroke)
+    path(arrow_head(base; at=0.2, size=12); action=:fill)
+    path(brace(base.p1, base.p2; height=12, side=:right); action=:stroke)
+
+    sethue(julia_red)
+    label("b", brace_anchor(base.p1, base.p2; height=12, side=:right)...)
+    for (v, n) in zip(vertices(t), ("A", "B", "C"))
+        label(n, label_anchor(v, G)...)
+    end
+
+    finish()
+    preview()
+    end
+    ```
+
 
 The `label` method for `APPoint`s and the `dimension` and `tickline`
 wrappers come with the Luxor extension; see [Drawing with Luxor.jl](@ref).

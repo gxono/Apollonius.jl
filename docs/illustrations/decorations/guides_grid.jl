@@ -7,20 +7,23 @@ lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
 end
 (; grid, axes, P, guides) = lxo
 @svg_doc(lxm, @__FILE__, begin
-Luxor.fontsize(14)
-gsave()
-setline(1)
-sethue("gray80")
+@layer begin
+setline(1); sethue("gray80")
 path(grid, action=:stroke)
-grestore()
+end
+
 sethue(julia_blue)
 path(axes, action=:stroke)
-gsave()
-setline(1); setdash("dot")
-sethue(julia_purple)
+
+@layer begin
+setline(5); setdash("dot"); sethue(julia_purple)
 path(guides, action=:stroke)
-grestore()
+end
+
 sethue(julia_red)
 label("P", :NE, P)
-path(P); plot_point(julia_blue)
+
+sethue("white")
+path(P, action=:fillpreserve)
+sethue(julia_blue); strokepath()
 end)

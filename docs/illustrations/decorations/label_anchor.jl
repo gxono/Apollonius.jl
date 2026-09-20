@@ -11,8 +11,10 @@ G = centroid(t)
 Luxor.fontsize(15)
 sethue(julia_blue)
 path(t, action=:stroke)
+
 sethue(julia_purple)
-path(marks(ang; count=1, size=24); action=:stroke)
+path(marks(ang; count=1, size=40); action=:stroke)
+
 sethue(julia_red)
 for (v, n) in zip(vertices(t), ("A", "B", "C"))
     label(n, label_anchor(v, G)...)
@@ -20,5 +22,6 @@ end
 for (s, n) in zip(sides, ("c", "a", "b"))
     label(n, label_anchor(s; side=:right)...)
 end
-label("α", label_anchor(ang; dist=48)...)
+
+label("α", label_anchor(ang; dist=20)...)
 end)
