@@ -490,8 +490,8 @@ ko = kc.center
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given(kc) # hide
-    fig_dots([ko, kp], julia_blue) # hide
     fig_tags(("O", :SW, ko), ("P", :N, kp)) # hide
+    fig_dots([ko, kp], julia_blue) # hide
 end # hide
 ```
 
@@ -507,9 +507,9 @@ distance(km, kp) ≈ distance(km, ko)
 fig_draw(500, figH) do # hide
     fig_given(kc) # hide
     fig_aid(kthales) # hide
+    fig_tags(("O", :SW, ko), ("P", :N, kp), ("M", :S, km)) # hide
     fig_dots([ko, kp], julia_blue) # hide
     fig_dots([km], julia_green) # hide
-    fig_tags(("O", :SW, ko), ("P", :N, kp), ("M", :S, km)) # hide
 end # hide
 ```
 
@@ -524,9 +524,9 @@ all(t -> is_perpendicular(APLine(t, ko), APLine(t, kp)), kT)
 fig_draw(500, figH) do # hide
     fig_given(kc) # hide
     fig_aid([kthales, APSegment(ko, kT[1]), APSegment(ko, kT[2])]) # hide
+    fig_tags(("O", :SW, ko), ("P", :N, kp)) # hide
     fig_dots([ko, kp], julia_blue) # hide
     fig_dots(kT, julia_purple) # hide
-    fig_tags(("O", :SW, ko), ("P", :N, kp)) # hide
 end # hide
 ```
 
@@ -541,9 +541,9 @@ all(l -> line_circle_position(l, kc) == :tangent, ktl)
 fig_draw(500, figH) do # hide
     fig_given(kc) # hide
     fig_result([APSegment(kp, t) for t in kT]) # hide
+    fig_tags(("O", :SW, ko), ("P", :N, kp)) # hide
     fig_dots([ko, kp], julia_blue) # hide
     fig_dots(kT, julia_purple) # hide
-    fig_tags(("O", :SW, ko), ("P", :N, kp)) # hide
 end # hide
 ```
 
@@ -573,8 +573,8 @@ nothing # hide
 
 ```@example geo
 fig_draw(500, figH) do # hide
-    fig_dots([qa, qb, qc], julia_blue) # hide
     fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
+    fig_dots([qa, qb, qc], julia_blue) # hide
 end # hide
 ```
 
@@ -588,8 +588,8 @@ distance(qa, qm1) ≈ distance(qb, qm1)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_aid(qm1) # hide
-    fig_dots([qa, qb, qc], julia_blue) # hide
     fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
+    fig_dots([qa, qb, qc], julia_blue) # hide
 end # hide
 ```
 
@@ -603,8 +603,8 @@ distance(qb, qm2) ≈ distance(qc, qm2)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_aid([qm1, qm2]) # hide
-    fig_dots([qa, qb, qc], julia_blue) # hide
     fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
+    fig_dots([qa, qb, qc], julia_blue) # hide
 end # hide
 ```
 
@@ -618,9 +618,9 @@ distance(qo, qa) ≈ distance(qo, qb) ≈ distance(qo, qc)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_aid([qm1, qm2]) # hide
+    fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
     fig_dots([qa, qb, qc], julia_blue) # hide
     fig_dots([qo], julia_purple) # hide
-    fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
 end # hide
 ```
 
@@ -635,9 +635,9 @@ isapprox(qres, qci; atol=1e-9)
 fig_draw(500, figH) do # hide
     fig_aid([qm1, qm2]) # hide
     fig_result(qres) # hide
+    fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
     fig_dots([qa, qb, qc], julia_blue) # hide
     fig_dots([qo], julia_purple) # hide
-    fig_tags(("a", :SW, qa), ("b", :SE, qb), ("c", :N, qc)) # hide
 end # hide
 ```
 
@@ -701,9 +701,9 @@ power_of_point(rm, r1) ≈ power_of_point(rm, r2) ≈ power_of_point(rm, rk)
 fig_draw(500, figH) do # hide
     fig_given([r1, r2]) # hide
     fig_aid([rk, rl1, rl2]) # hide
+    fig_tags(("M", :NE, rm)) # hide
     fig_dots([rp; rq], julia_green) # hide
     fig_dots([rm], julia_purple) # hide
-    fig_tags(("M", :NE, rm)) # hide
 end # hide
 ```
 
@@ -719,9 +719,9 @@ fig_draw(500, figH) do # hide
     fig_given([r1, r2]) # hide
     fig_aid([APLine(r1.center, r2.center)]) # hide
     fig_result(raxis) # hide
+    fig_tags(("M", :NE, rm)) # hide
     fig_dots([r1.center, r2.center], julia_blue) # hide
     fig_dots([rm], julia_purple) # hide
-    fig_tags(("M", :NE, rm)) # hide
 end # hide
 ```
 
@@ -1130,8 +1130,8 @@ fang < pi
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given(APPolyline2(fa, fv, fb)) # hide
-    fig_dots([fa, fv, fb], julia_blue) # hide
     fig_tags(("a", :SW, fa), ("v", :S, fv), ("b", :N, fb)) # hide
+    fig_dots([fa, fv, fb], julia_blue) # hide
 end # hide
 ```
 
@@ -1146,8 +1146,8 @@ on_ray(fbis.through, fbis)
 fig_draw(500, figH) do # hide
     fig_given(APPolyline2(fa, fv, fb)) # hide
     fig_aid(fbis) # hide
-    fig_dots([fa, fv, fb], julia_blue) # hide
     fig_tags(("a", :SW, fa), ("v", :S, fv), ("b", :N, fb)) # hide
+    fig_dots([fa, fv, fb], julia_blue) # hide
 end # hide
 ```
 
@@ -1163,9 +1163,9 @@ fo = fv + (fr / sin(fang / 2)) * normalize(fbis.through - fv)
 fig_draw(500, figH) do # hide
     fig_given(APPolyline2(fa, fv, fb)) # hide
     fig_aid([fbis, APCircle2(fo, fr)]) # hide
+    fig_tags(("v", :S, fv), ("o", :N, fo)) # hide
     fig_dots([fa, fv, fb], julia_blue) # hide
     fig_dots([fo], julia_green) # hide
-    fig_tags(("v", :S, fv), ("o", :N, fo)) # hide
 end # hide
 ```
 
@@ -1180,10 +1180,10 @@ distance(fo, ft1) ≈ fr ≈ distance(fo, ft2)
 fig_draw(500, figH) do # hide
     fig_given(APPolyline2(fa, fv, fb)) # hide
     fig_aid([APCircle2(fo, fr), APSegment(fo, ft1), APSegment(fo, ft2)]) # hide
+    fig_tags(("t1", :S, ft1), ("t2", :E, ft2)) # hide
     fig_dots([fa, fv, fb], julia_blue) # hide
     fig_dots([fo], julia_green) # hide
     fig_dots([ft1, ft2], julia_purple) # hide
-    fig_tags(("t1", :S, ft1), ("t2", :E, ft2)) # hide
 end # hide
 ```
 
@@ -1200,9 +1200,9 @@ fchain = measure(farc) < pi ? APCurvilinearPolyline2([APSegment(fa, ft1), farc, 
 fig_draw(500, figH) do # hide
     fig_faint(APPolyline2(fa, fv, fb)) # hide
     fig_result(fchain) # hide
+    fig_tags(("a", :SW, fa), ("b", :N, fb)) # hide
     fig_dots([fa, fb], julia_blue) # hide
     fig_dots([ft1, ft2], julia_purple) # hide
-    fig_tags(("a", :SW, fa), ("b", :N, fb)) # hide
 end # hide
 ```
 

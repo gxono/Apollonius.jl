@@ -11,6 +11,5 @@ sethue(julia_purple)
 for f in frames
     path(APEquipollentVector(30 * f.vector, f.point); as=:arrow, action=:stroke)
 end
-path([f.point for f in frames])
-plot_point(julia_purple)
+path([f.point for f in frames]); plot_point(julia_purple)
 end)

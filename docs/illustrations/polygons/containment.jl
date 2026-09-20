@@ -8,7 +8,7 @@ end
 sethue(julia_blue)
 path(pg, action=:stroke)
 sethue(julia_purple)
-path([p for p in pts if point_in_polygon(p, pg)]); plot_point(julia_purple)
 sethue("gray80")
+path([p for p in pts if point_in_polygon(p, pg)]); plot_point(julia_purple)
 path([p for p in pts if !point_in_polygon(p, pg)]); plot_point("gray80")
 end)

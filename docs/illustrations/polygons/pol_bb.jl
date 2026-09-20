@@ -5,13 +5,10 @@ end
 (; pg) = lxo
 bb = APBoundingBox(pg)
 @svg_doc(lxm, @__FILE__, begin
-path(bbox_center(bb))
-plot_point(julia_purple)
 path(bb, action=:stroke)
 sethue(julia_blue)
 path(pg, action=:stroke)
-path(vertices(pg))
-plot_point(julia_blue)
-path([bb.min, bb.max])
-plot_point(julia_purple)
+path(bbox_center(bb)); plot_point(julia_purple)
+path(vertices(pg)); plot_point(julia_blue)
+path([bb.min, bb.max]); plot_point(julia_purple)
 end)

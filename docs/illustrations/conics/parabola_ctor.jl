@@ -9,9 +9,9 @@ end
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
 sethue(julia_blue)
-path([p1, p2, p3]); plot_point(julia_blue)
 sethue(julia_purple)
 path(arc, action=:stroke)
 sethue(julia_red)
 label("p1", :NE, p1); label("p2", :SE, p2); label("p3", :NW, p3)
+path([p1, p2, p3]); plot_point(julia_blue)
 end)

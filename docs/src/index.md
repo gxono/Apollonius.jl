@@ -91,15 +91,16 @@ pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
     sethue(julia_green); setdash(:dash)
     path(APSegment(circle1.center, el1.p1), action = :stroke)
 
-    sethue("white"); setdash(:solid)
+    sethue(julia_red); setdash(:solid)
+    label("A", :NW, circle1.center)
+
+    # the points go last, over everything else
+    sethue("white")
     path(pts, action=:fillpreserve)
     sethue(julia_purple); strokepath()
     sethue("white")
     path([circle1.center, circle2.center], action=:fillpreserve)
     sethue(julia_blue); strokepath()
-
-    sethue(julia_red)
-    label("A", :NW, circle1.center)
 end lxm.width lxm.height
 ```
 

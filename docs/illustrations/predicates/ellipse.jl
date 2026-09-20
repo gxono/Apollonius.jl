@@ -10,7 +10,7 @@ end
 sethue(julia_blue)
 path(e, action=:stroke)
 sethue(julia_purple)
-path(onp); plot_point(julia_purple)
 sethue("gray80")
+path(onp); plot_point(julia_purple)
 path([inside, outside]); plot_point("gray80")
 end)

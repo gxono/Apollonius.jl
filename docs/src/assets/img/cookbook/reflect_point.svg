@@ -12,8 +12,6 @@
 </defs>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-dasharray="4 4" stroke-miterlimit="10" d="M 360 250 L 140 30 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M -142.84375 532.84375 L 496.175781 -106.175781 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 363 250 C 363 251.65625 361.65625 253 360 253 C 358.34375 253 357 251.65625 357 250 C 357 248.34375 358.34375 247 360 247 C 361.65625 247 363 248.34375 363 250 Z M 363 250 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 143 30 C 143 31.65625 141.65625 33 140 33 C 138.34375 33 137 31.65625 137 30 C 137 28.34375 138.34375 27 140 27 C 141.65625 27 143 28.34375 143 30 Z M 143 30 "/>
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-0" x="355.828857" y="262.954102"/>
 </g>
@@ -21,4 +19,6 @@
 <use xlink:href="#glyph-0-0" x="124.49707" y="35.368652"/>
 <use xlink:href="#glyph-0-1" x="132.839355" y="35.368652"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 363 250 C 363 251.65625 361.65625 253 360 253 C 358.34375 253 357 251.65625 357 250 C 357 248.34375 358.34375 247 360 247 C 361.65625 247 363 248.34375 363 250 Z M 363 250 "/>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 143 30 C 143 31.65625 141.65625 33 140 33 C 138.34375 33 137 31.65625 137 30 C 137 28.34375 138.34375 27 140 27 C 141.65625 27 143 28.34375 143 30 Z M 143 30 "/>
 </svg>

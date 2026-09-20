@@ -7,6 +7,5 @@ end
 @svg_doc(lxm, @__FILE__, begin
     sethue(julia_blue)
     path([c1, c2, l1, l2], action = :stroke)
-    path(collect(Iterators.flatten([l1,l2])))
-    plot_point(julia_blue)
+    path(collect(Iterators.flatten([l1,l2]))); plot_point(julia_blue)
 end)

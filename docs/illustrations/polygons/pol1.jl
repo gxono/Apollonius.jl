@@ -6,8 +6,6 @@ end
 @svg_doc(lxm, @__FILE__, begin
 sethue(julia_blue)
 path(pg, action=:stroke)
-path(vertices(pg))
-plot_point(julia_blue)
-path(centroid(pg))
-plot_point(julia_purple)
+path(vertices(pg)); plot_point(julia_blue)
+path(centroid(pg)); plot_point(julia_purple)
 end)

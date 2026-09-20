@@ -13,12 +13,12 @@
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 195 206 L 371 206 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 195 206 L 195 30 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 195 166 C 217.089844 166 235 183.910156 235 206 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 242 162 C 242 163.65625 240.65625 165 239 165 C 237.34375 165 236 163.65625 236 162 C 236 160.34375 237.34375 159 239 159 C 240.65625 159 242 160.34375 242 162 Z M 242 162 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(80%, 80%, 80%)" stroke-opacity="1" stroke-miterlimit="10" d="M 132 250 C 132 251.65625 130.65625 253 129 253 C 127.34375 253 126 251.65625 126 250 C 126 248.34375 127.34375 247 129 247 C 130.65625 247 132 248.34375 132 250 Z M 132 250 "/>
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-0" x="376" y="209.977051"/>
 </g>
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-1" x="190.828857" y="24.824219"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 242 162 C 242 163.65625 240.65625 165 239 165 C 237.34375 165 236 163.65625 236 162 C 236 160.34375 237.34375 159 239 159 C 240.65625 159 242 160.34375 242 162 Z M 242 162 "/>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(80%, 80%, 80%)" stroke-opacity="1" stroke-miterlimit="10" d="M 132 250 C 132 251.65625 130.65625 253 129 253 C 127.34375 253 126 251.65625 126 250 C 126 248.34375 127.34375 247 129 247 C 130.65625 247 132 248.34375 132 250 Z M 132 250 "/>
 </svg>

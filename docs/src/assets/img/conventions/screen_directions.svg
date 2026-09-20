@@ -16,7 +16,6 @@
 </g>
 </g>
 </defs>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 213 150 C 213 151.65625 211.65625 153 210 153 C 208.34375 153 207 151.65625 207 150 C 207 148.34375 208.34375 147 210 147 C 211.65625 147 213 148.34375 213 150 Z M 213 150 "/>
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-0" x="335" y="155.368652"/>
 </g>
@@ -45,4 +44,5 @@
 <use xlink:href="#glyph-0-3" x="298.388348" y="249.308758"/>
 <use xlink:href="#glyph-0-0" x="308.39323" y="249.308758"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 213 150 C 213 151.65625 211.65625 153 210 153 C 208.34375 153 207 151.65625 207 150 C 207 148.34375 208.34375 147 210 147 C 211.65625 147 213 148.34375 213 150 Z M 213 150 "/>
 </svg>

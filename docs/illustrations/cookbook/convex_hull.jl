@@ -6,8 +6,8 @@ end
 (; pts, hull) = lxo
 @svg_doc(lxm, @__FILE__, begin
 sethue("gray80")
-path(pts); plot_point("gray80")
 sethue(julia_purple)
 path(hull, action=:stroke)
+path(pts); plot_point("gray80")
 path(collect(vertices(hull))); plot_point(julia_purple)
 end)

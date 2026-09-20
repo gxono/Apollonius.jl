@@ -383,8 +383,8 @@ distance(ef1, ef2) < 2ea
 
 ```@example geo
 fig_draw(500, figH) do # hide
-    fig_dots([ef1, ef2], julia_blue) # hide
     fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
+    fig_dots([ef1, ef2], julia_blue) # hide
 end # hide
 ```
 
@@ -400,9 +400,9 @@ all(p -> distance(p, ef1) + distance(p, ef2) ≈ 2ea, ep)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_faint([ek1, ek2]) # hide
+    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
     fig_dots([ef1, ef2], julia_blue) # hide
     fig_dots(ep, julia_purple) # hide
-    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
 end # hide
 ```
 
@@ -415,9 +415,9 @@ length(epall)
 
 ```@example geo
 fig_draw(500, figH) do # hide
+    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
     fig_dots([ef1, ef2], julia_blue) # hide
     fig_dots(epall, julia_purple) # hide
-    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
 end # hide
 ```
 
@@ -430,9 +430,9 @@ all(p -> is_on_ellipse(p, eell), epall)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_result(eell) # hide
+    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
     fig_dots([ef1, ef2], julia_blue) # hide
     fig_dots(epall, julia_purple) # hide
-    fig_tags(("F1", :S, ef1), ("F2", :S, ef2)) # hide
 end # hide
 ```
 
@@ -466,8 +466,8 @@ pl = APLine(pd.p1, pd.p2)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given(pd) # hide
-    fig_dots([pf], julia_blue) # hide
     fig_tags(("F", :N, pf)) # hide
+    fig_dots([pf], julia_blue) # hide
 end # hide
 ```
 
@@ -483,9 +483,9 @@ distance(pf, pm) ≈ distance(pdp, pm)
 fig_draw(500, figH) do # hide
     fig_given(pd) # hide
     fig_aid([pm, APSegment(pf, pdp)]) # hide
+    fig_tags(("F", :N, pf), ("D", :S, pdp)) # hide
     fig_dots([pf], julia_blue) # hide
     fig_dots([pdp], julia_green) # hide
-    fig_tags(("F", :N, pf), ("D", :S, pdp)) # hide
 end # hide
 ```
 
@@ -501,10 +501,10 @@ distance(pp, pf) ≈ distance(pp, pl)
 fig_draw(500, figH) do # hide
     fig_given(pd) # hide
     fig_aid([pm, pn, APSegment(pf, pdp)]) # hide
+    fig_tags(("F", :N, pf), ("D", :S, pdp), ("P", :E, pp)) # hide
     fig_dots([pf], julia_blue) # hide
     fig_dots([pdp], julia_green) # hide
     fig_dots([pp], julia_purple) # hide
-    fig_tags(("F", :N, pf), ("D", :S, pdp), ("P", :E, pp)) # hide
 end # hide
 ```
 
@@ -519,9 +519,9 @@ all(p -> is_on_parabola(p, ppar), pps)
 fig_draw(500, figH) do # hide
     fig_given(pd) # hide
     fig_result(parc) # hide
+    fig_tags(("F", :N, pf)) # hide
     fig_dots([pf], julia_blue) # hide
     fig_dots(pps, julia_purple) # hide
-    fig_tags(("F", :N, pf)) # hide
 end # hide
 ```
 
@@ -556,8 +556,8 @@ is_on_ellipse(tp, tell)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given(tell) # hide
-    fig_dots([tf1, tf2, tp], julia_blue) # hide
     fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp)) # hide
+    fig_dots([tf1, tf2, tp], julia_blue) # hide
 end # hide
 ```
 
@@ -572,8 +572,8 @@ distance(tp, tf1) + distance(tp, tf2) ≈ 2tell.a
 fig_draw(500, figH) do # hide
     fig_given(tell) # hide
     fig_aid([tr1, tr2]) # hide
-    fig_dots([tf1, tf2, tp], julia_blue) # hide
     fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp)) # hide
+    fig_dots([tf1, tf2, tp], julia_blue) # hide
 end # hide
 ```
 
@@ -588,9 +588,9 @@ distance(tp, tq) ≈ distance(tp, tf1)
 fig_draw(500, figH) do # hide
     fig_given(tell) # hide
     fig_aid([APSegment(tf2, tq), tr1]) # hide
+    fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp), ("Q", :N, tq)) # hide
     fig_dots([tf1, tf2, tp], julia_blue) # hide
     fig_dots([tq], julia_green) # hide
-    fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp), ("Q", :N, tq)) # hide
 end # hide
 ```
 
@@ -606,9 +606,9 @@ fig_draw(500, figH) do # hide
     fig_given(tell) # hide
     fig_aid([APSegment(tf1, tq)]) # hide
     fig_result(ttl) # hide
+    fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp), ("Q", :N, tq)) # hide
     fig_dots([tf1, tf2, tp], julia_blue) # hide
     fig_dots([tq], julia_green) # hide
-    fig_tags(("F1", :S, tf1), ("F2", :S, tf2), ("P", :N, tp), ("Q", :N, tq)) # hide
 end # hide
 ```
 
@@ -642,8 +642,8 @@ ha = hyp.a
 
 ```@example geo
 fig_draw(500, figH) do # hide
-    fig_dots([hf1, hf2], julia_blue) # hide
     fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
+    fig_dots([hf1, hf2], julia_blue) # hide
 end # hide
 ```
 
@@ -659,9 +659,9 @@ all(p -> distance(p, hf1) - distance(p, hf2) ≈ 2ha, hp)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_faint([hk1, hk2]) # hide
+    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
     fig_dots([hf1, hf2], julia_blue) # hide
     fig_dots(hp, julia_purple) # hide
-    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
 end # hide
 ```
 
@@ -675,9 +675,9 @@ length(hpts)
 
 ```@example geo
 fig_draw(500, figH) do # hide
+    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
     fig_dots([hf1, hf2], julia_blue) # hide
     fig_dots(hpts, julia_purple) # hide
-    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
 end # hide
 ```
 
@@ -690,9 +690,9 @@ all(p -> is_on_hyperbola(p, hyp), hpts)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_result([harc1, harc2]) # hide
+    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
     fig_dots([hf1, hf2], julia_blue) # hide
     fig_dots(hpts, julia_purple) # hide
-    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
 end # hide
 ```
 

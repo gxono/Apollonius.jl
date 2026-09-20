@@ -255,8 +255,8 @@ nothing # hide
 segment = APSegment(a, b)
 fig_draw(500, figH) do # hide
     fig_given(segment) # hide
-    fig_dots([a, b], julia_blue) # hide
     fig_tags(("A", :W, a), ("B", :E, b)) # hide
+    fig_dots([a, b], julia_blue) # hide
 end # hide
 ```
 
@@ -270,8 +270,8 @@ c1.r == c2.r
 fig_draw(500, figH) do # hide
     fig_faint([c1, c2]) # hide
     fig_given(segment) # hide
-    fig_dots([a, b], julia_blue) # hide
     fig_tags(("A", :W, a), ("B", :E, b)) # hide
+    fig_dots([a, b], julia_blue) # hide
 end # hide
 ```
 
@@ -285,9 +285,9 @@ end # hide
 fig_draw(500, figH) do # hide
     fig_faint([c1, c2]) # hide
     fig_given(segment) # hide
+    fig_tags(("A", :W, a), ("B", :E, b), ("P", :N, p), ("Q", :S, q)) # hide
     fig_dots([a, b], julia_blue) # hide
     fig_dots([p, q], julia_green) # hide
-    fig_tags(("A", :W, a), ("B", :E, b), ("P", :N, p), ("Q", :S, q)) # hide
 end # hide
 ```
 
@@ -303,9 +303,9 @@ fig_draw(500, figH) do # hide
     fig_faint([c1, c2]) # hide
     fig_given(segment) # hide
     fig_result(bisector) # hide
+    fig_tags(("A", :W, a), ("B", :E, b), ("P", :N, p), ("Q", :S, q)) # hide
     fig_dots([a, b], julia_blue) # hide
     fig_dots([p, q], julia_green) # hide
-    fig_tags(("A", :W, a), ("B", :E, b), ("P", :N, p), ("Q", :S, q)) # hide
 end # hide
 ```
 
@@ -344,8 +344,8 @@ nothing # hide
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given(l) # hide
-    fig_dots([p], julia_blue) # hide
     fig_tags(("p", :NE, p)) # hide
+    fig_dots([p], julia_blue) # hide
 end # hide
 ```
 
@@ -359,9 +359,9 @@ distance(x1, p) ≈ distance(x2, p) ≈ cp.r
 fig_draw(500, figH) do # hide
     fig_faint(cp) # hide
     fig_given(l) # hide
+    fig_tags(("p", :NE, p), ("x1", :SW, x1), ("x2", :SE, x2)) # hide
     fig_dots([p], julia_blue) # hide
     fig_dots([x1, x2], julia_green) # hide
-    fig_tags(("p", :NE, p), ("x1", :SW, x1), ("x2", :SE, x2)) # hide
 end # hide
 ```
 
@@ -375,9 +375,9 @@ side_of_line(y, l) != side_of_line(p, l)
 fig_draw(500, figH) do # hide
     fig_faint([cx1, cx2]) # hide
     fig_given(l) # hide
+    fig_tags(("p", :NE, p), ("x1", :SW, x1), ("x2", :SE, x2), ("y", :E, y)) # hide
     fig_dots([p], julia_blue) # hide
     fig_dots([x1, x2, y], julia_green) # hide
-    fig_tags(("p", :NE, p), ("x1", :SW, x1), ("x2", :SE, x2), ("y", :E, y)) # hide
 end # hide
 ```
 
@@ -393,9 +393,9 @@ fig_draw(500, figH) do # hide
     fig_faint([cx1, cx2]) # hide
     fig_given(l) # hide
     fig_result(perp) # hide
+    fig_tags(("p", :NE, p), ("x1", :SW, x1), ("x2", :SE, x2), ("y", :E, y)) # hide
     fig_dots([p], julia_blue) # hide
     fig_dots([x1, x2, y], julia_green) # hide
-    fig_tags(("p", :NE, p), ("x1", :SW, x1), ("x2", :SE, x2), ("y", :E, y)) # hide
 end # hide
 ```
 
@@ -432,8 +432,8 @@ distance(A, p) ≈ cA.r
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given(l) # hide
-    fig_dots([A, p], julia_blue) # hide
     fig_tags(("A", :SW, A), ("p", :NW, p)) # hide
+    fig_dots([A, p], julia_blue) # hide
 end # hide
 ```
 
@@ -447,9 +447,9 @@ end # hide
 fig_draw(500, figH) do # hide
     fig_faint(cA) # hide
     fig_given(l) # hide
+    fig_tags(("A", :SW, A), ("p", :NW, p), ("D", :S, D)) # hide
     fig_dots([A, p], julia_blue) # hide
     fig_dots([D], julia_green) # hide
-    fig_tags(("A", :SW, A), ("p", :NW, p), ("D", :S, D)) # hide
 end # hide
 ```
 
@@ -463,9 +463,9 @@ end # hide
 fig_draw(500, figH) do # hide
     fig_faint([cA, cD, cP]) # hide
     fig_given(l) # hide
+    fig_tags(("A", :SW, A), ("p", :NW, p), ("D", :S, D), ("E", :NE, E)) # hide
     fig_dots([A, p], julia_blue) # hide
     fig_dots([D, E], julia_green) # hide
-    fig_tags(("A", :SW, A), ("p", :NW, p), ("D", :S, D), ("E", :NE, E)) # hide
 end # hide
 ```
 
@@ -482,9 +482,9 @@ fig_draw(500, figH) do # hide
     fig_aid(APPolyline2([A, p, E, D, A])) # hide
     fig_given(l) # hide
     fig_result(par) # hide
+    fig_tags(("A", :SW, A), ("p", :NW, p), ("D", :S, D), ("E", :NE, E)) # hide
     fig_dots([A, p], julia_blue) # hide
     fig_dots([D, E], julia_green) # hide
-    fig_tags(("A", :SW, A), ("p", :NW, p), ("D", :S, D), ("E", :NE, E)) # hide
 end # hide
 ```
 
@@ -520,8 +520,8 @@ angle_at(v, s1.p2, s2.p2)
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given([s1, s2]) # hide
-    fig_dots([v], julia_blue) # hide
     fig_tags(("v", :SW, v)) # hide
+    fig_dots([v], julia_blue) # hide
 end # hide
 ```
 
@@ -535,9 +535,9 @@ distance(v, x1) ≈ distance(v, x2) ≈ cv.r
 fig_draw(500, figH) do # hide
     fig_faint(cv) # hide
     fig_given([s1, s2]) # hide
+    fig_tags(("v", :SW, v), ("x1", :S, x1), ("x2", :NW, x2)) # hide
     fig_dots([v], julia_blue) # hide
     fig_dots([x1, x2], julia_green) # hide
-    fig_tags(("v", :SW, v), ("x1", :S, x1), ("x2", :NW, x2)) # hide
 end # hide
 ```
 
@@ -551,9 +551,9 @@ distance(y, x1) ≈ distance(y, x2)
 fig_draw(500, figH) do # hide
     fig_faint([cx1, cx2]) # hide
     fig_given([s1, s2]) # hide
+    fig_tags(("v", :SW, v), ("x1", :S, x1), ("x2", :NW, x2), ("y", :NE, y)) # hide
     fig_dots([v], julia_blue) # hide
     fig_dots([x1, x2, y], julia_green) # hide
-    fig_tags(("v", :SW, v), ("x1", :S, x1), ("x2", :NW, x2), ("y", :NE, y)) # hide
 end # hide
 ```
 
@@ -568,9 +568,9 @@ fig_draw(500, figH) do # hide
     fig_faint([cx1, cx2]) # hide
     fig_given([s1, s2]) # hide
     fig_result(APRay(v, y)) # hide
+    fig_tags(("v", :SW, v), ("x1", :S, x1), ("x2", :NW, x2), ("y", :NE, y)) # hide
     fig_dots([v], julia_blue) # hide
     fig_dots([x1, x2, y], julia_green) # hide
-    fig_tags(("v", :SW, v), ("x1", :S, x1), ("x2", :NW, x2), ("y", :NE, y)) # hide
 end # hide
 ```
 

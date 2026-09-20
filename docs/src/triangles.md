@@ -133,8 +133,8 @@ nothing # hide
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given(tri) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
     fig_vtags(tri) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
 end # hide
 ```
 
@@ -149,8 +149,8 @@ is_perpendicular(m1, APLine(tri[2], tri[3]))
 fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_aid([m1, m2]) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
     fig_vtags(tri) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
 end # hide
 ```
 
@@ -165,10 +165,10 @@ o = circumcenter(tri)
 fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_aid([m1, m2, mediator(tri, 3)]) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
-    fig_dots([o], julia_purple) # hide
     fig_vtags(tri) # hide
     fig_tags(("O", :SE, o)) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([o], julia_purple) # hide
 end # hide
 ```
 
@@ -183,10 +183,10 @@ fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_aid([APSegment(o, v) for v in vertices(tri)]) # hide
     fig_result(circ) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
-    fig_dots([o], julia_purple) # hide
     fig_vtags(tri) # hide
     fig_tags(("O", :SE, o)) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([o], julia_purple) # hide
 end # hide
 ```
 
@@ -214,8 +214,8 @@ area(tri) > 0
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given(tri) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
     fig_vtags(tri) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
 end # hide
 ```
 
@@ -226,8 +226,8 @@ b1, b2 = bisector(tri, 1), bisector(tri, 2)
 fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_aid([b1, b2]) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
     fig_vtags(tri) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
 end # hide
 ```
 
@@ -244,11 +244,11 @@ fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_aid([b1, b2]) # hide
     fig_aid([APSegment(i, q) for q in feet]) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("I", :NE, i)) # hide
     fig_dots(vertices(tri), julia_blue) # hide
     fig_dots([i], julia_purple) # hide
     fig_dots(feet, julia_green) # hide
-    fig_vtags(tri) # hide
-    fig_tags(("I", :NE, i)) # hide
 end # hide
 ```
 
@@ -263,11 +263,11 @@ fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_aid([APSegment(i, q) for q in feet]) # hide
     fig_result(inc) # hide
+    fig_vtags(tri) # hide
+    fig_tags(("I", :NE, i)) # hide
     fig_dots(vertices(tri), julia_blue) # hide
     fig_dots([i], julia_purple) # hide
     fig_dots(feet, julia_green) # hide
-    fig_vtags(tri) # hide
-    fig_tags(("I", :NE, i)) # hide
 end # hide
 ```
 
@@ -299,10 +299,10 @@ all(on_line(cen, median(tri, k)) for k in 1:3)
 fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_aid([median(tri, k) for k in 1:3]) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
-    fig_dots([cen], julia_purple) # hide
     fig_vtags(tri) # hide
     fig_tags(("G", :W, cen)) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([cen], julia_purple) # hide
 end # hide
 ```
 
@@ -316,10 +316,10 @@ all(on_line(ort, altitude(tri, k)) for k in 1:3)
 fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_aid([altitude(tri, k) for k in 1:3]) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
-    fig_dots([cen, ort], julia_purple) # hide
     fig_vtags(tri) # hide
     fig_tags(("G", :W, cen), ("H", :NE, ort)) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([cen, ort], julia_purple) # hide
 end # hide
 ```
 
@@ -333,10 +333,10 @@ all(on_line(cir, mediator(tri, k)) for k in 1:3)
 fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_aid([mediator(tri, k) for k in 1:3]) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
-    fig_dots([cen, ort, cir], julia_purple) # hide
     fig_vtags(tri) # hide
     fig_tags(("G", :W, cen), ("H", :NE, ort), ("O", :SE, cir)) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([cen, ort, cir], julia_purple) # hide
 end # hide
 ```
 
@@ -351,10 +351,10 @@ el = euler_line(tri)
 fig_draw(500, figH) do # hide
     fig_given(tri) # hide
     fig_result(el) # hide
-    fig_dots(vertices(tri), julia_blue) # hide
-    fig_dots([cen, ort, cir], julia_purple) # hide
     fig_vtags(tri) # hide
     fig_tags(("G", :W, cen), ("H", :NE, ort), ("O", :SE, cir)) # hide
+    fig_dots(vertices(tri), julia_blue) # hide
+    fig_dots([cen, ort, cir], julia_purple) # hide
 end # hide
 ```
 

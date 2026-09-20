@@ -10,11 +10,11 @@ end
 Luxor.fontsize(15)
 sethue(julia_blue)
 path([t, inc], action=:stroke)
-path([A, B, C]); plot_point(julia_blue)
 sethue(julia_purple)
-path(vertices(ct)); plot_point(julia_purple)
 sethue(julia_red)
 for (n, v) in zip(("A", "B", "C"), (A, B, C))
     label(n, label_anchor(v, centroid(t))...)
 end
+path([A, B, C]); plot_point(julia_blue)
+path(vertices(ct)); plot_point(julia_purple)
 end)

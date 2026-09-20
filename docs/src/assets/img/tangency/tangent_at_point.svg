@@ -11,7 +11,6 @@
 </g>
 </defs>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 55 180 L 505 180 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 245.5 180 C 245.5 181.65625 244.15625 183 242.5 183 C 240.84375 183 239.5 181.65625 239.5 180 C 239.5 178.34375 240.84375 177 242.5 177 C 244.15625 177 245.5 178.34375 245.5 180 Z M 170.5 105 C 170.5 106.65625 169.15625 108 167.5 108 C 165.84375 108 164.5 106.65625 164.5 105 C 164.5 103.34375 165.84375 102 167.5 102 C 169.15625 102 170.5 103.34375 170.5 105 Z M 170.5 105 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 317.5 105 C 317.5 146.421875 283.921875 180 242.5 180 C 201.078125 180 167.5 146.421875 167.5 105 C 167.5 63.578125 201.078125 30 242.5 30 C 283.921875 30 317.5 63.578125 317.5 105 Z M 317.5 105 "/>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-dasharray="4 4" stroke-miterlimit="10" d="M 287.5 135 C 287.5 159.851563 267.351563 180 242.5 180 C 217.648438 180 197.5 159.851563 197.5 135 C 197.5 110.148438 217.648438 90 242.5 90 C 267.351563 90 287.5 110.148438 287.5 135 Z M 287.5 135 "/>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-dasharray="4 4" stroke-miterlimit="10" d="M 287.5 225 C 287.5 249.851563 267.351563 270 242.5 270 C 217.648438 270 197.5 249.851563 197.5 225 C 197.5 200.148438 217.648438 180 242.5 180 C 267.351563 180 287.5 200.148438 287.5 225 Z M 287.5 225 "/>
@@ -21,4 +20,5 @@
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-1" x="156.698841" y="98.483509"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 245.5 180 C 245.5 181.65625 244.15625 183 242.5 183 C 240.84375 183 239.5 181.65625 239.5 180 C 239.5 178.34375 240.84375 177 242.5 177 C 244.15625 177 245.5 178.34375 245.5 180 Z M 170.5 105 C 170.5 106.65625 169.15625 108 167.5 108 C 165.84375 108 164.5 106.65625 164.5 105 C 164.5 103.34375 165.84375 102 167.5 102 C 169.15625 102 170.5 103.34375 170.5 105 Z M 170.5 105 "/>
 </svg>

@@ -11,6 +11,5 @@ end
     path([l1, l2], action=:stroke)
     sethue(julia_purple)
     path([lb1, lb2], action=:stroke)
-    path([P,Q,C])
-    plot_point(julia_blue)
+    path([P,Q,C]); plot_point(julia_blue)
 end)

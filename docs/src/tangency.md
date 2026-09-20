@@ -373,8 +373,8 @@ nothing # hide
 ```@example geo
 fig_draw(500, figH) do # hide
     fig_given(tl) # hide
-    fig_dots([ta, tb], julia_blue) # hide
     fig_tags(("a", :NW, ta), ("b", :NE, tb)) # hide
+    fig_dots([ta, tb], julia_blue) # hide
 end # hide
 ```
 
@@ -385,8 +385,8 @@ bax = perpendicular_bisector(ta, tb)
 fig_draw(500, figH) do # hide
     fig_given(tl) # hide
     fig_aid(bax) # hide
-    fig_dots([ta, tb], julia_blue) # hide
     fig_tags(("a", :NW, ta), ("b", :NE, tb)) # hide
+    fig_dots([ta, tb], julia_blue) # hide
 end # hide
 ```
 
@@ -401,9 +401,9 @@ ctr = tsol.center
 fig_draw(500, figH) do # hide
     fig_given(tl) # hide
     fig_aid(bax) # hide
+    fig_tags(("a", :NW, ta), ("b", :NE, tb), ("center", :E, ctr)) # hide
     fig_dots([ta, tb], julia_blue) # hide
     fig_dots([ctr], julia_purple) # hide
-    fig_tags(("a", :NW, ta), ("b", :NE, tb), ("center", :E, ctr)) # hide
 end # hide
 ```
 
@@ -419,9 +419,9 @@ fig_draw(500, figH) do # hide
     fig_given(tl) # hide
     fig_aid([bax, APSegment(ctr, foot)]) # hide
     fig_result(tsol) # hide
+    fig_tags(("a", :NW, ta), ("b", :NE, tb), ("center", :E, ctr)) # hide
     fig_dots([ta, tb], julia_blue) # hide
     fig_dots([ctr, foot], julia_purple) # hide
-    fig_tags(("a", :NW, ta), ("b", :NE, tb), ("center", :E, ctr)) # hide
 end # hide
 ```
 

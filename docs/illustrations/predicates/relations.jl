@@ -12,11 +12,11 @@ end
 Luxor.fontsize(15)
 sethue(julia_blue)
 path([p1; p2; cline], action=:stroke)
-path(cl); plot_point(julia_blue)
 sethue("gray80")
-path([cn]); plot_point("gray80")
 sethue(julia_red)
 for (n, p) in zip(("is_parallel", "is_perpendicular", "is_collinear"), lab)
     label(n, :S, p)
 end
+path(cl); plot_point(julia_blue)
+path([cn]); plot_point("gray80")
 end)

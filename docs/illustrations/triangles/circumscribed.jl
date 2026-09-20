@@ -8,7 +8,7 @@ end
 @svg_doc(lxm, @__FILE__, begin
 sethue(julia_blue)
 path(c, action=:stroke)
-path(ps); plot_point(julia_blue)
 sethue(julia_purple)
 path(t, action=:stroke)
+path(ps); plot_point(julia_blue)
 end)

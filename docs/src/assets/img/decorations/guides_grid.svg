@@ -27,8 +27,8 @@
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 140 250 L 140 30 "/>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-dasharray="1 3" stroke-miterlimit="10" d="M 286.667969 103.332031 L 286.667969 213.332031 "/>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-dasharray="1 3" stroke-miterlimit="10" d="M 286.667969 103.332031 L 140 103.332031 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 289.667969 103.332031 C 289.667969 104.988281 288.324219 106.332031 286.667969 106.332031 C 285.011719 106.332031 283.667969 104.988281 283.667969 103.332031 C 283.667969 101.675781 285.011719 100.332031 286.667969 100.332031 C 288.324219 100.332031 289.667969 101.675781 289.667969 103.332031 Z M 289.667969 103.332031 "/>
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-0" x="290.202201" y="99.797799"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 299.539063 99.796875 L 289.667969 103.332031 C 289.667969 104.988281 288.324219 106.332031 286.667969 106.332031 C 285.011719 106.332031 283.667969 104.988281 283.667969 103.332031 C 283.667969 101.675781 285.011719 100.332031 286.667969 100.332031 C 288.324219 100.332031 289.667969 101.675781 289.667969 103.332031 Z M 299.539063 99.796875 "/>
 </svg>

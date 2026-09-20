@@ -39,7 +39,6 @@
 </defs>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 225 195 L 326.738281 144.132813 "/>
 <path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 325.023438 140.707031 L 335 140 L 328.449219 147.554688 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 228 195 C 228 196.65625 226.65625 198 225 198 C 223.34375 198 222 196.65625 222 195 C 222 193.34375 223.34375 192 225 192 C 226.65625 192 228 193.34375 228 195 Z M 503 250 C 503 251.65625 501.65625 253 500 253 C 498.34375 253 497 251.65625 497 250 C 497 248.34375 498.34375 247 500 247 C 501.65625 247 503 248.34375 503 250 Z M 63 30 C 63 31.65625 61.65625 33 60 33 C 58.34375 33 57 31.65625 57 30 C 57 28.34375 58.34375 27 60 27 C 61.65625 27 63 28.34375 63 30 Z M 63 30 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M -43.328125 329.164063 L 603.328125 5.835938 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 60 30 L 311.023438 281.023438 "/>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 500 250 L 417.5 107.105469 "/>
@@ -63,4 +62,5 @@
 <use xlink:href="#glyph-0-9" x="54.576416" y="21.843262"/>
 <use xlink:href="#glyph-0-10" x="62.918701" y="21.843262"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 228 195 C 228 196.65625 226.65625 198 225 198 C 223.34375 198 222 196.65625 222 195 C 222 193.34375 223.34375 192 225 192 C 226.65625 192 228 193.34375 228 195 Z M 503 250 C 503 251.65625 501.65625 253 500 253 C 498.34375 253 497 251.65625 497 250 C 497 248.34375 498.34375 247 500 247 C 501.65625 247 503 248.34375 503 250 Z M 63 30 C 63 31.65625 61.65625 33 60 33 C 58.34375 33 57 31.65625 57 30 C 57 28.34375 58.34375 27 60 27 C 61.65625 27 63 28.34375 63 30 Z M 63 30 "/>
 </svg>

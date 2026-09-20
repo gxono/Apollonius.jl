@@ -14,7 +14,6 @@
 </g>
 </defs>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 50 100 L 450 100 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 53 100 C 53 101.65625 51.65625 103 50 103 C 48.34375 103 47 101.65625 47 100 C 47 98.34375 48.34375 97 50 97 C 51.65625 97 53 98.34375 53 100 Z M 453 100 C 453 101.65625 451.65625 103 450 103 C 448.34375 103 447 101.65625 447 100 C 447 98.34375 448.34375 97 450 97 C 451.65625 97 453 98.34375 453 100 Z M 453 100 "/>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 50 130 L 50 150 "/>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 450 130 L 450 150 "/>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(22%, 59.6%, 14.9%)" stroke-opacity="1" stroke-miterlimit="10" d="M 275 140 L 440.761719 140 "/>
@@ -26,4 +25,5 @@
 <use xlink:href="#glyph-0-1" x="248.055176" y="145.03125"/>
 <use xlink:href="#glyph-0-2" x="251.944824" y="145.03125"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 53 100 C 53 101.65625 51.65625 103 50 103 C 48.34375 103 47 101.65625 47 100 C 47 98.34375 48.34375 97 50 97 C 51.65625 97 53 98.34375 53 100 Z M 453 100 C 453 101.65625 451.65625 103 450 103 C 448.34375 103 447 101.65625 447 100 C 447 98.34375 448.34375 97 450 97 C 451.65625 97 453 98.34375 453 100 Z M 453 100 "/>
 </svg>

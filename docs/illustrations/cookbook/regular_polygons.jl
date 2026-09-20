@@ -10,8 +10,8 @@ end
 @svg_doc(lxm, @__FILE__, begin
 sethue(julia_blue)
 path(c, action=:stroke)
-path([O, v]); plot_point(julia_blue)
 sethue(julia_purple)
 path([hexagon, pentagon], action=:stroke)
+path([O, v]); plot_point(julia_blue)
 path([collect(vertices(hexagon)); collect(vertices(pentagon))]); plot_point(julia_purple)
 end)

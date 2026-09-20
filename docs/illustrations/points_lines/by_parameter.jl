@@ -13,10 +13,7 @@ end
 Luxor.fontsize(15)
 sethue(julia_blue)
 path([seg, c], action=:stroke)
-path([p0, p1]); plot_point(julia_blue)
 sethue(julia_purple)
-path([tpts[1], tpts[3], tpts[5]]); plot_point(julia_purple)
-path(apts); plot_point(julia_purple)
 sethue(julia_red)
 for (t, p) in zip((-0.5, 0.0, 0.5, 1.0, 1.5), tpts)
     label("t = $t", :N, p)
@@ -24,4 +21,7 @@ end
 for (a, al, p) in zip(("0", "π/4", "π/2", "π"), (:E, :NE, :N, :W), apts)
     label(a, al, p)
 end
+path([p0, p1]); plot_point(julia_blue)
+path([tpts[1], tpts[3], tpts[5]]); plot_point(julia_purple)
+path(apts); plot_point(julia_purple)
 end)

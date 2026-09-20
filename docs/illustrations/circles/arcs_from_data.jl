@@ -10,9 +10,9 @@ end
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
 sethue(julia_blue)
-path([a, b, c, p1, p2]); plot_point(julia_blue)
 sethue(julia_purple)
 path([thr, short, long], action=:stroke)
 sethue(julia_red)
 label("a", :S, a); label("b", :N, b); label("c", :S, c); label("arc_with_radius", :S, APPoint(8.5, -2.5))
+path([a, b, c, p1, p2]); plot_point(julia_blue)
 end)

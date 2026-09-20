@@ -12,8 +12,8 @@ end
 @svg_doc(lxm, @__FILE__, begin
 sethue(julia_blue)
 path(pg, action=:stroke)
-path([inner, outer]); plot_point(julia_blue)
 sethue(julia_purple)
 path([APSegment(inner, foot_in), APSegment(outer, foot_out)], action=:stroke)
+path([inner, outer]); plot_point(julia_blue)
 path([foot_in, foot_out]); plot_point(julia_purple)
 end)
