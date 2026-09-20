@@ -30,6 +30,49 @@ The order of the two rays decides which wedge you get. Swapping `a` and `b` give
 <img src="../assets/img/conventions/angle_orientation.svg" alt="The same two rays give a small angle or a reflex angle depending on their order" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Apollonius: distance
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=60 begin
+        O1, A1, B1 = APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(2.0, 4.0)
+        O2, A2, B2 = APPoint(9.0, 0.0), APPoint(14.0, 0.0), APPoint(11.0, 4.0)
+        ang1 = APAngle2(O1, A1, B1)
+        ang2 = APAngle2(O2, B2, A2)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+      setline(1); setdash(:dash)
+      sethue(julia_green)
+      path([ang1, ang2], action=:stroke, as=:rays, radius=distance(O1, A1))
+    end
+
+    sethue(julia_purple)
+    path([ang1, ang2], action=:stroke)
+
+    sethue(julia_red)
+    label.("a", :E, [A1, A2], offset=8)
+    label.("b", :NW, [B1, B2], offset=8)
+    label("APAngle2(O,a,b)", :SE, O1 + APVector(10, 0.0))
+    label("APAngle2(O,b,a)", :NE, O2 + APVector(10, 0.0))
+
+    sethue("white")
+    path([O1, A1, B1, O2, A2, B2], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
+
 ## Naming
 
 * Types start with `AP`. A `2` at the end marks a type whose formulas only
@@ -79,6 +122,46 @@ the second. Do not rely on the order of [`tangent_circles`](@ref).
 <img src="../assets/img/conventions/result_order.svg" alt="The order of the points from a line and a circle, and from two circles" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! width=560 height=260 margin=30 begin
+        c1 = APCircle2(APPoint(0.0, 0.0), 2.5)
+        @unbounded l = APLine(APPoint(-4.0, -1.0), APPoint(4.0, 1.0))
+        lp = intersection(l, c1)
+        d1 = APCircle2(APPoint(9.0, 0.0), 2.5)
+        d2 = APCircle2(APPoint(12.0, 0.0), 2.5)
+        cp = intersection(d1, d2)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path([c1, d1, d2], action=:stroke)
+    path(l, action=:stroke, extend=40)
+
+    sethue(julia_red)
+    label("1", :NW, lp[1], offset=8)
+    label("2", :SE, lp[2], offset=8)
+    label("1", :N, cp[1], offset=8)
+    label("2", :S, cp[2], offset=8)
+
+    sethue("white")
+    path([lp cp], action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
+
 ## Drawing: coordinates and sizes
 
 Two rules govern every function that decorates a figure.
@@ -101,6 +184,34 @@ up. Call them on the transformed objects and it all lines up.
 <img src="../assets/img/conventions/screen_directions.svg" alt="Luxor's compass alignments as they appear on the screen around a point" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! width=420 height=300 margin=30 begin
+        O = APPoint(0.0, 0.0)
+        ring = [polar_point(4.0, k * pi / 4) for k in 0:7]
+    end
+
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_red)
+    for (n, p) in zip(("E", "NE", "N", "NW", "W", "SW", "S", "SE"), ring)
+        label(n, Symbol(n), p)
+    end
+
+    sethue("white")
+    path(O, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    ```
+
 The [Marks, Labels & Decorations](@ref) page has the details.
 
 !!! warning "Fit first, then decorate"
@@ -121,6 +232,43 @@ measure(arc) ≈ pi / 2, measure(reverse(arc)) ≈ 3pi / 2
 ```@raw html
 <img src="../assets/img/conventions/arc_reverse.svg" alt="An arc in blue and its reverse, the rest of the circle, dashed" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! width=500 height=260 margin=30 begin
+        arc = APCircularArc2(APCircle2(APPoint(0.0, 0.0), 3.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0))
+        comp = reverse(arc)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_purple); setdash(:dash)
+    path(comp, action=:stroke)
+    setdash(:solid)
+
+    sethue(julia_blue)
+    path(arc, action=:stroke)
+
+    sethue(julia_red)
+    label("arc", :NE, point_on_arc(arc, 0.5))
+    label("reverse(arc)", :SW, point_on_arc(comp, 0.5))
+
+    sethue("white")
+    path([arc.p1, arc.p2], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 
 **Why does `s[end]` fail on a segment?** Indexing works (`s[1]`, `s[2]`)
 but the `end` keyword does not, for every indexable type in the package.

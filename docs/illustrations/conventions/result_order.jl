@@ -1,5 +1,6 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=560 height=260 margin=30 begin
+import Apollonius: distance
+lxm = @to_luxor_picture! width=500 height=240 margin=60 begin
     c1 = APCircle2(APPoint(0.0, 0.0), 2.5)
     @unbounded l = APLine(APPoint(-4.0, -1.0), APPoint(4.0, 1.0))
     lp = intersection(l, c1)
@@ -7,20 +8,20 @@ lxm, lxo = @to_luxor_picture width=560 height=260 margin=30 begin
     d2 = APCircle2(APPoint(12.0, 0.0), 2.5)
     cp = intersection(d1, d2)
 end
-(; c1, l, lp, d1, d2, cp) = lxo
+
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
 sethue(julia_blue)
 path([c1, d1, d2], action=:stroke)
 path(l, action=:stroke, extend=40)
-sethue(julia_purple)
+
 sethue(julia_red)
-for (k, p) in enumerate(lp)
-    label("$k", :N, p)
-end
-for (k, p) in enumerate(cp)
-    label("$k", :E, p)
-end
-path(lp); plot_point(julia_purple)
-path(cp); plot_point(julia_purple)
+label("1", :NW, lp[1], offset=8)
+label("2", :SE, lp[2], offset=8)
+label("1", :N, cp[1], offset=8)
+label("2", :S, cp[2], offset=8)
+
+sethue("white")
+path([lp cp], action=:fillpreserve)
+sethue(julia_purple); strokepath()
 end)

@@ -9,10 +9,16 @@ Luxor.fontsize(15)
 sethue(julia_purple); setdash("dash")
 path(comp, action=:stroke)
 setdash("solid")
+
 sethue(julia_blue)
 path(arc, action=:stroke)
+
 sethue(julia_red)
 label("arc", :NE, point_on_arc(arc, 0.5))
 label("reverse(arc)", :SW, point_on_arc(comp, 0.5))
-path([arc.p1, arc.p2]); plot_point(julia_blue)
+
+sethue("white")
+path([arc.p1, arc.p2], action=:fillpreserve)
+sethue(julia_blue); strokepath()
+
 end)
