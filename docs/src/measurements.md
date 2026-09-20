@@ -194,7 +194,7 @@ rad2deg.(interior_angles(L)), side_lengths(L), signed_area(L), semiperimeter(L)
 cvt = APCurvilinearTriangle2(APSegment(APPoint(0.0, 0.0), APPoint(4.0, 0.0)),
     APCircularArc2(APCircle2(APPoint(4.0, 2.0), 2.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0)),
     APSegment(APPoint(4.0, 4.0), APPoint(0.0, 0.0)))
-signed_area(cvt), rad2deg.(interior_angles(cvt))   # 180° where the arc leaves the segment smoothly
+signed_area(cvt), rad2deg.(interior_angles(cvt))
 ```
 
 An [`APBoundingBox`](@ref) has an [`area`](@ref) and a [`perimeter`](@ref) too,

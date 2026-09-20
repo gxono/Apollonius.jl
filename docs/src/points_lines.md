@@ -303,7 +303,7 @@ equally_spaced_points(arc_eq, 3)
 direction(l)                    # ⟨3.0, 4.0⟩: l.p2 - l.p1, as an APVector
 rad2deg(slope_angle(l))         # ≈ 53.13°
 v = APVector(1.0, 1.0)
-rad2deg(slope_angle(v))         # 45°: the angle of a vector is the same call
+rad2deg(slope_angle(v))
 is_collinear(O, A, APPoint(6.0, 8.0))
 on_line(APPoint(6.0, 8.0), l)
 on_segment(APPoint(6.0, 8.0), s) # false: beyond A

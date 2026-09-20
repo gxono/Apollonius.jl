@@ -94,7 +94,6 @@ pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
     sethue(julia_red); setdash(:solid)
     label("A", :NW, circle1.center)
 
-    # the points go last, over everything else
     sethue("white")
     path(pts, action=:fillpreserve)
     sethue(julia_purple); strokepath()
