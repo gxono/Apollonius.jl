@@ -41,6 +41,45 @@ ct = contact_triangle(t)     # its vertices are the touch points, opposite A, B 
 <img src="../assets/img/workflow/construct.svg" alt="A triangle, its incircle and the three touch points" style="width:100%; max-width: 700px;">
 ```
 
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! width=500 height=320 margin=30 begin
+        A, B, C = APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(1.5, 4.0)
+        t = APTriangle(A, B, C)
+        inc = incircle(t)
+        ct = contact_triangle(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path([t, inc], action=:stroke)
+
+    sethue(julia_red)
+    for (n, v) in zip(("A", "B", "C"), (A, B, C))
+        label(n, label_anchor(v, centroid(t))..., offset=8)
+    end
+
+    sethue("white")
+    path([A, B, C], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path(vertices(ct), action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 Keep the origin and the units that make the problem simple. Nothing here
 depends on how big the figure will be.
 
@@ -124,6 +163,53 @@ G2 = centroid(lxo.t)
 ```@raw html
 <img src="../assets/img/workflow/decorate.svg" alt="The touch points with equal tangent segments marked by one, two and three ticks, and the vertex labels placed outside the triangle" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+
+    lxm = @to_luxor_picture! width=500 height=320 margin=30 begin
+        A, B, C = APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(1.5, 4.0)
+        t = APTriangle(A, B, C)
+        inc = incircle(t)
+        ct = contact_triangle(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    tp = collect(vertices(ct))
+    pieces = [(A, tp[3], 1), (A, tp[2], 1), (B, tp[3], 2), (B, tp[1], 2), (C, tp[1], 3), (C, tp[2], 3)]
+
+    sethue(julia_blue)
+    path([t, inc], action=:stroke)
+
+    sethue(julia_purple)
+    for (p, q, k) in pieces
+        path(marks(APSegment(p, q); count=k), action=:stroke)
+    end
+
+    sethue(julia_red)
+    for (n, v) in zip(("A", "B", "C"), (A, B, C))
+        label(n, label_anchor(v, centroid(t))..., offset=8)
+    end
+
+    sethue("white")
+    path([A, B, C], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path(vertices(ct), action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 
 The alignment is read as drawn, with `y` downward, so `:N` is above the
 point on the screen. Each label points away from the centroid: `A` is at the

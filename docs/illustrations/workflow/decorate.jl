@@ -8,18 +8,25 @@ end
 (; A, B, C, t, inc, ct) = lxo
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
-tp = collect(vertices(ct))
-pieces = [(A, tp[3], 1), (A, tp[2], 1), (B, tp[3], 2), (B, tp[1], 2), (C, tp[1], 3), (C, tp[2], 3)]
 sethue(julia_blue)
 path([t, inc], action=:stroke)
+
+tp = collect(vertices(ct))
+pieces = [(A, tp[3], 1), (A, tp[2], 1), (B, tp[3], 2), (B, tp[1], 2), (C, tp[1], 3), (C, tp[2], 3)]
 sethue(julia_purple)
 for (p, q, k) in pieces
     path(marks(APSegment(p, q); count=k), action=:stroke)
 end
+
 sethue(julia_red)
 for (n, v) in zip(("A", "B", "C"), (A, B, C))
-    label(n, label_anchor(v, centroid(t))...)
+    label(n, label_anchor(v, centroid(t))..., offset=8)
 end
-path([A, B, C]); plot_point(julia_blue)
-path(tp); plot_point(julia_purple)
+
+sethue("white")
+path([A, B, C], action=:fillpreserve)
+sethue(julia_blue); strokepath()
+sethue("white")
+path(vertices(ct), action=:fillpreserve)
+sethue(julia_purple); strokepath()
 end)
