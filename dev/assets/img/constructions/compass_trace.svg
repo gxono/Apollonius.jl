@@ -11,12 +11,12 @@
 </g>
 </defs>
 <path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(80%, 80%, 80%)" stroke-opacity="1" stroke-dasharray="4 4" stroke-miterlimit="10" d="M 40 120 L 460 120 "/>
-<path fill="none" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 403.730469 -90 C 478.757813 39.949219 478.757813 200.050781 403.730469 330 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 43 120 C 43 121.65625 41.65625 123 40 123 C 38.34375 123 37 121.65625 37 120 C 37 118.34375 38.34375 117 40 117 C 41.65625 117 43 118.34375 43 120 Z M 463 120 C 463 121.65625 461.65625 123 460 123 C 458.34375 123 457 121.65625 457 120 C 457 118.34375 458.34375 117 460 117 C 461.65625 117 463 118.34375 463 120 Z M 463 120 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 403.730469 -90 C 478.757813 39.949219 478.757813 200.050781 403.730469 330 "/>
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-0" x="24.006348" y="125.463867"/>
 </g>
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-1" x="465" y="125.368652"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 43 120 C 43 121.65625 41.65625 123 40 123 C 38.34375 123 37 121.65625 37 120 C 37 118.34375 38.34375 117 40 117 C 41.65625 117 43 118.34375 43 120 Z M 463 120 C 463 121.65625 461.65625 123 460 123 C 458.34375 123 457 121.65625 457 120 C 457 118.34375 458.34375 117 460 117 C 461.65625 117 463 118.34375 463 120 Z M 463 120 "/>
 </svg>

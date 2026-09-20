@@ -29,8 +29,7 @@
 </g>
 </defs>
 <path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-dasharray="4 4" stroke-miterlimit="10" d="M 350 130 C 350 170.445313 325.636719 206.910156 288.269531 222.386719 C 250.902344 237.867188 207.890625 229.308594 179.289063 200.710938 C 150.691406 172.109375 142.132813 129.097656 157.613281 91.730469 C 173.089844 54.363281 209.554688 30 250 30 "/>
-<path fill="none" stroke-width="3" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 250 30 C 305.226563 30 350 74.773438 350 130 "/>
-<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="3" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 253 30 C 253 31.65625 251.65625 33 250 33 C 248.34375 33 247 31.65625 247 30 C 247 28.34375 248.34375 27 250 27 C 251.65625 27 253 28.34375 253 30 Z M 353 130 C 353 131.65625 351.65625 133 350 133 C 348.34375 133 347 131.65625 347 130 C 347 128.34375 348.34375 127 350 127 C 351.65625 127 353 128.34375 353 130 Z M 353 130 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 250 30 C 305.226563 30 350 74.773438 350 130 "/>
 <g fill="rgb(79.6%, 23.5%, 20%)" fill-opacity="1">
 <use xlink:href="#glyph-0-0" x="324.246212" y="55.578007"/>
 <use xlink:href="#glyph-0-1" x="332.588497" y="55.578007"/>
@@ -50,4 +49,5 @@
 <use xlink:href="#glyph-0-2" x="163.800663" y="215.166622"/>
 <use xlink:href="#glyph-0-7" x="171.300663" y="215.166622"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 253 30 C 253 31.65625 251.65625 33 250 33 C 248.34375 33 247 31.65625 247 30 C 247 28.34375 248.34375 27 250 27 C 251.65625 27 253 28.34375 253 30 Z M 353 130 C 353 131.65625 351.65625 133 350 133 C 348.34375 133 347 131.65625 347 130 C 347 128.34375 348.34375 127 350 127 C 351.65625 127 353 128.34375 353 130 Z M 353 130 "/>
 </svg>

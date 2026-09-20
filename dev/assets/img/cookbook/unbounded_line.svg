@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="280" viewBox="0 0 500 280">
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 85 250 L 415 250 L 167.5 30 Z M 85 250 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M -90.5625 718.164063 L 343.0625 -438.164063 "/>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 88 250 C 88 251.65625 86.65625 253 85 253 C 83.34375 253 82 251.65625 82 250 C 82 248.34375 83.34375 247 85 247 C 86.65625 247 88 248.34375 88 250 Z M 418 250 C 418 251.65625 416.65625 253 415 253 C 413.34375 253 412 251.65625 412 250 C 412 248.34375 413.34375 247 415 247 C 416.65625 247 418 248.34375 418 250 Z M 170.5 30 C 170.5 31.65625 169.15625 33 167.5 33 C 165.84375 33 164.5 31.65625 164.5 30 C 164.5 28.34375 165.84375 27 167.5 27 C 169.15625 27 170.5 28.34375 170.5 30 Z M 170.5 30 "/>
+</svg>
