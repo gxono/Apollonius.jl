@@ -52,6 +52,48 @@ Three of the other builders side by side: `arc_with_angle` starts at the point a
 <img src="../assets/img/constructions/arc_builders.svg" alt="Three compass arcs: arc_with_angle, semicircle and extend_arc" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=30 begin  
+        O1, P1 = APPoint(0.0, 0.0), APPoint(3.0, 0.0)
+        aux = reflection(P1, O1)
+        O2, P2 = APPoint(8.0, 0.0), APPoint(11.0, 0.0)
+        O3, P3 = APPoint(16.0, 0.0), APPoint(19.0, 0.0)
+        a1 = arc_with_angle(O1, P1, pi / 3)
+        a2 = semicircle(O2, P2)
+        a3 = arc_with_angle(O3, P3, pi / 3)
+        a3x = extend_arc(a3, 0.5)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_purple)
+    path([a1, a2, a3x], action=:stroke)
+
+    sethue(julia_blue)
+    path(a3, action=:stroke)
+
+    sethue(julia_red)
+    label("arc_with_angle", :S, O1, offset=8)
+    label("semicircle", :S , O2, offset=8)
+    label("extend_arc", :S , O3, offset=8)
+
+    sethue("white")
+    path([O1, P1, O2, P2, O3, P3], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
+
 ## A first construction: Euclid I.1
 
 The first proposition of the *Elements* builds an equilateral triangle on a
@@ -70,6 +112,53 @@ distance(A, C) ≈ r, distance(B, C) ≈ r
 ```@raw html
 <img src="../assets/img/constructions/euclid_i1.svg" alt="Two circles, the compass traces around C and the equilateral triangle" style="width:100%; max-width: 700px;">
 ```
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        A, B = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
+        C = argmax(p -> p[2], intersection(APCircle2(A, 6.0), APCircle2(B, 6.0)))
+        cA, cB = APCircle2(A, 6.0), APCircle2(B, 6.0)
+    end
+    traces = [compass_trace(A, C; angle=pi / 4), compass_trace(B, C; angle=pi / 4)]
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+    setline(0.5); setdash(:dash); sethue("gray80")
+    path([cA, cB], action=:stroke)
+    end
+
+    @layer begin
+    setline(1); sethue(julia_green)
+    path(traces, action=:stroke)
+    end
+
+    sethue(julia_purple)
+    path(APTriangle(A, B, C), action=:stroke)
+
+    sethue(julia_red)
+    label("A", :SW, A, offset=8)
+    label("B", :SE, B, offset=8)
+    label("C", :N , C, offset=8)
+
+    sethue("white")
+    path([A, B], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path([C], action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
+
 
 `traces` are the two arcs a compass would leave around `C`, ready for
 `path`.
@@ -122,6 +211,51 @@ isapprox(m.result, perpendicular_bisector(a, b); atol=1e-9), length(m.arcs)
 <img src="../assets/img/constructions/mediator.svg" alt="The perpendicular bisector of a segment with its four compass traces" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
+        extent = mediator_construction(a, b; sweep=pi / 4).arcs
+    end
+
+    m = mediator_construction(a, b; sweep=pi / 4)
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+        setline(1)
+        sethue(julia_green)
+        path(m.arcs, action=:stroke)
+    end
+
+    sethue(julia_blue)
+    path(APSegment(a, b), action=:stroke)
+
+    sethue(julia_purple)
+    path(m.result; add=(0.3, 0.3), action=:stroke)
+
+    sethue(julia_red)
+    label("A", :W, a, offset=8)
+    label("B", :E, b, offset=8)
+
+    sethue("white")
+    path([a, b], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path(m.points, action=:fillpreserve)
+    sethue(julia_green); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
+
 ```@example geo
 l = APLine(APPoint(0.0, 0.0), APPoint(5.0, 1.0))
 q = APPoint(2.0, 4.0)
@@ -134,11 +268,104 @@ is_perpendicular(perp.result, l), is_parallel(par.result, l), on_line(q, par.res
 <img src="../assets/img/constructions/perpendicular.svg" alt="The perpendicular to a line through a point off the line" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        A, B, p = APPoint(0.0, 0.0), APPoint(8.0, 1.0), APPoint(3.0, 4.0)
+        extent = perpendicular_construction(APLine(A, B), p; sweep=pi / 4).arcs
+    end
+
+    l = APLine(A, B)
+    m = perpendicular_construction(l, p; sweep=pi / 4)
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+    setline(1); sethue(julia_green)
+    path(m.arcs, action=:stroke)
+    end
+
+    sethue(julia_blue)
+    path(l; extend=(80, 80), action=:stroke)
+    sethue(julia_purple)
+    path(m.result; add=(0.3, 0.3), action=:stroke)
+
+    sethue(julia_red)
+    label.(["p", "l"], [:NE, :S], [p, l.p2])
+
+    sethue("white")
+    path(p, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path(m.points, action=:fillpreserve)
+    sethue(julia_green); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
+
 The parallel is a rhombus: `A`, `D`, `E` and the point, with the parallel through the point and `E`.
 
 ```@raw html
 <img src="../assets/img/constructions/parallel.svg" alt="The parallel to a line through a point, built as a rhombus" style="width:100%; max-width: 700px;">
 ```
+
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        A, B, p = APPoint(0.0, 0.0), APPoint(8.0, 1.0), APPoint(2.0, 4.0)
+        extent = parallel_construction(APLine(A, B), p; sweep=pi / 4).arcs
+    end
+
+    l = APLine(A, B)
+    m = parallel_construction(l, p; sweep=pi / 4)
+    D, E = m.points
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+        setline(1); sethue(julia_green)
+        path(m.arcs, action=:stroke)
+        setdash(:dash)
+        path(APPolyline2([A, p, E, D, A]), action=:stroke)
+    end
+
+    sethue(julia_blue)
+    path(l; extend=(80, 80), action=:stroke)
+    sethue(julia_purple)
+    path(m.result; add=(0.3, 0.3), action=:stroke)
+
+    sethue(julia_red)
+    label("A", :SW, A, offset=8)
+    label("D", :SW, D, offset=8)
+    label("E", :NE, E, offset=8)
+    label("p", :NE, p, offset=8)
+
+    sethue("white")
+    path([A, p], action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path([D, E], action=:fillpreserve)
+    sethue(julia_green); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 
 When `q` is already on `l`, `perpendicular_construction` marks two points on
 `l` at the same distance from `q` and takes the mediator of those, so the
@@ -147,6 +374,48 @@ result is the same kind of line.
 ```@raw html
 <img src="../assets/img/constructions/perpendicular_on_line.svg" alt="The perpendicular to a line through a point on the line" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        A, B, p = APPoint(0.0, 0.0), APPoint(8.0, 2.0), APPoint(4.0, 1.0)
+        extent = perpendicular_construction(APLine(A, B), p; sweep=pi / 4).arcs
+    end
+
+    l = APLine(A, B)
+    m = perpendicular_construction(l, p; sweep=pi / 4)
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+    setline(1); sethue(julia_green)
+    path(m.arcs, action=:stroke)
+    end
+
+    sethue(julia_blue)
+    path(l; extend=(80, 80), action=:stroke)
+    sethue(julia_purple)
+    path(m.result; add=(0.3, 0.3), action=:stroke)
+    sethue(julia_red)
+    label("p", :SW, p, offset=8)
+
+    sethue("white")
+    path(p, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path(m.points, action=:fillpreserve)
+    sethue(julia_green); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 
 ```@example geo
 v, p1, p2 = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 3.0)
@@ -158,6 +427,48 @@ angle_at(v, p1, y) ≈ angle_at(v, y, p2)
 ```@raw html
 <img src="../assets/img/constructions/bisector.svg" alt="The bisector of an angle with its compass traces" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+        v, p1, p2 = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        extent = bisector_construction(v, p1, p2; sweep=pi / 4).arcs
+    end
+
+    m = bisector_construction(v, p1, p2; sweep=pi / 4)
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+        setline(1); sethue(julia_green)
+        path(m.arcs, action=:stroke)
+    end
+
+    sethue(julia_blue)
+    path(APPolyline2(p1, v, p2), action=:stroke)
+    sethue(julia_purple)
+    path(m.result; extend=(0, 250), action=:stroke)
+
+    sethue(julia_red)
+    label("vertex", :SW, v)
+
+    sethue("white")
+    path(v, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path(m.points, action=:fillpreserve)
+    sethue(julia_green); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 
 ### The points
 

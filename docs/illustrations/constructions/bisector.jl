@@ -7,17 +7,23 @@ end
 m = bisector_construction(v, p1, p2; sweep=pi / 4)
 @svg_doc(lxm, @__FILE__, begin
 Luxor.fontsize(15)
-gsave()
-setline(1)
-sethue(julia_green)
-path(m.arcs, action=:stroke)
-grestore()
+@layer begin
+	setline(1); sethue(julia_green)
+	path(m.arcs, action=:stroke)
+end
+
 sethue(julia_blue)
-path([APSegment(v, p1), APSegment(v, p2)], action=:stroke)
+path(APPolyline2(p1, v, p2), action=:stroke)
 sethue(julia_purple)
 path(m.result; extend=(0, 250), action=:stroke)
+
 sethue(julia_red)
 label("vertex", :SW, v)
-path([v]); plot_point(julia_blue)
-path(m.points); plot_point(julia_green)
+
+sethue("white")
+path(v, action=:fillpreserve)
+sethue(julia_blue); strokepath()
+sethue("white")
+path(m.points, action=:fillpreserve)
+sethue(julia_green); strokepath()
 end)

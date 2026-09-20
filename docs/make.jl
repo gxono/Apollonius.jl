@@ -8,7 +8,7 @@ makedocs(;
     format=Documenter.HTML(;
         canonical="https://gxono.github.io/Apollonius.jl",
         edit_link="master",
-        assets=["assets/examples.js"],
+        assets=String[],
         size_threshold_ignore=["api.md"],
         example_size_threshold=16 * 1024,
         size_threshold_warn=400 * 1024,
