@@ -243,8 +243,8 @@ of the line's own point at infinity, which a finite segment never reaches.
 applies, as a `Union{APSegment,APCircularArc2}`:
 
 ```@example geo
-invert(APSegment(APPoint(1.0, 0.5), APPoint(2.0, 1.0)), APPoint(0.0, 0.0))   # an APCircularArc2
-invert(APSegment(APPoint(0.5, -1.5), APPoint(1.5, -1.0)), APPoint(0.0, 0.0))   # an APSegment: this line passes through (0,0)
+invert(APSegment(APPoint(1.0, 0.5), APPoint(2.0, 1.0)), APPoint(0.0, 0.0))    # an APCircularArc2
+invert(APSegment(APPoint(0.5, -1.5), APPoint(1.5, -1.0)), APPoint(0.0, 0.0))  # an APSegment: this line passes through (0,0)
 ```
 
 ```@raw html
