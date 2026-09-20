@@ -36,6 +36,26 @@ APCircle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0))
 <img src="../assets/img/circles/circle_3p.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
+A diameter works too. [`circle_with_diameter`](@ref) takes the two ends, or the
+segment itself, and builds the circle centered at its midpoint. By Thales'
+theorem, every other point of the circle sees the segment under a right
+angle:
+
+```@example geo
+d = APSegment(APPoint(0.0, 0.0), APPoint(6.0, 2.0))
+c_d = circle_with_diameter(d)
+c_d == circle_with_diameter(d.p1, d.p2), c_d.center, c_d.r
+```
+
+```@example geo
+p_d = point_on_circle(c_d, 1.0)
+angle_at(p_d, d.p1, d.p2) ≈ pi / 2
+```
+
+```@raw html
+<img src="../assets/img/circles/circle_diameter.svg" alt="A segment, the circle that has it as a diameter, and a point of the circle that sees the segment under a right angle" style="width:100%; max-width: 700px;">
+```
+
 It throws an `ArgumentError` if the three points are (or are too close
 to) collinear, same as [`affine_map`](@ref) does for its three source
 points. There's no finite circle through them in that case.

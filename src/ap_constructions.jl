@@ -215,6 +215,17 @@ for [`arc_with_angle`](@ref)`(center, p, π)`.
 """
 semicircle(center::APPoint, p::APPoint; ccw::Bool=true) = arc_with_angle(center, p, ccw ? pi : -pi)
 """
+    circle_with_diameter(a::APPoint, b::APPoint)
+    circle_with_diameter(s::APSegment)
+
+The circle that has the segment `[a, b]` as a diameter: centered at the
+midpoint, with radius half the distance between the ends. By Thales'
+theorem, every other point of the circle sees the segment under a right
+angle.
+"""
+circle_with_diameter(a::APPoint{2}, b::APPoint{2}) = APCircle2(midpoint(a, b), distance(a, b) / 2)
+circle_with_diameter(s::APSegment{2}) = circle_with_diameter(s.p1, s.p2)
+"""
     extend_arc(arc::APCircularArc2, δ::Real)
 
 `arc` grown by `δ` radians at each end (shrunk if `δ` is negative), on the

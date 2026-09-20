@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="280" viewBox="0 0 500 280">
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 391.429688 124.285156 C 391.429688 176.359375 349.214844 218.570313 297.144531 218.570313 C 245.070313 218.570313 202.855469 176.359375 202.855469 124.285156 C 202.855469 72.214844 245.070313 30 297.144531 30 C 349.214844 30 391.429688 72.214844 391.429688 124.285156 Z M 391.429688 124.285156 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 265.714844 187.144531 L 391.429688 187.144531 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 297.144531 155.714844 C 297.144531 207.785156 254.929688 250 202.855469 250 C 150.785156 250 108.570313 207.785156 108.570313 155.714844 C 108.570313 103.640625 150.785156 61.429688 202.855469 61.429688 C 254.929688 61.429688 297.144531 103.640625 297.144531 155.714844 Z M 297.144531 155.714844 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(58.4%, 34.5%, 69.8%)" stroke-opacity="1" stroke-miterlimit="10" d="M 265.714844 187.144531 L 265.714844 61.429688 "/>
+</svg>

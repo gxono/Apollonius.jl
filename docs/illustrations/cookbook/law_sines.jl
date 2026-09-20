@@ -1,0 +1,27 @@
+include("../default_config.jl")
+lxm, lxo = @to_luxor_picture width=500 height=320 margin=30 begin
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    cc = circumcircle(t)
+    O = circumcenter(t)
+    angA = APAngle2(A, B, C)
+    radius = APSegment(O, A)
+end
+(; A, B, C, t, cc, O, angA, radius) = lxo
+@svg_doc(lxm, @__FILE__, begin
+Luxor.fontsize(15)
+gsave()
+setline(1); setdash("dash")
+sethue(julia_green)
+path(radius, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+path([A, B, C]); plot_point(julia_blue)
+sethue(julia_purple)
+path(cc, action=:stroke)
+path([O]); plot_point(julia_purple)
+path(marks(angA; size=36); action=:stroke)
+sethue(julia_red)
+label("A", :SW, A); label("a", label_anchor(APSegment(B, C); side=:right)...); label("R", :N, midpoint(O, A))
+end)

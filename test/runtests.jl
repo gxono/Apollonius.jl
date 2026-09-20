@@ -5896,3 +5896,12 @@ end
         @test !is_collinear(P(b, 0.0, 0.0), P(b, 1.0, 1.0), P(b, 2.0, 2.5))
     end
 end
+
+@testset "circle_with_diameter" begin
+    a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
+    c = circle_with_diameter(a, b)
+    @test c.center ≈ APPoint(3.0, 1.0) && c.r ≈ sqrt(10)
+    @test circle_with_diameter(APSegment(a, b)) == c
+    @test angle_at(point_on_circle(c, 1.0), a, b) ≈ pi / 2
+    @test circle_with_diameter(APPoint(0, 0), APPoint(4, 0)) ≈ APCircle2(APPoint(2.0, 0.0), 2.0)
+end

@@ -51,7 +51,7 @@ export sides, diagonals, diagonal_intersection, is_cyclic
 export direction, slope_angle, midpoint, distance, polar_point, polar_point_deg, antipode
 export norm, dot, normalize, angle_between, angle_at
 export measure, normalized_measure, is_direct
-export arc_length, point_on_arc, arc_with_angle, arc_with_length, tangent_at, marks, semicircle, extend_arc, compass_trace
+export arc_length, point_on_arc, arc_with_angle, arc_with_length, tangent_at, marks, semicircle, circle_with_diameter, extend_arc, compass_trace
 export mediator_construction, perpendicular_construction, parallel_construction, bisector_construction, label_anchor, extend_line
 export projection_construction, reflection_construction, symmetry_construction, translation_construction
 export grid_lines, axes_lines, clip_out, arrow_head, brace, brace_anchor, coordinate_guides
