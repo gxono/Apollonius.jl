@@ -6155,3 +6155,31 @@ end
         end
     end
 end
+
+@testset "metrics" begin
+    P(x, y) = APPoint(x, y)
+    O = P(0.0, 0.0)
+    e, h = APEllipse2(O, 3.0, 5.0), APHyperbola2(O, 3.0, 4.0)
+    pa = APParabola2(P(0.0, 1.0), APLine(P(0.0, -1.0), P(1.0, -1.0)))
+    @test eccentricity(APCircle2(O, 1.0)) == 0 && eccentricity(pa) == 1
+    @test eccentricity(e) ≈ 0.8 && eccentricity(h) ≈ 5 / 3
+    @test linear_eccentricity(e) ≈ 4 && linear_eccentricity(h) ≈ 5
+    @test semi_major(e) == 5 && semi_minor(e) == 3
+    @test curvature(APCircle2(O, 2.0)) ≈ 0.5
+    @test curvature(e, P(3.0, 0.0)) ≈ 3 / 25 && curvature(e, P(0.0, 5.0)) ≈ 5 / 9
+    @test curvature(h, P(3.0, 0.0)) ≈ 3 / 16
+    @test curvature(pa, O) ≈ 0.5 && curvature(pa, P(2.0, 1.0)) ≈ 4 / 8^1.5
+    @test_throws ArgumentError curvature(e, P(9.0, 9.0))
+    ar = APCircularArc2(APCircle2(O, 2.0), P(2.0, 0.0), P(-2.0, 0.0))
+    @test chord_length(ar) ≈ 4 && sagitta(ar) ≈ 2 && curvature(ar) ≈ 0.5
+    @test arc_length(APSegment(O, P(3.0, 4.0))) ≈ 5
+    sq = [O, P(1.0, 0.0), P(1.0, 1.0), P(0.0, 1.0)]
+    @test signed_area(APQuadrilateral(sq...)) ≈ 1 && signed_area(APQuadrilateral(reverse(sq)...)) ≈ -1
+    @test all(≈(π / 2), interior_angles(APQuadrilateral(sq...)))
+    L = APStraightNgon([O, P(2.0, 0.0), P(2.0, 1.0), P(1.0, 1.0), P(1.0, 2.0), P(0.0, 2.0)])
+    @test sum(interior_angles(L)) ≈ 4π && count(>(π), interior_angles(L)) == 1
+    @test sum(interior_angles(APStraightNgon(reverse(vertices(L))))) ≈ 4π
+    @test side_lengths(L) ≈ [2.0, 1.0, 1.0, 1.0, 1.0, 2.0] && semiperimeter(L) ≈ 4
+    bb = APBoundingBox(O, P(2.0, 3.0))
+    @test area(bb) ≈ 6 && perimeter(bb) ≈ 10
+end
