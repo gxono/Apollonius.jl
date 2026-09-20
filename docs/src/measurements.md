@@ -11,10 +11,10 @@ this page puts them side by side and says what each one accepts.
 | You want | Function | Accepts |
 |:---------|:---------|:--------|
 | Distance | [`distance`](@ref) | points, lines, rays, segments, circles, conics, arcs, polylines, polygons, bounding boxes, angles, half-planes, strips |
-| Area | [`area`](@ref), [`signed_area`](@ref) | any polygon (including curvilinear ones), circle, ellipse, bounding box; the signed one for straight polygons |
+| Area | [`area`](@ref), [`signed_area`](@ref) | any polygon (including curvilinear ones), circle, ellipse, bounding box; the signed one for polygons |
 | Perimeter | [`perimeter`](@ref), [`semiperimeter`](@ref) | any polygon, circle, ellipse, bounding box |
 | Length of a curve | [`arc_length`](@ref) | segments, circular, elliptic, parabolic and hyperbolic arcs, polylines |
-| Sides and angles of a polygon | [`side_lengths`](@ref), [`interior_angles`](@ref) | polygons; the angles for straight ones |
+| Sides and angles of a polygon | [`side_lengths`](@ref), [`interior_angles`](@ref) | polygons, curvilinear ones included |
 | Shape of a conic | [`eccentricity`](@ref), [`linear_eccentricity`](@ref), [`semi_major`](@ref), [`semi_minor`](@ref), [`focal_parameter`](@ref) | ellipses, hyperbolas, parabolas |
 | Curvature | [`curvature`](@ref), [`signed_curvature`](@ref) | circles, circular arcs, conics at a point, parametric curves at a parameter |
 | Chord and sagitta | [`chord_length`](@ref), [`sagitta`](@ref) | arcs; the sagitta of circular arcs |
@@ -176,7 +176,10 @@ chord_length(bow), sagitta(bow), arc_length(bow)
 For a polygon, [`side_lengths`](@ref) lists the sides in order and
 [`interior_angles`](@ref) the angle at each vertex, above `π` at a reflex
 vertex. [`signed_area`](@ref) is positive when the vertices run
-counterclockwise, which is a quick test of their order:
+counterclockwise, which is a quick test of their order.
+The last two also work for curvilinear polygons. There the angle at a vertex
+is the one between the tangents of the two sides that meet, and `signed_area`
+follows the direction of the first side:
 
 ```@example geo
 L = APStraightNgon([APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(2.0, 1.0), APPoint(1.0, 1.0), APPoint(1.0, 2.0), APPoint(0.0, 2.0)])
@@ -185,6 +188,13 @@ rad2deg.(interior_angles(L)), side_lengths(L), signed_area(L), semiperimeter(L)
 
 ```@raw html
 <img src="../assets/img/measurements/polygon_angles.svg" alt="An L-shaped polygon with the interior angle marked at each vertex, 270 degrees at the reflex one" style="width:100%; max-width: 700px;">
+```
+
+```@example geo
+cvt = APCurvilinearTriangle2(APSegment(APPoint(0.0, 0.0), APPoint(4.0, 0.0)),
+    APCircularArc2(APCircle2(APPoint(4.0, 2.0), 2.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0)),
+    APSegment(APPoint(4.0, 4.0), APPoint(0.0, 0.0)))
+signed_area(cvt), rad2deg.(interior_angles(cvt))   # 180° where the arc leaves the segment smoothly
 ```
 
 An [`APBoundingBox`](@ref) has an [`area`](@ref) and a [`perimeter`](@ref) too,

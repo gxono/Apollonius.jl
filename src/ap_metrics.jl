@@ -147,9 +147,11 @@ semiperimeter(pg::APPolygon) = perimeter(pg) / 2
 """
     signed_area(pg)
 
-The area of a polygon with a sign: positive when its vertices run
+The area of a polygon with a sign: positive when its boundary runs
 counterclockwise, negative when clockwise. [`area`](@ref) is its absolute
-value. For triangles, quadrilaterals and straight polygons in the plane.
+value. It works for every polygon in the plane, curvilinear ones included. For
+those the direction is the one of the first of its [`sides`](@ref), and the
+following sides are chained after it.
 """
 function signed_area(pg::_StraightPolygon2)
     vs = vertices(pg)
@@ -157,13 +159,24 @@ function signed_area(pg::_StraightPolygon2)
     n = length(vs)
     return sum(cross2(vs[i] - o, vs[mod1(i + 1, n)] - o) for i in 1:n) / 2
 end
+function signed_area(pg::APPolygon{2})
+    o = vertices(pg)[1]
+    q = translate(pg, APVector(-o[1], -o[2]))
+    return sum(_polygon_walk(sides(q))) do (side, reversed)
+        term = _side_greens_term(side)
+        reversed ? -term : term
+    end
+end
 """
     interior_angles(pg)
 
-The interior angle at each vertex of a triangle, a quadrilateral or a straight
-polygon in the plane, in radians and in the order of [`vertices`](@ref). An
-angle is above `π` at a reflex vertex, and the angles of a polygon with `n`
-vertices add up to `(n − 2)π`, whichever way the vertices are listed.
+The interior angle at each vertex of a polygon in the plane, in radians and in
+the order of [`vertices`](@ref). An angle is above `π` at a reflex vertex, and
+the angles of a straight polygon with `n` vertices add up to `(n − 2)π`,
+whichever way the vertices are listed. In a curvilinear polygon the angle at a
+vertex is the one between the tangents of the two sides that meet there, so it
+is `π` where they join smoothly. A cusp, where the tangents coincide, has no
+defined angle.
 """
 function interior_angles(pg::_StraightPolygon2)
     vs = vertices(pg)
@@ -187,3 +200,17 @@ twice their sum.
 """
 area(bb::APBoundingBox{2}) = bbox_width(bb) * bbox_height(bb)
 perimeter(bb::APBoundingBox{2}) = 2 * (bbox_width(bb) + bbox_height(bb))
+# direction of travel at the start and at the end of a side walked forward or reversed
+_start_dir(side, reversed) = reversed ? -tangent_at(side, 1.0).vector : tangent_at(side, 0.0).vector
+_end_dir(side, reversed) = reversed ? -tangent_at(side, 0.0).vector : tangent_at(side, 1.0).vector
+function interior_angles(pg::APPolygon{2})
+    walk = _polygon_walk(sides(pg))
+    n = length(walk)
+    ccw = signed_area(pg) >= 0
+    return map(1:n) do i
+        u = _start_dir(walk[i]...)
+        w = -_end_dir(walk[mod1(i - 1, n)]...)
+        a, b = ccw ? (u, w) : (w, u)
+        return mod(atan(cross2(a, b), dot(a, b)), 2π)
+    end
+end

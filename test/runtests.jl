@@ -6182,6 +6182,16 @@ end
     @test side_lengths(L) ≈ [2.0, 1.0, 1.0, 1.0, 1.0, 2.0] && semiperimeter(L) ≈ 4
     bb = APBoundingBox(O, P(2.0, 3.0))
     @test area(bb) ≈ 6 && perimeter(bb) ≈ 10
+    arc90 = APCircularArc2(APCircle2(O, 2.0), P(2.0, 0.0), P(0.0, 2.0))
+    sec = APCircularSector2(arc90)
+    @test signed_area(sec) ≈ π && interior_angles(sec) ≈ [π / 2, π / 2, π / 2]
+    @test interior_angles(APCircularSegment2(arc90)) ≈ [π / 4, π / 4]
+    @test signed_area(APAnnularSector2(arc90, 1.0)) ≈ area(APAnnularSector2(arc90, 1.0))
+    cvt = APCurvilinearTriangle2(APSegment(O, P(4.0, 0.0)), APCircularArc2(APCircle2(P(4.0, 2.0), 2.0), P(4.0, 0.0), P(4.0, 4.0)), APSegment(P(4.0, 4.0), O))
+    @test signed_area(cvt) ≈ 8 + 2π && interior_angles(cvt) ≈ [π / 4, π, 3π / 4]
+    sq = APStraightNgon([O, P(1.0, 0.0), P(1.0, 1.0), P(0.0, 1.0)])
+    cw = APCurvilinearNgon2(collect(reverse(sides(sq))))
+    @test signed_area(cw) ≈ signed_area(sq) && all(≈(π / 2), interior_angles(cw))
     circ = APParametricCurve2(t -> P(2cos(t), 2sin(t)), (0.0, 2π))
     @test isapprox(curvature(circ, 1.0), 0.5; rtol=1e-6) && isapprox(signed_curvature(circ, 0.3), 0.5; rtol=1e-6)
     cw = APParametricCurve2(t -> P(2cos(-t), 2sin(-t)), (0.0, 2π))
