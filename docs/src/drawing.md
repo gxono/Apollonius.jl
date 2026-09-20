@@ -975,9 +975,9 @@ figure. For a more detailed explanation, see the Examples section.
 ```julia
 begin
 using Apollonius
-using Luxor: Drawing, finish, origin,
-    sethue, julia_blue, julia_green, julia_red, julia_purple
-import Luxor
+using Luxor
+import Apollonius: distance, rotate
+import Luxor: julia_red, julia_blue, julia_green, julia_green
 end
 
 colors = [julia_red, julia_purple, julia_green]
@@ -1000,7 +1000,7 @@ map!(c -> APCircle2(c.center, c.r - Δr), circles)
 end
 
 begin
-Drawing(500, 500, "docs/src/assets/img/examples/logo.svg")
+Drawing(500, 500, :svg)
 origin()
 
 for (i, color) in enumerate(colors)
