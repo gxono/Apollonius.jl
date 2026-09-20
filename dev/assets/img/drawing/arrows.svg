@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="240" viewBox="0 0 500 240">
-<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 20 120 L 470.761719 120 "/>
-<path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 470.761719 116.171875 L 480 120 L 470.761719 123.828125 "/>
-<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 250 292.5 L 250 -38.640625 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 20 177.5 L 470.761719 177.5 "/>
+<path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 470.761719 173.671875 L 480 177.5 L 470.761719 181.328125 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 250 350 L 250 18.859375 "/>
+<path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 244.257813 18.859375 L 250 5 L 255.742188 18.859375 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(25.1%, 38.8%, 84.7%)" stroke-opacity="1" stroke-miterlimit="10" d="M 29.199219 62.5 C 179.558594 62.5 325.316406 62.5 471.074219 62.5 "/>
+<path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 470.761719 58.671875 L 480 62.5 L 470.761719 66.328125 "/>
+<path fill-rule="nonzero" fill="rgb(25.1%, 38.8%, 84.7%)" fill-opacity="1" d="M 29.238281 66.328125 L 20 62.5 L 29.238281 58.671875 "/>
 </svg>
