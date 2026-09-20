@@ -164,7 +164,7 @@ In the first panel `arcs=2` puts a tick across two arcs. The other five panels s
 ## Arrowheads: `arrow_head`
 
 `path(segment; as=:arrow)` puts an arrowhead at the end of a segment, and
-nowhere else. [`arrow_head`](@ref) places one anywhere on a segment, a line,
+`as=:doublearrow` at both ends, and nowhere else. [`arrow_head`](@ref) places one anywhere on a segment, a line,
 a ray or an arc, as a shape you draw yourself.
 
 | Keyword | Default | Meaning |

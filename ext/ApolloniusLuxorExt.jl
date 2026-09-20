@@ -4,8 +4,14 @@ using Luxor
 const AP = Apollonius
 _lp(p::AP.APPoint) = Luxor.Point(Float64(p[1]), Float64(p[2]))
 _lp(pts::AbstractVector{<:AP.APPoint}) = _lp.(pts)
-_arrow(p1, p2; kwargs...) =
-    haskey(kwargs, :linewidth) ? Luxor.arrow(p1, p2; kwargs...) : Luxor.arrow(p1, p2; linewidth=Luxor.getline(), kwargs...)
+const _ARROWS = (:arrow, :doublearrow)
+function _arrow(p1, p2; as::Symbol=:arrow, startarrow::Bool=as == :doublearrow, finisharrow::Bool=true, kwargs...)
+    lw = get(kwargs, :linewidth, Luxor.getline())
+    rest = (; (k => v for (k, v) in kwargs if k != :linewidth)...)
+    !startarrow && finisharrow && return Luxor.arrow(p1, p2; linewidth=lw, rest...)
+    c1, c2 = p1 + (p2 - p1) / 3, p1 + 2 * (p2 - p1) / 3
+    return Luxor.arrow(p1, c1, c2, p2, :stroke; linewidth=lw, startarrow=startarrow, finisharrow=finisharrow, rest...)
+end
 """
     label(txt::AbstractString, alignment::Symbol, p::APPoint; kwargs...)
     label(txt::AbstractString, direction::Real, p::APPoint; kwargs...)
@@ -117,7 +123,7 @@ changes.
 """
 function AP.path(v::AP.APVector, from::AP.APPoint=AP.APPoint(0.0, 0.0); as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
     a, b = reverse ? (from + v, from) : (from, from + v)
-    as == :arrow && return _arrow(_lp(a), _lp(b); kwargs...)
+    as in _ARROWS && return _arrow(_lp(a), _lp(b); as=as, kwargs...)
     return Luxor.line(_lp(a), _lp(b), action)
 end
 """
@@ -132,14 +138,16 @@ argument (and, unlike a bare `APVector`, correctly scaled/placed by
 """
 function AP.path(ev::AP.APEquipollentVector; as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
     a, b = reverse ? (AP.tip(ev), ev.point) : (ev.point, AP.tip(ev))
-    as == :arrow && return _arrow(_lp(a), _lp(b); kwargs...)
+    as in _ARROWS && return _arrow(_lp(a), _lp(b); as=as, kwargs...)
     return Luxor.line(_lp(a), _lp(b), action)
 end
 """
     path(s::APSegment; as=:plain, action=:path, kwargs...)
 
 `as=:arrow` draws `s.p1 -> s.p2` as an arrow via Luxor's own `arrow`
-instead of a plain line. Unlike every other `path` method, this one
+instead of a plain line, and `as=:doublearrow` puts a head at both ends.
+`startarrow` and `finisharrow` (`Bool`) choose each head separately: with
+`startarrow=true, finisharrow=false` the head is at `s.p1`. Unlike every other `path` method, this one
 special case draws immediately (stroke plus an arrowhead fill) rather
 than just adding to the current path: Luxor's `arrow` has no deferred
 form, so `action` is ignored when `as=:arrow`. `kwargs`
@@ -153,7 +161,7 @@ entirely: see `Luxor.arrow`'s own docstring), so switching a shape from
 """
 function AP.path(s::AP.APSegment; as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
     a, b = reverse ? (s.p2, s.p1) : (s.p1, s.p2)
-    as == :arrow && return _arrow(_lp(a), _lp(b); kwargs...)
+    as in _ARROWS && return _arrow(_lp(a), _lp(b); as=as, kwargs...)
     return Luxor.line(_lp(a), _lp(b), action)
 end
 """
@@ -189,7 +197,7 @@ function AP.path(l::AP.APLine; extend::Union{Real,Tuple{Real,Real}}=1000.0, add:
         p1, p2 = seg.p1, seg.p2
     end
     reverse && ((p1, p2) = (p2, p1))
-    as == :arrow && return _arrow(_lp(p1), _lp(p2); kwargs...)
+    as in _ARROWS && return _arrow(_lp(p1), _lp(p2); as=as, kwargs...)
     return Luxor.line(_lp(p1), _lp(p2), action)
 end
 """
@@ -212,7 +220,7 @@ function AP.path(r::AP.APRay; extend=1000.0, add::Union{Nothing,Real,Tuple{Real,
         a, b = seg.p1, seg.p2
     end
     reverse && ((a, b) = (b, a))
-    as == :arrow && return _arrow(_lp(a), _lp(b); kwargs...)
+    as in _ARROWS && return _arrow(_lp(a), _lp(b); as=as, kwargs...)
     return Luxor.line(_lp(a), _lp(b), action)
 end
 """

@@ -426,9 +426,9 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | Type | Adds to the path as | Type-specific keywords |
 |:-----|:---------------------|:------------------------|
 | `APPoint` | a small mark: a circle by default, or a square, an `x` or a `+` | `radius=3`; `as=:circle` (also `:square`, `:cross`, `:plus`; the last two are two strokes, so they only show with `action=:stroke`) |
-| `APSegment` | a straight line between its two points, or (pass `as=:arrow`) an arrow (see [Arrows](@ref) below) | `as=:plain` (default) |
-| `APLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point, or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow` ; `add=(before, after)`: lengthen by fractions of `distance(l.p1, l.p2)` instead of absolute units (see [`extend_line`](@ref)), replacing `extend` |
-| `APRay` | likewise, extended only past `through` (not past `origin`); `extend=0.0` draws the exact finite segment from `origin` to `through` | `extend=1000.0`; `as=:plain`/`:arrow`; `add=(before, after)`: lengthen the segment `origin`-`through` by fractions of its length, replacing `extend` |
+| `APSegment` | a straight line between its two points, or (pass `as=:arrow` or `as=:doublearrow`) an arrow (see [Arrows](@ref) below) | `as=:plain` (default) |
+| `APLine` | a long finite segment, since the line itself is infinite; `extend=0.0` draws the exact finite segment between `l.p1`/`l.p2` instead | `extend=1000.0`: how far past each defining point, or a 2-tuple `(past_p1, past_p2)` to extend each end by a different amount; `as=:plain`/`:arrow`/`:doublearrow` ; `add=(before, after)`: lengthen by fractions of `distance(l.p1, l.p2)` instead of absolute units (see [`extend_line`](@ref)), replacing `extend` |
+| `APRay` | likewise, extended only past `through` (not past `origin`); `extend=0.0` draws the exact finite segment from `origin` to `through` | `extend=1000.0`; `as=:plain`/`:arrow`/`:doublearrow`; `add=(before, after)`: lengthen the segment `origin`-`through` by fractions of its length, replacing `extend` |
 | `APCircle2` | Luxor's native circle | (none) |
 | any [`APPolygon`](@ref) | every side, chained end to end into one closed path: a straight line for an `APSegment` side, a true arc for an `APCircularArc2` side, an `n`-point sampled polyline for any other conic-arc side (see below); covers `APTriangle`, `APQuadrilateral`, `APStraightNgon`, `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2` and `APCurvilinearNgon2`, **one** method for the whole family | `n=60` (only matters if some side needs sampling) |
 | `APBoundingBox` | an axis-aligned box | (none) |
@@ -438,10 +438,10 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | `APCircularArc2` | a true circular arc from `p1` to `p2`, via Luxor's own `arc2r` (Cairo's native arc primitive, not a polygonal approximation) | (none) |
 | `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on_arc`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
 | `APAngle2` | see below; it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
-| `APVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=APPoint(0.0, 0.0)`, `as=:plain`/`:arrow` |
+| `APVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=APPoint(0.0, 0.0)`, `as=:plain`/`:arrow`/`:doublearrow` |
 | `APHalfPlane2` | unbounded, so this draws its boundary line only (see `APLine` above) | `extend=1000.0`, `add` |
 | `APStrip2` | likewise unbounded: both boundary lines, one call each | `extend=1000.0`, `add` |
-| `APEquipollentVector` | the segment from its point of application to its tip | `as=:plain`/`:arrow` |
+| `APEquipollentVector` | the segment from its point of application to its tip | `as=:plain`/`:arrow`/`:doublearrow` |
 | `APPolyline2` | an open chain of straight sides through its vertices, never closed | (none) |
 | `APCurvilinearPolyline2` | an open chain of straight and curved sides in the order given: a line for an `APSegment`, a true arc for an `APCircularArc2`, a sampled polyline for any other conic arc | `n=60` |
 | `AbstractVector{<:APObject}` | each element in turn, with the same `kwargs` every time (see below) | whatever that element's own type takes |
@@ -526,7 +526,7 @@ would silently discard it first.
 
 ### Arrows
 
-`APSegment`/`APLine`/`APRay` take `as=:arrow` to draw as an arrow instead
+`APSegment`/`APLine`/`APRay` (and vectors) take `as=:arrow` to draw as an arrow instead
 of a plain line, via Luxor's own `arrow`:
 
 ```julia
@@ -546,7 +546,17 @@ immediately, with no deferred form, so `action` is ignored when
 `as=:arrow`. Keyword arguments other than `as`/`extend` (`arrowheadlength`,
 `arrowheadangle`, `linewidth`, ...) are forwarded straight to `Luxor.arrow`.
 
-`as=:arrow` always puts the head at the end of a straight shaft. For an
+`as=:arrow` puts the head at the end of the shaft, `as=:doublearrow` puts one
+at each end, and the keywords `startarrow` and `finisharrow` choose each head
+on their own. `reverse=true` flips the direction, as in every `path` method:
+
+```julia
+s = APSegment(APPoint(-80.0, 0.0), APPoint(80.0, 0.0))
+path(s; as=:doublearrow)                           
+path(s; as=:arrow, startarrow=true, finisharrow=false)
+```
+
+The shaft is always straight. For an
 arrowhead in the middle of a line, or at the end of an arc, build it with
 [`arrow_head`](@ref) and draw it like any other shape; see
 [Marks, Labels & Decorations](@ref).
@@ -788,30 +798,17 @@ To choose where a label goes and how it is aligned, see
 
 ![Apollonius.jl logo](assets/logo.svg)
 
-The logo is a **Steiner chain**: `K1` and `K2` are two circles internally
-tangent to a big circle `K` (and externally tangent to each other), and the
-chain is every further circle also tangent to both `K` and `K2`, each one
-also tangent to the previous. Rather than re-solving the 3-circle
-Apollonius problem (up to 8 candidate solutions) at every step of the
-chain, this inverts about the point where `K` and `K2` touch: both become
-**parallel lines**, and in that inverted picture the whole chain collapses
-to a trivial row of *equal* circles translated along them: invert each
-one back and the real, naturally-shrinking chain falls out, one
-[`invert`](@ref) per new circle instead of a full Apollonius solve.
-`delta_r` then perturbs each circle's own already-inverted (real-space)
-radius by a constant amount before it's kept: a negative value shrinks
-every circle a bit further, opening up the gaps between them, which is
-what gives the logo its current look; it has to be applied there and not
-inside the inverted-space construction, since that construction only
-produces a valid chain when every one of *those* circles shares exactly
-the same radius. `r_min` stops the chain once a circle's own
-(already-perturbed) radius would no longer be a sensible circle to draw.
-[`reflection`](@ref) across the radial axis through `K1` then gives the
-mirror-image chain trailing the other way, and three [`rotate`](@ref)
-copies (paired with `Luxor.julia_green`/`julia_purple`/`julia_red`, in
-that order) complete the 3-fold symmetric figure. `A` is placed at angle
-`270°`, not `90°`, because Luxor's y-axis points downward (screen
-coordinates), so `270°` is the direction that reads as "up" once drawn:
+The logo is a chain of circles, each one the answer to an Apollonius problem.
+It starts from three equal circles centered at the vertices of an equilateral
+triangle, so that each touches the other two. [`tangent_circles`](@ref) of the
+three returns the circles tangent to all of them, and the largest is the outer
+circle that encloses the three. Each new circle of the chain is then the
+smallest one tangent to that outer circle, to the first of the three circles
+and to the previous circle of the chain, another call to `tangent_circles`, and
+the chain stops when the radius falls to `Δr`. Every circle then gives up `Δr`
+of its radius, which opens the gaps between them, and drawing the chain three
+times, [`rotate`](@ref)d by 120° each time and one color per copy, completes the
+figure:
 
 ```julia
 begin

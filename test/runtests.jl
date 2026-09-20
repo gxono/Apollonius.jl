@@ -5537,6 +5537,17 @@ using Base.MathConstants: golden
             path(arrow_head(arc; at=0.2, style=:open); action=:stroke)
             Luxor.label("80", brace_anchor(APPoint(-40.0, 60.0), APPoint(40.0, 60.0))...)
             path(coordinate_guides(APPoint(30.0, -20.0)); action=:stroke)
+            @testset "arrows at one end or both" begin
+                sa = APSegment(APPoint(-40.0, 50.0), APPoint(40.0, 50.0))
+                for kw in (NamedTuple(), (as=:arrow,), (as=:doublearrow,), (as=:arrow, startarrow=true), (as=:arrow, startarrow=true, finisharrow=false),
+                           (as=:doublearrow, arrowheadlength=15, linewidth=3))
+                    @test (path(sa; kw...); true)
+                end
+                @test (path(APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)); extend=30.0, as=:doublearrow); true)
+                @test (path(APRay(APPoint(0.0, 0.0), APPoint(1.0, 1.0)); extend=30.0, as=:doublearrow); true)
+                @test (path(APVector(20.0, 10.0); as=:doublearrow); true)
+                @test (path(APEquipollentVector(APVector(20.0, 10.0), APPoint(5.0, 5.0)); as=:doublearrow); true)
+            end
             @testset "point shapes, dimension and tickline" begin
                 for shape in (:circle, :square, :cross, :plus)
                     path(APPoint(0.0, 0.0); as=shape, radius=4, action=:stroke)
