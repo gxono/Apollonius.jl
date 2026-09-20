@@ -103,7 +103,8 @@ whether the sign means anything:
 | [`angle_between`](@ref)`(u, v)` | two vectors | signed, in `(-π, π]` |
 | [`measure`](@ref)`(ang)` | an [`APAngle2`](@ref) or an arc | signed for an angle, the angle swept for an arc |
 | [`intersection_angle`](@ref)`(c1, c2)` | two circles | the angle between the tangents where they cross |
-| [`slope_angle`](@ref)`(obj)` | a line, ray or segment | the angle of its direction from the `x` axis |
+| [`slope_angle`](@ref)`(obj)` | a vector, line, ray or segment | the angle of its direction from the `x` axis |
+| [`polar_angle`](@ref)`(p, center)` | a point | the angle of `p` around `center` (the origin by default) |
 
 ```@example geo
 v = APPoint(0.0, 0.0)
@@ -128,6 +129,17 @@ centroid(pg)   # area-weighted, not the average of the six vertices
 
 ```@raw html
 <img src="../assets/img/measurements/centroid.svg" alt="An L-shaped polygon with its area-weighted centroid and the plain average of its vertices" style="width:100%; max-width: 700px;">
+```
+
+[`centroid`](@ref) also answers for a point, a segment (its midpoint), a bounding
+box, a circle or an ellipse (their center) and a polyline (the mass is on the
+curve). [`center`](@ref) and [`radius`](@ref) read the same data from every
+circle-like object (circles, ellipses and hyperbolas, their arcs, sectors,
+segments and annular sectors) without knowing which field holds it:
+
+```@example geo
+c0 = APCircle2(APPoint(1.0, 2.0), 3.0)
+center(c0), radius(c0), center(APCircularArc2(c0, APPoint(4.0, 2.0), APPoint(1.0, 5.0))), centroid(APSegment(APPoint(0.0, 0.0), APPoint(2.0, 4.0)))
 ```
 
 [`foci`](@ref) returns the two foci of an ellipse or a hyperbola as a tuple.

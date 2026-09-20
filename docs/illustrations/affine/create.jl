@@ -23,8 +23,12 @@ path(t, action=:stroke)
 sethue(julia_purple)
 path(timg, action=:stroke)
 sethue(julia_red)
-label("a", :SW, a); label("b", :S, b); label("c", :NW, c)
-label("a'", :SW, a2); label("b'", :SE, b2); label("c'", :NW, c2)
+label("a", :S, a, offset=8); 
+label("b", :S, b, offset=8); 
+label("c", :W, c, offset=8)
+label("a'", :S, a2, offset=8); 
+label("b'", :S, b2, offset=8); 
+label("c'", :W, c2, offset=8)
 path([a, b, c]); plot_point(julia_blue)
 path([a2, b2, c2]); plot_point(julia_purple)
 end)

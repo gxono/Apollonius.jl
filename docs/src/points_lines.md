@@ -229,7 +229,12 @@ polar_point_deg(4.0, 40.0, APPoint(2.0, 1.0))   # the same, around another cente
 This is exactly the point/angle/modulus relationship [`slope_angle`](@ref)
 and [`distance`](@ref) give you the other way around:
 `polar_point(distance(O, p), slope_angle(APLine(O, p)), O)` recovers `p`
-(for `p != O`).
+(for `p != O`). [`polar_angle`](@ref)`(p, center)` is the angle alone, in `(-π, π]`,
+and the center is the origin when omitted:
+
+```@example geo
+rad2deg(polar_angle(APPoint(0.0, 3.0))), rad2deg(polar_angle(APPoint(3.0, 4.0), APPoint(3.0, 1.0)))
+```
 
 ## Points by parameter and by angle
 
@@ -297,6 +302,8 @@ equally_spaced_points(arc_eq, 3)
 ```@example geo
 direction(l)                    # ⟨3.0, 4.0⟩: l.p2 - l.p1, as an APVector
 rad2deg(slope_angle(l))         # ≈ 53.13°
+v = APVector(1.0, 1.0)
+rad2deg(slope_angle(v))         # 45°: the angle of a vector is the same call
 is_collinear(O, A, APPoint(6.0, 8.0))
 on_line(APPoint(6.0, 8.0), l)
 on_segment(APPoint(6.0, 8.0), s) # false: beyond A
@@ -305,7 +312,7 @@ on_segment(APPoint(6.0, 8.0), s) # false: beyond A
 | Function | Returns | Meaning |
 |:---------|:--------|:--------|
 | [`direction`](@ref) | `APVector` | non-normalized direction of an `APLine`/`APRay`/`APSegment` |
-| [`slope_angle`](@ref) | angle | `atan(dy, dx)` of that direction, in radians |
+| [`slope_angle`](@ref) | angle | `atan(dy, dx)` of that direction, in radians; also for an `APVector` |
 | [`is_collinear`](@ref) | `Bool` | do three points lie on a common line? |
 | [`is_parallel`](@ref) / [`is_perpendicular`](@ref) | `Bool` | relation between two lines |
 | [`on_line`](@ref) / [`on_segment`](@ref) / [`on_ray`](@ref) | `Bool` | is a point on this line / this finite segment / this half-line? |

@@ -33,8 +33,10 @@ cross3(a, b) = APVector(a[2] * b[3] - a[3] * b[2], a[3] * b[1] - a[1] * b[3], a[
 """
     slope_angle(obj)
 
-The angle (radians, from the positive x-axis) of `obj`'s [`direction`](@ref)
--- any `APLine`/`APRay`/`APSegment`.
+The angle (radians, in `(-π, π]`, counterclockwise from the positive x-axis) of
+the [`direction`](@ref) of `obj`: an [`APLine`](@ref), [`APRay`](@ref) or
+[`APSegment`](@ref), an [`APVector`](@ref) or an [`APEquipollentVector`](@ref).
+For the angle of a point around a center, see [`polar_angle`](@ref).
 """
 slope_angle(obj) = atan(direction(obj)[2], direction(obj)[1])
 """

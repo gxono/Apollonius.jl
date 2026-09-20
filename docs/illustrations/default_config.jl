@@ -2,7 +2,7 @@ begin
 using Apollonius
 using Luxor: @drawsvg, @svg,
     Drawing, finish, preview, origin, newsubpath,
-    background, RGBA,
+    background, RGBA, text,
     sethue, setdash, setopacity, setline,
     fillpreserve, strokepath, fillpath,
     julia_blue, julia_green, julia_red, julia_purple,

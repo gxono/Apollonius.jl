@@ -5641,6 +5641,12 @@ using Base.MathConstants: golden
             path(APStrip2(APLine(APPoint(-20.0, 0.0), APPoint(-20.0, 1.0)), APLine(APPoint(20.0, 0.0), APPoint(20.0, 1.0))); action=:stroke)
             Luxor.label("I", :N, incenter(t))
             Luxor.label("O", pi / 4, circumcenter(t); offset=10)
+            Luxor.text("a", Apollonius.midpoint(t[2], t[3]))
+            Luxor.text("b", Apollonius.midpoint(t[1], t[3]); halign=:center, valign=:middle, angle=0.3)
+            Luxor.text("v", Apollonius.midpoint(t[1], t[2]); direction=APVector(3.0, 4.0))
+            Luxor.text("s", Apollonius.midpoint(t[1], t[3]); direction=APSegment(t[3], t[1]), upright=true)
+            Luxor.text("e", t[1]; direction=APEquipollentVector(APVector(1.0, 1.0), t[1]))
+            @test_throws ArgumentError Luxor.text("x", t[1]; angle=0.1, direction=0.2)
             path([APPoint(0.0, 0.0), APPoint(10.0, 10.0)]; action=:fill)
             path(intersection(APLine(APPoint(-50.0, 0.0), APPoint(50.0, 0.0)), circumcircle(t)); action=:fill)
             path(APPoint{2,Float64}[]; action=:fill)
@@ -6078,5 +6084,74 @@ end
         @test isapprox(c.center[1] - b, 0.0; atol=1e-4) && isapprox(c.center[2] - b, 0.0; atol=1e-4) && isapprox(c.r, 1.0; rtol=1e-4)
         e = APEllipse2(APPoint(b, b), 5.0, 3.0)
         @test all(t -> is_on_ellipse(point_on_ellipse(e, t), e), 0.0:0.9:6.0)
+    end
+end
+
+@testset "elementary operations" begin
+    P(x, y) = APPoint(x, y)
+    O = P(0.0, 0.0)
+    @testset "direction and angle of vectors" begin
+        @test direction(APVector(1.0, 2.0)) == APVector(1.0, 2.0)
+        @test slope_angle(APVector(0.0, 2.0)) ≈ π / 2
+        @test slope_angle(APVector(-1.0, 0.0)) ≈ π
+        @test slope_angle(APEquipollentVector(APVector(1.0, 1.0), P(5.0, 5.0))) ≈ π / 4
+        @test polar_angle(P(0.0, 3.0)) ≈ π / 2
+        @test polar_angle(P(3.0, 4.0), P(3.0, 1.0)) ≈ π / 2
+        p = P(2.0, -1.0)
+        @test polar_point(Apollonius.distance(O, p), polar_angle(p), O) ≈ p
+    end
+    @testset "equipollent vector arithmetic" begin
+        ev = APEquipollentVector(APVector(1.0, 2.0), P(1.0, 1.0))
+        @test (-ev).vector == APVector(-1.0, -2.0) && (-ev).point == ev.point
+        @test (2.0 * ev).vector == APVector(2.0, 4.0) && (ev * 2.0).vector == APVector(2.0, 4.0)
+        @test (ev / 2.0).vector == APVector(0.5, 1.0)
+        @test orthogonal(ev).vector == orthogonal(ev.vector)
+    end
+    @testset "center, radius, centroid" begin
+        c = APCircle2(P(1.0, 2.0), 3.0)
+        arc = APCircularArc2(c, P(4.0, 2.0), P(1.0, 5.0))
+        e = APEllipse2(P(1.0, 1.0), 5.0, 3.0)
+        @test center(c) == c.center && radius(c) == 3.0 && centroid(c) == c.center
+        @test center(arc) == c.center && radius(arc) == 3.0
+        @test center(e) == e.center && centroid(e) == e.center
+        @test center(APHyperbola2(P(2.0, 2.0), 3.0, 2.0)) == P(2.0, 2.0)
+        @test center(APBoundingBox(O, P(2.0, 4.0))) == P(1.0, 2.0)
+        @test centroid(APSegment(O, P(2.0, 4.0))) == P(1.0, 2.0)
+        @test centroid(P(1.0, 1.0)) == P(1.0, 1.0)
+        @test centroid(APPolyline2(O, P(2.0, 0.0), P(2.0, 2.0))) ≈ P(1.5, 0.5)
+    end
+    @testset "comparison" begin
+        e = APEllipse2(O, 5.0, 3.0)
+        a1 = APEllipticArc2(e, P(5.0, 0.0), P(0.0, 3.0))
+        a2 = APEllipticArc2(e, P(5.0, 0.0), P(0.0, 3.0))
+        @test a1 == a2 && isapprox(a1, a2)
+        f = t -> P(cos(t), sin(t))
+        c1, c2 = APParametricCurve2(f, (0.0, 1.0)), APParametricCurve2(f, (0.0, 1.0))
+        @test c1 == c2 && isapprox(c1, c2)
+        @test !isapprox(c1, APParametricCurve2(t -> P(cos(t), 2sin(t)), (0.0, 1.0)))
+    end
+    @testset "polylines and parametric curves" begin
+        pl = APPolyline2(O, P(2.0, 0.0), P(2.0, 2.0))
+        @test point_on_curve(pl, 0.0) ≈ O && point_on_curve(pl, 1.0) ≈ P(2.0, 2.0) && point_on_curve(pl, 0.5) ≈ P(2.0, 0.0)
+        @test_throws ArgumentError point_on_curve(pl, 1.5)
+        @test tangent_line(pl, P(1.0, 0.0)) ≈ APLine(O, P(1.0, 0.0))
+        @test tangent_line(pl, P(2.0, 1.0)) ≈ APLine(P(2.0, 0.0), P(2.0, 1.0))
+        @test_throws ArgumentError tangent_line(pl, P(5.0, 5.0))
+        cu = APParametricCurve2(t -> P(cos(t), sin(t)), (0.0, 2π))
+        tg = tangent_at(cu, π / 2)
+        @test isapprox(tg.point, P(0.0, 1.0); atol=1e-12) && isapprox(tg.vector[1], -1.0; atol=1e-6) && isapprox(tg.vector[2], 0.0; atol=1e-6)
+        @test isapprox(Apollonius.distance(P(2.0, 0.0), cu), 1.0; atol=1e-6)
+        @test isapprox(Apollonius.distance(cu, P(0.0, 3.0)), 2.0; atol=1e-6)
+        @test is_perpendicular(tangent_line(cu, P(0.0, 1.0)), APLine(O, P(0.0, 1.0)))
+        @test_throws ArgumentError tangent_line(cu, P(5.0, 5.0))
+    end
+    @testset "convert element type" begin
+        pts = [O, P(1.0, 0.0), P(1.0, 1.0), P(0.0, 1.0)]
+        for x in (APTriangle(pts[1], pts[2], pts[3]), APQuadrilateral(pts...), APStraightNgon(pts), APPolyline2(pts),
+                  APBoundingBox(O, P(2.0, 3.0)), APAngle2(O, pts[2], pts[4]), APEquipollentVector(APVector(1.0, 2.0), O))
+            T = typeof(x)
+            tgt = T.name.wrapper{T.parameters[1:end-1]..., Float32}
+            @test convert(tgt, x) isa tgt
+        end
     end
 end

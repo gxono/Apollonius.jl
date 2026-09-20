@@ -124,11 +124,13 @@ point makes sense for that shape, which is almost always a point the
 package already gives you a name for, so there's nothing to look up.
 `Luxor.label` accepts an `APPoint` directly (both the alignment-`Symbol`
 form and the direction-angle one), no `Luxor.Point(p...)` conversion
-needed:
+needed, and so does `Luxor.text`, which also turns the text, with `angle` or `direction`, a number or a vector:
 
 ```julia
 Luxor.label("I", :N, incenter(t))
 Luxor.label("O", :N, circumcenter(t))
+side = APSegment(t[2], t[3])
+Luxor.text("a", midpoint(side); halign=:center, direction=side, upright=true)   # along the side
 ```
 
 ## Sizing a canvas automatically
@@ -737,6 +739,7 @@ does, so you never convert by hand.
 | Call | What it does |
 |:-----|:-------------|
 | `Luxor.label(text, alignment, p; kwargs...)` | Luxor's `label` at an `APPoint`. `alignment` is a compass symbol (`:N`, `:SE`, ...) or an angle. |
+| `Luxor.text(text, p; halign, valign, angle, direction, upright)` | Luxor's `text` at an `APPoint`. Unlike `label` it can turn the text: `angle` and `direction` take a number in radians, or a vector, line, ray or segment to run the text along. |
 | `Luxor.dimension(p1, p2; kwargs...)`, `Luxor.dimension(segment; kwargs...)` | the dimension line for the distance between two points, with extension lines, two arrowheads and the measured text. Drawn immediately; returns `(distance, text)`. |
 | `Luxor.tickline(p1, p2; kwargs...)` | a line with ticks and numbers between two points. Returns the tick positions `(major, minor)` as vectors of `APPoint`; with `vertices=true` it draws nothing and only returns them. |
 
@@ -772,7 +775,7 @@ label can be a formula:
 
 ```julia
 using LaTeXStrings, MathTeXEngine
-label(L"lpha^2 + eta_1", :N, APPoint(0.0, 0.0))
+label(L"\alpha^2 + \beta_1", :N, APPoint(0.0, 0.0))
 ```
 
 To choose where a label goes and how it is aligned, see

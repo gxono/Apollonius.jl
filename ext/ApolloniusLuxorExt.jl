@@ -17,6 +17,38 @@ forwarded straight through).
 Luxor.label(txt::AbstractString, alignment::Symbol, p::AP.APPoint; kwargs...) = Luxor.label(txt, alignment, _lp(p); kwargs...)
 Luxor.label(txt::AbstractString, direction::Real, p::AP.APPoint; kwargs...) = Luxor.label(txt, direction, _lp(p); kwargs...)
 """
+    text(txt, p::APPoint; halign=:left, valign=:baseline, angle=nothing, direction=nothing, upright=false, kwargs...)
+
+Luxor's own `text`, accepting an `APPoint` directly instead of requiring a
+`Luxor.Point`. It works for every form of Luxor's `text` that takes a position:
+plain strings, and the LaTeX and Typst ones, whose own keywords (`rotationfixed`,
+`place`, `centered`, `preamble`) go through `kwargs`. Unlike [`label`](@ref), it can turn the text, for example to
+lay it along a segment. The orientation is given by `angle` or by `direction`,
+which mean the same and are exclusive: a number, the rotation of the text
+about `p` in radians (clockwise on the screen, as in Luxor), or a vector,
+a line, a ray or a segment, and the text runs along it. Give them in the same
+coordinates as `p`, the ones of the canvas after fitting.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `angle`, `direction` | `nothing` | orientation of the text: a number in radians, or an [`APVector`](@ref), [`APEquipollentVector`](@ref), [`APLine`](@ref), [`APRay`](@ref) or [`APSegment`](@ref) |
+| `upright` | `false` | when the direction points to the left, turn the text half a turn so that it reads from left to right |
+| `halign` | `:left` | horizontal anchor: `:left`, `:center` or `:right` |
+| `valign` | `:baseline` | vertical anchor: `:baseline`, `:top`, `:middle` or `:bottom` |
+| others | | forwarded to Luxor as they are |
+"""
+_text_angle(x::Real) = float(x)
+_text_angle(v::AP.APVector{2}) = atan(v[2], v[1])
+_text_angle(x::Union{AP.APLine{2},AP.APRay{2},AP.APSegment{2},AP.APEquipollentVector{2}}) = _text_angle(AP.direction(x))
+function Luxor.text(txt, p::AP.APPoint; angle=nothing, direction=nothing, upright::Bool=false, kwargs...)
+    (angle === nothing || direction === nothing) || throw(ArgumentError("text: give angle or direction, not both"))
+    orientation = angle === nothing ? direction : angle
+    orientation === nothing && return Luxor.text(txt, _lp(p); kwargs...)   # nothing is added, so every form of Luxor's text works
+    θ = _text_angle(orientation)
+    upright && cos(θ) < 0 && (θ += pi)
+    return Luxor.text(txt, _lp(p); angle=θ, kwargs...)
+end
+"""
     path(p::APPoint; radius=3, as=:circle, action=:path, reverse=false)
 
 `p` as a small mark of size `radius`: `as = :circle` (the default, a circle

@@ -117,8 +117,8 @@ The midpoint of two points, or the middle of a single object: an
     direction(obj)
 
 The non-normalized direction of an [`APLine`](@ref), [`APRay`](@ref) or
-[`APSegment`](@ref) (`p2 - p1`), or the vector of an
-[`APEquipollentVector`](@ref), as an [`APVector`](@ref). Use
+[`APSegment`](@ref) (`p2 - p1`), the vector of an
+[`APEquipollentVector`](@ref), or an [`APVector`](@ref) itself, as an [`APVector`](@ref). Use
 `normalize(direction(obj))` for the unit vector.
 """ direction
 
