@@ -1,7 +1,7 @@
 include("../default_config.jl")
 lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
     O = APPoint(0.0, 0.0)
-    B = polar_point_deg(4.0, 40.0, O)
+    B = polar_point_deg(4.0, 40.0)
     xaxis = APSegment(O, APPoint(5.0, 0.0))
     radius = APSegment(O, B)
     ang = APAngle2(O, APPoint(4.0, 0.0), B)

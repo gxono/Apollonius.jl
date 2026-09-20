@@ -1,19 +1,17 @@
 """
     polar_point(r, angle, center::APPoint)
+    polar_point(r, angle)
 
 The point at distance `r` from `center`, at `angle` radians counterclockwise
-from the positive x-axis: `center + (r*cos(angle), r*sin(angle))`.
-
-No zero-argument default for `center` here (unlike the `Point2`-based
-`polar_point`, which already claims the `(r::Real, angle::Real)`
-default-elided fallback: see [`rotation_map`](@ref) for why an AP-typed
-default would collide with it): pass `center` explicitly.
+from the positive x-axis: `center + (r*cos(angle), r*sin(angle))`. Without
+`center`, the origin is used.
 """
 polar_point(r::Real, angle::Real, center::APPoint{2}) =
     center + APVector(r * cos(angle), r * sin(angle))
 polar_point(r::Real, angle::Real) = polar_point(r, angle, APPoint(0.0,0.0))
 """
     polar_point_deg(r, angle, center::APPoint)
+    polar_point_deg(r, angle)
 
 Like [`polar_point`](@ref), but `angle` is given in degrees.
 """

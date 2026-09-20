@@ -28,8 +28,7 @@ line, [`point_on_line`](@ref)`(l, t)` does the same with a parameter `t`.
 ### A point at a given distance and direction
 
 ```@example geo
-O = APPoint(0.0, 0.0)
-polar_point(4.0, pi / 3, O), polar_point_deg(4.0, 60.0, O)
+polar_point(4.0, pi / 3), polar_point_deg(4.0, 60.0), polar_point_deg(4.0, 60.0, APPoint(1.0, 1.0))
 ```
 
 ### Divide a segment in the golden ratio, or find a harmonic conjugate

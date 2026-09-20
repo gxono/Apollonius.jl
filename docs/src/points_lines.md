@@ -190,13 +190,13 @@ with [`path`](@ref)`(ev; as=:arrow)` (see
 [`polar_point`](@ref) builds a point from a distance and an angle (radians,
 counterclockwise from the positive x-axis) instead of `x`/`y`, and
 [`polar_point_deg`](@ref) is the same with the angle in degrees. Both
-require an explicit `center` (there's no zero-argument default here, to
-avoid ambiguity with `Real`-only single-argument calls elsewhere in the
-package):
+take the `center` as an optional third argument, and measure from the origin
+without it:
 
 ```@example geo
-Bpolar = polar_point_deg(4.0, 40.0, O)   # 4 units out from O, at 40°
+Bpolar = polar_point_deg(4.0, 40.0)      # 4 units out from the origin, at 40°
 distance(O, Bpolar)                       # 4.0, regardless of the angle
+polar_point_deg(4.0, 40.0, APPoint(2.0, 1.0))   # the same, around another center
 ```
 
 ```@raw html
@@ -598,7 +598,7 @@ common circle, used internally by [`is_cyclic`](@ref) for a quadrilateral:
 
 ```@example geo
 circ = APCircle2(APPoint(0.0, 0.0), 5.0)
-Q1, Q2, Q3, Q4 = (polar_point_deg(5.0, ang, APPoint(0.0, 0.0)) for ang in (0.0, 80.0, 170.0, 260.0))
+Q1, Q2, Q3, Q4 = (polar_point_deg(5.0, ang) for ang in (0.0, 80.0, 170.0, 260.0))
 is_concyclic(Q1, Q2, Q3, Q4)                       # true: all 4 on the same circle
 is_concyclic(Q1, Q2, Q3, APPoint(1.0, 1.0))        # false: this last point isn't on circ
 ```
