@@ -1034,3 +1034,112 @@ reverse(zigzag)[1] == vertices(zigzag)[end]
 ```@raw html
 <img src="../assets/img/circles/open_chains.svg" alt="An open polyline and an open chain made of a straight side and an arc" style="width:100%; max-width: 700px;">
 ```
+
+## A rounded corner, step by step
+
+An [`APCurvilinearPolyline2`](@ref) chains segments and arcs end to end. A
+classic use is rounding the corner of a polyline: the two sides that meet at a
+corner are cut short, and a circular arc of a given radius, tangent to both,
+joins the cuts. The center of that arc is on the bisector of the corner, at the
+distance from the corner where the circle just touches the two sides.
+
+The figures here use the same helpers as the constructions above.
+
+```@example geo
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+    fa = APPoint(0.0, 0.0)
+    fv = APPoint(6.0, 0.0)
+    fb = APPoint(4.0, 5.0)
+end
+(; fa, fv, fb) = lxo
+figH = ceil(Int, lxm.height) # hide
+nothing # hide
+```
+
+**Step 1.** The corner `v`, and the two sides that meet there.
+
+```@example geo
+fang = angle_at(fv, fa, fb)
+fang < pi
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(APPolyline2(fa, fv, fb)) # hide
+    fig_dots([fa, fv, fb], julia_blue) # hide
+    fig_tags(("a", :SW, fa), ("v", :S, fv), ("b", :N, fb)) # hide
+end # hide
+```
+
+**Step 2.** The bisector of the corner. Every point on it is as far from one side as from the other.
+
+```@example geo
+fbis = APRay(fv, first(angle_bisectors(APAngle2(fv, fa, fb))).b)
+on_ray(fbis.through, fbis)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(APPolyline2(fa, fv, fb)) # hide
+    fig_aid(fbis) # hide
+    fig_dots([fa, fv, fb], julia_blue) # hide
+    fig_tags(("a", :SW, fa), ("v", :S, fv), ("b", :N, fb)) # hide
+end # hide
+```
+
+**Step 3.** A radius `r`, and the center of the arc: the point of the bisector at distance `r` from the sides, which is `r / sin(θ/2)` from the corner.
+
+```@example geo
+fr = 0.25 * distance(fv, fb)
+fo = fv + (fr / sin(fang / 2)) * normalize(fbis.through - fv)
+(distance(fo, APLine(fv, fa)) ≈ fr, distance(fo, APLine(fv, fb)) ≈ fr)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(APPolyline2(fa, fv, fb)) # hide
+    fig_aid([fbis, APCircle2(fo, fr)]) # hide
+    fig_dots([fa, fv, fb], julia_blue) # hide
+    fig_dots([fo], julia_green) # hide
+    fig_tags(("v", :S, fv), ("o", :N, fo)) # hide
+end # hide
+```
+
+**Step 4.** The circle touches each side at the foot of the perpendicular from the center. Those two points are where the sides are cut.
+
+```@example geo
+ft1, ft2 = projection(fo, APLine(fv, fa)), projection(fo, APLine(fv, fb))
+distance(fo, ft1) ≈ fr ≈ distance(fo, ft2)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_given(APPolyline2(fa, fv, fb)) # hide
+    fig_aid([APCircle2(fo, fr), APSegment(fo, ft1), APSegment(fo, ft2)]) # hide
+    fig_dots([fa, fv, fb], julia_blue) # hide
+    fig_dots([fo], julia_green) # hide
+    fig_dots([ft1, ft2], julia_purple) # hide
+    fig_tags(("t1", :S, ft1), ("t2", :E, ft2)) # hide
+end # hide
+```
+
+**Step 5.** The chain: the first side up to `t1`, the arc from `t1` to `t2`, and the second side from `t2`. An arc runs counterclockwise from its first point, and fitting flips the vertical axis, so the chain is built in the direction where the arc is the short one.
+
+```@example geo
+fc = APCircle2(fo, fr)
+farc = APCircularArc2(fc, ft1, ft2)
+fchain = measure(farc) < pi ? APCurvilinearPolyline2([APSegment(fa, ft1), farc, APSegment(ft2, fb)]) : APCurvilinearPolyline2([APSegment(fb, ft2), APCircularArc2(fc, ft2, ft1), APSegment(ft1, fa)])
+(length(sides(fchain)), arc_length(fchain) < distance(fa, fv) + distance(fv, fb))
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_faint(APPolyline2(fa, fv, fb)) # hide
+    fig_result(fchain) # hide
+    fig_dots([fa, fb], julia_blue) # hide
+    fig_dots([ft1, ft2], julia_purple) # hide
+    fig_tags(("a", :SW, fa), ("b", :N, fb)) # hide
+end # hide
+```
+
+The chain is shorter than the polyline it rounds, and it is an ordinary curve: it can be reversed, reflected or drawn like any other.

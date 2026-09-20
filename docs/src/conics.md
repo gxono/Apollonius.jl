@@ -531,6 +531,90 @@ fig_draw(500, figH) do # hide
 end # hide
 ```
 
+### A hyperbola from the difference of distances
+
+A hyperbola is the set of points whose distances to the two foci differ by a
+constant, `2a`. To find such a point, pick a distance `d` from one focus, and
+draw the circle of radius `d` around it and the circle of radius `d + 2a` around
+the other. They cross at points of the branch that is nearer the first focus.
+Swapping the two circles gives the other branch.
+
+```@example geo
+lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+    hf1 = APPoint(-3.0, 0.0)
+    hf2 = APPoint(3.0, 0.0)
+    @unbounded hyp = APHyperbola2(hf1, hf2, 1.5)
+    harc1 = APHyperbolicArc2(hyp, point_on_hyperbola(hyp, -1.3), point_on_hyperbola(hyp, 1.3))
+    harc2 = APHyperbolicArc2(hyp, point_on_hyperbola(hyp, -1.3; branch=-1), point_on_hyperbola(hyp, 1.3; branch=-1))
+end
+(; hf1, hf2, hyp, harc1, harc2) = lxo
+figH = ceil(Int, lxm.height) # hide
+nothing # hide
+```
+
+**Step 1.** The two foci, and the difference of distances `2a`. It has to be smaller than the distance between the foci.
+
+```@example geo
+ha = hyp.a
+2ha < distance(hf1, hf2)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_dots([hf1, hf2], julia_blue) # hide
+    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
+end # hide
+```
+
+**Step 2.** A distance `d` from `F2`, and the circles of radius `d` around `F2` and `d + 2a` around `F1`.
+
+```@example geo
+hd = 1.4 * ha
+hk1, hk2 = APCircle2(hf1, hd + 2ha), APCircle2(hf2, hd)
+hp = intersection(hk1, hk2)
+all(p -> distance(p, hf1) - distance(p, hf2) ≈ 2ha, hp)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_faint([hk1, hk2]) # hide
+    fig_dots([hf1, hf2], julia_blue) # hide
+    fig_dots(hp, julia_purple) # hide
+    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
+end # hide
+```
+
+**Step 3.** The same for other distances, and with the circles swapped for the other branch.
+
+```@example geo
+hpts = reduce(vcat, [intersection(APCircle2(hf1, (s + 2) * ha), APCircle2(hf2, s * ha)) for s in (1.05, 1.4, 1.8, 2.4)])
+hpts = [hpts; reduce(vcat, [intersection(APCircle2(hf1, s * ha), APCircle2(hf2, (s + 2) * ha)) for s in (1.05, 1.4, 1.8, 2.4)])]
+length(hpts)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_dots([hf1, hf2], julia_blue) # hide
+    fig_dots(hpts, julia_purple) # hide
+    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
+end # hide
+```
+
+**Step 4.** The two branches pass through all of them.
+
+```@example geo
+all(p -> is_on_hyperbola(p, hyp), hpts)
+```
+
+```@example geo
+fig_draw(500, figH) do # hide
+    fig_result([harc1, harc2]) # hide
+    fig_dots([hf1, hf2], julia_blue) # hide
+    fig_dots(hpts, julia_purple) # hide
+    fig_tags(("F1", :S, hf1), ("F2", :S, hf2)) # hide
+end # hide
+```
+
 ## Arcs of a conic
 
 [`APEllipticArc2`](@ref), [`APParabolicArc2`](@ref) and
