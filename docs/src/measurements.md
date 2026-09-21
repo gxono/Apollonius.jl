@@ -19,7 +19,7 @@ this page puts them side by side and says what each one accepts.
 | Curvature | [`curvature`](@ref), [`signed_curvature`](@ref) | circles, circular arcs, conics at a point, parametric curves at a parameter |
 | Chord and sagitta | [`chord_length`](@ref), [`sagitta`](@ref) | arcs; the sagitta of circular arcs |
 | Angle swept | [`measure`](@ref) | angles, circular and elliptic arcs |
-| Angle between things | [`angle_at`](@ref), [`angle_between`](@ref), [`intersection_angle`](@ref), [`slope_angle`](@ref) | points, vectors, circles, lines |
+| Angle between things | [`angle_measure_at`](@ref), [`angle_measure_between`](@ref), [`angle_measure_intersection`](@ref), [`slope_angle`](@ref) | points, vectors, circles, lines |
 | Middle | [`midpoint`](@ref) | two points, a segment, any arc |
 | Center of mass | [`centroid`](@ref) | polygons, sectors, segments, annular sectors |
 | Foci | [`foci`](@ref) | ellipses, hyperbolas |
@@ -96,23 +96,32 @@ measure(arc), arc_length(arc) ≈ 3.0 * measure(arc)
 arc_length(APPolyline2(APPoint(0.0, 0.0), APPoint(3.0, 4.0), APPoint(3.0, 6.0)))
 ```
 
-## Angle functions
+## Angles and their measures
 
-Five functions return an angle. They differ in what they take and in
-whether the sign means anything:
+In this package an angle is a region, the wedge between two rays: an
+[`APAngle2`](@ref). Its **measure** is the number, in radians. The functions
+that return numbers say so in their names, `measure` or `angle_measure_*`, and
+the ones named `angle` or `angles` return `APAngle2` objects.
 
 | Function | Takes | Result |
 |:---------|:------|:-------|
-| [`angle_at`](@ref)`(vertex, p1, p2)` | three points | unsigned, in `[0, π]` |
-| [`angle_between`](@ref)`(u, v)` | two vectors | signed, in `(-π, π]` |
-| [`measure`](@ref)`(ang)` | an [`APAngle2`](@ref) or an arc | signed for an angle, the angle swept for an arc |
-| [`intersection_angle`](@ref)`(c1, c2)` | two circles | the angle between the tangents where they cross |
-| [`slope_angle`](@ref)`(obj)` | a vector, line, ray or segment | the angle of its direction from the `x` axis |
-| [`polar_angle`](@ref)`(p, center)` | a point | the angle of `p` around `center` (the origin by default) |
+| [`measure`](@ref)`(ang)` | an [`APAngle2`](@ref) or an arc | signed, in `(-π, π]`, for an angle; the angle swept for an arc |
+| [`normalized_measure`](@ref)`(ang)` | an `APAngle2` | in `[0, 2π)`, so a reflex angle is above `π` |
+| `abs(ang)` | an `APAngle2` | unsigned, in `[0, π]` |
+| [`angle_measure_at`](@ref)`(vertex, p1, p2)` | three points | unsigned, in `[0, π]` |
+| [`angle_measure_between`](@ref)`(u, v)` | two vectors | signed, in `(-π, π]` |
+| [`angle_measure_intersection`](@ref)`(c1, c2)` | two circles | the angle between the tangents where they cross |
+| [`angle_measure_brocard`](@ref)`(t)` | a triangle | the Brocard angle |
+| [`interior_angles`](@ref)`(pg)` | a polygon | a vector of `APAngle2`, one per vertex |
+| [`slope_angle`](@ref)`(obj)` | a vector, line, ray or segment | the angle of its direction from the `x` axis, as a number |
+| [`polar_angle`](@ref)`(p, center)` | a point | the angle of `p` around `center` (the origin by default), as a number |
+
+To go the other way, [`angle_with_measure`](@ref) builds an `APAngle2` from a
+measure and [`arc_with_measure`](@ref) an arc.
 
 ```@example geo
 v = APPoint(0.0, 0.0)
-angle_at(v, APPoint(1.0, 0.0), APPoint(0.0, -1.0)), angle_between(APVector(1.0, 0.0), APVector(0.0, -1.0))
+angle_measure_at(v, APPoint(1.0, 0.0), APPoint(0.0, -1.0)), angle_measure_between(APVector(1.0, 0.0), APVector(0.0, -1.0))
 ```
 
 The first is the plain opening between the two rays, the second says the
@@ -174,16 +183,16 @@ chord_length(bow), sagitta(bow), arc_length(bow)
 ```
 
 For a polygon, [`side_lengths`](@ref) lists the sides in order and
-[`interior_angles`](@ref) the angle at each vertex, above `π` at a reflex
-vertex. [`signed_area`](@ref) is positive when the vertices run
-counterclockwise, which is a quick test of their order.
-The last two also work for curvilinear polygons. There the angle at a vertex
-is the one between the tangents of the two sides that meet, and `signed_area`
-follows the direction of the first side:
+[`interior_angles`](@ref) the angle at each vertex as an `APAngle2`, whose
+`normalized_measure` is above `π` at a reflex vertex. [`signed_area`](@ref) is
+positive when the vertices run counterclockwise, which is a quick test of their
+order. The last two also work for curvilinear polygons. There the rays of the
+angle at a vertex are the tangents of the two sides that meet, and
+`signed_area` follows the direction of the first side:
 
 ```@example geo
 L = APStraightNgon([APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(2.0, 1.0), APPoint(1.0, 1.0), APPoint(1.0, 2.0), APPoint(0.0, 2.0)])
-rad2deg.(interior_angles(L)), side_lengths(L), signed_area(L), semiperimeter(L)
+rad2deg.(normalized_measure.(interior_angles(L))), side_lengths(L), signed_area(L), semiperimeter(L)
 ```
 
 ```@raw html
@@ -194,7 +203,7 @@ rad2deg.(interior_angles(L)), side_lengths(L), signed_area(L), semiperimeter(L)
 cvt = APCurvilinearTriangle2(APSegment(APPoint(0.0, 0.0), APPoint(4.0, 0.0)),
     APCircularArc2(APCircle2(APPoint(4.0, 2.0), 2.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0)),
     APSegment(APPoint(4.0, 4.0), APPoint(0.0, 0.0)))
-signed_area(cvt), rad2deg.(interior_angles(cvt))
+signed_area(cvt), rad2deg.(normalized_measure.(interior_angles(cvt)))
 ```
 
 An [`APBoundingBox`](@ref) has an [`area`](@ref) and a [`perimeter`](@ref) too,

@@ -135,7 +135,7 @@ large for the sides.
 """
 function fillet(a::APPoint{2}, v::APPoint{2}, b::APPoint{2}, r::Real)
     r > 0 || throw(ArgumentError("fillet: the radius must be positive"))
-    θ = angle_at(v, a, b)
+    θ = angle_measure_at(v, a, b)
     (θ > 1e-12 && θ < pi - 1e-12) || throw(ArgumentError("fillet: the three points are collinear"))
     t = r / tan(θ / 2)
     (t <= distance(v, a) && t <= distance(v, b)) || throw(ArgumentError("fillet: the radius is too large for the sides"))

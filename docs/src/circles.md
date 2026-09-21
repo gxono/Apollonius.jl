@@ -49,7 +49,7 @@ c_d == circle_with_diameter(d.p1, d.p2), c_d.center, c_d.r
 
 ```@example geo
 p_d = point_on_circle(c_d, 1.0)
-angle_at(p_d, d.p1, d.p2) ≈ pi / 2
+angle_measure_at(p_d, d.p1, d.p2) ≈ pi / 2
 ```
 
 ```@raw html
@@ -372,13 +372,13 @@ pts = intersection(c, APCircle2(APPoint(6.0, 0.0), 5.0))   # two points, above a
 nearest_point(pts, APPoint(3.0, 10.0))                      # the upper one
 ```
 
-[`intersection_angle`](@ref)`(c1, c2)` is the angle at which two circles cross,
+[`angle_measure_intersection`](@ref)`(c1, c2)` is the measure of the angle at which two circles cross,
 between `0` (they touch) and `π/2` (they are orthogonal), or `nothing` when
 they do not meet.
 
 ```@example geo
 c1 = APCircle2(APPoint(0.0, 0.0), 5.0)
-intersection_angle(c1, orthogonal_circle(c1, APPoint(13.0, 0.0))) ≈ pi / 2
+angle_measure_intersection(c1, orthogonal_circle(c1, APPoint(13.0, 0.0))) ≈ pi / 2
 ```
 
 ```@raw html
@@ -810,15 +810,15 @@ types below).
 
 In a ruler-and-compass construction the second end of an arc is rarely
 a point you already have: you set the compass to a radius and swing it
-through some angle or distance. [`arc_with_angle`](@ref)`(center, p, angle)`
+through some measure or distance. [`arc_with_measure`](@ref)`(center, p, m)`
 and [`arc_with_length`](@ref)`(center, p, len)` build exactly that: the arc
 of the circle centered at `center` through `p`, starting at `p` and
-sweeping a given angle (radians) or arc length. A negative value sweeps
+sweeping a given measure (radians) or arc length. A negative value sweeps
 clockwise, and since an `APCircularArc2` always runs counterclockwise from
 `p1` to `p2`, that case comes back with `p` stored as `arc.p2`:
 
 ```@example geo
-tick = arc_with_angle(c.center, p1, pi / 6)
+tick = arc_with_measure(c.center, p1, pi / 6)
 measure(tick) ≈ pi / 6, tick.p1 ≈ p1
 ```
 
@@ -1123,7 +1123,7 @@ nothing # hide
 **Step 1.** The corner `v`, and the two sides that meet there.
 
 ```@example geo
-fang = angle_at(fv, fa, fb)
+fang = angle_measure_at(fv, fa, fb)
 fang < pi
 ```
 

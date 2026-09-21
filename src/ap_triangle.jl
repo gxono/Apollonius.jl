@@ -285,7 +285,7 @@ its trilinear coordinates `cos(A - π/4) : cos(B - π/4) : cos(C - π/4)`
 """
 function kenmotu_point(t::APTriangle)
     A, B, C = t[1], t[2], t[3]
-    angA, angB, angC = angle_at(A, B, C), angle_at(B, C, A), angle_at(C, A, B)
+    angA, angB, angC = angle_measure_at(A, B, C), angle_measure_at(B, C, A), angle_measure_at(C, A, B)
     return trilinear_point(t, cos(angA) + sin(angA), cos(angB) + sin(angB), cos(angC) + sin(angC))
 end
 """
@@ -363,7 +363,7 @@ throws an `ArgumentError` instead of silently returning a meaningless
 finite point from a near-infinite weight.
 """
 function clawson_point(t::APTriangle; atol=1e-9)
-    A, B, C = angle_at(t[1], t[2], t[3]), angle_at(t[2], t[1], t[3]), angle_at(t[3], t[1], t[2])
+    A, B, C = angle_measure_at(t[1], t[2], t[3]), angle_measure_at(t[2], t[1], t[3]), angle_measure_at(t[3], t[1], t[2])
     any(ang -> isapprox(ang, pi / 2; atol=atol), (A, B, C)) &&
         throw(ArgumentError("clawson_point: undefined for a right triangle (X(19) is a point at infinity here)"))
     return trilinear_point(t, tan(A), tan(B), tan(C))
@@ -565,12 +565,12 @@ function second_brocard_point(t::APTriangle)
     return _other_point(intersection(c1, c2), B)
 end
 """
-    brocard_angle(t::APTriangle)
+    angle_measure_brocard(t::APTriangle)
 
-The Brocard angle of `t`: the common value of `∠ΩAB = ∠ΩBC = ∠ΩCA` at the
-first Brocard point.
+The measure of the Brocard angle of `t`: the common value of
+`∠ΩAB = ∠ΩBC = ∠ΩCA` at the first Brocard point.
 """
-brocard_angle(t::APTriangle) = angle_at(t[1], first_brocard_point(t), t[2])
+angle_measure_brocard(t::APTriangle) = angle_measure_at(t[1], first_brocard_point(t), t[2])
 """
     brocard_circle(t::APTriangle)
 

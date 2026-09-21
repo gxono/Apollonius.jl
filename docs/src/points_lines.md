@@ -556,20 +556,21 @@ angle_bisectors(xaxis, yaxis)   # the two diagonals y = x and y = -x
 
 ## Angles
 
-Under the hood, angles between two vectors come from two free functions:
-[`angle_between`](@ref)`(u, v)` (signed, counterclockwise from `u` to `v`,
-in `(-π, π]`) and [`angle_at`](@ref)`(vertex, p1, p2)` (unsigned, in
+An angle is a region of the plane, an [`APAngle2`](@ref), and its measure is a
+number. The measures come from two free functions:
+[`angle_measure_between`](@ref)`(u, v)` (signed, counterclockwise from `u` to `v`,
+in `(-π, π]`) and [`angle_measure_at`](@ref)`(vertex, p1, p2)` (unsigned, in
 `[0, π]`). Use these directly when you just need a number and not
 something to pass around.
 
 ```@example geo
-angle_between(APVector(4.0, 0.0), APVector(0.0, 4.0))   # π/2
+angle_measure_between(APVector(4.0, 0.0), APVector(0.0, 4.0))   # π/2
 ```
 
 [`APAngle2`](@ref) wraps up the "angle at a vertex between two rays" idea
 into a small struct (`vertex`, `a`, `b`) so it can be passed around and
 measured without repeating the three points everywhere.
-`measure`/`abs` on an `APAngle2` are exactly `angle_between`/`angle_at` on
+`measure`/`abs` on an `APAngle2` are exactly `angle_measure_between`/`angle_measure_at` on
 its two defining vectors. Unlike a bare number, it's also a genuine
 *region* of the plane (it's part of the [`APSet`](@ref) family): `p in ang`
 tests whether `p` falls in the infinite wedge swept counterclockwise from
@@ -666,8 +667,7 @@ Conversely, `rotate(obj, ang::APAngle2, ...)` goes the other way: it
 rotates some *other* object by `measure(ang)`, driven directly by an
 `APAngle2`'s own measure instead of a bare number, a stand-in for
 `rotate(obj, measure(ang), ...)`, useful once you already have the angle
-as an `APAngle2` (say, from `angle_between`'s caller building one to
-measure/display it) and don't want to unwrap it by hand first:
+as an `APAngle2` and don't want to unwrap it by hand first:
 
 ```@example geo
 rotate(P1, ang, O) == rotate(P1, measure(ang), O)   # true: same rotation, just driven by ang directly

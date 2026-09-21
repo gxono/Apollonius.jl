@@ -170,23 +170,23 @@ end
 """
     interior_angles(pg)
 
-The interior angle at each vertex of a polygon in the plane, in radians and in
-the order of [`vertices`](@ref). An angle is above `π` at a reflex vertex, and
-the angles of a straight polygon with `n` vertices add up to `(n − 2)π`,
-whichever way the vertices are listed. In a curvilinear polygon the angle at a
-vertex is the one between the tangents of the two sides that meet there, so it
-is `π` where they join smoothly. A cusp, where the tangents coincide, has no
-defined angle.
+The interior angle at each vertex of a polygon in the plane, as a vector of
+[`APAngle2`](@ref) in the order of [`vertices`](@ref): the wedge inside the
+polygon, with its vertex at the corner. Its measure is
+[`normalized_measure`](@ref)`(ang)`, which is above `π` at a reflex vertex, and
+the measures of a straight polygon with `n` vertices add up to `(n − 2)π`,
+whichever way the vertices are listed. In a curvilinear polygon the rays of the
+angle at a vertex are the tangents of the two sides that meet there, so the
+measure is `π` where they join smoothly. A cusp, where the tangents coincide,
+has no defined angle.
 """
 function interior_angles(pg::_StraightPolygon2)
     vs = vertices(pg)
     n = length(vs)
     ccw = signed_area(pg) >= 0
     return map(1:n) do i
-        v = vs[i]
-        to_next, to_prev = vs[mod1(i + 1, n)] - v, vs[mod1(i - 1, n)] - v
-        u, w = ccw ? (to_next, to_prev) : (to_prev, to_next)
-        return mod(atan(cross2(u, w), dot(u, w)), 2π)
+        next, prev = vs[mod1(i + 1, n)], vs[mod1(i - 1, n)]
+        return ccw ? APAngle2(vs[i], next, prev) : APAngle2(vs[i], prev, next)
     end
 end
 
@@ -208,9 +208,10 @@ function interior_angles(pg::APPolygon{2})
     n = length(walk)
     ccw = signed_area(pg) >= 0
     return map(1:n) do i
-        u = _start_dir(walk[i]...)
+        side, reversed = walk[i]
+        v = reversed ? _side_p2(side) : _side_p1(side)
+        u = _start_dir(side, reversed)
         w = -_end_dir(walk[mod1(i - 1, n)]...)
-        a, b = ccw ? (u, w) : (w, u)
-        return mod(atan(cross2(a, b), dot(a, b)), 2π)
+        return ccw ? APAngle2(v, v + u, v + w) : APAngle2(v, v + w, v + u)
     end
 end

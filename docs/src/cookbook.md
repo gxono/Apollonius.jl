@@ -209,7 +209,7 @@ The line through the two points where the circles cross, when they do.
 ```@example geo
 c = APCircle2(APPoint(0.0, 0.0), 3.0)
 o = orthogonal_circle(c, APPoint(7.0, 0.0))
-o.center, intersection_angle(c, o) ≈ pi / 2
+o.center, angle_measure_intersection(c, o) ≈ pi / 2
 ```
 
 ```@raw html
@@ -343,7 +343,7 @@ circles_position(ring[1], ring[2]), circles_position(ring[2], ring[3])
 ```@example geo
 A, B = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
 t = triangle_on_segment(A, B, deg2rad(50), deg2rad(60))
-rad2deg(angle_at(t[3], t[1], t[2]))
+rad2deg(angle_measure_at(t[3], t[1], t[2]))
 ```
 
 ```@raw html
@@ -397,7 +397,7 @@ npc ≈ circumcircle(medial_triangle(t)), npc.r ≈ circumradius(t) / 2
 ```@example geo
 t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
 a = distance(t[2], t[3])
-a / sin(angle_at(t[1], t[2], t[3])) ≈ 2 * circumradius(t)
+a / sin(angle_measure_at(t[1], t[2], t[3])) ≈ 2 * circumradius(t)
 ```
 
 ```@raw html

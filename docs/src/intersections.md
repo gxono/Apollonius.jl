@@ -164,7 +164,7 @@ nearest_point(intersection(l, c), APPoint(3.0, 3.0)), other_intersection(l, c, A
 
 ## Related functions
 
-* [`intersection_angle`](@ref) gives the angle at which two circles cross.
+* [`angle_measure_intersection`](@ref) gives the measure of the angle at which two circles cross.
 * [`radical_axis`](@ref) is the line through the two intersection points of
   two circles, and it exists even when they do not meet.
 * [`tangent_points`](@ref) and [`tangent_lines`](@ref) give the points and lines of

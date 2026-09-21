@@ -40,12 +40,12 @@ For the angle of a point around a center, see [`polar_angle`](@ref).
 """
 slope_angle(obj) = atan(direction(obj)[2], direction(obj)[1])
 """
-    angle_between(u, v)
+    angle_measure_between(u, v)
 
-Signed angle (in radians, in `(-π, π]`) to rotate vector `u` onto `v`
-(counterclockwise positive).
+The signed measure (in radians, in `(-π, π]`) of the rotation that takes
+vector `u` onto `v` (counterclockwise positive).
 """
-angle_between(u, v) = atan(cross2(u, v), dot(u, v))
+angle_measure_between(u, v) = atan(cross2(u, v), dot(u, v))
 """
     is_parallel(l1, l2; atol=1e-9)
 

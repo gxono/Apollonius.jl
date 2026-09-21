@@ -82,7 +82,7 @@ The order of the two rays decides which wedge you get. Swapping `a` and `b` give
   computation. A `snake_case` function returns a derived object whose
   identity depends on the algorithm (`circumcircle`, `regular_polygon`,
   `triangle_on_segment`).
-* `_with_` in a name says what you fix in advance (`arc_with_angle`,
+* `_with_` in a name says what you fix in advance (`arc_with_measure`,
   `tangent_circles_with_radius`).
 
 ## Equality

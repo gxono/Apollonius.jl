@@ -113,7 +113,7 @@ end
 
 A, B, C = APPoint(0.0, 0.0), APPoint(7.0, 1.0), APPoint(2.0, 6.0)
 F = bisect(A, B, C).p2
-angle_at(A, B, F) ≈ angle_at(A, F, C)
+angle_measure_at(A, B, F) ≈ angle_measure_at(A, F, C)
 ```
 
 `far(..., V)` picks the apex of the equilateral triangle that lies away from the
@@ -194,7 +194,7 @@ D, E = APPoint(10.0, 0.0), APPoint(16.0, -1.0)
 X, Y = A + 0.6 * (B - A), A + 0.6 * (C - A)
 E2 = only(intersection(APCircle2(D, distance(A, X)), APRay(D, E)))
 F = first(intersection(APCircle2(D, distance(A, Y)), APCircle2(E2, distance(X, Y))))
-angle_at(D, E2, F) ≈ angle_at(A, B, C)
+angle_measure_at(D, E2, F) ≈ angle_measure_at(A, B, C)
 ```
 
 `first` picks the point on the left of the ray, which is the same side as `AC` is

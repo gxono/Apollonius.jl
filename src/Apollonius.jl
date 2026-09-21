@@ -59,9 +59,9 @@ include("ap_rand.jl")
 include("ap_generic_docs.jl")
 export sides, diagonals, diagonal_intersection, is_cyclic
 export direction, slope_angle, midpoint, distance, polar_point, polar_point_deg, antipode
-export norm, dot, normalize, angle_between, angle_at
+export norm, dot, normalize, angle_measure_between, angle_measure_at
 export measure, normalized_measure, is_direct
-export arc_length, point_on_arc, arc_with_angle, arc_with_length, tangent_at, marks, semicircle, circle_with_diameter, extend_arc, compass_trace
+export arc_length, point_on_arc, arc_with_measure, arc_with_length, tangent_at, marks, semicircle, circle_with_diameter, extend_arc, compass_trace
 export mediator_construction, perpendicular_construction, parallel_construction, bisector_construction, label_anchor, extend_line
 export projection_construction, reflection_construction, symmetry_construction, translation_construction
 export grid_lines, axes_lines, clip_out, arrow_head, brace, brace_anchor, coordinate_guides
@@ -84,7 +84,7 @@ export barycentric_point, barycentric_coordinates, trilinear_point, trilinear_co
        steiner_inellipse, steiner_circumellipse,
        lemoine_inellipse, brocard_inellipse, macbeath_inellipse, mandart_inellipse, orthic_inellipse,
        kiepert_hyperbola, kiepert_parabola,
-       first_brocard_point, second_brocard_point, brocard_angle, brocard_circle, brocard_midpoint,
+       first_brocard_point, second_brocard_point, angle_measure_brocard, brocard_circle, brocard_midpoint,
        isogonal_conjugate, isotomic_conjugate, mixtilinear_incircle, thebault_circles,
        isodynamic_points, three_apollonius_circles, orthopole, poncelet_point,
        conway_points, conway_circle, taylor_points, taylor_circle,
@@ -101,7 +101,7 @@ export equilateral_triangle_on_segment, isosceles_triangle_on_segment, triangle_
        triangle_on_segment_sss, triangle_on_segment_sas, triangle_on_segment_ssa, triangle_30_60_90_on_segment,
        isosceles_right_triangle_on_segment, golden_triangle_on_segment, golden_gnomon_on_segment,
        egyptian_triangle_on_segment, cheops_triangle_on_segment, golden_right_triangle_on_segment
-export point_on_line, point_on_circle, nearest_point, other_intersection, intersection_angle, rand_inside
+export point_on_line, point_on_circle, nearest_point, other_intersection, angle_measure_intersection, rand_inside
 export tangent_length, tangent_points, tangent_lines, external_tangent_lines, internal_tangent_lines,
        tangent_parallel
 export external_similitude_center, internal_similitude_center

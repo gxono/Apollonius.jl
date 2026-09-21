@@ -172,7 +172,7 @@ function triangle_on_segment_ssa(a::APPoint, b::APPoint, angle::Real, opposite_l
     isempty(pts) &&
         throw(ArgumentError("triangle_on_segment_ssa: opposite_len is too short to reach the ray from $at"))
     length(pts) == 1 && return APTriangle(a, b, pts[1])
-    primary = angle_at(base_vertex, other_vertex, pts[1]) >= angle_at(base_vertex, other_vertex, pts[2]) ? pts[1] : pts[2]
+    primary = angle_measure_at(base_vertex, other_vertex, pts[1]) >= angle_measure_at(base_vertex, other_vertex, pts[2]) ? pts[1] : pts[2]
     secondary = primary === pts[1] ? pts[2] : pts[1]
     return APTriangle(a, b, second_solution ? secondary : primary)
 end

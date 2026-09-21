@@ -139,15 +139,15 @@ function other_intersection(a, b, known::APPoint; atol::Real=1e-9)
     return isempty(others) ? nothing : first(others)
 end
 """
-    intersection_angle(c1::APCircle2, c2::APCircle2)
+    angle_measure_intersection(c1::APCircle2, c2::APCircle2)
 
-The angle at which two circles cross, in radians in `[0, π/2]`: the acute
-angle between their tangent lines (or radii) at a common point. It is `π/2`
+The measure of the angle at which two circles cross, in radians in `[0, π/2]`:
+the acute angle between their tangent lines (or radii) at a common point. It is `π/2`
 for [orthogonal circles](@ref orthogonal_circle) and `0` for circles that
 touch. Returns `nothing` when the circles do not meet (separate, nested, or
 concentric).
 """
-function intersection_angle(c1::APCircle2, c2::APCircle2; atol::Real=1e-9)
+function angle_measure_intersection(c1::APCircle2, c2::APCircle2; atol::Real=1e-9)
     d = distance(c1.center, c2.center)
     d <= atol * max(c1.r, c2.r, 1.0) && return nothing
     x = (d^2 - c1.r^2 - c2.r^2) / (2 * c1.r * c2.r)

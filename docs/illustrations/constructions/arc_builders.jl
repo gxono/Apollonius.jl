@@ -4,9 +4,9 @@ lxm, lxo = @to_luxor_picture width=500 height=200 margin=45 begin
     aux = reflection(P1, O1)
     O2, P2 = APPoint(8.0, 0.0), APPoint(11.0, 0.0)
     O3, P3 = APPoint(16.0, 0.0), APPoint(19.0, 0.0)
-    a1 = arc_with_angle(O1, P1, pi / 3)
+    a1 = arc_with_measure(O1, P1, pi / 3)
     a2 = semicircle(O2, P2)
-    a3 = arc_with_angle(O3, P3, pi / 3)
+    a3 = arc_with_measure(O3, P3, pi / 3)
     a3x = extend_arc(a3, 0.5)
 end
 (; O1, P1, O2, P2, O3, P3, a1, a2, a3, a3x) = lxo
@@ -19,7 +19,7 @@ sethue(julia_blue)
 path(a3, action=:stroke)
 
 sethue(julia_red)
-label("arc_with_angle", :S, O1, offset=8)
+label("arc_with_measure", :S, O1, offset=8)
 label("semicircle", :S , O2, offset=8)
 label("extend_arc", :S , O3, offset=8)
 

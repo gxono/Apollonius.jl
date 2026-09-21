@@ -456,20 +456,20 @@ using Base.MathConstants: golden
                 @test distance(circ.center, bigger.p1) ≈ 2 * circ.r
                 @test bigger.p1 ≈ circ.center + 2 * (p1 - circ.center)
             end
-            @testset "arc_with_angle / arc_with_length" begin
+            @testset "arc_with_measure / arc_with_length" begin
                 ctr, start = APPoint(1.0, 2.0), APPoint(4.0, 2.0)
-                ccw = arc_with_angle(ctr, start, pi / 3)
+                ccw = arc_with_measure(ctr, start, pi / 3)
                 @test ccw isa APCircularArc2
                 @test ccw.p1 ≈ start && measure(ccw) ≈ pi / 3 && ccw.circle.r ≈ 3.0
-                cw = arc_with_angle(ctr, start, -pi / 3)
+                cw = arc_with_measure(ctr, start, -pi / 3)
                 @test cw.p2 ≈ start && measure(cw) ≈ pi / 3
                 by_len = arc_with_length(ctr, start, pi)
-                @test by_len ≈ arc_with_angle(ctr, start, pi / 3)
+                @test by_len ≈ arc_with_measure(ctr, start, pi / 3)
                 @test arc_length(by_len) ≈ pi atol = 1e-9
                 @test arc_with_length(ctr, start, -pi) ≈ cw
-                @test_throws ArgumentError arc_with_angle(ctr, start, 0.0)
-                @test_throws ArgumentError arc_with_angle(ctr, start, 2pi)
-                @test_throws ArgumentError arc_with_angle(ctr, ctr, 1.0)
+                @test_throws ArgumentError arc_with_measure(ctr, start, 0.0)
+                @test_throws ArgumentError arc_with_measure(ctr, start, 2pi)
+                @test_throws ArgumentError arc_with_measure(ctr, ctr, 1.0)
                 @test_throws ArgumentError arc_with_length(ctr, ctr, 1.0)
             end
         end
@@ -695,14 +695,14 @@ using Base.MathConstants: golden
         cf = APCircle2(far, 5.0)
         @test other_intersection(APLine(far + APVector(-5.0, 0.0), far + APVector(5.0, 0.0)), cf, far + APVector(-5.0, 0.0)) ≈ far + APVector(5.0, 0.0)
         # angle between circles
-        @test intersection_angle(circ, orthogonal_circle(circ, APPoint(13.0, 0.0))) ≈ pi / 2
-        @test intersection_angle(circ, APCircle2(APPoint(8.0, 0.0), 3.0)) ≈ 0.0 atol = 1e-6   # tangent
-        @test intersection_angle(circ, APCircle2(APPoint(20.0, 0.0), 1.0)) === nothing
-        @test intersection_angle(circ, APCircle2(APPoint(0.5, 0.0), 1.0)) === nothing        # nested
-        @test intersection_angle(circ, APCircle2(APPoint(0.0, 0.0), 2.0)) === nothing        # concentric
+        @test angle_measure_intersection(circ, orthogonal_circle(circ, APPoint(13.0, 0.0))) ≈ pi / 2
+        @test angle_measure_intersection(circ, APCircle2(APPoint(8.0, 0.0), 3.0)) ≈ 0.0 atol = 1e-6   # tangent
+        @test angle_measure_intersection(circ, APCircle2(APPoint(20.0, 0.0), 1.0)) === nothing
+        @test angle_measure_intersection(circ, APCircle2(APPoint(0.5, 0.0), 1.0)) === nothing        # nested
+        @test angle_measure_intersection(circ, APCircle2(APPoint(0.0, 0.0), 2.0)) === nothing        # concentric
         d1, d2 = APCircle2(APPoint(0.0, 0.0), 5.0), APCircle2(APPoint(6.0, 0.0), 3.0)
         p = first(intersection(d1, d2))
-        @test intersection_angle(d1, d2) ≈ angle_between(p - d1.center, p - d2.center) || intersection_angle(d1, d2) ≈ pi - angle_between(p - d1.center, p - d2.center)
+        @test angle_measure_intersection(d1, d2) ≈ angle_measure_between(p - d1.center, p - d2.center) || angle_measure_intersection(d1, d2) ≈ pi - angle_measure_between(p - d1.center, p - d2.center)
         # triangles
         a, b = APPoint(0.0, 0.0), APPoint(2.0, 0.0)
         ch = cheops_triangle_on_segment(a, b)
@@ -879,12 +879,12 @@ using Base.MathConstants: golden
             v, p1, p2 = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 3.0)
             bc = bisector_construction(v, p1, p2)
             y = bc.points[3]
-            @test angle_at(v, p1, y) ≈ angle_at(v, y, p2)
-            @test angle_at(v, p1, y) ≈ angle_at(v, p1, p2) / 2
+            @test angle_measure_at(v, p1, y) ≈ angle_measure_at(v, y, p2)
+            @test angle_measure_at(v, p1, y) ≈ angle_measure_at(v, p1, p2) / 2
             @test on_line(y, bc.result) && on_line(v, bc.result)
             @test length(bc.arcs) == 4
             wide = bisector_construction(v, APPoint(-3.0, 1.0), APPoint(2.0, -4.0); radius=1.0, radius2=1.2)   # obtuse angle, explicit radii
-            @test angle_at(v, APPoint(-3.0, 1.0), wide.points[3]) ≈ angle_at(v, wide.points[3], APPoint(2.0, -4.0))
+            @test angle_measure_at(v, APPoint(-3.0, 1.0), wide.points[3]) ≈ angle_measure_at(v, wide.points[3], APPoint(2.0, -4.0))
             @test_throws ArgumentError bisector_construction(v, p1, APPoint(-2.0, 0.0))   # opposite rays
             @test_throws ArgumentError bisector_construction(v, p1, APPoint(8.0, 0.0))    # same direction
             @test_throws ArgumentError bisector_construction(v, v, p2)
@@ -1568,8 +1568,8 @@ using Base.MathConstants: golden
         l2 = APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0))
         bisectors = angle_bisectors(l1, l2)
         @test length(bisectors) == 2
-        @test all(b -> isapprox(abs(angle_between(direction(l1), direction(b))), pi / 4; atol=1e-6) ||
-                       isapprox(abs(angle_between(direction(l1), direction(b))), 3pi / 4; atol=1e-6), bisectors)
+        @test all(b -> isapprox(abs(angle_measure_between(direction(l1), direction(b))), pi / 4; atol=1e-6) ||
+                       isapprox(abs(angle_measure_between(direction(l1), direction(b))), 3pi / 4; atol=1e-6), bisectors)
         tris = angle_trisectors(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
         @test length(tris) == 2
         @testset "angle_bisectors/angle_trisectors(::APAngle2)" begin
@@ -1789,14 +1789,14 @@ using Base.MathConstants: golden
         @test isapprox(distance(p1, iso.c), 5.0; atol=1e-6) && isapprox(distance(p2, iso.c), 5.0; atol=1e-6)
         @test_throws ArgumentError isosceles_triangle_on_segment(p1, p2, 1.0)
         t306090 = triangle_30_60_90_on_segment(p1, p2)
-        @test isapprox(angle_at(p1, p2, t306090.c), pi / 6; atol=1e-6)
-        @test isapprox(angle_at(p2, p1, t306090.c), pi / 3; atol=1e-6)
+        @test isapprox(angle_measure_at(p1, p2, t306090.c), pi / 6; atol=1e-6)
+        @test isapprox(angle_measure_at(p2, p1, t306090.c), pi / 3; atol=1e-6)
         tgen = triangle_on_segment(p1, p2, deg2rad(40.0), deg2rad(60.0))
-        @test isapprox(angle_at(p1, p2, tgen.c), deg2rad(40.0); atol=1e-9)
-        @test isapprox(angle_at(p2, p1, tgen.c), deg2rad(60.0); atol=1e-9)
+        @test isapprox(angle_measure_at(p1, p2, tgen.c), deg2rad(40.0); atol=1e-9)
+        @test isapprox(angle_measure_at(p2, p1, tgen.c), deg2rad(60.0); atol=1e-9)
         @test area(tgen) > 0
         tgen_cw = triangle_on_segment(p1, p2, deg2rad(40.0), deg2rad(60.0); ccw=false)
-        @test isapprox(angle_at(p1, p2, tgen_cw.c), deg2rad(40.0); atol=1e-9)
+        @test isapprox(angle_measure_at(p1, p2, tgen_cw.c), deg2rad(40.0); atol=1e-9)
         @test tgen_cw.c[2] < 0 < tgen.c[2]   # opposite sides of the [p1,p2] base
         @test triangle_on_segment(APSegment(p1, p2), deg2rad(40.0), deg2rad(60.0)) == tgen
         @test_throws ArgumentError triangle_on_segment(p1, p2, deg2rad(100.0), deg2rad(100.0))   # sum >= π
@@ -1809,10 +1809,10 @@ using Base.MathConstants: golden
         @test triangle_on_segment_sss(APSegment(p1, p2), 3.0, 4.0) == tsss
         @test_throws ArgumentError triangle_on_segment_sss(p1, p2, 0.5, 0.5)   # too short to reach
         tsas_a = triangle_on_segment_sas(p1, p2, deg2rad(40.0), 3.0)
-        @test isapprox(angle_at(p1, p2, tsas_a.c), deg2rad(40.0); atol=1e-9)
+        @test isapprox(angle_measure_at(p1, p2, tsas_a.c), deg2rad(40.0); atol=1e-9)
         @test isapprox(distance(p1, tsas_a.c), 3.0; atol=1e-9)
         tsas_b = triangle_on_segment_sas(p1, p2, deg2rad(40.0), 3.0; at=:b)
-        @test isapprox(angle_at(p2, p1, tsas_b.c), deg2rad(40.0); atol=1e-9)
+        @test isapprox(angle_measure_at(p2, p1, tsas_b.c), deg2rad(40.0); atol=1e-9)
         @test isapprox(distance(p2, tsas_b.c), 3.0; atol=1e-9)
         @test tsas_a.c[2] > 0 && tsas_b.c[2] > 0
         @test triangle_on_segment_sas(APSegment(p1, p2), deg2rad(40.0), 3.0) == tsas_a
@@ -1820,29 +1820,29 @@ using Base.MathConstants: golden
         @test_throws ArgumentError triangle_on_segment_sas(p1, p2, pi, 3.0)
         tssa1 = triangle_on_segment_ssa(p1, p2, deg2rad(30.0), 3.0)
         tssa2 = triangle_on_segment_ssa(p1, p2, deg2rad(30.0), 3.0; second_solution=true)
-        @test isapprox(angle_at(p1, p2, tssa1.c), deg2rad(30.0); atol=1e-9)
+        @test isapprox(angle_measure_at(p1, p2, tssa1.c), deg2rad(30.0); atol=1e-9)
         @test isapprox(distance(p2, tssa1.c), 3.0; atol=1e-9)
-        @test isapprox(angle_at(p1, p2, tssa2.c), deg2rad(30.0); atol=1e-9)
+        @test isapprox(angle_measure_at(p1, p2, tssa2.c), deg2rad(30.0); atol=1e-9)
         @test isapprox(distance(p2, tssa2.c), 3.0; atol=1e-9)
         @test !(tssa1 ≈ tssa2)
-        @test angle_at(p2, p1, tssa1.c) >= angle_at(p2, p1, tssa2.c)   # primary has the larger base angle
+        @test angle_measure_at(p2, p1, tssa1.c) >= angle_measure_at(p2, p1, tssa2.c)   # primary has the larger base angle
         @test triangle_on_segment_ssa(APSegment(p1, p2), deg2rad(30.0), 3.0) == tssa1
         @test_throws ArgumentError triangle_on_segment_ssa(p1, p2, deg2rad(30.0), 0.1)   # too short to reach
         h = distance(p1, p2) * sin(deg2rad(30.0))
         tssa_tangent = triangle_on_segment_ssa(p1, p2, deg2rad(30.0), h)
-        @test isapprox(angle_at(tssa_tangent.c, p1, p2), pi / 2; atol=1e-6)
+        @test isapprox(angle_measure_at(tssa_tangent.c, p1, p2), pi / 2; atol=1e-6)
         isoright = isosceles_right_triangle_on_segment(p1, p2)
         @test isapprox(distance(p1, isoright.c), distance(p2, isoright.c); atol=1e-6)
-        @test isapprox(angle_at(isoright.c, p1, p2), pi / 2; atol=1e-6)
+        @test isapprox(angle_measure_at(isoright.c, p1, p2), pi / 2; atol=1e-6)
         golden = golden_triangle_on_segment(p1, p2)
-        @test isapprox(angle_at(p1, p2, golden.c), 72 * pi / 180; atol=1e-6)
-        @test isapprox(angle_at(p2, p1, golden.c), 72 * pi / 180; atol=1e-6)
+        @test isapprox(angle_measure_at(p1, p2, golden.c), 72 * pi / 180; atol=1e-6)
+        @test isapprox(angle_measure_at(p2, p1, golden.c), 72 * pi / 180; atol=1e-6)
         gnomon = golden_gnomon_on_segment(p1, p2)
-        @test isapprox(angle_at(p1, p2, gnomon.c), 36 * pi / 180; atol=1e-6)
-        @test isapprox(angle_at(p2, p1, gnomon.c), 36 * pi / 180; atol=1e-6)
+        @test isapprox(angle_measure_at(p1, p2, gnomon.c), 36 * pi / 180; atol=1e-6)
+        @test isapprox(angle_measure_at(p2, p1, gnomon.c), 36 * pi / 180; atol=1e-6)
         egy = egyptian_triangle_on_segment(p1, p2)
         @test isapprox(distance(p2, egy.c), 0.75 * 4.0; atol=1e-9)
-        @test isapprox(angle_at(p2, p1, egy.c), pi / 2; atol=1e-6)
+        @test isapprox(angle_measure_at(p2, p1, egy.c), pi / 2; atol=1e-6)
         @test isapprox(distance(p1, egy.c), 5.0; atol=1e-6)
         e0 = APEllipse2(APPoint(1.0, 2.0), 5.0, 3.0, 0.4)
         pts5 = [point_on_ellipse(e0, t) for t in (0.0, 1.0, 2.0, 3.0, 4.0)]
@@ -2017,14 +2017,14 @@ using Base.MathConstants: golden
         others = ((2, 3), (1, 3), (1, 2))
         for i in 1:3
             j, k = others[i]
-            full = angle_at(t[i], t[j], t[k])
+            full = angle_measure_at(t[i], t[j], t[k])
             rays = trisector(t, i)
             @test length(rays) == 2
             r1, r2 = rays
             @test r1.origin == t[i] && r2.origin == t[i]
-            @test angle_at(t[i], t[j], r1.through) ≈ full / 3 atol = 1e-9
-            @test angle_at(t[i], r1.through, r2.through) ≈ full / 3 atol = 1e-9
-            @test angle_at(t[i], r2.through, t[k]) ≈ full / 3 atol = 1e-9
+            @test angle_measure_at(t[i], t[j], r1.through) ≈ full / 3 atol = 1e-9
+            @test angle_measure_at(t[i], r1.through, r2.through) ≈ full / 3 atol = 1e-9
+            @test angle_measure_at(t[i], r2.through, t[k]) ≈ full / 3 atol = 1e-9
         end
         @test spieker_center(t) ≈ midpoint(incenter(t), nagel_point(t))
         ec = excenters(t)
@@ -2033,7 +2033,7 @@ using Base.MathConstants: golden
         @test only(intersection(lA, lB)) ≈ mittenpunkt(t)
         @test_throws ArgumentError clawson_point(t)   # t is the 3-4-5 right triangle: X(19) is undefined here
         scalene = APTriangle(APPoint(0.0, 0.0), APPoint(7.0, 0.0), APPoint(2.0, 4.0))
-        A, B, C = angle_at(scalene[1], scalene[2], scalene[3]), angle_at(scalene[2], scalene[1], scalene[3]), angle_at(scalene[3], scalene[1], scalene[2])
+        A, B, C = angle_measure_at(scalene[1], scalene[2], scalene[3]), angle_measure_at(scalene[2], scalene[1], scalene[3]), angle_measure_at(scalene[3], scalene[1], scalene[2])
         cw = clawson_point(scalene)
         xA, xB, xC = trilinear_coordinates(scalene, cw)   # X(19) has trilinears tan A : tan B : tan C
         @test xA / tan(A) ≈ xB / tan(B) atol = 1e-9
@@ -2152,13 +2152,13 @@ using Base.MathConstants: golden
         @test m1 ≈ m2 atol = 1e-9
         @test m2 ≈ m3 atol = 1e-9
         o1, o2 = first_brocard_point(t), second_brocard_point(t)
-        ω = brocard_angle(t)
-        @test angle_at(A, o1, B) ≈ ω atol = 1e-9
-        @test angle_at(B, o1, C) ≈ ω atol = 1e-9
-        @test angle_at(C, o1, A) ≈ ω atol = 1e-9
-        @test angle_at(B, o2, A) ≈ ω atol = 1e-9
-        @test angle_at(C, o2, B) ≈ ω atol = 1e-9
-        @test angle_at(A, o2, C) ≈ ω atol = 1e-9
+        ω = angle_measure_brocard(t)
+        @test angle_measure_at(A, o1, B) ≈ ω atol = 1e-9
+        @test angle_measure_at(B, o1, C) ≈ ω atol = 1e-9
+        @test angle_measure_at(C, o1, A) ≈ ω atol = 1e-9
+        @test angle_measure_at(B, o2, A) ≈ ω atol = 1e-9
+        @test angle_measure_at(C, o2, B) ≈ ω atol = 1e-9
+        @test angle_measure_at(A, o2, C) ≈ ω atol = 1e-9
         @test !(o1 ≈ o2)
         bc = brocard_circle(t)
         @test bc.center ≈ midpoint(circumcenter(t), symmedian_point(t))
@@ -2167,7 +2167,7 @@ using Base.MathConstants: golden
         eq2 = APTriangle(APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(1.0, sqrt(3.0)))
         @test first_brocard_point(eq2) ≈ centroid(eq2) atol = 1e-9
         @test second_brocard_point(eq2) ≈ centroid(eq2) atol = 1e-9
-        @test brocard_angle(eq2) ≈ pi / 6 atol = 1e-9
+        @test angle_measure_brocard(eq2) ≈ pi / 6 atol = 1e-9
     end
     @testset "Conway, Taylor, Lemoine, Soddy circles" begin
         t = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(2.0, 4.0))
@@ -2297,7 +2297,7 @@ using Base.MathConstants: golden
     @testset "Kenmotu and MacBeath points" begin
         t = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(2.0, 4.0))
         A, B, C = t[1], t[2], t[3]
-        angA, angB, angC = angle_at(A, B, C), angle_at(B, C, A), angle_at(C, A, B)
+        angA, angB, angC = angle_measure_at(A, B, C), angle_measure_at(B, C, A), angle_measure_at(C, A, B)
         kp = kenmotu_point(t)
         x, y, z = trilinear_coordinates(t, kp)
         r1, r2, r3 = cos(angA - pi / 4), cos(angB - pi / 4), cos(angC - pi / 4)
@@ -2997,12 +2997,12 @@ using Base.MathConstants: golden
         rays = angle_trisectors(v, p1, p2)
         @test length(rays) == 2
         @test rays[1].origin == v && rays[2].origin == v
-        @test angle_at(v, p1, rays[1].through) ≈ pi / 6 atol = 1e-9
-        @test angle_at(v, rays[1].through, rays[2].through) ≈ pi / 6 atol = 1e-9
-        @test angle_at(v, rays[2].through, p2) ≈ pi / 6 atol = 1e-9
+        @test angle_measure_at(v, p1, rays[1].through) ≈ pi / 6 atol = 1e-9
+        @test angle_measure_at(v, rays[1].through, rays[2].through) ≈ pi / 6 atol = 1e-9
+        @test angle_measure_at(v, rays[2].through, p2) ≈ pi / 6 atol = 1e-9
         rays_rev = angle_trisectors(v, p2, p1)
-        @test angle_at(v, p2, rays_rev[1].through) ≈ pi / 6 atol = 1e-9
-        @test angle_at(v, rays_rev[2].through, p1) ≈ pi / 6 atol = 1e-9
+        @test angle_measure_at(v, p2, rays_rev[1].through) ≈ pi / 6 atol = 1e-9
+        @test angle_measure_at(v, rays_rev[2].through, p1) ≈ pi / 6 atol = 1e-9
     end
     @testset "apollonius: circle tangent to 2 lines through a point (LLP)" begin
         l1 = APLine(APPoint(0.0, 0.0), APPoint(3.0, 1.0))
@@ -3567,22 +3567,22 @@ using Base.MathConstants: golden
             @test distance(p2, iso[3]) ≈ 5.0 atol = 1e-9
             @test_throws ArgumentError isosceles_triangle_on_segment(p1, p2, 1.0)
             r306090 = triangle_30_60_90_on_segment(p1, p2)
-            @test angle_at(p1, p2, r306090[3]) ≈ deg2rad(30) atol = 1e-9
-            @test angle_at(p2, p1, r306090[3]) ≈ deg2rad(60) atol = 1e-9
-            @test angle_at(r306090[3], p1, p2) ≈ deg2rad(90) atol = 1e-9
+            @test angle_measure_at(p1, p2, r306090[3]) ≈ deg2rad(30) atol = 1e-9
+            @test angle_measure_at(p2, p1, r306090[3]) ≈ deg2rad(60) atol = 1e-9
+            @test angle_measure_at(r306090[3], p1, p2) ≈ deg2rad(90) atol = 1e-9
             thales = isosceles_right_triangle_on_segment(p1, p2)
-            @test angle_at(thales[3], p1, p2) ≈ deg2rad(90) atol = 1e-9
+            @test angle_measure_at(thales[3], p1, p2) ≈ deg2rad(90) atol = 1e-9
             @test distance(p1, thales[3]) ≈ distance(p2, thales[3])
             golden = golden_triangle_on_segment(p1, p2)
-            @test angle_at(p1, p2, golden[3]) ≈ deg2rad(72) atol = 1e-9
-            @test angle_at(p2, p1, golden[3]) ≈ deg2rad(72) atol = 1e-9
-            @test angle_at(golden[3], p1, p2) ≈ deg2rad(36) atol = 1e-9
+            @test angle_measure_at(p1, p2, golden[3]) ≈ deg2rad(72) atol = 1e-9
+            @test angle_measure_at(p2, p1, golden[3]) ≈ deg2rad(72) atol = 1e-9
+            @test angle_measure_at(golden[3], p1, p2) ≈ deg2rad(36) atol = 1e-9
             gnomon = golden_gnomon_on_segment(p1, p2)
-            @test angle_at(p1, p2, gnomon[3]) ≈ deg2rad(36) atol = 1e-9
-            @test angle_at(p2, p1, gnomon[3]) ≈ deg2rad(36) atol = 1e-9
-            @test angle_at(gnomon[3], p1, p2) ≈ deg2rad(108) atol = 1e-9
+            @test angle_measure_at(p1, p2, gnomon[3]) ≈ deg2rad(36) atol = 1e-9
+            @test angle_measure_at(p2, p1, gnomon[3]) ≈ deg2rad(36) atol = 1e-9
+            @test angle_measure_at(gnomon[3], p1, p2) ≈ deg2rad(108) atol = 1e-9
             egy = egyptian_triangle_on_segment(p1, p2)
-            @test angle_at(p2, p1, egy[3]) ≈ deg2rad(90) atol = 1e-9
+            @test angle_measure_at(p2, p1, egy[3]) ≈ deg2rad(90) atol = 1e-9
             @test distance(p2, egy[3]) / distance(p1, p2) ≈ 0.75 atol = 1e-9
             @test distance(p1, egy[3]) / distance(p1, p2) ≈ 1.25 atol = 1e-9
         end
@@ -3700,8 +3700,8 @@ using Base.MathConstants: golden
         u, v = APPoint(1.0, 0.0), APPoint(0.0, 1.0)
         @test norm(u) == 1.0
         @test dot(u, v) == 0.0
-        @test angle_between(u, v) ≈ pi / 2
-        @test angle_at(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0)) ≈ pi / 2
+        @test angle_measure_between(u, v) ≈ pi / 2
+        @test angle_measure_at(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0)) ≈ pi / 2
     end
     @testset "tangency" begin
         c = APCircle2(APPoint(0.0, 0.0), 1.0)
@@ -5919,7 +5919,7 @@ end
     c = circle_with_diameter(a, b)
     @test c.center ≈ APPoint(3.0, 1.0) && c.r ≈ sqrt(10)
     @test circle_with_diameter(APSegment(a, b)) == c
-    @test angle_at(point_on_circle(c, 1.0), a, b) ≈ pi / 2
+    @test angle_measure_at(point_on_circle(c, 1.0), a, b) ≈ pi / 2
     @test circle_with_diameter(APPoint(0, 0), APPoint(4, 0)) ≈ APCircle2(APPoint(2.0, 0.0), 2.0)
 end
 
@@ -6186,23 +6186,24 @@ end
     @test arc_length(APSegment(O, P(3.0, 4.0))) ≈ 5
     sq = [O, P(1.0, 0.0), P(1.0, 1.0), P(0.0, 1.0)]
     @test signed_area(APQuadrilateral(sq...)) ≈ 1 && signed_area(APQuadrilateral(reverse(sq)...)) ≈ -1
-    @test all(≈(π / 2), interior_angles(APQuadrilateral(sq...)))
+    @test all(a -> a isa APAngle2, interior_angles(APQuadrilateral(sq...))) && normalized_measure.(interior_angles(APQuadrilateral(sq...))) ≈ fill(π / 2, 4)
     L = APStraightNgon([O, P(2.0, 0.0), P(2.0, 1.0), P(1.0, 1.0), P(1.0, 2.0), P(0.0, 2.0)])
-    @test sum(interior_angles(L)) ≈ 4π && count(>(π), interior_angles(L)) == 1
-    @test sum(interior_angles(APStraightNgon(reverse(vertices(L))))) ≈ 4π
+    @test sum(normalized_measure.(interior_angles(L))) ≈ 4π && count(>(π), normalized_measure.(interior_angles(L))) == 1
+    @test interior_angles(L)[1] == APAngle2(O, P(2.0, 0.0), P(0.0, 2.0))
+    @test sum(normalized_measure.(interior_angles(APStraightNgon(reverse(vertices(L)))))) ≈ 4π
     @test side_lengths(L) ≈ [2.0, 1.0, 1.0, 1.0, 1.0, 2.0] && semiperimeter(L) ≈ 4
     bb = APBoundingBox(O, P(2.0, 3.0))
     @test area(bb) ≈ 6 && perimeter(bb) ≈ 10
     arc90 = APCircularArc2(APCircle2(O, 2.0), P(2.0, 0.0), P(0.0, 2.0))
     sec = APCircularSector2(arc90)
-    @test signed_area(sec) ≈ π && interior_angles(sec) ≈ [π / 2, π / 2, π / 2]
-    @test interior_angles(APCircularSegment2(arc90)) ≈ [π / 4, π / 4]
+    @test signed_area(sec) ≈ π && normalized_measure.(interior_angles(sec)) ≈ [π / 2, π / 2, π / 2]
+    @test normalized_measure.(interior_angles(APCircularSegment2(arc90))) ≈ [π / 4, π / 4]
     @test signed_area(APAnnularSector2(arc90, 1.0)) ≈ area(APAnnularSector2(arc90, 1.0))
     cvt = APCurvilinearTriangle2(APSegment(O, P(4.0, 0.0)), APCircularArc2(APCircle2(P(4.0, 2.0), 2.0), P(4.0, 0.0), P(4.0, 4.0)), APSegment(P(4.0, 4.0), O))
-    @test signed_area(cvt) ≈ 8 + 2π && interior_angles(cvt) ≈ [π / 4, π, 3π / 4]
+    @test signed_area(cvt) ≈ 8 + 2π && normalized_measure.(interior_angles(cvt)) ≈ [π / 4, π, 3π / 4]
     sq = APStraightNgon([O, P(1.0, 0.0), P(1.0, 1.0), P(0.0, 1.0)])
     cw = APCurvilinearNgon2(collect(reverse(sides(sq))))
-    @test signed_area(cw) ≈ signed_area(sq) && all(≈(π / 2), interior_angles(cw))
+    @test signed_area(cw) ≈ signed_area(sq) && all(≈(π / 2), normalized_measure.(interior_angles(cw)))
     circ = APParametricCurve2(t -> P(2cos(t), 2sin(t)), (0.0, 2π))
     @test isapprox(curvature(circ, 1.0), 0.5; rtol=1e-6) && isapprox(signed_curvature(circ, 0.3), 0.5; rtol=1e-6)
     cw = APParametricCurve2(t -> P(2cos(-t), 2sin(-t)), (0.0, 2π))

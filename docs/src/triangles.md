@@ -436,7 +436,7 @@ trilinears, `tan(A) : tan(B) : tan(C)`, so it's built with
 construction:
 
 ```@example geo
-angA, angB, angC = angle_at(t[1], t[2], t[3]), angle_at(t[2], t[1], t[3]), angle_at(t[3], t[1], t[2])
+angA, angB, angC = angle_measure_at(t[1], t[2], t[3]), angle_measure_at(t[2], t[1], t[3]), angle_measure_at(t[3], t[1], t[2])
 clawson_point(t) ≈ trilinear_point(t, tan(angA), tan(angB), tan(angC))
 ```
 
@@ -563,7 +563,7 @@ The rest, grouped by what they're built from:
 | Built from the incenter/excenters | [`mittenpunkt`](@ref), [`spieker_center`](@ref), [`spieker_circle`](@ref), [`bevan_point`](@ref), [`de_longchamps_point`](@ref) |
 | Trilinear/barycentric formula, no simpler description | [`clawson_point`](@ref) |
 | On the circumcircle or Euler line | [`feuerbach_point`](@ref), [`feuerbach_points`](@ref), [`isodynamic_points`](@ref) |
-| Brocard configuration | [`first_brocard_point`](@ref), [`second_brocard_point`](@ref), [`brocard_angle`](@ref), [`brocard_circle`](@ref), [`brocard_midpoint`](@ref) |
+| Brocard configuration | [`first_brocard_point`](@ref), [`second_brocard_point`](@ref), [`angle_measure_brocard`](@ref), [`brocard_circle`](@ref), [`brocard_midpoint`](@ref) |
 | Congruent-squares / conjugate-of-classical-center points | [`kenmotu_point`](@ref)/[`kenmotu_circle`](@ref), [`macbeath_point`](@ref) |
 | A 4th point's common nine-point-circle point | [`poncelet_point`](@ref) |
 | Pedal-type constructions | [`simson_line`](@ref), [`steiner_line`](@ref), [`orthopole`](@ref), [`pedal_triangle`](@ref)/[`pedal_circle`](@ref) |
@@ -726,13 +726,13 @@ apollonius_point_of_triangle(t)
 
 The Brocard configuration: [`first_brocard_point`](@ref)/
 [`second_brocard_point`](@ref) are the two points seeing all three sides at
-the same [`brocard_angle`](@ref); [`brocard_circle`](@ref) passes through
+the same angle, whose measure is [`angle_measure_brocard`](@ref); [`brocard_circle`](@ref) passes through
 both (and through the symmedian point):
 
 ```@example geo
 Om1, Om2 = first_brocard_point(t), second_brocard_point(t)
 bc = brocard_circle(t)
-rad2deg(brocard_angle(t)), distance(bc.center, Om1) ≈ bc.r, distance(bc.center, Om2) ≈ bc.r
+rad2deg(angle_measure_brocard(t)), distance(bc.center, Om1) ≈ bc.r, distance(bc.center, Om2) ≈ bc.r
 ```
 
 ```@raw html
@@ -1198,7 +1198,7 @@ distance(eq[1], eq[2]), distance(eq[2], eq[3]), distance(eq[3], eq[1])   # all 3
 
 ```@example geo
 gnomon = golden_gnomon_on_segment(p1, p2)   # base angles 36°, apex angle 108°
-rad2deg(angle_at(gnomon[1], gnomon[3], gnomon[2])), rad2deg(angle_at(gnomon[3], gnomon[1], gnomon[2]))
+rad2deg(angle_measure_at(gnomon[1], gnomon[3], gnomon[2])), rad2deg(angle_measure_at(gnomon[3], gnomon[1], gnomon[2]))
 ```
 
 ```@raw html
@@ -1217,7 +1217,7 @@ distance(iso[1], iso[3]) ≈ 5.0, distance(iso[2], iso[3]) ≈ 5.0
 
 ```@example geo
 r306090 = triangle_30_60_90_on_segment(p1, p2)   # hypotenuse [p1,p2]
-rad2deg(angle_at(r306090[1], r306090[2], r306090[3])), rad2deg(angle_at(r306090[2], r306090[1], r306090[3]))
+rad2deg(angle_measure_at(r306090[1], r306090[2], r306090[3])), rad2deg(angle_measure_at(r306090[2], r306090[1], r306090[3]))
 ```
 
 ```@raw html
@@ -1226,7 +1226,7 @@ rad2deg(angle_at(r306090[1], r306090[2], r306090[3])), rad2deg(angle_at(r306090[
 
 ```@example geo
 isr = isosceles_right_triangle_on_segment(p1, p2)   # hypotenuse [p1,p2], via Thales
-rad2deg(angle_at(isr[3], isr[1], isr[2]))   # 90°: the right angle sits opposite the hypotenuse
+rad2deg(angle_measure_at(isr[3], isr[1], isr[2]))   # 90°: the right angle sits opposite the hypotenuse
 ```
 
 ```@raw html
@@ -1238,7 +1238,7 @@ three measurements pin the triangle down. ASA, given both base angles:
 
 ```@example geo
 asa = triangle_on_segment(p1, p2, deg2rad(50), deg2rad(70))
-rad2deg(angle_at(asa[1], asa[2], asa[3])), rad2deg(angle_at(asa[2], asa[1], asa[3]))
+rad2deg(angle_measure_at(asa[1], asa[2], asa[3])), rad2deg(angle_measure_at(asa[2], asa[1], asa[3]))
 ```
 
 SAS, given a side length and the angle it makes with the base at one
@@ -1246,7 +1246,7 @@ vertex (`at=:a` or `at=:b`):
 
 ```@example geo
 sas = triangle_on_segment_sas(p1, p2, deg2rad(60), 4.0; at=:b)
-distance(sas[2], sas[3]), rad2deg(angle_at(sas[2], sas[1], sas[3]))
+distance(sas[2], sas[3]), rad2deg(angle_measure_at(sas[2], sas[1], sas[3]))
 ```
 
 SSS, given both new side lengths:

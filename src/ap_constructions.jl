@@ -85,7 +85,7 @@ Always exactly 2 rays, so returned as a `Tuple` (unlike
 input and so must be a `Vector`).
 """
 function angle_trisectors(vertex::APPoint, p1::APPoint, p2::APPoint)
-    θ = angle_between(p1 - vertex, p2 - vertex)
+    θ = angle_measure_between(p1 - vertex, p2 - vertex)
     return (APRay(vertex, rotate(p1, θ / 3, vertex)), APRay(vertex, rotate(p1, 2θ / 3, vertex)))
 end
 """
@@ -156,37 +156,37 @@ function apollonius_circle(a::APPoint, b::APPoint, k::Real; atol=1e-9)
     return APCircle2(midpoint(p_int, p_ext), distance(p_int, p_ext) / 2)
 end
 """
-    arc_with_angle(center::APPoint, p::APPoint, angle::Real)
+    arc_with_measure(center::APPoint, p::APPoint, m::Real)
 
 The circular arc of the circle centered at `center` through `p`, sweeping
-`angle` radians from `p`: counterclockwise for a positive `angle`,
+`m` radians (a measure) from `p`: counterclockwise for a positive `m`,
 clockwise for a negative one: the compass arc of a ruler-and-compass
 construction, set to `distance(center, p)` and swung through a given
-angle. Since an [`APCircularArc2`](@ref) always runs counterclockwise from
+measure. Since an [`APCircularArc2`](@ref) always runs counterclockwise from
 `p1` to `p2`, a clockwise sweep comes back with `p` as `arc.p2` instead
-of `arc.p1`. `angle` must satisfy `0 < abs(angle) < 2π` (an arc can't be a
+of `arc.p1`. `m` must satisfy `0 < abs(m) < 2π` (an arc can't be a
 full circle or empty); `p` must differ from `center`.
 
 See [`arc_with_length`](@ref) to give the sweep as an arc length instead.
 """
-function arc_with_angle(center::APPoint, p::APPoint, angle::Real)
-    0 < abs(angle) < 2pi || throw(ArgumentError("arc_with_angle: abs(angle) must be in (0, 2π)"))
-    q = rotate(p, angle, center)
-    return angle > 0 ? APCircularArc2(center, distance(center, p), p, q) :
+function arc_with_measure(center::APPoint, p::APPoint, m::Real)
+    0 < abs(m) < 2pi || throw(ArgumentError("arc_with_measure: abs(m) must be in (0, 2π)"))
+    q = rotate(p, m, center)
+    return m > 0 ? APCircularArc2(center, distance(center, p), p, q) :
            APCircularArc2(center, distance(center, p), q, p)
 end
 """
     arc_with_length(center::APPoint, p::APPoint, len::Real)
 
-Like [`arc_with_angle`](@ref), but the sweep is given as an arc length
-`len` along the circle centered at `center` through `p` (so the angle is
+Like [`arc_with_measure`](@ref), but the sweep is given as an arc length
+`len` along the circle centered at `center` through `p` (so the measure is
 `len / distance(center, p)`); a negative `len` sweeps clockwise. `len` must
 be nonzero and shorter than the whole circumference.
 """
 function arc_with_length(center::APPoint, p::APPoint, len::Real)
     r = distance(center, p)
     r > 0 || throw(ArgumentError("arc_with_length: p must differ from center"))
-    return arc_with_angle(center, p, len / r)
+    return arc_with_measure(center, p, len / r)
 end
 """
     APCircularArc2(center::APPoint, r::Real, θ1::Real, θ2::Real; ccw::Bool=true)
@@ -207,13 +207,13 @@ end
 
 The half circle centered at `center` starting at `p` and ending at the
 antipode of `p`, counterclockwise for `ccw=true` (the default). Shorthand
-for [`arc_with_angle`](@ref)`(center, p, π)`.
+for [`arc_with_measure`](@ref)`(center, p, π)`.
 
 | Keyword | Default | Meaning |
 |:--------|:--------|:--------|
 | `ccw` | `true` | `true` sweeps counterclockwise from `p`, `false` clockwise |
 """
-semicircle(center::APPoint, p::APPoint; ccw::Bool=true) = arc_with_angle(center, p, ccw ? pi : -pi)
+semicircle(center::APPoint, p::APPoint; ccw::Bool=true) = arc_with_measure(center, p, ccw ? pi : -pi)
 """
     circle_with_diameter(a::APPoint, b::APPoint)
     circle_with_diameter(s::APSegment)
@@ -247,7 +247,7 @@ arc). Give exactly one of `angle`, the total sweep in radians, or `length`,
 the total arc length. The result is an [`APCircularArc2`](@ref), drawn with
 `path` like any other. Throws an `ArgumentError` if both or neither are
 given, or if `p == center`. To start the arc at `p` instead of centering it
-there, see [`arc_with_angle`](@ref) and [`arc_with_length`](@ref).
+there, see [`arc_with_measure`](@ref) and [`arc_with_length`](@ref).
 
 | Keyword | Default | Meaning |
 |:--------|:--------|:--------|
@@ -263,7 +263,7 @@ function compass_trace(center::APPoint, p::APPoint; angle::Union{Nothing,Real}=n
     r > 0 || throw(ArgumentError("compass_trace: p must differ from center"))
     total = angle === nothing ? length / r : angle
     0 < total < 2pi || throw(ArgumentError("compass_trace: the sweep must be strictly between 0 and 2π"))
-    return arc_with_angle(center, rotate(p, -total / 2, center), total)
+    return arc_with_measure(center, rotate(p, -total / 2, center), total)
 end
 """
     extend_line(l::APLine, before, after=before)

@@ -1,12 +1,13 @@
 """
-    angle_at(vertex, p1, p2)
+    angle_measure_at(vertex, p1, p2)
 
-Unsigned interior angle (in radians, in `[0, π]`) at `vertex` between the
-rays `vertex -> p1` and `vertex -> p2`. See also [`angle_between`](@ref)
-for the signed version, and [`APAngle2`](@ref) for a reusable object
-carrying the three points around instead of just the number.
+The unsigned measure (in radians, in `[0, π]`) of the angle at `vertex`
+between the rays `vertex -> p1` and `vertex -> p2`: the same number as
+`abs(APAngle2(vertex, p1, p2))`. See also [`angle_measure_between`](@ref) for
+the signed version, and [`APAngle2`](@ref) for the angle itself, a region that
+keeps the three points around instead of just the number.
 """
-angle_at(vertex::APPoint, p1::APPoint, p2::APPoint) =
+angle_measure_at(vertex::APPoint, p1::APPoint, p2::APPoint) =
     acos(clamp(dot(p1 - vertex, p2 - vertex) / (norm(p1 - vertex) * norm(p2 - vertex)), -1.0, 1.0))
 """
     APAngle2(vertex::APPoint, a::APPoint, b::APPoint)
@@ -14,8 +15,8 @@ angle_at(vertex::APPoint, p1::APPoint, p2::APPoint) =
 The angle at `vertex` between the rays `vertex -> a` and `vertex -> b`,
 plus (since it's an [`APSet`](@ref)) the infinite wedge they bound: the
 region swept counterclockwise from ray `vertex -> a` to ray `vertex -> b`
-by [`normalized_measure`](@ref) radians. Unlike [`angle_at`](@ref)/
-[`angle_between`](@ref), which just return a number, this keeps the three
+by [`normalized_measure`](@ref) radians. Unlike [`angle_measure_at`](@ref)/
+[`angle_measure_between`](@ref), which just return a number, this keeps the three
 defining points around.
 """
 struct APAngle2{T<:Real} <: APSet{2,T}
@@ -54,9 +55,9 @@ Base.reverse(ang::APAngle2) = APAngle2(ang.vertex, ang.b, ang.a)
     measure(ang::APAngle2)
 
 The signed measure of `ang` (radians, in `(-π, π]`, counterclockwise from
-ray `vertex -> a` to ray `vertex -> b`): see [`angle_between`](@ref).
+ray `vertex -> a` to ray `vertex -> b`): see [`angle_measure_between`](@ref).
 """
-measure(ang::APAngle2) = angle_between(ang.a - ang.vertex, ang.b - ang.vertex)
+measure(ang::APAngle2) = angle_measure_between(ang.a - ang.vertex, ang.b - ang.vertex)
 """
     rotate(obj::APObject, ang::APAngle2, args...; kwargs...)
 
@@ -81,9 +82,9 @@ end
 """
     abs(ang::APAngle2)
 
-The unsigned measure of `ang` (radians, in `[0, π]`): see [`angle_at`](@ref).
+The unsigned measure of `ang` (radians, in `[0, π]`): see [`angle_measure_at`](@ref).
 """
-Base.abs(ang::APAngle2) = angle_at(ang.vertex, ang.a, ang.b)
+Base.abs(ang::APAngle2) = angle_measure_at(ang.vertex, ang.a, ang.b)
 """
     is_direct(ang::APAngle2)
 

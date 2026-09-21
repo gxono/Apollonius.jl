@@ -20,7 +20,7 @@ for a different way of saying which arc you want:
 
 | You know | Function | Result |
 |:---------|:---------|:-------|
-| Center, a point, and the angle to sweep from the point | [`arc_with_angle`](@ref) | an arc starting at the point |
+| Center, a point, and the measure to sweep from the point | [`arc_with_measure`](@ref) | an arc starting at the point |
 | Center, a point, and the length to sweep from the point | [`arc_with_length`](@ref) | an arc starting at the point |
 | Center, a point, and the total sweep, symmetric about the point | [`compass_trace`](@ref) | an arc centered on the point |
 | Center, radius and two polar angles | [`APCircularArc2`](@ref)`(center, r, θ1, θ2)` | the arc between them |
@@ -46,10 +46,10 @@ measure(trace) ≈ pi / 3, isapprox(midpoint(trace), p; atol=1e-9)
 <img src="../assets/img/constructions/compass_trace.svg" alt="A compass trace around a point P, centered at O" style="width:100%; max-width: 700px;">
 ```
 
-Three of the other builders side by side: `arc_with_angle` starts at the point and sweeps from it, `semicircle` is a half turn, and `extend_arc` lengthens an arc (the blue part is the original).
+Three of the other builders side by side: `arc_with_measure` starts at the point and sweeps from it, `semicircle` is a half turn, and `extend_arc` lengthens an arc (the blue part is the original).
 
 ```@raw html
-<img src="../assets/img/constructions/arc_builders.svg" alt="Three compass arcs: arc_with_angle, semicircle and extend_arc" style="width:100%; max-width: 700px;">
+<img src="../assets/img/constructions/arc_builders.svg" alt="Three compass arcs: arc_with_measure, semicircle and extend_arc" style="width:100%; max-width: 700px;">
 ```
 
 !!! details "See script"
@@ -62,9 +62,9 @@ Three of the other builders side by side: `arc_with_angle` starts at the point a
         aux = reflection(P1, O1)
         O2, P2 = APPoint(8.0, 0.0), APPoint(11.0, 0.0)
         O3, P3 = APPoint(16.0, 0.0), APPoint(19.0, 0.0)
-        a1 = arc_with_angle(O1, P1, pi / 3)
+        a1 = arc_with_measure(O1, P1, pi / 3)
         a2 = semicircle(O2, P2)
-        a3 = arc_with_angle(O3, P3, pi / 3)
+        a3 = arc_with_measure(O3, P3, pi / 3)
         a3x = extend_arc(a3, 0.5)
     end
 
@@ -80,7 +80,7 @@ Three of the other builders side by side: `arc_with_angle` starts at the point a
     path(a3, action=:stroke)
 
     sethue(julia_red)
-    label("arc_with_angle", :S, O1, offset=8)
+    label("arc_with_measure", :S, O1, offset=8)
     label("semicircle", :S , O2, offset=8)
     label("extend_arc", :S , O3, offset=8)
 
@@ -421,7 +421,7 @@ result is the same kind of line.
 v, p1, p2 = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 3.0)
 bis = bisector_construction(v, p1, p2)
 y = bis.points[3]
-angle_at(v, p1, y) ≈ angle_at(v, y, p2)
+angle_measure_at(v, p1, y) ≈ angle_measure_at(v, y, p2)
 ```
 
 ```@raw html
@@ -825,7 +825,7 @@ nothing # hide
 **Step 1.** The two rays.
 
 ```@example geo
-angle_at(v, s1.p2, s2.p2)
+angle_measure_at(v, s1.p2, s2.p2)
 ```
 
 ```@example geo
@@ -871,7 +871,7 @@ end # hide
 **Step 4.** The ray from `v` through `y` is the bisector: both angles it makes are equal.
 
 ```@example geo
-angle_at(v, s1.p2, y) ≈ angle_at(v, y, s2.p2)
+angle_measure_at(v, s1.p2, y) ≈ angle_measure_at(v, y, s2.p2)
 ```
 
 ```@example geo
