@@ -1,14 +1,8 @@
 begin
 using Apollonius
-using Luxor: @drawsvg, @svg,
-    Drawing, finish, preview, origin, newsubpath,
-    background, RGBA, text,
-    sethue, setdash, setopacity, setline,
-    fillpreserve, strokepath, fillpath,
-    julia_blue, julia_green, julia_red, julia_purple,
-    gsave, grestore,
-    label
-import Luxor
+using Luxor
+import Apollonius: rotate, translate, distance
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
 plot_point(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
 end
 macro svg_doc(lxm, file, content)

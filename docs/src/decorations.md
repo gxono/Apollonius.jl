@@ -101,7 +101,7 @@ length(two_ticks), only(marks(s; style=:circle, size=2.0))
 ```
 
 !!! details "See script"
-```julia
+    ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
