@@ -1,5 +1,6 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=560 height=320 margin=30 begin
+
+lxm = @to_luxor_picture! width=560 height=240 margin=20 begin
     F = APPoint(0.0, 0.0)
     dl = APSegment(APPoint(4.0, -5.0), APPoint(4.0, 5.0))
     d = APLine(dl.p1, dl.p2)
@@ -9,14 +10,25 @@ lxm, lxo = @to_luxor_picture width=560 height=320 margin=30 begin
     parc = APParabolicArc2(par, point_on_parabola(par, -6.0), point_on_parabola(par, 6.0))
     harc = APHyperbolicArc2(hyp, point_on_hyperbola(hyp, -1.1; branch=-1), point_on_hyperbola(hyp, 1.1; branch=-1))
 end
-(; F, dl, d, ell, par, hyp, parc, harc) = lxo
+
+
 @svg_doc(lxm, @__FILE__, begin
-Luxor.fontsize(15)
+fontsize(15)
+
 sethue(julia_blue)
 path(dl, action=:stroke)
+
 sethue(julia_purple)
 path([ell, parc, harc], action=:stroke)
+
 sethue(julia_red)
-label("F", :SW, F); label("e = 0.5", :N, ell.center + APVector(0.0, ell.b)); label("e = 1", :N, parc.p1); label("e = 2", :N, harc.p1); label("directrix", :N, dl.p2)
-path([F]); plot_point(julia_blue)
+label("F", :W, F, offset=8)
+label("e = 1", :N, parc.p1)
+label("e = 2", :S, harc.p1)
+text("directrix", dl.p2 + APVector(5.0,0.0) ,angle=pi/2)
+label("e = 0.5", :W, point_on_ellipse(ell, pi), offset=8)
+
+sethue("white")
+path(F, action=:fillpreserve)
+sethue(julia_blue); strokepath()
 end)
