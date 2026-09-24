@@ -166,8 +166,13 @@ nearest_point(intersection(l, c), APPoint(3.0, 3.0)), other_intersection(l, c, A
 
 * [`angle_measure_intersection`](@ref) gives the measure of the angle at which two circles cross.
 * [`radical_axis`](@ref) is the line through the two intersection points of
-  two circles, and it exists even when they do not meet.
+  two circles, and it exists even when they do not meet. [`radical_center`](@ref)
+  is the same idea for three circles: the one point where all three radical
+  axes meet, and [`radical_circle`](@ref) the circle centered there that cuts
+  all three at right angles.
 * [`tangent_points`](@ref) and [`tangent_lines`](@ref) give the points and lines of
   tangency from a point to a circle, and [`external_tangent_lines`](@ref) and
   [`internal_tangent_lines`](@ref) the common tangents of two circles. All
   of them are in [Circles: How They Relate](@ref).
+* [`diagonal_intersection`](@ref) is the point where a quadrilateral's two
+  diagonals cross, in [Polygons: Named Constructors & Quadrilaterals](@ref).
