@@ -81,7 +81,7 @@ distance(O, A)
 `distance(O, A)` is `5.0`: with `A = APPoint(3.0, 4.0)`, this is just the classic
 3-4-5 triangle. `APSegment`, `APLine` and `APRay` all wrap the *same* two
 points here. What differs is only how far they extend and what other
-functions are willing to do with them (e.g. [`on_segment`](@ref) only
+functions are willing to do with them (e.g. [`is_on_segment`](@ref) only
 makes sense for an `APSegment`, [`slope_angle`](@ref) treats `APLine` and
 `APRay` as pointing one way and an `APSegment` as pointing from its first
 point to its second).
@@ -112,7 +112,7 @@ APRay(p0, -pi / 2), APSegment(p0, APVector(3.0, 0.0)), APSegment(p0, 5.0, pi / 3
     import Apollonius: midpoint
     import Luxor: julia_blue, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
         p = APPoint(-1.0, -1.0)
         v = APVector(2.0, 1.0)
         vec = APEquipollentVector(v, p)
@@ -206,7 +206,7 @@ the right type for `direction(l)`, a normal, or anything else that's
 purely "which way and how far," never "where." That positionlessness
 means a bare `APVector` has no [`APBoundingBox`](@ref) at all
 (`isempty(APBoundingBox(::APVector))` is always `true`), so it never
-contributes to [`@to_luxor_picture`](@ref)'s fit-to-canvas *sizing*, and
+contributes to [`@prepare_to_picture`](@ref)'s fit-to-canvas *sizing*, and
 it can't be shifted into place the way a positioned shape can (there's
 nowhere to shift it *to*), but it still gets scaled and flipped to the
 picture's own scale, so `path(v, from=anchor)` (with `v` and `anchor`
@@ -260,7 +260,7 @@ APVector(ev)         # unwraps back to the bare vector, same as d
 translate(A, ev)     # same as translate(A, d): ev's own point is ignored
 ```
 
-Putting one inside a [`@to_luxor_picture!`](@ref) block and drawing it
+Putting one inside a [`@prepare_to_picture!`](@ref) block and drawing it
 with [`path`](@ref)`(ev; as=:arrow)` (see
 [Drawing with Luxor.jl](@ref)) is what correctly scales/places it:
 
@@ -298,19 +298,19 @@ rad2deg(polar_angle(APPoint(0.0, 3.0))), rad2deg(polar_angle(APPoint(3.0, 4.0), 
 
 ## Points by parameter and by angle
 
-[`point_on_line`](@ref)`(obj, t)` is the point `p1 + t * (p2 - p1)` of a
+[`point_on`](@ref)`(obj, t)` is the point `p1 + t * (p2 - p1)` of a
 line, segment or ray: `t = 0` is the first defining point, `t = 1` the
-second, and the parameter is not restricted to `[0, 1]`. [`point_on_circle`](@ref)`(c, angle)`
+second, and the parameter is not restricted to `[0, 1]`. [`point_on`](@ref)`(c, angle)`
 is the point of a circle at an angle (radians, counterclockwise from the
 positive x-axis) as seen from its center.
 
 ```@example geo
-point_on_line(s, 0.5) ≈ midpoint(s), point_on_line(l, 2.0), point_on_line(r, -1.0)
+point_on(s, 0.5) ≈ midpoint(s), point_on(l, 2.0), point_on(r, -1.0)
 ```
 
 ```@example geo
 c = APCircle2(APPoint(1.0, 2.0), 5.0)
-point_on_circle(c, 0.0), point_on_circle(c, pi / 2)
+point_on(c, 0.0), point_on(c, pi / 2)
 ```
 
 ```@raw html
@@ -319,7 +319,7 @@ point_on_circle(c, 0.0), point_on_circle(c, pi / 2)
 
 ## By distance, by ratio and evenly spaced
 
-[`point_on_line`](@ref) takes a *fraction* of the way from the first point to
+[`point_on`](@ref) takes a *fraction* of the way from the first point to
 the second. When you know a *length* instead, use [`point_at_distance`](@ref),
 which works on a line, a ray or a segment and goes the other way for a
 negative length. [`divide_segment`](@ref) cuts a segment in `n` equal parts, or
@@ -365,8 +365,8 @@ rad2deg(slope_angle(l))         # ≈ 53.13°
 v = APVector(1.0, 1.0)
 rad2deg(slope_angle(v))
 is_collinear(O, A, APPoint(6.0, 8.0))
-on_line(APPoint(6.0, 8.0), l)
-on_segment(APPoint(6.0, 8.0), s) # false: beyond A
+is_on_line(APPoint(6.0, 8.0), l)
+is_on_segment(APPoint(6.0, 8.0), s) # false: beyond A
 ```
 
 | Function | Returns | Meaning |
@@ -375,7 +375,7 @@ on_segment(APPoint(6.0, 8.0), s) # false: beyond A
 | [`slope_angle`](@ref) | angle | `atan(dy, dx)` of that direction, in radians; also for an `APVector` |
 | [`is_collinear`](@ref) | `Bool` | do three points lie on a common line? |
 | [`is_parallel`](@ref) / [`is_perpendicular`](@ref) | `Bool` | relation between two lines |
-| [`on_line`](@ref) / [`on_segment`](@ref) / [`on_ray`](@ref) | `Bool` | is a point on this line / this finite segment / this half-line? |
+| [`is_on_line`](@ref) / [`is_on_segment`](@ref) / [`is_on_ray`](@ref) | `Bool` | is a point on this line / this finite segment / this half-line? |
 | [`side_of_line`](@ref) | `-1`, `0` or `1` | which side of a line a point falls on |
 
 ```@example geo
@@ -391,11 +391,11 @@ is_parallel(l, APLine(APPoint(1.0, 0.0), APPoint(4.0, 4.0))), is_perpendicular(l
 
 ```@example geo
 r = APRay(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
-on_ray(APPoint(10.0, 0.0), r)    # true: ahead of the origin, same direction
-on_ray(APPoint(-1.0, 0.0), r)    # false: on the line, but behind the origin
+is_on_ray(APPoint(10.0, 0.0), r)    # true: ahead of the origin, same direction
+is_on_ray(APPoint(-1.0, 0.0), r)    # false: on the line, but behind the origin
 ```
 
-`on_line`/`on_segment`/`on_ray` are also exactly what `Base.in` uses under
+`is_on_line`/`is_on_segment`/`is_on_ray` are also exactly what `Base.in` uses under
 the hood, so the more natural `p in l` reads just as well:
 
 ```@example geo
@@ -443,12 +443,12 @@ distance(far_point, l), distance(far_point, s), distance(far_point, r)
 # perpendicular to the infinite line; clamped to the finite segment [O,A]; clamped to the ray
 ```
 
-`on_line`/`on_segment`/`on_ray` each also take just the line/segment/ray
+`is_on_line`/`is_on_segment`/`is_on_ray` each also take just the line/segment/ray
 (no point) to build a reusable one-argument predicate, for `filter`:
 
 ```@example geo
 pts = [APPoint(2.0, 0.0), APPoint(2.0, 1.0), APPoint(-1.0, 0.0)]
-filter(on_ray(r), pts)   # only the point that's on r
+filter(is_on_ray(r), pts)   # only the point that's on r
 ```
 
 ```@raw html
@@ -535,6 +535,14 @@ perpendicular_through(l, C)        # line through C, perpendicular to l
 pb = perpendicular_bisector(P, Q)  # perpendicular to [P,Q] through its midpoint
 ```
 
+[`vertical_line`](@ref) and [`horizontal_line`](@ref) build the line `x = x0`
+or `y = y0` directly, from the number or from a point to pass through:
+
+```@example geo
+vertical_line(3.0) ≈ vertical_line(APPoint(3.0, -8.0))
+horizontal_line(APPoint(3.0, -8.0))
+```
+
 ```@raw html
 <img src="../assets/img/points_lines/par_per_bis.svg" alt="" style="width:100%; max-width: 700px;">
 ```
@@ -606,7 +614,7 @@ normalized_measure(ang2)          # -π/2 + 2π = 3π/2 rad (270°), shifted int
 [`reverse`](@ref)`(ang)` does exactly that swap for you (`ang2 == reverse(ang)`
 above), handy when you've built an `APAngle2` from points that already
 live in a mirrored coordinate space (e.g. after
-[`@to_luxor_picture`](@ref)'s default `flip=true`, see
+[`@prepare_to_picture`](@ref)'s default `flip=true`, see
 [Drawing with Luxor.jl](@ref)) and need the wedge that matches what you'd
 see drawn, rather than its mirror image:
 
@@ -777,7 +785,9 @@ exists) or `APParabola2`/`APHyperbola2` as full curves (also infinite).
 
 For a point in the *interior*, use [`rand_inside`](@ref)`([rng,] s)`: uniform
 over the area of an [`APCircle2`](@ref) (the disk), an [`APEllipse2`](@ref),
-an [`APBoundingBox`](@ref) or an [`APTriangle`](@ref).
+an [`APBoundingBox`](@ref), an [`APTriangle`](@ref), an [`APQuadrilateral`](@ref)
+or an [`APStraightNgon`](@ref) (the last two by triangulating first, so a
+concave polygon works too).
 
 ```@example geo
 using Random
@@ -788,9 +798,9 @@ distance(q, APPoint(0.0, 0.0)) <= 2.0
 ```@example geo
 s = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
 p = rand(s)
-on_segment(p, s)          # true: always exactly on the segment, by construction
+is_on_segment(p, s)          # true: always exactly on the segment, by construction
 pts = rand(s, 5)          # the dims... form: a Vector of 5 independent draws
-length(pts) == 5 && all(q -> on_segment(q, s), pts)
+length(pts) == 5 && all(q -> is_on_segment(q, s), pts)
 ```
 
 ```@raw html
@@ -811,7 +821,7 @@ range `t ∈ (tmin, tmax)`. An ordinary `y = f(x)` curve is just
 
 ```@example geo
 sine_curve = APParametricCurve2(x -> APPoint(x, sin(x)), (0.0, 2pi))
-point_on_curve(sine_curve, pi / 2)   # (π/2, 1.0): the peak
+point_on(sine_curve, pi / 2)   # (π/2, 1.0): the peak
 ```
 
 `translate`/`rotate`/`homothety`/`reflection` all wrap `f` in a new
@@ -820,7 +830,7 @@ stays exact regardless of what `f` computes:
 
 ```@example geo
 shifted = translate(sine_curve, APVector(0.0, 2.0))
-point_on_curve(shifted, pi / 2)   # (π/2, 3.0): same curve, raised by 2
+point_on(shifted, pi / 2)   # (π/2, 3.0): same curve, raised by 2
 ```
 
 `f` has no closed form the package can inspect, so

@@ -88,20 +88,20 @@ end
 # ---- polylines and chains as curves ----
 _chain_lengths(sides) = [_side_length(s) for s in sides]
 function _point_along(sides, t::Real)
-    0 <= t <= 1 || throw(ArgumentError("point_on_curve: t must be in [0, 1]"))
+    0 <= t <= 1 || throw(ArgumentError("point_on: t must be in [0, 1]"))
     lens = _chain_lengths(sides)
     target = t * sum(lens)
     acc = 0.0
     for (s, l) in zip(sides, lens)
         if target <= acc + l || s === last(sides)
             u = l == 0 ? 0.0 : clamp((target - acc) / l, 0.0, 1.0)
-            return s isa APSegment ? point_on_line(s, u) : point_on_arc(s, u)
+            return s isa APSegment ? point_on(s, u) : point_on(s, u)
         end
         acc += l
     end
 end
 """
-    point_on_curve(curve, t)
+    point_on(curve, t)
 
 The point at fraction `t` of the way along `curve`, with `t = 0` at its start
 and `t = 1` at its end. For an [`APParametricCurve2`](@ref) it is `curve.f(t)`
@@ -112,13 +112,13 @@ length is of the total, and inside a side the point follows the side's own
 parameter, which is the arc length for segments and circular arcs and not for
 the other arcs.
 """
-point_on_curve(pl::APPolyline2, t::Real) = _point_along(collect(sides(pl)), t)
-point_on_curve(pl::APCurvilinearPolyline2, t::Real) = _point_along(collect(sides(pl)), t)
+point_on(pl::APPolyline2, t::Real) = _point_along(collect(sides(pl)), t)
+point_on(pl::APCurvilinearPolyline2, t::Real) = _point_along(collect(sides(pl)), t)
 
 # ---- tangents and distance for polylines and parametric curves ----
 function tangent_line(pl::Union{APPolyline2,APCurvilinearPolyline2}, p::APPoint; atol=1e-9)
     for s in sides(pl)
-        hit = s isa APSegment ? on_segment(p, s; atol=atol) : in(p, s; atol=atol)
+        hit = s isa APSegment ? is_on_segment(p, s; atol=atol) : in(p, s; atol=atol)
         hit && return tangent_line(s, p; atol=atol)
     end
     throw(ArgumentError("tangent_line: the point is not on the chain"))
@@ -207,3 +207,13 @@ function centroid(pl::APPolyline2)
     w = sum(l * (midpoint(s.p1, s.p2) - o) for (s, l) in zip(ss, ls)) / sum(ls)
     return o + w
 end
+
+# ---- distance to an anchored vector ----
+"""
+    distance(p::APPoint, ev::APEquipollentVector)
+
+The distance from `p` to the segment `ev.point -> tip(ev)`, exactly as for
+an [`APSegment`](@ref).
+"""
+distance(p::APPoint, ev::APEquipollentVector) = distance(p, APSegment(ev.point, tip(ev)))
+distance(ev::APEquipollentVector, p::APPoint) = distance(p, ev)

@@ -12,7 +12,7 @@ rotations, triangle centers, tangency problems) instead of raw numbers.
 Because those objects stay geometric all the way through, the same
 package can also draw them: load [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl)
 alongside Apollonius and every type here gets a `path` method, plus a
-[`@to_luxor_picture`](@ref) macro that sizes and centers a whole figure
+[`@prepare_to_picture`](@ref) macro that sizes and centers a whole figure
 for you, so a construction and its illustration come from the same code
 instead of two separate ones that can drift apart.
 
@@ -60,7 +60,7 @@ intersection(l, circumcircle(t))
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=320 margin=30 begin
+    lxm = @prepare_to_picture! width=500 height=320 margin=30 begin
         a, b, c = APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(1.0, 4.0)
         t = APTriangle(a, b, c)
         circ = circumcircle(t)
@@ -110,7 +110,7 @@ intersection(l, circumcircle(t))
 ## Example: the same idea, drawn
 
 The four common tangent lines of two circles, sized and centered
-automatically by [`@to_luxor_picture`](@ref), with the points of
+automatically by [`@prepare_to_picture`](@ref), with the points of
 tangency marked, the angle between the two external tangents shaded, and
 one radius dashed in:
 
@@ -126,7 +126,7 @@ one radius dashed in:
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm, lxo = @to_luxor_picture width=500 height=320 margin=20 begin
+    lxm, lxo = @prepare_to_picture width=500 height=320 margin=20 begin
         circle1 = APCircle2(APPoint(300.0, 300.0), 300.0)
         circle2 = APCircle2(APPoint(900.0, 200.0), 100.0)
         el1, el2 = external_tangent_lines(circle1, circle2)
@@ -174,7 +174,7 @@ Everything here (the circles, the tangent lines, the angle, the points)
 is a real Apollonius object right up until it's drawn. `external_tangent_lines`
 and `internal_tangent_lines` are ordinary geometry functions, usable on
 their own with no Luxor loaded at all. Continue to
-[Drawing with Luxor.jl](@ref) for the full picture: how `@to_luxor_picture`
+[Drawing with Luxor.jl](@ref) for the full picture: how `@prepare_to_picture`
 works, what `path` draws for each type, and the rest of the drawing-side
 functions.
 
@@ -254,7 +254,7 @@ m isa APTransform, m isa APObject   # (true, false): APTransform is its own sepa
 * [Workflow: From Construction to Figure](@ref) for the order of the steps
   that turns a construction into a figure, and what goes wrong when it is
   broken.
-* [Drawing with Luxor.jl](@ref) for `path`, `@to_luxor_picture`, and
+* [Drawing with Luxor.jl](@ref) for `path`, `@prepare_to_picture`, and
   everything else this package adds for illustration.
 * [Marks, Labels & Decorations](@ref) for equality marks, arrowheads,
   braces, label placement, guides and grids, and

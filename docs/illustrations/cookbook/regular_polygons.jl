@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     O = APPoint(0.0, 0.0)
     v = APPoint(3.0, 0.0)
     c = APCircle2(O, 3.0)
@@ -12,6 +12,6 @@ sethue(julia_blue)
 path(c, action=:stroke)
 sethue(julia_purple)
 path([hexagon, pentagon], action=:stroke)
-path([O, v]); plot_point(julia_blue)
-path([collect(vertices(hexagon)); collect(vertices(pentagon))]); plot_point(julia_purple)
+sethue("white"); path([O, v], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([collect(vertices(hexagon)); collect(vertices(pentagon))], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

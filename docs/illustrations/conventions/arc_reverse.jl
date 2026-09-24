@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=260 margin=30 begin
     arc = APCircularArc2(APCircle2(APPoint(0.0, 0.0), 3.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0))
     comp = reverse(arc)
 end
@@ -14,8 +14,8 @@ sethue(julia_blue)
 path(arc, action=:stroke)
 
 sethue(julia_red)
-label("arc", :NE, point_on_arc(arc, 0.5))
-label("reverse(arc)", :SW, point_on_arc(comp, 0.5))
+label("arc", :NE, point_on(arc, 0.5))
+label("reverse(arc)", :SW, point_on(comp, 0.5))
 
 sethue("white")
 path([arc.p1, arc.p2], action=:fillpreserve)

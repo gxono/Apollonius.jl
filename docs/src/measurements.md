@@ -174,7 +174,7 @@ if it is circular, a [`sagitta`](@ref), the height of the arc over its chord:
 
 ```@example geo
 circ3 = APCircle2(APPoint(0.0, 0.0), 3.0)
-bow = APCircularArc2(circ3, point_on_circle(circ3, π / 9), point_on_circle(circ3, 8π / 9))
+bow = APCircularArc2(circ3, point_on(circ3, π / 9), point_on(circ3, 8π / 9))
 chord_length(bow), sagitta(bow), arc_length(bow)
 ```
 

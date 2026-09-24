@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     vt1 = APVector(12.5,0)
     o1 = APPoint(0.0, 0.0)
     o2 = o1 |> translate(vt1)
@@ -21,5 +21,5 @@ path(APCircularSegment2(arc2), action=:fill)
 path(sec3, action=:fill)
 sethue(julia_blue)
 path([c1,c2,c3], action=:stroke)
-path([s1,e1,s2,e2,s3,e3]); plot_point(julia_blue)
+sethue("white"); path([s1,e1,s2,e2,s3,e3], action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

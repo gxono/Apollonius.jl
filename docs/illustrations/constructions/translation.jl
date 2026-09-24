@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=40 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=40 begin
     a, b = APPoint(0.0, 0.0), APPoint(4.0, 1.0)
     p = APPoint(1.0, 3.0)
     extent = translation_construction(p, a, b; sweep=pi / 4).arcs
@@ -22,6 +22,6 @@ label("A", :SW, a, offset=8)
 label("B", :NE, b, offset=8)
 label("p", :SW, p, offset=8)
 label("p'", :NE, m.result, offset=8)
-path([a, b, p]); plot_point(julia_blue)
-path([m.result]); plot_point(julia_purple)
+sethue("white"); path([a, b, p], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([m.result], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

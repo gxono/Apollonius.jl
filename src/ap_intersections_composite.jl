@@ -50,7 +50,7 @@ intersection(a::_PrimitiveCurve2, b::_CompositeCurve2; atol=1e-9) = _intersect_p
     intersection(x, p::APPoint; atol=1e-9)
 
 `[p]` if the point lies on the curve (or, for a region, on its boundary) `x`, and an
-empty vector if not. The test is the one of [`on_line`](@ref): a distance
+empty vector if not. The test is the one of [`is_on_line`](@ref): a distance
 of at most `sqrt(atol)`.
 """
 function intersection(p::APPoint{2}, x::Union{_CompositeCurve2,_PrimitiveCurve2}; atol=1e-9)

@@ -1,8 +1,8 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     d = APSegment(APPoint(0.0, 0.0), APPoint(6.0, 2.0))
     c = circle_with_diameter(d)
-    p = point_on_circle(c, 1.0)
+    p = point_on(c, 1.0)
     legs = [APSegment(p, d.p1), APSegment(p, d.p2)]
     ang = APAngle2(p, d.p1, d.p2)
 end
@@ -21,6 +21,6 @@ path(c, action=:stroke)
 path(APAngle2(p, d.p1, d.p2); as=:rarc, radius=14, action=:stroke)
 sethue(julia_red)
 label("center", :S, c.center); label("p", :N, p)
-path([d.p1, d.p2]); plot_point(julia_blue)
-path([c.center, p]); plot_point(julia_purple)
+sethue("white"); path([d.p1, d.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([c.center, p], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

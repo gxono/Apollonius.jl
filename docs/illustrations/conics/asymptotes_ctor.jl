@@ -1,12 +1,12 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     c = APPoint(0.0, 0.0)
     a1 = APSegment(APPoint(-6.0, -4.0), APPoint(6.0, 4.0))
     a2 = APSegment(APPoint(-6.0, 4.0), APPoint(6.0, -4.0))
     p = APPoint(3.0, 1.0)
-    @unbounded hh = hyperbola_with_asymptotes(APLine(a1.p1, a1.p2), APLine(a2.p1, a2.p2), p)
-    b1 = APHyperbolicArc2(hh, point_on_hyperbola(hh, -1.6), point_on_hyperbola(hh, 1.6))
-    b2 = APHyperbolicArc2(hh, point_on_hyperbola(hh, -1.6; branch=-1), point_on_hyperbola(hh, 1.6; branch=-1))
+    hh = hyperbola_with_asymptotes(APLine(a1.p1, a1.p2), APLine(a2.p1, a2.p2), p)
+    b1 = APHyperbolicArc2(hh, point_on(hh, -1.6), point_on(hh, 1.6))
+    b2 = APHyperbolicArc2(hh, point_on(hh, -1.6; branch=-1), point_on(hh, 1.6; branch=-1))
 end
 (; c, a1, a2, p, hh, b1, b2) = lxo
 @svg_doc(lxm, @__FILE__, begin
@@ -20,6 +20,6 @@ sethue(julia_blue)
 sethue(julia_purple)
 path([b1, b2], action=:stroke)
 sethue(julia_red)
-label("p", :SE, p, offset=8)
-path([p]); plot_point(julia_blue)
+label("p", :S, p)
+sethue("white"); path([p], action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

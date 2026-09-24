@@ -37,7 +37,7 @@ function iteration(itm1, itm2, itm3)
 end
 
 
-lxm = @to_luxor_picture! width=500 height=500 margin=20 begin
+lxm = @prepare_to_picture! width=500 height=500 margin=20 begin
     C1, C2 = APPoint(0.0, 0.0), APPoint(100.0, 0.0)
 
     t = equilateral_triangle_on_segment(C1, C2)

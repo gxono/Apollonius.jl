@@ -1,6 +1,6 @@
 include("../default_config.jl")
 using Apollonius: rotate, translate
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(2.0, 6.0)
     R = rotate(C, pi / 2, P)
     angTR = APAngle2(P, C, R)
@@ -32,8 +32,8 @@ label("R", :W ,R)
 label("H", :SE ,H)
 label("T", :SE ,T)
 label("B", :W ,B)
-path(P); plot_point(julia_blue)
-path([C,Q]); plot_point(julia_blue)
-path([R,H,T,B]); plot_point(julia_purple)
-path([m1,m2,m3]); plot_point("gray80")
+sethue("white"); path(P, action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([C,Q], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([R,H,T,B], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue("white"); path([m1,m2,m3], action=:fillpreserve); sethue("gray80"); strokepath()
 end)

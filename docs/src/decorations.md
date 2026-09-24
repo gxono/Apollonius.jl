@@ -15,7 +15,7 @@ until the drawing step, so all the examples on this page run without it.
 
 Two rules from [Conventions & FAQ](@ref) matter here. Sizes are in the units
 of the objects you pass, so build decorations from the objects returned by
-[`@to_luxor_picture`](@ref) to get sizes in canvas units. And functions that
+[`@prepare_to_picture`](@ref) to get sizes in canvas units. And functions that
 choose a side or a compass direction read the coordinates as drawn, with `y`
 growing downward.
 
@@ -36,7 +36,7 @@ growing downward.
 and the unit tangent there, as an [`APEquipollentVector`](@ref): a vector
 with a point of application, which is exactly what a decoration needs. It
 works on segments, lines, rays and the four conic arcs, with the same `t`
-as [`point_on_arc`](@ref), and the tangent points in the direction of
+as [`point_on`](@ref), and the tangent points in the direction of
 travel.
 
 ```@example geo
@@ -62,7 +62,7 @@ mid.point, dot(mid.vector, mid.point - circ.center) ≈ 0.0
 ```
 
 !!! warning "The direction of an arc changes when the figure is fitted"
-    The direction of travel is the stored one, from `p1` to `p2`. `@to_luxor_picture` flips the `y` axis, so an arc that runs counterclockwise in your coordinates comes back with its endpoints swapped and runs clockwise on the screen. Compute the decorations on the fitted objects and they follow what you see.
+    The direction of travel is the stored one, from `p1` to `p2`. `@prepare_to_picture` flips the `y` axis, so an arc that runs counterclockwise in your coordinates comes back with its endpoints swapped and runs clockwise on the screen. Compute the decorations on the fitted objects and they follow what you see.
 
 ## Equality marks: `marks`
 
@@ -106,7 +106,7 @@ length(two_ticks), only(marks(s; style=:circle, size=2.0))
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
     styles = [:tick, :slash, :chevron, :cross, :circle]
-    lxm = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! flip=false width=500 height=240 margin=20 begin  
         segs = [APSegment(APPoint(4.0, 2.0 * (5 - i)), APPoint(10.0, 2.0 * (5 - i))) for i in 1:5]
         names = [APPoint(0.0, 2.0 * (5 - i)) for i in 1:5]
     end
@@ -140,7 +140,7 @@ curve closely. On a circular arc a tick lies along a radius:
 
 ```@example geo
 tick = only(marks(arc; size=1.0))
-on_line(circ.center, APLine(tick.p1, tick.p2))
+is_on_line(circ.center, APLine(tick.p1, tick.p2))
 ```
 
 ```@raw html
@@ -153,7 +153,7 @@ on_line(circ.center, APLine(tick.p1, tick.p2))
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         arc = APCircularArc2(APCircle2(APPoint(0.0, 0.0), 5.0), APPoint(5.0, 0.0), APPoint(-5.0, 0.0))
     end
 
@@ -213,7 +213,7 @@ arcs = marks(ang; count=2, size=0.8, gap=0.3)
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
         angs = [APAngle2(
                     APPoint(8.0 * (i - 1), 0.0), 
                     APPoint(8.0 * (i - 1) + 6.0, 0.0), 
@@ -262,7 +262,7 @@ In the first panel `arcs=2` puts a tick across two arcs. The other five panels s
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
     styles = [:tick, :slash, :chevron, :cross, :circle]
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         angs = [APAngle2(APPoint(8.0 * mod(i - 1, 3), -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 6.0, -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 4.0, 4.0 - 6.0 * fld(i - 1, 3))) for i in 1:6]
         rays = [APSegment(a.vertex, x) for a in angs for x in (a.a, a.b)]
     end
@@ -327,7 +327,7 @@ isapprox(head[1], arc.p2; atol=1e-9)
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         segs = [APSegment(APPoint(0.0, 2.0 * (3 - i)), APPoint(7.0, 2.0 * (3 - i))) for i in 1:3]
         names = [APPoint(-2.5, 2.0 * (3 - i)) for i in 1:3]
         arc = APCircularArc2(
@@ -384,7 +384,7 @@ count(x -> x isa APCircularArc2, b), count(x -> x isa APSegment, b)
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         s1 = APSegment(APPoint(0.0, 4.0), APPoint(7.0, 4.0))
         s2 = APSegment(APPoint(0.0, 0.0), APPoint(7.0, 0.0))
         s3 = APSegment(APPoint(10.0, 0.0), APPoint(13.0, 5.0))
@@ -458,7 +458,7 @@ t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
         t = APTriangle(A, B, C)
         sides = [APSegment(A, B), APSegment(B, C), APSegment(C, A)]
@@ -527,7 +527,7 @@ length(grid_lines(bb)), length(grid_lines(bb; step=0.5)), length(axes_lines(bb))
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         grid = grid_lines(APBoundingBox(APPoint(-1.0, -1.0), APPoint(7.0, 5.0)); step=1.0)
         axes = axes_lines(APBoundingBox(APPoint(-1.0, -1.0), APPoint(7.0, 5.0)))
         P = APPoint(4.0, 3.0)
@@ -589,12 +589,12 @@ extend_line(l, 0.2), extend_line(l, 0.0, -0.3)
 
 The decorations are ordinary objects, so `path` takes them directly, alone
 or in a `Vector`. This is the usual pattern, on objects already returned by
-[`@to_luxor_picture`](@ref):
+[`@prepare_to_picture`](@ref):
 
 ```julia
 using Apollonius, Luxor
 
-lxm, lxo = @to_luxor_picture width=400.0 margin=30.0 begin
+lxm, lxo = @prepare_to_picture width=400.0 margin=30.0 begin
     seg = APSegment(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
     ang = APAngle2(APPoint(0.0, 0.0), APPoint(10.0, 0.0), APPoint(4.0, 6.0))
 end
@@ -621,7 +621,7 @@ Put together, the pieces make a figure like this one: an isosceles triangle with
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=30 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=30 begin  
         A, B, C = APPoint(0.0, 0.0), APPoint(10.0, 0.0), APPoint(5.0, 6.0)
         t = APTriangle(A, B, C)
         base, right, left = sides(t)

@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=320 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=320 margin=30 begin
     A, B = APPoint(0.0, 0.0), APPoint(8.0, 1.0)
     p = APPoint(3.0, 3.0)
     extent = reflection_construction(p, APLine(A, B); sweep=pi / 4).arcs
@@ -21,7 +21,7 @@ path(l; extend=(80, 80), action=:stroke)
 sethue(julia_red)
 label("p", :N, p, offset=8)
 label("p'", :S, m.result, offset=8)
-path([p]); plot_point(julia_blue)
-path(m.points); plot_point(julia_green)
-path([m.result]); plot_point(julia_purple)
+sethue("white"); path([p], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path(m.points, action=:fillpreserve); sethue(julia_green); strokepath()
+sethue("white"); path([m.result], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

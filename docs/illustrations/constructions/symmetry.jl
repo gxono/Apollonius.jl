@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     c = APPoint(0.0, 0.0)
     p = APPoint(4.0, 2.5)
     extent = symmetry_construction(p, c; sweep=pi / 4).arcs
@@ -20,8 +20,8 @@ sethue(julia_red)
 label("p", :NE, p, offset=8)
 text("center", c + APVector(0, -10.0), direction=p - m.result)
 label("p'", :SW, m.result, offset=8)
-path([p, c]); plot_point(julia_blue)
-path([m.result]); plot_point(julia_purple)
+sethue("white"); path([p, c], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([m.result], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)
 
 

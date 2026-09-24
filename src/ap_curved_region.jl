@@ -17,7 +17,7 @@ function _side_greens_term(s::APEllipticArc2)
     θ1 = _ellipse_param(s, s.p1)
     Δθ = measure(s)
     θ2 = θ1 + Δθ
-    P1, P2 = point_on_ellipse(e, θ1) - e.center, point_on_ellipse(e, θ2) - e.center
+    P1, P2 = point_on(e, θ1) - e.center, point_on(e, θ2) - e.center
     return (e.a * e.b * Δθ + e.center[1] * (P2[2] - P1[2]) - e.center[2] * (P2[1] - P1[1])) / 2
 end
 _side_scale(s::APEllipticArc2) = max(s.ellipse.a, s.ellipse.b, 1.0)
@@ -28,7 +28,7 @@ function _side_greens_term(s::APHyperbolicArc2)
     h = s.hyperbola
     t1, branch = _hyperbola_param(s, s.p1)
     t2, _ = _hyperbola_param(s, s.p2)
-    P1, P2 = point_on_hyperbola(h, t1; branch=branch) - h.center, point_on_hyperbola(h, t2; branch=branch) - h.center
+    P1, P2 = point_on(h, t1; branch=branch) - h.center, point_on(h, t2; branch=branch) - h.center
     return (branch * h.a * h.b * (t2 - t1) + h.center[1] * (P2[2] - P1[2]) - h.center[2] * (P2[1] - P1[1])) / 2
 end
 _side_scale(s::APHyperbolicArc2) = max(s.hyperbola.a, s.hyperbola.b, 1.0)
@@ -40,7 +40,7 @@ function _side_greens_term(s::APParabolicArc2)
     V, _, _ = _parabola_frame(par)
     pf = focal_parameter(par)
     s1, s2 = _parabola_param(s, s.p1), _parabola_param(s, s.p2)
-    P1, P2 = point_on_parabola(par, s1) - V, point_on_parabola(par, s2) - V
+    P1, P2 = point_on(par, s1) - V, point_on(par, s2) - V
     local_term = -(s2^3 - s1^3) / (6pf)
     return (local_term + V[1] * (P2[2] - P1[2]) - V[2] * (P2[1] - P1[1])) / 2
 end

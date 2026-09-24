@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     R = 3.0
     centers = [APPoint(R * cos(pi / 2 + 2pi * k / 3), R * sin(pi / 2 + 2pi * k / 3)) for k in 0:2]
     given = [APCircle2(centers[k+1], 1.0) for k in 0:2]

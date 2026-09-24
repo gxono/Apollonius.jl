@@ -3,7 +3,7 @@
 
 `vector`, applied at `point`: i.e. the directed segment from `point` to
 `point + vector`. A bare [`APVector`](@ref) has no position of its own, so
-it never contributes to [`@to_luxor_picture`](@ref)'s fit-to-canvas
+it never contributes to [`@prepare_to_picture`](@ref)'s fit-to-canvas
 *sizing* and can't be shifted into place the way a positioned shape can
 -- this type can, since it has a real [`APBoundingBox`](@ref) and
 transforms fully as one piece via `translate`/`rotate`/`homothety`/
@@ -112,7 +112,7 @@ Scales `ev.point` about `center` as usual, and `ev.vector` by the literal
 `k` (not `abs(k)`): a negative `k` correctly flips the vector's direction
 too, matching how the whole configuration point-reflects through `center`.
 This is exactly the scaling a bare `APVector` can never get inside
-`@to_luxor_picture` (see this type's own docstring for why).
+`@prepare_to_picture` (see this type's own docstring for why).
 """
 homothety(ev::APEquipollentVector{2}, k::Real, center::APPoint{2}=APPoint(0.0, 0.0)) =
     APEquipollentVector(k * ev.vector, homothety(ev.point, k, center))

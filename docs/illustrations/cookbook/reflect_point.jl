@@ -1,6 +1,6 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
-    @unbounded l = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+    l = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
     p = APPoint(3.0, 0.0)
     p2 = reflection(p, APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))
     leg = APSegment(p, p2)
@@ -18,6 +18,6 @@ path(l, action=:stroke, extend=400)
 sethue(julia_purple)
 sethue(julia_red)
 label("p", :S, p); label("p'", :W, p2)
-path([p]); plot_point(julia_blue)
-path([p2]); plot_point(julia_purple)
+sethue("white"); path([p], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([p2], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

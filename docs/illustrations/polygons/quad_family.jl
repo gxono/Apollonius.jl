@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=560 height=320 margin=30 begin
+lxm, lxo = @prepare_to_picture width=560 height=320 margin=30 begin
     rh = rhombus_on_segment(APPoint(0.0, 0.0), APPoint(3.0, 0.0), pi / 3)
     sq = square_from_diagonal(APPoint(5.0, 0.0), APPoint(8.0, 3.0))
     re = rectangle_from_diagonal(APPoint(10.0, 0.0), APPoint(15.0, 3.0), 0.5)

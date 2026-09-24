@@ -16,7 +16,7 @@ AB = APSegment(A, B)
 aids = [APSegment(A, C), APSegment(B, C)]
 traces = [compass_trace(A, C; angle=pi / 6), compass_trace(B, C; angle=pi / 6)]
 cm = APSegment(C, M)
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     A
     B
     C
@@ -43,7 +43,7 @@ sethue(julia_purple)
 path(cm, action=:stroke)
 sethue(julia_red)
 label("A", :SW, A); label("B", :SE, B); label("C", :N, C); label("M", :S, M)
-path([A, B]); plot_point(julia_blue)
-path([C]); plot_point(julia_green)
-path([M]); plot_point(julia_purple)
+sethue("white"); path([A, B], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([C], action=:fillpreserve); sethue(julia_green); strokepath()
+sethue("white"); path([M], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

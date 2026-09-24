@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     A, B = APPoint(0.0, 0.0), APPoint(8.0, 2.0)
     p = APPoint(4.0, 1.0)
     extent = perpendicular_construction(APLine(A, B), p; sweep=pi / 4).arcs

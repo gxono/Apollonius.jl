@@ -1,7 +1,7 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
-    earc = APEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
+    earc = APEllipticArc2(e, point_on(e, 0.2), point_on(e, 2.0))
     @unbounded refm = reflection_map(APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))
     imgarc = refm(earc)
     mirror = APSegment(APPoint(-4.0, -4.0), APPoint(4.0, 4.0))
@@ -21,6 +21,6 @@ path(imgarc, action=:stroke)
 sethue(julia_red)
 label("p1", :SW, earc.p1, offset=8); label("p2", :SW, earc.p2, offset=8)
 label("p1'", :SW, imgarc.p1, offset=8); label("p2'", :SW, imgarc.p2, offset=8)
-path([earc.p1, earc.p2]); plot_point(julia_blue)
-path([imgarc.p1, imgarc.p2]); plot_point(julia_purple)
+sethue("white"); path([earc.p1, earc.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([imgarc.p1, imgarc.p2], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

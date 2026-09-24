@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=560 height=260 margin=30 begin
+lxm, lxo = @prepare_to_picture width=560 height=260 margin=30 begin
     p1 = [APSegment(APPoint(0.0, 0.0), APPoint(5.0, 1.0)), APSegment(APPoint(0.0, 2.0), APPoint(5.0, 3.0))]
     p2 = [APSegment(APPoint(8.0, 0.0), APPoint(13.0, 0.0)), APSegment(APPoint(10.0, -2.0), APPoint(10.0, 3.0))]
     cl = [APPoint(16.0, 0.0), APPoint(18.0, 1.0), APPoint(21.0, 2.5)]
@@ -17,6 +17,6 @@ sethue(julia_red)
 for (n, p) in zip(("is_parallel", "is_perpendicular", "is_collinear"), lab)
     label(n, :S, p)
 end
-path(cl); plot_point(julia_blue)
-path([cn]); plot_point("gray80")
+sethue("white"); path(cl, action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([cn], action=:fillpreserve); sethue("gray80"); strokepath()
 end)

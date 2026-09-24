@@ -62,7 +62,7 @@ end
 
 The circle orthogonal to `c`, passing through `p1` and `p2`: built from the
 classical inversive-geometry fact that the circle through `p1`, `p2` and
-the [`inversion`](@ref) of `p1` with respect to `c` is orthogonal to `c`.
+the [`invert`](@ref) of `p1` with respect to `c` is orthogonal to `c`.
 
 Throws `ArgumentError` in the two configurations this construction can't
 resolve on its own: `p1`/`p2` sitting exactly on `c` (its own inverse,
@@ -77,7 +77,7 @@ function orthogonal_circle(c::APCircle2, p1::APPoint, p2::APPoint; atol=1e-9)
     tol = sqrt(atol) * max(c.r, 1.0)
     (abs(distance(p1, c.center) - c.r) <= tol || abs(distance(p2, c.center) - c.r) <= tol) &&
         throw(ArgumentError("orthogonal_circle: p1/p2 exactly on c isn't supported (infinite family of solutions)"))
-    z = inversion(p1, c)
+    z = invert(p1, c)
     distance(z, p2) <= tol &&
         throw(ArgumentError("orthogonal_circle: p1/p2 are an exact inverse pair with respect to c, not supported yet"))
     return APCircle2(p1, p2, z)
@@ -122,7 +122,7 @@ function midcircle(c1::APCircle2, c2::APCircle2; atol=1e-9)
         a, b = intersection(centerline, c1; atol=atol)
         cc, dd = intersection(centerline, c2; atol=atol)
         u, v, rr, ss = r1 < r2 ? (a, b, cc, dd) : (cc, dd, a, b)
-        if on_segment(u, APSegment(ss, v); atol=atol)
+        if is_on_segment(u, APSegment(ss, v); atol=atol)
             cand1 = APCircle2(midpoint(rr, v), distance(rr, v) / 2)
             cand2 = APCircle2(midpoint(u, ss), distance(u, ss) / 2)
         else

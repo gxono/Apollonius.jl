@@ -18,7 +18,7 @@ rays = [APSegment(A, B), APSegment(A, C)]
 bis = APSegment(A, F)
 aids = [APSegment(D, E), APSegment(D, F), APSegment(E, F)]
 traces = [APCircularArc2(circ(A, D), D, E), compass_trace(D, F; angle=pi / 6), compass_trace(E, F; angle=pi / 6)]
-lxm, lxo = @to_luxor_picture width=500 height=320 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=320 margin=30 begin
     A
     B
     C
@@ -47,6 +47,6 @@ sethue(julia_purple)
 path(bis, action=:stroke)
 sethue(julia_red)
 label("A", :SW, A); label("B", :E, B); label("C", :N, C); label("D", :S, D); label("E", :W, E); label("F", :N, F)
-path([A, B, C]); plot_point(julia_blue)
-path([D, E, F]); plot_point(julia_green)
+sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([D, E, F], action=:fillpreserve); sethue(julia_green); strokepath()
 end)

@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     v, p1, p2 = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
     extent = bisector_construction(v, p1, p2; sweep=pi / 4).arcs
 end

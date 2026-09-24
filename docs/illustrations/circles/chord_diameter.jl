@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     c = APCircle2(APPoint(0.0, 0.0), 3.0)
     out = offset_circle(c, 1.0)
     inn = offset_circle(c, -1.0)
@@ -19,9 +19,6 @@ path(c, action=:stroke)
 sethue(julia_purple)
 path([ch, di], action=:stroke)
 sethue(julia_red)
-text("chord", midpoint(ch.p1, ch.p2), direction=-direction(ch), valign=:top)
-text("diameter", midpoint(di), direction=-direction(di), halign=:center)
-label("offset_circle(c, 1)", :S, APPoint(-100, 120))
-path([ch.p1, ch.p2, di.p1, di.p2]); plot_point(julia_purple)
+label("chord", :NW, ch.p1); label("diameter", :SE, di.p1); label("offset_circle(c, 1)", :S, APPoint(0.0, -4.0))
+sethue("white"); path([ch.p1, ch.p2, di.p1, di.p2], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)
-

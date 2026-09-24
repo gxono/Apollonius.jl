@@ -1,7 +1,7 @@
 include("../default_config.jl")
 import Apollonius: translate
 
-lxm = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
+lxm = @prepare_to_picture! flip=false width=500 height=240 margin=20 begin
     ta1 = APTriangle(APPoint(-80.0, 60.0), APPoint(80.0, 60.0), APPoint(-20.0, -80.0))
     ca = circumcenter(ta1)
 		ta2 = homothety(ta1, 1/2, ca)

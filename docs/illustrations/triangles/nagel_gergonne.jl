@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
     t = APTriangle(A, B, C)
     ct = contact_triangle(t)
@@ -27,6 +27,6 @@ path(t, action=:stroke)
 sethue(julia_purple)
 sethue(julia_red)
 label("Ge", :N, Ge); label("Na", :S, Na)
-path([A, B, C]); plot_point(julia_blue)
-path([Ge, Na]); plot_point(julia_purple)
+sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([Ge, Na], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

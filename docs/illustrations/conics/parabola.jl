@@ -1,11 +1,11 @@
 include("../default_config.jl")
 
-lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
     focus = APPoint(0.0, 1.0)
     dl = APSegment(APPoint(-6.0, -1.0), APPoint(6.0, -1.0))
-    @unbounded par = APParabola2(focus, APLine(dl.p1, dl.p2))
-    arc = APParabolicArc2(par, point_on_parabola(par, -5.0), point_on_parabola(par, 5.0))
-    p = point_on_parabola(par, 3.0)
+    par = APParabola2(focus, APLine(dl.p1, dl.p2))
+    arc = APParabolicArc2(par, point_on(par, -5.0), point_on(par, 5.0))
+    p = point_on(par, 3.0)
     foot = projection(p, APLine(dl.p1, dl.p2))
     vtx = vertex(par)
 end

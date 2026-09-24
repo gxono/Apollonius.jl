@@ -147,12 +147,12 @@ catch e
 end
 ```
 
-## `@to_luxor_picture` / `@to_luxor_picture!`
+## `@prepare_to_picture` / `@prepare_to_picture!`
 
 Preparing a set of shapes to actually *draw* usually means answering three
 fiddly questions by hand: how big is this thing, how far do I need to
 shift it so it isn't half off-canvas, and what canvas size do I even pass
-to `Drawing`? [`@to_luxor_picture`](@ref) answers all three in one call:
+to `Drawing`? [`@prepare_to_picture`](@ref) answers all three in one call:
 it translates and uniformly scales every shape in the block so their
 combined [`APBoundingBox`](@ref) fits centered on `(0, 0)`, and returns
 two `NamedTuple`s: the first has the canvas size and the fitting function
@@ -175,21 +175,21 @@ paper. Pass `flip=false` to get the raw, un-mirrored coordinates instead:
 ```@example geo
 t = APTriangle(APPoint(0.0, 0.0), APPoint(80.0, 0.0), APPoint(0.0, 80.0))
 
-lxm, lxo = @to_luxor_picture width = 200.0 begin
+lxm, lxo = @prepare_to_picture width = 200.0 begin
     t
 end
 lxo.t.c   # (0, 80) in t's own coordinates ends up with a *negative* y here
 ```
 
 ```@example geo
-lxm_noflip, lxo_noflip = @to_luxor_picture width = 200.0 flip = false begin
+lxm_noflip, lxo_noflip = @prepare_to_picture width = 200.0 flip = false begin
     t
 end
 lxo_noflip.t.c   # flip=false: the raw, un-mirrored coordinates
 ```
 
 ```@example geo
-lxm, lxo = @to_luxor_picture begin
+lxm, lxo = @prepare_to_picture begin
     c = APCircle2(APPoint(3.0, -1.0), 5.0)
     s = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 end
@@ -210,7 +210,7 @@ c
 
 Being a `NamedTuple`, `lxm` supports `lxm.width`/`lxm.height`, and it still
 destructures positionally like a plain tuple, so `(w, h), lxo =
-@to_luxor_picture begin ... end` works if that is all you need. `lxo`
+@prepare_to_picture begin ... end` works if that is all you need. `lxo`
 destructures by position too, in the order of the block.
 
 Every line of the block has a name, which is what it is returned under: an
@@ -219,7 +219,7 @@ assignment `name = expr`, a destructuring assignment `p, q = expr` (`p` and
 own line. A name assigned twice keeps its last value. Any other bare
 expression is an `ArgumentError`, since it would have nothing to be returned
 as. The originals (`c` and `s` above) are untouched: see
-[`@to_luxor_picture!`](@ref) below for the mutating form.
+[`@prepare_to_picture!`](@ref) below for the mutating form.
 
 This includes how construction helpers are handled: a bare
 [`APPoint`](@ref) is repositioned along with everything else (it's a real
@@ -233,7 +233,7 @@ centro = APPoint(2.0, 1.0)
 radio = 5.0
 circ2 = APCircle2(centro, radio)
 
-lxm, lxo = @to_luxor_picture width = 400.0 begin
+lxm, lxo = @prepare_to_picture width = 400.0 begin
     centro
     radio
     circ2
@@ -251,7 +251,7 @@ a vector) it does have a position and does support `translate`/
 ```@example geo
 c1, c2 = APCircle2(APPoint(0.0, 0.0), 3.0), APCircle2(APPoint(10.0, 0.0), 3.0)
 
-lxm, lxo = @to_luxor_picture width = 200.0 begin
+lxm, lxo = @prepare_to_picture width = 200.0 begin
     c1
     c2
     ext1, ext2 = external_tangent_lines(c1, c2)  # destructuring assignment
@@ -284,12 +284,12 @@ alongside everything else.
 
 `scale` and `width`/`height` are mutually exclusive: combining them is an
 error. The scale factor is **always** the same in `x` and `y`: a circle
-passed through `@to_luxor_picture` is always still a circle, never
+passed through `@prepare_to_picture` is always still a circle, never
 distorted into an ellipse, no matter which sizing option is used.
 
 ```@example geo
 c, s = APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
-lxm, _ = @to_luxor_picture width=400.0 begin
+lxm, _ = @prepare_to_picture width=400.0 begin
     c
     s
 end
@@ -298,7 +298,7 @@ lxm.width, lxm.height   # height follows to keep the (here already square) aspec
 
 ```@example geo
 c, s = APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
-lxm, _ = @to_luxor_picture scale=2.0 begin
+lxm, _ = @prepare_to_picture scale=2.0 begin
     c
     s
 end
@@ -315,7 +315,7 @@ stretching the content to fill it:
 t = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(3.0, 5.0))
 circ = APCircle2(APPoint(3.0, 2.0), 1.5)
 
-lxm, lxo = @to_luxor_picture width=400.0 height=200.0 margin=10.0 begin
+lxm, lxo = @prepare_to_picture width=400.0 height=200.0 margin=10.0 begin
     t
     circ
 end
@@ -327,7 +327,7 @@ with neither, it simply pads the content's own natural size on every side:
 
 ```@example geo
 c, s = APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
-lxm, _ = @to_luxor_picture margin=3.0 begin
+lxm, _ = @prepare_to_picture margin=3.0 begin
     c
     s
 end
@@ -339,13 +339,13 @@ the macro call itself is expanded, before any of the block even runs:
 
 ```@example geo
 try
-    eval(:(@to_luxor_picture scale=2.0 width=10.0 c))
+    eval(:(@prepare_to_picture scale=2.0 width=10.0 c))
 catch e
     e
 end
 ```
 
-### `@to_luxor_picture!`
+### `@prepare_to_picture!`
 
 The mutating counterpart: rebinds each *named* shape (an assignment, or a
 bare reference to a shape defined earlier) to its own translated/scaled
@@ -360,7 +360,7 @@ in this documentation:
 c3 = APCircle2(APPoint(3.0, -1.0), 5.0)
 s3 = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 
-lxm = @to_luxor_picture! width=50.0 begin
+lxm = @prepare_to_picture! width=50.0 begin
     c3
     s3
 end
@@ -372,8 +372,8 @@ A bare, unnamed expression has nothing to rebind, so this form rejects it
 [Drawing with Luxor.jl](@ref) for the complete pipeline, from a bare set
 of `APPoint`/`APTriangle`/etc. all the way to a finished PNG.
 
-!!! warning "`@to_luxor_picture!` replaces your variables"
-    After the block, each name refers to the fitted object, and the original is gone from that name. If the same objects appear in another figure, use `@to_luxor_picture` and take the fitted ones from `lxo`.
+!!! warning "`@prepare_to_picture!` replaces your variables"
+    After the block, each name refers to the fitted object, and the original is gone from that name. If the same objects appear in another figure, use `@prepare_to_picture` and take the fitted ones from `lxo`.
 
 ## `@translate` / `@translate!`
 

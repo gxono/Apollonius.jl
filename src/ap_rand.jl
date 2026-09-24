@@ -30,10 +30,10 @@ for T in (:APCircle2, :APEllipse2, :APCircularArc2, :APEllipticArc2, :APParaboli
 end
 _rand_point(rng::Random.AbstractRNG, s::APSegment) = s.p1 + rand(rng) * (s.p2 - s.p1)
 _rand_point(rng::Random.AbstractRNG, c::APCircle2) = polar_point(c.r, 2π * rand(rng), c.center)
-_rand_point(rng::Random.AbstractRNG, e::APEllipse2) = point_on_ellipse(e, 2π * rand(rng))
-_rand_point(rng::Random.AbstractRNG, arc::APCircularArc2) = point_on_arc(arc, rand(rng))
+_rand_point(rng::Random.AbstractRNG, e::APEllipse2) = point_on(e, 2π * rand(rng))
+_rand_point(rng::Random.AbstractRNG, arc::APCircularArc2) = point_on(arc, rand(rng))
 _rand_point(rng::Random.AbstractRNG, arc::Union{APEllipticArc2,APParabolicArc2,APHyperbolicArc2}) =
-    point_on_arc(arc, rand(rng))
+    point_on(arc, rand(rng))
 function _rand_point_on_sides(rng::Random.AbstractRNG, sides)
     weights = cumsum(_side_length.(sides))
     return _rand_point(rng, sides[searchsortedfirst(weights, rand(rng) * weights[end])])
@@ -48,8 +48,9 @@ end
 
 A random point in the *interior* of `s`, uniformly distributed over its
 area, where [`rand`](@ref) gives a point on its boundary. Defined for
-[`APCircle2`](@ref) (the disk), [`APEllipse2`](@ref), [`APBoundingBox`](@ref)
-and [`APTriangle`](@ref).
+[`APCircle2`](@ref) (the disk), [`APEllipse2`](@ref), [`APBoundingBox`](@ref),
+[`APTriangle`](@ref), [`APQuadrilateral`](@ref) and [`APStraightNgon`](@ref)
+(the last two by triangulating first, so a concave polygon works too).
 """
 rand_inside(s) = rand_inside(Random.default_rng(), s)
 function rand_inside(rng::Random.AbstractRNG, c::APCircle2)
@@ -67,4 +68,16 @@ function rand_inside(rng::Random.AbstractRNG, t::APTriangle)
     u + v > 1 && ((u, v) = (1 - u, 1 - v))
     a, b, c = vertices(t)
     return a + u * (b - a) + v * (c - a)
+end
+function rand_inside(rng::Random.AbstractRNG, pg::Union{APQuadrilateral,APStraightNgon})
+    vs = collect(vertices(pg))
+    tris = [APTriangle(vs[a], vs[b], vs[c]) for (a, b, c) in _ear_triangulate(vs)]
+    areas = area.(tris)
+    w = rand(rng) * sum(areas)
+    acc = 0.0
+    for (t, ar) in zip(tris, areas)
+        acc += ar
+        w <= acc && return rand_inside(rng, t)
+    end
+    return rand_inside(rng, last(tris))
 end

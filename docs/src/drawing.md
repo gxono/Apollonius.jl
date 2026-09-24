@@ -16,7 +16,7 @@ This page is not a Luxor tutorial. For `Drawing`, `sethue`, colors, fonts
 and everything else that belongs to Luxor itself, read
 [Luxor's own documentation](https://juliagraphics.github.io/Luxor.jl/stable/).
 What follows is just what this package adds on top: the `path` function
-and the `@to_luxor_picture` macro. Read the next three sections in order
+and the `@prepare_to_picture` macro. Read the next three sections in order
 to get going; the rest of the page is reference material for later.
 
 ## Activating it
@@ -138,7 +138,7 @@ Luxor.text("a", midpoint(side); halign=:center, direction=side, upright=true)   
 Setting up a `Drawing` normally means guessing values by hand: how wide
 and tall does the canvas need to be, how far do the shapes need to shift
 so nothing ends up off-canvas, how much breathing room to leave around
-the edges? [`@to_luxor_picture`](@ref) (from the core package; see
+the edges? [`@prepare_to_picture`](@ref) (from the core package; see
 [Transforming in Bulk: Macros](@ref) for the full option reference)
 answers all of that in one call: it translates and uniformly scales a
 whole set of shapes so they fit centered on `(0, 0)`, and hands back the
@@ -154,7 +154,7 @@ built, already fitted, under the names it was given):
 ```julia
 using Apollonius, Luxor
 
-lxm, lxo = @to_luxor_picture width=300.0 margin=10.0 begin
+lxm, lxo = @prepare_to_picture width=300.0 margin=10.0 begin
     t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
     circ = APCircle2(APPoint(4.0, 1.0), 4.0)
 end
@@ -187,7 +187,7 @@ finish()
 
 `t`/`circ` inside the block are ordinary variables and stay as they were: the
 fitted copies are in `lxo`. To bring them into scope under their own names,
-`(; t, circ) = lxo`. [`@to_luxor_picture!`](@ref) is the mutating form, which
+`(; t, circ) = lxo`. [`@prepare_to_picture!`](@ref) is the mutating form, which
 rebinds the names in place instead.
 
 When the requested `width`/`height` don't match the content's own aspect
@@ -197,7 +197,7 @@ beyond `margin` on whichever axis has slack: the same "contain fit" a
 CSS `object-fit: contain` or an image viewer's "fit to window" would give:
 
 ```julia
-lxm, lxo = @to_luxor_picture width=400.0 height=200.0 margin=10.0 begin
+lxm, lxo = @prepare_to_picture width=400.0 height=200.0 margin=10.0 begin
     t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
     circ = APCircle2(APPoint(4.0, 1.0), 4.0)
 end
@@ -220,7 +220,7 @@ subfolder (`triangles/`, `circles/`, ...) and fill in the two blanks:
 ```julia
 include("../default_config.jl")
 
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     # build the objects: name = APObject(...)
 end
 # bring them into scope: (; name1, name2) = lxo
@@ -238,7 +238,7 @@ file on its own, only its own defining file), rather than typed as a
 
 ### Excluding a shape from sizing: `@unbounded`
 
-Every shape named in a `@to_luxor_picture` block counts toward the
+Every shape named in a `@prepare_to_picture` block counts toward the
 canvas's size and scale, including a large auxiliary shape you built only
 to construct something else, and never meant to set the picture's own
 scale. [`@unbounded`](@ref) marks one line as exempt from that sizing,
@@ -247,7 +247,7 @@ along with everything else, only its own `APBoundingBox` is left out of
 the union that decides how far to zoom out:
 
 ```julia
-lxm, lxo = @to_luxor_picture width=500.0 height=240.0 margin=20.0 begin
+lxm, lxo = @prepare_to_picture width=500.0 height=240.0 margin=20.0 begin
     A = APPoint(1.0, 1.0)
     @unbounded locus = APCircle2(APPoint(0.0, 0.0), 1000.0)   # huge, but not the picture's scale
     B = intersection(locus, APLine(A, APPoint(2.0, 2.0)))[1]
@@ -266,7 +266,7 @@ context.
 Note here how `@unbounded` allows me to ignore the circumcenter when computing the bounding box of the entire figure.
 
 ```julia
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
     triangle =  APTriangle(A, B, C)
     G = centroid(triangle)
@@ -296,7 +296,7 @@ end
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
         A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
         triangle =  APTriangle(A, B, C)
         G = centroid(triangle)
@@ -358,7 +358,7 @@ the same transformed coordinate space (a label position computed after
 the fact, a point from unrelated data, ...):
 
 ```julia
-lxm, lxo = @to_luxor_picture width=300.0 margin=10.0 begin
+lxm, lxo = @prepare_to_picture width=300.0 margin=10.0 begin
     t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
     circ = APCircle2(APPoint(4.0, 1.0), 4.0)
     cp = centroid(t)
@@ -382,7 +382,7 @@ stroking or filling it, instead of letting Cairo render (and spend time
 on) geometry that falls outside the printable area anyway:
 
 ```julia
-lxm, lxo = @to_luxor_picture width=300.0 height=200.0 margin=10.0 begin
+lxm, lxo = @prepare_to_picture width=300.0 height=200.0 margin=10.0 begin
     t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
     circ = APCircle2(APPoint(4.0, 1.0), 4.0)
 end
@@ -403,7 +403,7 @@ in [`@unbounded`](@ref), after which it passes through completely
 unchanged, regardless of the picture's own scale factor:
 
 ```julia
-lxm, lxo = @to_luxor_picture width=400.0 begin
+lxm, lxo = @prepare_to_picture width=400.0 begin
     t = APTriangle(A, B, C)
     @unbounded ns = [1.2, 3.2, 5.3]   # e.g. hand-typed side lengths
 end
@@ -411,7 +411,7 @@ lxo.ns == ns   # true: untouched, regardless of the picture's scale factor
 ```
 
 This is a fundamental limitation, not a bug that could be fixed by making
-`@to_luxor_picture` smarter: there is no way to tell, from a bare
+`@prepare_to_picture` smarter: there is no way to tell, from a bare
 `Vector{Float64}`, whether its numbers are *lengths* (which should scale
 with the picture) or something purely combinatorial like vertex counts or
 indices (which must not). Both are indistinguishable `Float64`s by the
@@ -425,7 +425,7 @@ scaled by construction, with no separate "scale this number" step needed
 at all:
 
 ```julia
-lxm, lxo = @to_luxor_picture width=400.0 begin
+lxm, lxo = @prepare_to_picture width=400.0 begin
     t = APTriangle(A, B, C)
 end
 side_len_on_canvas = distance(lxo.t[1], lxo.t[2])   # correct: lxo.t is already in canvas space
@@ -489,10 +489,10 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | any [`APPolygon`](@ref) | every side, chained end to end into one closed path: a straight line for an `APSegment` side, a true arc for an `APCircularArc2` side, an `n`-point sampled polyline for any other conic-arc side (see below); covers `APTriangle`, `APQuadrilateral`, `APStraightNgon`, `APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2` and `APCurvilinearNgon2`, **one** method for the whole family | `n=60` (only matters if some side needs sampling) |
 | `APBoundingBox` | an axis-aligned box | (none) |
 | `APEllipse2` | a smooth, Bézier-curve ellipse (Luxor's own axis-aligned `ellipse(center, w, h)`, `w = 2a`, `h = 2b`) inside a rotated/translated frame matching `e.center`/`e.angle`, so the path stays a true curve at any zoom level | (none) |
-| `APParabola2` | Luxor has no native parabola primitive: sampled at `n` points via [`point_on_parabola`](@ref) over the parameter range `srange`, added as an open polyline | `srange=(-100.0, 100.0)`, `n=60` |
-| `APHyperbola2` | likewise (no native primitive), sampled via [`point_on_hyperbola`](@ref) on one branch at a time | `trange=(-2.0, 2.0)`, `n=60`, `branch=1` (pass `branch=-1` and call again for the other branch) |
+| `APParabola2` | Luxor has no native parabola primitive: sampled at `n` points via [`point_on`](@ref) over the parameter range `srange`, added as an open polyline | `srange=(-100.0, 100.0)`, `n=60` |
+| `APHyperbola2` | likewise (no native primitive), sampled via [`point_on`](@ref) on one branch at a time | `trange=(-2.0, 2.0)`, `n=60`, `branch=1` (pass `branch=-1` and call again for the other branch) |
 | `APCircularArc2` | a true circular arc from `p1` to `p2`, via Luxor's own `arc2r` (Cairo's native arc primitive, not a polygonal approximation) | (none) |
-| `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on_arc`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
+| `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
 | `APAngle2` | see below; it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
 | `APVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=APPoint(0.0, 0.0)`, `as=:plain`/`:arrow`/`:doublearrow` |
 | `APHalfPlane2` | unbounded, so this draws its boundary line only (see `APLine` above) | `extend=1000.0`, `add` |
@@ -602,7 +602,7 @@ path(l; extend=0.0, as=:arrow, arrowheadlength=15)   # extend=0.0: the exact fin
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
         s = APSegment(APPoint(-80.0, 0.0), APPoint(80.0, 0.0))
         l = APLine(APPoint(0.0, -60.0), APPoint(0.0, 60.0))
         d = translate(s, APVector(0.0, 40.0))
@@ -671,7 +671,7 @@ path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
+    lxm = @prepare_to_picture! flip=false width=500 height=240 margin=20 begin
         t = APTriangle(APPoint(-80.0, 60.0), APPoint(80.0, 60.0), APPoint(-20.0, -80.0))
         ang = APAngle2(t[2], t[1], t[3])
         tv = translate.(t, APVector.([0, 200, 400, 600, 800], 0))
@@ -766,7 +766,7 @@ for *those* curves, so sampling is the only option there).
 
 ```julia
 e = APEllipse2(APPoint(0.0, 0.0), 40.0, 20.0, pi / 6)
-earc = APEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
+earc = APEllipticArc2(e, point_on(e, 0.2), point_on(e, 2.0))
 path(earc; action=:stroke)
 ```
 
@@ -828,7 +828,7 @@ path(arc; reverse=true, action=:stroke)   # the same arc, dashes starting at arc
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! flip=false width=500 height=240 margin=20 begin
+    lxm = @prepare_to_picture! flip=false width=500 height=240 margin=20 begin
         ta1 = APTriangle(APPoint(-80.0, 60.0), APPoint(80.0, 60.0), APPoint(-20.0, -80.0))
         ca = circumcenter(ta1)
         ta2 = homothety(ta1, 1/2, ca)
@@ -1011,6 +1011,13 @@ end
 finish()
 end
 ```
+
+## Passing an `APPoint` to a plain Luxor function
+
+The `path` methods above take an `APPoint` directly, but Luxor's own
+functions (`circle`, `line`, `text`, ...) take a `Point`. `Luxor.Point(p)`
+converts one to the other, so `circle(Luxor.Point(p), 5, :fill)` works with
+an `APPoint` `p` without writing out `Point(p[1], p[2])` by hand.
 
 ## Name collisions with Luxor
 

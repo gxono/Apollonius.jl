@@ -91,7 +91,7 @@ figure comes from the code above it; only the geometry is shown. The figures
 use one color code: blue for the given triangle, green for the construction
 aids, purple for what is found. In each part, the first block builds the
 triangle (the one of the running example) and what is derived from it inside
-[`@to_luxor_picture`](@ref), which fits it to the canvas and returns the fitted
+[`@prepare_to_picture`](@ref), which fits it to the canvas and returns the fitted
 objects in `lxo`, under the names they were given. The steps then call the
 functions of this page on the fitted triangle.
 
@@ -115,7 +115,7 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     tri = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
     circ = circumcircle(tri)
 end
@@ -158,7 +158,7 @@ end # hide
 
 ```@example geo
 o = circumcenter(tri)
-(isapprox(o, only(intersection(m1, m2)); atol=1e-9), on_line(o, mediator(tri, 3)))
+(isapprox(o, only(intersection(m1, m2)); atol=1e-9), is_on_line(o, mediator(tri, 3)))
 ```
 
 ```@example geo
@@ -196,7 +196,7 @@ The incenter is where the angle bisectors meet, and it is the center of the
 circle that touches the three sides.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     tri = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
     inc = incircle(tri)
 end
@@ -278,7 +278,7 @@ Each comes from a different set of lines: medians, perpendicular bisectors and
 altitudes.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     tri = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
     cen = centroid(tri)
     cir = circumcenter(tri)
@@ -292,7 +292,7 @@ nothing # hide
 **Step 1.** The medians meet at the centroid.
 
 ```@example geo
-all(on_line(cen, median(tri, k)) for k in 1:3)
+all(is_on_line(cen, median(tri, k)) for k in 1:3)
 ```
 
 ```@example geo
@@ -309,7 +309,7 @@ end # hide
 **Step 2.** The altitudes meet at the orthocenter.
 
 ```@example geo
-all(on_line(ort, altitude(tri, k)) for k in 1:3)
+all(is_on_line(ort, altitude(tri, k)) for k in 1:3)
 ```
 
 ```@example geo
@@ -326,7 +326,7 @@ end # hide
 **Step 3.** The perpendicular bisectors meet at the circumcenter.
 
 ```@example geo
-all(on_line(cir, mediator(tri, k)) for k in 1:3)
+all(is_on_line(cir, mediator(tri, k)) for k in 1:3)
 ```
 
 ```@example geo
@@ -344,7 +344,7 @@ end # hide
 
 ```@example geo
 el = euler_line(tri)
-(all(on_line(q, el) for q in (cen, cir, ort)), isapprox(ort, cir + 3 * (cen - cir); atol=1e-9))
+(all(is_on_line(q, el) for q in (cen, cir, ort)), isapprox(ort, cir + 3 * (cen - cir); atol=1e-9))
 ```
 
 ```@example geo
@@ -492,7 +492,7 @@ median.(t, 1:3)
 
 
 ```@example geo
-on_line(orthocenter(t), altitude(t, 1)), on_line(centroid(t), median(t, 1)), on_line(incenter(t), bisector(t, 1))
+is_on_line(orthocenter(t), altitude(t, 1)), is_on_line(centroid(t), median(t, 1)), is_on_line(incenter(t), bisector(t, 1))
 ```
 
 `bisector_ext(t, i)` and `mediator(t, i)` complete the set. The external
@@ -505,7 +505,7 @@ is_perpendicular(bisector(t, 1), bisector_ext(t, 1))
 ```
 
 ```@example geo
-on_line(circumcenter(t), mediator(t, 1)), on_line(circumcenter(t), mediator(t, 2)), on_line(circumcenter(t), mediator(t, 3))
+is_on_line(circumcenter(t), mediator(t, 1)), is_on_line(circumcenter(t), mediator(t, 2)), is_on_line(circumcenter(t), mediator(t, 3))
 ```
 
 ```@example geo
@@ -587,7 +587,7 @@ parallel to the Simson line of the same point.
 p_on_circ = polar_point(circumradius(t), 0.7, circumcenter(t))   # any point on t's circumcircle
 sl = simson_line(t, p_on_circ)
 stl = steiner_line(t, p_on_circ)
-on_line(orthocenter(t), stl), is_parallel(sl, stl)
+is_on_line(orthocenter(t), stl), is_parallel(sl, stl)
 ```
 
 ```@raw html
@@ -673,7 +673,7 @@ circumcenter, so it always lies on the Euler line):
 spieker_center(t) ≈ incenter(medial_triangle(t))
 spieker_circle(t) ≈ incircle(medial_triangle(t))
 bevan_point(t) ≈ circumcenter(excentral_triangle(t))
-on_line(de_longchamps_point(t), euler_line(t))
+is_on_line(de_longchamps_point(t), euler_line(t))
 ```
 
 ```@raw html
@@ -779,7 +779,7 @@ all(p -> on_circ(p, conway_circle(t)), conway_points(t)),
 ```@example geo
 mixt = mixtilinear_incircle(t, 1)
 sc = soddy_circles(t)
-on_line(sc.inner.center, soddy_line(t)), on_line(sc.outer.center, soddy_line(t))
+is_on_line(sc.inner.center, soddy_line(t)), is_on_line(sc.outer.center, soddy_line(t))
 ```
 
 ```@raw html
@@ -841,7 +841,7 @@ exactly on the segment joining the two circles' centers (the theorem the
 construction is named for):
 
 ```@example geo
-on_line(incenter(t), APLine(th.near_b.center, th.near_c.center))
+is_on_line(incenter(t), APLine(th.near_b.center, th.near_c.center))
 ```
 
 ```@raw html
@@ -1059,7 +1059,7 @@ ct = contact_triangle(t)        # incircle touch points
 et = extouch_triangle(t)        # excircle touch points
 et_center = excentral_triangle(t)   # the 3 excenters, as a triangle
 tt = tangential_triangle(t)     # tangent lines to the circumcircle at each vertex, intersected pairwise
-on_line(circumcenter(t), APLine(t[1], tt[1])) == false   # circumcenter isn't generally on a tangent line
+is_on_line(circumcenter(t), APLine(t[1], tt[1])) == false   # circumcenter isn't generally on a tangent line
 ```
 
 ```@raw html
@@ -1088,7 +1088,7 @@ distance(mor[1], mor[2]) ≈ distance(mor[2], mor[3]) ≈ distance(mor[3], mor[1
 ```@example geo
 cev = cevian_triangle(t, incenter(t))            # feet of the cevians through the incenter
 ccev = circumcevian_triangle(t, incenter(t))     # same cevians, extended to the circumcircle
-on_segment(cev[1], APSegment(t[2], t[3])), on_line(ccev[1], APLine(t[1], incenter(t)))
+is_on_segment(cev[1], APSegment(t[2], t[3])), is_on_line(ccev[1], APLine(t[1], incenter(t)))
 ```
 
 ```@raw html
@@ -1104,7 +1104,7 @@ incircle of the result when the points are not in a half circle:
 
 ```@example geo
 cc_t = APCircle2(APPoint(0.0, 0.0), 1.0)
-ps_t = [point_on_circle(cc_t, a) for a in (0.5, 2.5, 4.5)]
+ps_t = [point_on(cc_t, a) for a in (0.5, 2.5, 4.5)]
 tt_c = circumscribed_triangle(cc_t, ps_t...)
 isapprox(incircle(tt_c), cc_t; atol=1e-9)
 ```

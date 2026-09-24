@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     @unbounded skew = APAffineMap(2.0, 0.5, -0.3, 1.4, 3.0, -1.0)
     tri = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
     circ = APCircle2(APPoint(1.0, 2.0), 5.0)

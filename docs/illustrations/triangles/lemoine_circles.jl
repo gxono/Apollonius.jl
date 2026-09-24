@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
     t = APTriangle(A, B, C)
     K = symmedian_point(t)
@@ -17,7 +17,7 @@ sethue(julia_purple)
 path([c1, c2, c3], action=:stroke)
 sethue(julia_red)
 label("K", :N, K)
-path([A, B, C]); plot_point(julia_blue)
-path(p1); plot_point(julia_purple)
-path([K]); plot_point(julia_purple)
+sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path(p1, action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue("white"); path([K], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=260 margin=30 begin
     pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 3.0), APPoint(1.0, 3.0)])
     on_pg = rand(Apollonius.Random.Xoshiro(1), pg, 20)
     on_box = rand(Apollonius.Random.Xoshiro(2), APBoundingBox(pg), 12)
@@ -15,6 +15,6 @@ grestore()
 sethue(julia_blue)
 path(pg, action=:stroke)
 sethue(julia_purple)
-path(on_pg); plot_point(julia_purple)
-path(on_box); plot_point("gray80")
+sethue("white"); path(on_pg, action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue("white"); path(on_box, action=:fillpreserve); sethue("gray80"); strokepath()
 end)

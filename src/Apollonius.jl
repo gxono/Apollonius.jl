@@ -15,7 +15,7 @@ include("ap_conic.jl")
 export APCircle2, APEllipse2, APParabola2, APHyperbola2
 export APCircularArc2, APEllipticArc2, APParabolicArc2, APHyperbolicArc2
 include("ap_parametric_curve.jl")
-export APParametricCurve2, point_on_curve
+export APParametricCurve2
 include("ap_conic_tangency.jl")
 include("ap_conic_intersection.jl")
 include("ap_curved_region.jl")
@@ -61,15 +61,16 @@ export sides, diagonals, diagonal_intersection, is_cyclic
 export direction, slope_angle, midpoint, distance, polar_point, polar_point_deg, antipode
 export norm, dot, normalize, angle_measure_between, angle_measure_at
 export measure, normalized_measure, is_direct
-export arc_length, point_on_arc, arc_with_measure, arc_with_length, tangent_at, marks, semicircle, circle_with_diameter, extend_arc, compass_trace
+export arc_length, point_on, arc_with_measure, arc_with_length, tangent_at, marks, semicircle, circle_with_diameter, extend_arc, compass_trace
 export mediator_construction, perpendicular_construction, parallel_construction, bisector_construction, label_anchor, extend_line
 export projection_construction, reflection_construction, symmetry_construction, translation_construction
 export grid_lines, axes_lines, clip_out, arrow_head, brace, brace_anchor, coordinate_guides
 export interstices
-export is_collinear, is_parallel, is_perpendicular, on_line, on_segment, on_ray, side_of_line, is_concyclic,
+export is_collinear, is_parallel, is_perpendicular, is_on_line, is_on_segment, is_on_ray, side_of_line, is_concyclic,
        line_circle_position, circles_position, is_coplanar, line_line_position
 export projection, reflection, rotate, homothety, translate, barycenter
 export parallel_through, perpendicular_through, perpendicular_bisector, angle_bisectors, angle_trisectors
+export vertical_line, horizontal_line
 export golden_ratio_point, harmonic_conjugate, apollonius_circle
 export intersection
 export centroid, circumcenter, circumradius, circumcircle,
@@ -101,7 +102,7 @@ export equilateral_triangle_on_segment, isosceles_triangle_on_segment, triangle_
        triangle_on_segment_sss, triangle_on_segment_sas, triangle_on_segment_ssa, triangle_30_60_90_on_segment,
        isosceles_right_triangle_on_segment, golden_triangle_on_segment, golden_gnomon_on_segment,
        egyptian_triangle_on_segment, cheops_triangle_on_segment, golden_right_triangle_on_segment
-export point_on_line, point_on_circle, nearest_point, other_intersection, angle_measure_intersection, rand_inside
+export nearest_point, other_intersection, angle_measure_intersection, rand_inside
 export tangent_length, tangent_points, tangent_lines, external_tangent_lines, internal_tangent_lines,
        tangent_parallel
 export external_similitude_center, internal_similitude_center
@@ -109,17 +110,17 @@ export power_of_point, radical_axis, radical_center, radical_circle, orthogonal_
 export vertices, is_convex, point_in_polygon, convex_hull, is_planar
 export bbox_width, bbox_height, bbox_center, bbox_diagonal, bbox_aspect_ratio,
        bboxes_intersect, bbox_intersection, bbox_union, @boundingbox
-export @to_luxor_picture, @to_luxor_picture!, @unbounded
+export @prepare_to_picture, @prepare_to_picture!, @unbounded
 export @translate, @translate!, @rotate, @rotate!, @homothety, @homothety!, @reflection, @reflection!
 export @invert, @invert!, @invert_neg, @invert_neg!, @affinemap, @affinemap!
-export inversion, invert, inversion_neg, invert_neg, polar_line, pole
+export invert, invert_neg, polar_line, pole
 export parallelogram, square_on_segment, rectangle_on_segment, regular_polygon
 export offset_line, tangent_circles_with_radius, tangent_circles_with_center
 export affine_map, translation_map, rotation_map, homothety_map, reflection_map
-export point_on_ellipse, is_on_ellipse, foci, orthoptic
-export tangent_circles_through_points, tangent_circles_through_point, tangent_circles
-export vertex, focal_parameter, point_on_parabola, is_on_parabola
-export point_on_hyperbola, is_on_hyperbola, asymptotes
+export is_on_ellipse, foci, orthoptic
+export tangent_circles
+export vertex, focal_parameter, is_on_parabola
+export is_on_hyperbola, asymptotes
 export conic_through_points
 export path
 """

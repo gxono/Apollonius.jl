@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=260 margin=30 begin
     q = APQuadrilateral(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(5.0, 3.0), APPoint(1.0, 3.0))
     diags = collect(diagonals(q))
     cross_pt = diagonal_intersection(q)
@@ -15,6 +15,6 @@ sethue(julia_red)
 for (n, v) in zip(("a", "b", "c", "d"), vertices(q))
     label(n, label_anchor(v, centroid(q))...)
 end
-path(collect(vertices(q))); plot_point(julia_blue)
-path([cross_pt]); plot_point(julia_purple)
+sethue("white"); path(collect(vertices(q)), action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([cross_pt], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

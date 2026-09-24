@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
     l2 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
     sols_r = tangent_circles_with_radius(l1, l2, 3.0)

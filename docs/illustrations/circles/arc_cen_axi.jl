@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     c = APCircle2(APPoint(0.0, 0.0), 5.0)
     p1, p2 = APPoint(0.0, 1.0), APPoint(-2.0, 0.0)
     arc = APCircularArc2(c, p1, p2)
@@ -22,7 +22,7 @@ path(APSegment(arc.p1, arc_ref_p.p1), action=:stroke)
 setdash(:solid)
 sethue(julia_green)
 path(l, action=:stroke)
-path(p); plot_point(julia_green)
-path([arc.p1, arc.p2]); plot_point(julia_blue)
-path([arc_ref_l.p1, arc_ref_l.p2, arc_ref_p.p1, arc_ref_p.p2]); plot_point(julia_purple)
+sethue("white"); path(p, action=:fillpreserve); sethue(julia_green); strokepath()
+sethue("white"); path([arc.p1, arc.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([arc_ref_l.p1, arc_ref_l.p2, arc_ref_p.p1, arc_ref_p.p2], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

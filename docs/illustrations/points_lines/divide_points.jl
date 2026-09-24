@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=560 height=200 margin=30 begin
+lxm, lxo = @prepare_to_picture width=560 height=200 margin=30 begin
     A, B = APPoint(0.0, 0.0), APPoint(8.0, 0.0)
     s = APSegment(A, B)
     quarters = divide_segment(s, 4)
@@ -15,7 +15,7 @@ path(s, action=:stroke)
 sethue(julia_purple)
 sethue(julia_red)
 label("n = 4", :N, quarters[1]); label("1 : 2", :S, third); label("d = 6.5", :S, away); label("3 : -1", :N, ext)
-path([A, B]); plot_point(julia_blue)
-path(quarters); plot_point(julia_purple)
-path([third, away, ext]); plot_point(julia_purple)
+sethue("white"); path([A, B], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path(quarters, action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue("white"); path([third, away, ext], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

@@ -1,7 +1,7 @@
 include("../default_config.jl")
 
 
-lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
   A, B = APPoint(0.0,0.0), APPoint(100.0, 0.0)
   s = APSegment(A, B)
   t = equilateral_triangle_on_segment(s)

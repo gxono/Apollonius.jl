@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=420 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=420 height=300 margin=30 begin
     O = APPoint(0.0, 0.0)
     ring = [polar_point(4.0, k * pi / 4) for k in 0:7]
 end

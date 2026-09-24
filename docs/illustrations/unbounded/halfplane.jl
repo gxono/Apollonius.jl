@@ -1,8 +1,8 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
-    @unbounded l = APLine(APPoint(0.0, 0.0), APPoint(0.0, 4.0))
+lxm, lxo = @prepare_to_picture width=500 height=260 margin=30 begin
+    l = APLine(APPoint(0.0, 0.0), APPoint(0.0, 4.0))
     q = APPoint(1.0, 0.0)
-    @unbounded hp = APHalfPlane2(l, q)
+    hp = APHalfPlane2(l, q)
     pts = [APPoint(x, y) for x in (-3.0, -1.0, 1.0, 3.0) for y in (-2.0, 0.0, 2.0)]
     far = APPoint(-3.0, 1.0)
     foot = projection(far, l)
@@ -23,7 +23,7 @@ sethue("gray80")
 sethue(julia_purple)
 sethue(julia_red)
 label("q", :N, q)
-path([outside; far]); plot_point("gray80")
-path(inside); plot_point(julia_purple)
-path([q]); plot_point(julia_blue)
+sethue("white"); path([outside; far], action=:fillpreserve); sethue("gray80"); strokepath()
+sethue("white"); path(inside, action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue("white"); path([q], action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

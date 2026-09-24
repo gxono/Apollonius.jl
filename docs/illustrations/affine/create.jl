@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     a = APPoint(0.0, 0.0)
     b = APPoint(1.0, 0.0)
     c = APPoint(0.0, 1.0)
@@ -29,6 +29,6 @@ label("c", :W, c, offset=8)
 label("a'", :S, a2, offset=8); 
 label("b'", :S, b2, offset=8); 
 label("c'", :W, c2, offset=8)
-path([a, b, c]); plot_point(julia_blue)
-path([a2, b2, c2]); plot_point(julia_purple)
+sethue("white"); path([a, b, c], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([a2, b2, c2], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

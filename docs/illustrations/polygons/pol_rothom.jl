@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 3.0), APPoint(1.0, 3.0)])
     pr = rotate(pg, pi / 4, centroid(pg))
     ph = homothety(pg, 2.0)
@@ -23,6 +23,6 @@ sethue(julia_blue)
 path(pg, action=:stroke)
 path(centroid(pg))
 path(vertices(ph))
-path(vertices(pg)); plot_point(julia_blue)
-path(vertices(pr)); plot_point(julia_purple)
+sethue("white"); path(vertices(pg), action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path(vertices(pr), action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

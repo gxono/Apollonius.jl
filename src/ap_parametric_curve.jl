@@ -24,12 +24,12 @@ function APParametricCurve2(f::Function, trange::Tuple{<:Real,<:Real})
 end
 Base.show(io::IO, curve::APParametricCurve2) = print(io, "APParametricCurve2(f, ", curve.trange, ")")
 """
-    point_on_curve(curve::APParametricCurve2, t::Real)
+    point_on(curve::APParametricCurve2, t::Real)
 
 The point at parameter `t`: `curve.f(t)`. `t` is expected to lie within
 `curve.trange`, but this isn't enforced.
 """
-point_on_curve(curve::APParametricCurve2, t::Real) = curve.f(t)
+point_on(curve::APParametricCurve2, t::Real) = curve.f(t)
 translate(curve::APParametricCurve2, v::APVector) = APParametricCurve2(t -> translate(curve.f(t), v), curve.trange)
 rotate(curve::APParametricCurve2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APParametricCurve2(t -> rotate(curve.f(t), angle, center), curve.trange)

@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     u1 = APCircle2(APPoint(0.0, 0.0), 1.0)
     u2 = APCircle2(APPoint(2.0, 0.0), 1.0)
     u3 = APCircle2(APPoint(1.0, sqrt(3)), 1.0)

@@ -1,6 +1,6 @@
 include("../default_config.jl")
 import Apollonius: distance
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=60 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=60 begin
     O1, A1, B1 = APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(2.0, 4.0)
     O2, A2, B2 = APPoint(9.0, 0.0), APPoint(14.0, 0.0), APPoint(11.0, 4.0)
     ang1 = APAngle2(O1, A1, B1)

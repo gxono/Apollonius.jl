@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture flip=false width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture flip=false width=500 height=240 margin=20 begin
     t = APTriangle(APPoint(-80.0, 60.0), APPoint(80.0, 60.0), APPoint(-20.0, -80.0))
     ang = APAngle2(t[2], t[1], t[3])
     tv = Apollonius.translate.(t, APVector.([0, 200, 400, 600, 800], 0))

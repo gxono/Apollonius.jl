@@ -110,7 +110,7 @@ in either position. Re-exported from `LinearAlgebra`.
 
 The midpoint of two points, or the middle of a single object: an
 [`APSegment`](@ref), or a circular, elliptic, parabolic or hyperbolic arc
-(the point halfway along its own parametrization, see [`point_on_arc`](@ref)).
+(the point halfway along its own parametrization, see [`point_on`](@ref)).
 """ midpoint
 
 @doc """
@@ -123,14 +123,14 @@ The non-normalized direction of an [`APLine`](@ref), [`APRay`](@ref) or
 """ direction
 
 @doc """
-    point_on_arc(arc, t)
+    point_on(arc, t)
 
 The point at parameter `t` along `arc`, with `t = 0` at `arc.p1` and
 `t = 1` at `arc.p2`. Defined for all four arc types
 ([`APCircularArc2`](@ref), [`APEllipticArc2`](@ref),
 [`APParabolicArc2`](@ref), [`APHyperbolicArc2`](@ref)); for the last three
 `t` follows the conic's own parametrization, not arc length.
-""" point_on_arc
+""" point_on
 
 @doc """
     vertices(obj)
@@ -168,35 +168,20 @@ the same four conics, in either argument order.
 """ tangent_lines
 
 @doc """
-    invert(obj, center; k=1.0, atol=1e-9)
-
-The image of `obj` under inversion in the circle centered at `center` with
-radius `k`. `obj` can be a point, [`APLine`](@ref) (a circle, unless it
-passes through `center`), [`APCircle2`](@ref) (a line if it passes through
-`center`, otherwise a circle), [`APSegment`](@ref) (a segment or a circular
-arc), a triangle or polygon (a curvilinear region), or a vector/tuple of
-these. With a single argument, `invert(center; k)` returns the function
-`p -> invert(p, center; k)`, for `map`/`|>`. See [`invert_neg`](@ref) for
-the negative-ratio variant.
-""" invert
-
-@doc """
-    invert_neg(obj, center; k=1.0, atol=1e-9)
-
-Inversion of negative ratio: the ordinary [`invert`](@ref) image,
-point-reflected through `center`. Defined for the same objects as `invert`.
-""" invert_neg
-
-@doc """
     tangent_circles(a, b, c; atol=1e-9)
+    tangent_circles(a, b, p::APPoint; atol=1e-9)
+    tangent_circles(p1::APPoint, p2::APPoint, x; atol=1e-9)
 
-The circles tangent to all three of `a`, `b`, `c`, each a line or
-[`APCircle2`](@ref) (the classical Apollonius problem; up to 8 solutions,
-fewer for degenerate configurations). See also
-[`tangent_circles_through_point`](@ref), [`tangent_circles_through_points`](@ref),
-[`tangent_circles_with_radius`](@ref) and [`tangent_circles_with_center`](@ref)
-for the cases where a point, a radius or a center is fixed instead of one of
-the three tangency conditions.
+The circles tangent to `a`, `b`, `c` (each a line or [`APCircle2`](@ref)):
+the classical Apollonius problem, up to 8 solutions, fewer for degenerate
+configurations. Which of the three arguments are points, rather than a
+line or a circle, decides which of the ten classical Apollonius problems
+this solves, all under the one name: none (the plain tangency-to-three
+case above), one (the circles tangent to the other two and passing
+through that point), or two (the circles tangent to the remaining one and
+passing through both points). See [`tangent_circles_with_radius`](@ref)
+and [`tangent_circles_with_center`](@ref) for the cases where a radius or
+a center is fixed instead of a tangency condition.
 """ tangent_circles
 
 @doc """
@@ -205,17 +190,3 @@ the three tangency conditions.
 The circles of radius `r` tangent to both `a` and `b` (each a line or
 [`APCircle2`](@ref)).
 """ tangent_circles_with_radius
-
-@doc """
-    tangent_circles_through_point(a, b, p; atol=1e-9)
-
-The circles through the point `p` tangent to both `a` and `b` (each a line
-or [`APCircle2`](@ref)).
-""" tangent_circles_through_point
-
-@doc """
-    tangent_circles_through_points(p1, p2, x; atol=1e-9)
-
-The circles through the two points `p1` and `p2` tangent to `x` (a line or
-an [`APCircle2`](@ref)).
-""" tangent_circles_through_points

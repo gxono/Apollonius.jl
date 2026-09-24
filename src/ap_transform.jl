@@ -191,7 +191,7 @@ above, `focus`/`directrix` are metric (not affine-invariant) constructs, so they
 can't just be mapped pointwise like a segment's endpoints: `m` can shear
 or scale non-uniformly, which moves the true focus/directrix off of
 `m(par.focus)`/`m(par.directrix)`. Instead: `par`'s own parametrization
-`point_on_parabola(par, y) = vertex + (y²/2pf)u + y·w` becomes, under `m`,
+`point_on(par, y) = vertex + (y²/2pf)u + y·w` becomes, under `m`,
 `q(y) = m(vertex) + y·m(w) + y²·(m(u)/2pf)`: a quadratic *vector*
 function of `y` whose own vertex/axis/focal parameter are recovered by
 rewriting it in the orthonormal frame aligned with its (generally skewed)

@@ -1,11 +1,11 @@
 include("../default_config.jl")
 
-lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
     e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
     c = e.center
     f1, f2 = foci(e)
     v1, v2 = vertices(e)
-    p = point_on_ellipse(e, 1.0)
+    p = point_on(e, 1.0)
     od = orthoptic(e)
 end
 

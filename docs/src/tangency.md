@@ -16,10 +16,10 @@ involve at least one circle or line (PPP is just
 The functions are named by what role the *points* among the three objects
 play:
 
-* [`tangent_circles_through_points`](@ref): two of the three objects are
+* [`tangent_circles`](@ref): two of the three objects are
   points the circle must pass *through*; the third is a line or a circle
   it must be tangent to.
-* [`tangent_circles_through_point`](@ref): one point to pass through, and
+* [`tangent_circles`](@ref): one point to pass through, and
   two lines/circles to be tangent to.
 * [`tangent_circles`](@ref), no points at all: two or three lines/circles,
   all to be tangent to.
@@ -44,7 +44,7 @@ using Apollonius
 a, b = APPoint(-3.0, 0.0), APPoint(3.0, 0.0)
 l = APLine(APPoint(-5.0, -4.0), APPoint(5.0, -4.0))
 
-sols = tangent_circles_through_points(a, b, l)
+sols = tangent_circles(a, b, l)
 length(sols)   # exactly 1, in this symmetric case
 ```
 
@@ -65,7 +65,7 @@ tangent-to object:
 a2, b2 = APPoint(-2.0, 1.0), APPoint(2.0, 1.0)
 given_c = APCircle2(APPoint(0.0, -3.0), 2.0)
 
-sols_c = tangent_circles_through_points(a2, b2, given_c)
+sols_c = tangent_circles(a2, b2, given_c)
 length(sols_c)   # 2 here: one tangent externally, one internally
 ```
 
@@ -210,7 +210,7 @@ above) they still connect end to end afterward into the transformed gap.
 
 ## Through a point, tangent to two objects
 
-[`tangent_circles_through_point`](@ref) covers the remaining
+[`tangent_circles`](@ref) covers the remaining
 "one point + two circles/lines" cases (LLP, CCP, CLP). For example, tangent
 to two circles and passing through a chosen point between them:
 
@@ -219,7 +219,7 @@ c1 = APCircle2(APPoint(-4.0, 0.0), 1.5)
 c2 = APCircle2(APPoint(4.0, 0.0), 1.5)
 p = APPoint(0.0, 1.0)
 
-sols_p = tangent_circles_through_point(c1, c2, p)
+sols_p = tangent_circles(c1, c2, p)
 length(sols_p)
 ```
 
@@ -326,7 +326,7 @@ The blocks in this section are run when the documentation is built, and each
 figure comes from the code above it; only the geometry is shown. The figures
 use one color code: blue for the given objects, green for the construction
 aids, purple for what is found. In each part, the first block builds the
-objects inside [`@to_luxor_picture`](@ref), which fits them to the canvas and
+objects inside [`@prepare_to_picture`](@ref), which fits them to the canvas and
 returns the fitted objects in `lxo`, under the names they were given.
 
 ### A circle through two points, tangent to a line
@@ -353,11 +353,11 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     ta = APPoint(-3.0, 0.0)
     tb = APPoint(3.0, 0.0)
-    @unbounded tl = APLine(APPoint(-6.0, -4.0), APPoint(6.0, -4.0))
-    tsol = only(tangent_circles_through_points(ta, tb, tl))
+    tl = APLine(APPoint(-6.0, -4.0), APPoint(6.0, -4.0))
+    tsol = only(tangent_circles(ta, tb, tl))
 end
 (; ta, tb, tl, tsol) = lxo
 figH = ceil(Int, lxm.height) # hide
@@ -367,7 +367,7 @@ nothing # hide
 **Step 1.** The two points and the line.
 
 ```@example geo
-!on_line(ta, tl)
+!is_on_line(ta, tl)
 ```
 
 ```@example geo
@@ -394,7 +394,7 @@ end # hide
 
 ```@example geo
 ctr = tsol.center
-(on_line(ctr, bax), distance(ctr, tl) ≈ distance(ctr, ta))
+(is_on_line(ctr, bax), distance(ctr, tl) ≈ distance(ctr, ta))
 ```
 
 ```@example geo
@@ -431,7 +431,7 @@ Three circles that touch each other in pairs leave a curved triangle between
 them. Its corners are the three points of contact.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     k1 = APCircle2(APPoint(0.0, 0.0), 40.0)
     k2 = APCircle2(APPoint(90.0, 0.0), 50.0)
     k3 = APCircle2(intersection(APCircle2(k1.center, k1.r + 35.0), APCircle2(k2.center, k2.r + 35.0))[1], 35.0)

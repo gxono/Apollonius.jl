@@ -1,6 +1,6 @@
 include("../default_config.jl")
 styles = [:tick, :slash, :chevron, :cross, :circle]
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=20 begin
     angs = [APAngle2(APPoint(8.0 * mod(i - 1, 3), -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 6.0, -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 4.0, 4.0 - 6.0 * fld(i - 1, 3))) for i in 1:6]
     rays = [APSegment(a.vertex, x) for a in angs for x in (a.a, a.b)]
 end

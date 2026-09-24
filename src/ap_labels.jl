@@ -29,7 +29,7 @@ object.
 
 Alignments are read in screen coordinates, the ones Luxor draws in (`y`
 grows downward, so `:N` is up): call this on the objects as they will be
-drawn, for example the ones [`@to_luxor_picture`](@ref) returns, and `:left`
+drawn, for example the ones [`@prepare_to_picture`](@ref) returns, and `:left`
 is then the left of the direction of travel as seen on screen.
 
 | Keyword | Default | Meaning |

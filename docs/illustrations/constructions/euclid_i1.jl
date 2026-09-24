@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     A, B = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
     C = argmax(p -> p[2], intersection(APCircle2(A, 6.0), APCircle2(B, 6.0)))
     cA, cB = APCircle2(A, 6.0), APCircle2(B, 6.0)

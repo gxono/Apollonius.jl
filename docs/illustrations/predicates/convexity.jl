@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=560 height=240 margin=30 begin
+lxm, lxo = @prepare_to_picture width=560 height=240 margin=30 begin
     convex = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(5.0, 3.0), APPoint(1.0, 4.0)])
     concave = APStraightNgon([APPoint(8.0, 0.0), APPoint(12.0, 0.0), APPoint(10.5, 1.5), APPoint(12.0, 4.0), APPoint(8.0, 4.0)])
     lab = [APPoint(2.5, -1.0), APPoint(10.0, -1.0)]
@@ -11,6 +11,6 @@ sethue(julia_blue)
 path([convex, concave], action=:stroke)
 sethue(julia_red)
 label("is_convex: true", :S, lab[1]); label("is_convex: false", :S, lab[2])
-path(vertices(convex)); plot_point(julia_blue)
-path(vertices(concave)); plot_point(julia_blue)
+sethue("white"); path(vertices(convex), action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path(vertices(concave), action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

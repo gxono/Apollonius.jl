@@ -44,7 +44,7 @@ APSegment(p::APPoint{2}, len::Real, angle::Real) = APSegment(p, polar_point(len,
 
 The point of a line, ray or segment at distance `d` from its first defining
 point (`l.p1`, or the `origin` of a ray), measured along its direction.
-Unlike [`point_on_line`](@ref), which takes a fraction of `distance(l.p1, l.p2)`,
+Unlike [`point_on`](@ref), which takes a fraction of `distance(l.p1, l.p2)`,
 `d` is a length. A negative `d` goes the other way.
 """
 point_at_distance(l::Union{APLine,APSegment}, d::Real) = l.p1 + d * normalize(l.p2 - l.p1)
@@ -60,11 +60,11 @@ external division, the point outside the segment where the ratio is `m : |n|`.
 """
 function divide_segment(s::APSegment, n::Integer)
     n >= 2 || throw(ArgumentError("divide_segment: n must be at least 2"))
-    return [point_on_line(s, k / n) for k in 1:n-1]
+    return [point_on(s, k / n) for k in 1:n-1]
 end
 function divide_segment(s::APSegment, m::Real, n::Real)
     m + n != 0 || throw(ArgumentError("divide_segment: m + n must not be zero"))
-    return point_on_line(s, m / (m + n))
+    return point_on(s, m / (m + n))
 end
 """
     equally_spaced_points(obj, n; start=0.0)
@@ -81,19 +81,19 @@ end
 """
 function equally_spaced_points(s::APSegment, n::Integer)
     n >= 2 || throw(ArgumentError("equally_spaced_points: n must be at least 2"))
-    return [point_on_line(s, k / (n - 1)) for k in 0:n-1]
+    return [point_on(s, k / (n - 1)) for k in 0:n-1]
 end
 function equally_spaced_points(arc::APCircularArc2, n::Integer)
     n >= 2 || throw(ArgumentError("equally_spaced_points: n must be at least 2"))
-    return [point_on_arc(arc, k / (n - 1)) for k in 0:n-1]
+    return [point_on(arc, k / (n - 1)) for k in 0:n-1]
 end
 function equally_spaced_points(c::APCircle2, n::Integer; start::Real=0.0)
     n >= 1 || throw(ArgumentError("equally_spaced_points: n must be at least 1"))
-    return [point_on_circle(c, start + 2pi * k / n) for k in 0:n-1]
+    return [point_on(c, start + 2pi * k / n) for k in 0:n-1]
 end
 function equally_spaced_points(e::APEllipse2, n::Integer; start::Real=0.0)
     n >= 1 || throw(ArgumentError("equally_spaced_points: n must be at least 1"))
-    return [point_on_ellipse(e, start + 2pi * k / n) for k in 0:n-1]
+    return [point_on(e, start + 2pi * k / n) for k in 0:n-1]
 end
 
 # ---- angles ----
@@ -389,12 +389,12 @@ end
 
 The kite with the diagonal `[a, c]` as its axis of symmetry. The other two
 vertices are at distance `half_width` on each side of the point at the
-fraction `t` of the way from `a` to `c` (see [`point_on_line`](@ref)), so the
+fraction `t` of the way from `a` to `c` (see [`point_on`](@ref)), so the
 kite is convex for `0 < t < 1`. The vertices `a`, `b`, `c`, `d` are counterclockwise.
 """
 function kite_on_diagonal(a::APPoint{2}, c::APPoint{2}, t::Real, half_width::Real)
     half_width > 0 || throw(ArgumentError("kite_on_diagonal: half_width must be positive"))
-    m = point_on_line(APSegment(a, c), t)
+    m = point_on(APSegment(a, c), t)
     w = half_width * orthogonal(normalize(c - a))
     return APQuadrilateral(a, m - w, c, m + w)
 end
@@ -505,7 +505,7 @@ end
 The [`APSegment`](@ref) between the points of the circle at the polar angles
 `θ1` and `θ2` (radians), from the first to the second.
 """
-chord(c::APCircle2, θ1::Real, θ2::Real) = APSegment(point_on_circle(c, θ1), point_on_circle(c, θ2))
+chord(c::APCircle2, θ1::Real, θ2::Real) = APSegment(point_on(c, θ1), point_on(c, θ2))
 """
     diameter(c::APCircle2, angle::Real=0.0)
 
@@ -554,12 +554,12 @@ end
 The circle tangent to the line `l` at its point `p` and through the point `q`.
 Throws an `ArgumentError` if `p` is not on `l`, or `q` is on `l`. For
 circles tangent to a line that pass through two points, see
-[`tangent_circles_through_points`](@ref). With a radius instead of a point, see
+[`tangent_circles`](@ref). With a radius instead of a point, see
 [`tangent_circles_at_point`](@ref).
 """
 function tangent_circle_at_point(l::APLine{2}, p::APPoint{2}, q::APPoint{2})
-    on_line(p, l) || throw(ArgumentError("tangent_circle_at_point: p is not on the line"))
-    on_line(q, l) && throw(ArgumentError("tangent_circle_at_point: q is on the line, no circle is tangent there"))
+    is_on_line(p, l) || throw(ArgumentError("tangent_circle_at_point: p is not on the line"))
+    is_on_line(q, l) && throw(ArgumentError("tangent_circle_at_point: q is on the line, no circle is tangent there"))
     center = only(intersection(perpendicular_through(l, p), perpendicular_bisector(p, q)))
     return APCircle2(center, distance(center, p))
 end
@@ -571,7 +571,7 @@ each side, as a `Vector`. Throws an `ArgumentError` if `p` is not on `l` or `r`
 is not positive.
 """
 function tangent_circles_at_point(l::APLine{2}, p::APPoint{2}, r::Real)
-    on_line(p, l) || throw(ArgumentError("tangent_circles_at_point: p is not on the line"))
+    is_on_line(p, l) || throw(ArgumentError("tangent_circles_at_point: p is not on the line"))
     r > 0 || throw(ArgumentError("tangent_circles_at_point: the radius must be positive"))
     n = orthogonal(normalize(direction(l)))
     return [APCircle2(p + r * n, r), APCircle2(p - r * n, r)]

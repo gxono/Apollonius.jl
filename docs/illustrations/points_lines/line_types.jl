@@ -1,10 +1,10 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=50 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=50 begin
     O = APPoint(0.0, 0.0)
     A = APPoint(3.0, 4.0)
     s = APSegment(O, A)
-    @unbounded l = translate(APLine(O, A), APVector(-6.0, 0.0))
-    @unbounded r = translate(APRay(O, A), APVector(6.0, 0.0))
+    l = translate(APLine(O, A), APVector(-6.0, 0.0))
+    r = translate(APRay(O, A), APVector(6.0, 0.0))
     ol, al = l.p1, l.p2
     orr, ar = r.origin, r.through
 end
@@ -17,5 +17,5 @@ path(l, action=:stroke, extend=60)
 path(r, action=:stroke, extend=60)
 sethue(julia_red)
 label("APSegment", :S, O); label("APLine", :SE, ol); label("APRay", :S, orr)
-path([O, A, ol, al, orr, ar]); plot_point(julia_blue)
+sethue("white"); path([O, A, ol, al, orr, ar], action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

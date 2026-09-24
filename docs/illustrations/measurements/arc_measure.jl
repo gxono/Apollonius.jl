@@ -1,7 +1,7 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     c = APCircle2(APPoint(0.0, 0.0), 3.0)
-    arc = APCircularArc2(c, point_on_circle(c, pi / 9), point_on_circle(c, 7pi / 9))
+    arc = APCircularArc2(c, point_on(c, pi / 9), point_on(c, 7pi / 9))
     ang = APAngle2(c.center, arc.p1, arc.p2)
     mid = midpoint(arc)
     radii = [APSegment(c.center, arc.p1), APSegment(c.center, arc.p2)]
@@ -21,6 +21,6 @@ path(marks(ang; size=40); action=:stroke)
 sethue(julia_red)
 label("measure", label_anchor(ang; dist=75)...)
 label("arc_length", :N, mid)
-path([c.center, arc.p1, arc.p2]); plot_point(julia_blue)
-path([mid]); plot_point(julia_purple)
+sethue("white"); path([c.center, arc.p1, arc.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([mid], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

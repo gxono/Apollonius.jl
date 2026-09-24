@@ -123,7 +123,7 @@ To ask whether a point is inside, use `in` (see [Predicates](@ref)).
 
 The intersection of a point with a curve or with the boundary of a region is
 the point itself if it lies there, and empty otherwise. The distance allowed is
-the one of [`on_line`](@ref).
+the one of [`is_on_line`](@ref).
 
 ```@example geo
 intersection(APPoint(2.5, 0.0), pg), intersection(APPoint(2.5, 1.0), pg)

@@ -35,29 +35,29 @@ function line_line_position(l1::APLine{3}, l2::APLine{3}; atol=1e-9)
     d1, d2 = direction(l1), direction(l2)
     tol = sqrt(atol) * max(norm(d1) * norm(d2), 1.0)
     if norm(cross3(d1, d2)) <= tol
-        return on_line(l2.p1, l1; atol=atol) ? :coincident : :parallel
+        return is_on_line(l2.p1, l1; atol=atol) ? :coincident : :parallel
     end
     return is_coplanar(l1.p1, l1.p2, l2.p1, l2.p2; atol=atol) ? :intersecting : :skew
 end
 """
-    on_line(p::APPoint, l::APLine; atol=1e-9)
+    is_on_line(p::APPoint, l::APLine; atol=1e-9)
 
 Whether point `p` lies on the infinite line `l`.
 """
-on_line(p::APPoint, l::APLine; atol=1e-9) = distance(p, l) <= sqrt(atol)
+is_on_line(p::APPoint, l::APLine; atol=1e-9) = distance(p, l) <= sqrt(atol)
 """
-    on_line(l::APLine; atol=1e-9)
+    is_on_line(l::APLine; atol=1e-9)
 
-`p -> on_line(p, l; atol=atol)`: for composing with `filter`/`map`, e.g.
-`filter(on_line(l), points)`.
+`p -> is_on_line(p, l; atol=atol)`: for composing with `filter`/`map`, e.g.
+`filter(is_on_line(l), points)`.
 """
-on_line(l::APLine; atol=1e-9) = p -> on_line(p, l; atol=atol)
+is_on_line(l::APLine; atol=1e-9) = p -> is_on_line(p, l; atol=atol)
 """
-    on_segment(p::APPoint, s::APSegment; atol=1e-9)
+    is_on_segment(p::APPoint, s::APSegment; atol=1e-9)
 
 Whether point `p` lies on the finite segment `s` (endpoints included).
 """
-function on_segment(p::APPoint, s::APSegment; atol=1e-9)
+function is_on_segment(p::APPoint, s::APSegment; atol=1e-9)
     a, b = s[1], s[2]
     is_collinear(a, b, p; atol=atol) || return false
     ab2 = dot(b - a, b - a)
@@ -66,17 +66,17 @@ function on_segment(p::APPoint, s::APSegment; atol=1e-9)
     return -atol <= t <= 1 + atol
 end
 """
-    on_segment(s::APSegment; atol=1e-9)
+    is_on_segment(s::APSegment; atol=1e-9)
 
-`p -> on_segment(p, s; atol=atol)`: see the single-argument [`on_line`](@ref).
+`p -> is_on_segment(p, s; atol=atol)`: see the single-argument [`is_on_line`](@ref).
 """
-on_segment(s::APSegment; atol=1e-9) = p -> on_segment(p, s; atol=atol)
+is_on_segment(s::APSegment; atol=1e-9) = p -> is_on_segment(p, s; atol=atol)
 """
-    on_ray(p::APPoint, r::APRay; atol=1e-9)
+    is_on_ray(p::APPoint, r::APRay; atol=1e-9)
 
 Whether point `p` lies on the half-line `r` (the origin included).
 """
-function on_ray(p::APPoint, r::APRay; atol=1e-9)
+function is_on_ray(p::APPoint, r::APRay; atol=1e-9)
     a, b = r.origin, r.through
     is_collinear(a, b, p; atol=atol) || return false
     ab2 = dot(b - a, b - a)
@@ -85,14 +85,14 @@ function on_ray(p::APPoint, r::APRay; atol=1e-9)
     return t >= -atol
 end
 """
-    on_ray(r::APRay; atol=1e-9)
+    is_on_ray(r::APRay; atol=1e-9)
 
-`p -> on_ray(p, r; atol=atol)`: see the single-argument [`on_line`](@ref).
+`p -> is_on_ray(p, r; atol=atol)`: see the single-argument [`is_on_line`](@ref).
 """
-on_ray(r::APRay; atol=1e-9) = p -> on_ray(p, r; atol=atol)
-Base.in(p::APPoint, s::APSegment) = on_segment(p, s)
-Base.in(p::APPoint, l::APLine) = on_line(p, l)
-Base.in(p::APPoint, r::APRay) = on_ray(p, r)
+is_on_ray(r::APRay; atol=1e-9) = p -> is_on_ray(p, r; atol=atol)
+Base.in(p::APPoint, s::APSegment) = is_on_segment(p, s)
+Base.in(p::APPoint, l::APLine) = is_on_line(p, l)
+Base.in(p::APPoint, r::APRay) = is_on_ray(p, r)
 """
     side_of_line(p::APPoint, l::APLine)
 

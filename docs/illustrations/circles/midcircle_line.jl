@@ -1,7 +1,7 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=260 margin=30 begin
     c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
-    @unbounded l4 = APLine(APPoint(-10.0, 5.0), APPoint(10.0, 5.0))
+    l4 = APLine(APPoint(-10.0, 5.0), APPoint(10.0, 5.0))
     m2 = only(midcircle(c1, l4))
 end
 (; c1, l4, m2) = lxo

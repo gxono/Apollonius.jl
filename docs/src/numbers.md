@@ -64,7 +64,7 @@ every function, and the difference is the useful part:
 | Scaled how | Where | Effect of `atol=1e-9` |
 |:-----------|:------|:----------------------|
 | Relative to the lengths involved | [`is_collinear`](@ref), [`is_parallel`](@ref), [`is_perpendicular`](@ref) | a sine or cosine below `1e-9` counts as zero, whatever the size of the figure |
-| As a distance, `sqrt(atol)` | [`on_line`](@ref), [`line_circle_position`](@ref), [`circles_position`](@ref), and the tangency decisions inside [`intersection`](@ref) | distances below `3e-5` (times the radius, when there is one) count as zero |
+| As a distance, `sqrt(atol)` | [`is_on_line`](@ref), [`line_circle_position`](@ref), [`circles_position`](@ref), and the tangency decisions inside [`intersection`](@ref) | distances below `3e-5` (times the radius, when there is one) count as zero |
 
 The second row is why a line that misses a circle by a hair is still called
 tangent. The gap below is `1e-6`, and the line is treated as touching:

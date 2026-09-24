@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=260 margin=30 begin
     arc = APCircularArc2(APCircle2(APPoint(0.0, 0.0), 3.0), polar_point(3.0, pi / 9), polar_point(3.0, 8pi / 9))
     chord = APSegment(arc.p1, arc.p2)
     top = midpoint(arc)
@@ -14,6 +14,6 @@ sethue(julia_purple)
 path([chord, sag], action=:stroke)
 sethue(julia_red)
 label("chord_length", :S, midpoint(chord.p1, chord.p2)); label("sagitta", :E, midpoint(sag.p1, sag.p2))
-path([arc.p1, arc.p2]); plot_point(julia_blue)
-path([top]); plot_point(julia_purple)
+sethue("white"); path([arc.p1, arc.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([top], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

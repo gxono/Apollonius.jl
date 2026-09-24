@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     s1 = APSegment(APPoint(0.0, 4.0), APPoint(7.0, 4.0))
     s2 = APSegment(APPoint(0.0, 0.0), APPoint(7.0, 0.0))
     s3 = APSegment(APPoint(10.0, 0.0), APPoint(13.0, 5.0))

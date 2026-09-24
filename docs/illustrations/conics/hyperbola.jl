@@ -1,9 +1,9 @@
 include("../default_config.jl")
 
-lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
     c = APPoint(0.0, 0.0)
-    @unbounded h = APHyperbola2(c, 3.0, 4.0)
-    arc1 = APHyperbolicArc2(h, point_on_hyperbola(h, -1.2), point_on_hyperbola(h, 1.2))
+    h = APHyperbola2(c, 3.0, 4.0)
+    arc1 = APHyperbolicArc2(h, point_on(h, -1.2), point_on(h, 1.2))
     arc2 = reflection(arc1, APLine(c, APPoint(0.0,1.0)))
     asy1, asy2 = asymptotes(h)
     f1, f2 = foci(h)

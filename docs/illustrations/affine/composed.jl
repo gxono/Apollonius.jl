@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     t = APTriangle(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
     @unbounded tm = translation_map(APVector(3.0, -2.0))
     @unbounded rm = rotation_map(pi / 2, APPoint(1.0, 1.0))

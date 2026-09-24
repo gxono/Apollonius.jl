@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(3.0, 6.0)
     s = APSegment(P, Q)
     l = APLine(s)
@@ -18,5 +18,5 @@ sethue(julia_blue)
     label("Q", :NW ,Q)
     label("P", :NW ,P)
     label("C", :SW ,C)
-path([P,Q,C]); plot_point(julia_blue)
+sethue("white"); path([P,Q,C], action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

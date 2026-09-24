@@ -1,9 +1,9 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     A, B = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
-    @unbounded m = perpendicular_bisector(A, B)
+    m = perpendicular_bisector(A, B)
     M = midpoint(A, B)
-    Q = point_on_line(perpendicular_bisector(A, B), 0.6)
+    Q = point_on(perpendicular_bisector(A, B), 0.6)
     AB = APSegment(A, B)
     eq = [APSegment(Q, A), APSegment(Q, B)]
 end
@@ -21,6 +21,6 @@ sethue(julia_purple)
 path(m, action=:stroke, extend=400)
 sethue(julia_red)
 label("A", :SW, A); label("B", :SE, B); label("M", :SE, M); label("Q", :NE, Q)
-path([A, B]); plot_point(julia_blue)
-path([M, Q]); plot_point(julia_purple)
+sethue("white"); path([A, B], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([M, Q], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

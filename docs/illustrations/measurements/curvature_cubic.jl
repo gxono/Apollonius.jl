@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=560 height=380 margin=30 begin
+lxm, lxo = @prepare_to_picture width=560 height=380 margin=30 begin
     cubic = APParametricCurve2(t -> APPoint(t, t^3), (-1.1, 1.1))
     tl, tr = tangent_at(cubic, -0.6), tangent_at(cubic, 0.6)
     pl, pr = tl.point, tr.point
@@ -22,6 +22,6 @@ path([cl, cr], action=:stroke)
 sethue(julia_green)
 sethue(julia_red)
 label("κ < 0", :S, cl.center); label("κ > 0", :N, cr.center)
-path([pl, pr]); plot_point(julia_purple)
-path([cl.center, cr.center]); plot_point(julia_green)
+sethue("white"); path([pl, pr], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue("white"); path([cl.center, cr.center], action=:fillpreserve); sethue(julia_green); strokepath()
 end)

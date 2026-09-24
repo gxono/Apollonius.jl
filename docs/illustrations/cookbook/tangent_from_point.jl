@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     c = APCircle2(APPoint(0.0, 0.0), 3.0)
     p = APPoint(7.0, 0.0)
     tp = tangent_points(c, p)
@@ -20,6 +20,6 @@ sethue(julia_purple)
 path(legs, action=:stroke)
 sethue(julia_red)
 label("p", :N, p)
-path([p, c.center]); plot_point(julia_blue)
-path(tp); plot_point(julia_purple)
+sethue("white"); path([p, c.center], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path(tp, action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

@@ -48,7 +48,7 @@ c_d == circle_with_diameter(d.p1, d.p2), c_d.center, c_d.r
 ```
 
 ```@example geo
-p_d = point_on_circle(c_d, 1.0)
+p_d = point_on(c_d, 1.0)
 angle_measure_at(p_d, d.p1, d.p2) ≈ pi / 2
 ```
 
@@ -147,7 +147,7 @@ distance(c1.center, oc2.center)^2 ≈ c1.r^2 + oc2.r^2
 ```
 
 The two-point form builds on the classical inversive-geometry fact that
-the circle through `p1`, `p2` and the [`inversion`](@ref) of `p1` in `c1`
+the circle through `p1`, `p2` and the [`invert`](@ref) of `p1` in `c1`
 is orthogonal to `c1`. It throws an `ArgumentError` for the two
 configurations that fact can't resolve on its own (`p1`/`p2` sitting
 exactly on `c1`, or forming an exact inverse pair): those have genuine
@@ -158,22 +158,24 @@ solutions too, just not from this one construction.
 Inversion in a circle `c` sends a point `p` to the point on ray `c.center
 → p` at distance `k²/distance(p, c.center)` from the center (`k = c.r` by
 default): points outside `c` go inside and vice versa, and points on `c`
-are fixed. [`inversion`](@ref) does this for a point; [`invert`](@ref) has
-methods for an `APLine` (which usually inverts to an `APCircle2` through the
-center), an `APCircle2` (which inverts to another `APCircle2`, or an
-`APLine` if it passes through the inversion center), an [`APSegment`](@ref)
-(see below), an `APTriangle`, and an `APStraightNgon`.
+are fixed. [`invert`](@ref) does this for a point, and for everything else
+on this page: a line (usually inverts to an `APCircle2` through the
+center), a circle (inverts to another `APCircle2`, or an `APLine` if it
+passes through the inversion center), a segment or a ray (see below), a
+triangle, a quadrilateral, a straight n-gon, a polyline, and every conic
+arc. `invert` also takes the circle of inversion directly instead of a
+center and a radius `k`.
 
 ```@example geo
-inversion(APPoint(10.0, 0.0), c)   # [2.5, 0.0]: 5²/10 = 2.5
+invert(APPoint(10.0, 0.0), c)   # [2.5, 0.0]: 5²/10 = 2.5
 ```
 
-[`inversion_neg`](@ref) and [`invert_neg`](@ref) give the *negative-ratio*
-inversion instead: the same image, point-reflected through the inversion
-circle's own center (i.e. on ray `p -> O` rather than `O -> p`):
+[`invert_neg`](@ref) gives the *negative-ratio* inversion instead: the
+same image, point-reflected through the inversion circle's own center
+(i.e. on ray `p -> O` rather than `O -> p`):
 
 ```@example geo
-inversion_neg(APPoint(10.0, 0.0), c)   # [-2.5, 0.0]: the mirror image of the positive one
+invert_neg(APPoint(10.0, 0.0), c)   # [-2.5, 0.0]: the mirror image of the positive one
 ```
 
 `invert`/`invert_neg` also take just `center` (and, as a keyword, `k`) to
@@ -231,7 +233,7 @@ crossing points), and one when one sits properly inside the other
 line follow the same three-way split (disjoint, tangent, secant), read
 against the line instead of a second circle.
 
-## Inverting a segment, triangle or polygon
+## Inverting a segment, a ray, a triangle or a polygon
 
 A straight side doesn't generally stay straight under inversion: it only
 does when the *line* it lies on passes through the inversion center
@@ -239,8 +241,10 @@ does when the *line* it lies on passes through the inversion center
 inverts to an arc of the circle its line inverts to: specifically the
 arc that does *not* pass through the center, since that point is the image
 of the line's own point at infinity, which a finite segment never reaches.
-[`invert(::APSegment, ::APPoint)`](@ref) returns whichever of the two
-applies, as a `Union{APSegment,APCircularArc2}`:
+[`invert(::APSegment, ::APCircle2)`](@ref) returns whichever of the two
+applies, as a `Union{APSegment,APCircularArc2}`. A ray reaches that point at
+infinity at one end, so its image is instead an arc that *does* end at the
+inversion center, via [`invert(::APRay, ::APCircle2)`](@ref):
 
 ```@example geo
 invert(APSegment(APPoint(1.0, 0.5), APPoint(2.0, 1.0)), APPoint(0.0, 0.0))    # an APCircularArc2
@@ -251,14 +255,15 @@ invert(APSegment(APPoint(0.5, -1.5), APPoint(1.5, -1.0)), APPoint(0.0, 0.0))  # 
 <img src="../assets/img/circles/inversion_segment.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
-Since an `APTriangle`'s or `APStraightNgon`'s sides invert independently
-like this, their image is generally a mix of straight and curved sides,
-not representable as another `APTriangle`/`APStraightNgon`.
-[`invert(::APTriangle, ::APPoint)`](@ref) and
-[`invert(::APStraightNgon, ::APPoint)`](@ref) return an
-[`APCurvilinearNgon2`](@ref) instead: a closed region bounded by any mix of
-`APSegment` and `APCircularArc2` sides, each inverted independently and
-reconnected in order.
+Since a triangle's, a quadrilateral's or a straight n-gon's sides invert
+independently like this, their image is generally a mix of straight and
+curved sides, not representable as another polygon of the same kind.
+[`invert(::APTriangle, ::APCircle2)`](@ref) and its `APQuadrilateral`/
+`APStraightNgon` siblings return an [`APCurvilinearNgon2`](@ref) instead: a
+closed region bounded by any mix of `APSegment` and `APCircularArc2` sides,
+each inverted independently and reconnected in order, regardless of the order
+each side comes back in (`area`/`perimeter`/etc. walk the sides themselves to
+find how they connect).
 
 ```@example geo
 t2 = APTriangle(APPoint(1.5, 1.5), APPoint(3.0, 0.5), APPoint(1.0, -1.0))
@@ -277,6 +282,16 @@ In the first example, none of the triangle's sides passes through the inversion 
 ```
 
 Same rule for any straight-sided polygon: each side inverts on its own, straight if its line passes through the center, an arc otherwise, so the result can freely mix both.
+
+A circular arc inverts to another arc of the image circle (or to a straight
+segment, if its own circle passes through the inversion center); an
+ellipse, a hyperbola, a parabola, or an arc of one, generally does not
+invert to another conic at all, so `invert` gives back a sampled
+[`APParametricCurve2`](@ref) for those instead:
+
+```@example geo
+invert(APEllipse2(APPoint(4.0, 0.0), 2.0, 1.0), APPoint(0.0, 0.0)) isa APParametricCurve2
+```
 
 ```@raw html
 <img src="../assets/img/circles/inversion_ngon.svg" alt="" style="width:100%; max-width: 700px;">
@@ -442,7 +457,7 @@ The blocks in this section are run when the documentation is built, and each
 figure comes from the code above it; only the geometry is shown. The figures
 use one color code: blue for the given objects, green for the construction
 aids, purple for what is found. In each part, the first block builds the
-objects inside [`@to_luxor_picture`](@ref), which fits them to the canvas and
+objects inside [`@prepare_to_picture`](@ref), which fits them to the canvas and
 returns the fitted objects in `lxo`, under the names they were given. The
 answer is built there too, so that the canvas has room for every step, and each
 step then rebuilds its part of it from the given objects.
@@ -470,7 +485,7 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     kc = APCircle2(APPoint(0.0, 0.0), 3.0)
     kp = APPoint(9.0, 2.0)
     kth = APCircle2(midpoint(kc.center, kp), distance(kc.center, kp) / 2)
@@ -554,7 +569,7 @@ perpendicular bisector of `[a, b]`. It is on the one of `[b, c]` too, so it is
 where the two bisectors meet.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     qa = APPoint(0.0, 0.0)
     qb = APPoint(6.0, 1.0)
     qc = APPoint(2.0, 5.0)
@@ -650,11 +665,11 @@ has the same power with respect to all three circles, and the radical axis is
 the perpendicular to the line of centers through that point.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     r1 = APCircle2(APPoint(0.0, 0.0), 2.0)
     r2 = APCircle2(APPoint(7.0, 1.0), 1.5)
     rk = APCircle2(APPoint(3.5, 2.0), 3.2)
-    @unbounded rax = radical_axis(r1, r2)
+    rax = radical_axis(r1, r2)
     rpiece = APSegment(APPoint(3.6, -3.0), APPoint(3.6, 5.0))   # the part of the axis in view
 end
 (; r1, r2, rk, rax, rpiece) = lxo
@@ -742,8 +757,8 @@ arc_length(arc)      # c.r * measure(arc)
 ```
 
 ```@example geo
-point_on_arc(arc, 0.0) ≈ p1   # t=0 is p1, t=1 is p2
-midpoint(arc)                   # point_on_arc(arc, 0.5)
+point_on(arc, 0.0) ≈ p1   # t=0 is p1, t=1 is p2
+midpoint(arc)                   # point_on(arc, 0.5)
 ```
 
 ```@raw html
@@ -771,12 +786,12 @@ reverse(arc) == APCircularArc2(c, p2, p1), measure(reverse(arc)) ≈ 2pi - measu
 
 This is the fix for a common gotcha: if `arc` gets built from points that
 already live in a mirrored coordinate space (e.g. after
-[`@to_luxor_picture`](@ref)'s default `flip=true`, see
+[`@prepare_to_picture`](@ref)'s default `flip=true`, see
 [Drawing with Luxor.jl](@ref)), the "counterclockwise" sweep comes out
 backwards, since it's computed straight from the `(x, y)` values with no
 idea they're mirrored; `reverse` corrects that after the fact (building
 the arc *before* the flip and letting the whole object pass through
-`@to_luxor_picture` handles it automatically instead, the same as for
+`@prepare_to_picture` handles it automatically instead, the same as for
 [`APAngle2`](@ref)).
 
 Ellipses have the exact same arc type, [`APEllipticArc2`](@ref), and the
@@ -1110,7 +1125,7 @@ distance from the corner where the circle just touches the two sides.
 The figures here use the same helpers as the constructions above.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     fa = APPoint(0.0, 0.0)
     fv = APPoint(6.0, 0.0)
     fb = APPoint(4.0, 5.0)
@@ -1139,7 +1154,7 @@ end # hide
 
 ```@example geo
 fbis = APRay(fv, first(angle_bisectors(APAngle2(fv, fa, fb))).b)
-on_ray(fbis.through, fbis)
+is_on_ray(fbis.through, fbis)
 ```
 
 ```@example geo

@@ -3,7 +3,7 @@ A, B, C = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0)
 t = APTriangle(A, B, C)
 sqs = [square_on_segment(A, B; ccw=false), square_on_segment(B, C; ccw=false), square_on_segment(C, A; ccw=false)]
 labs = [centroid(s) for s in sqs]
-lxm, lxo = @to_luxor_picture width=520 height=360 margin=30 begin
+lxm, lxo = @prepare_to_picture width=520 height=360 margin=30 begin
     t
     sqs
     labs

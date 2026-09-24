@@ -1,8 +1,8 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     O = APPoint(0.0, 0.0)
     A = APPoint(3.0, 4.0)
-    @unbounded l = APLine(O, A)
+    l = APLine(O, A)
     d = APEquipollentVector(direction(l), O)
     onl = APPoint(6.0, 8.0)
     h = APSegment(O, APPoint(4.0, 0.0))
@@ -24,5 +24,5 @@ path(marks(ang; size=40); action=:stroke)
 sethue(julia_red)
 label("53.13°", label_anchor(ang; dist=70)...)
 label("direction(l)", :E, midpoint(O, A))
-path([O, A, onl]); plot_point(julia_blue)
+sethue("white"); path([O, A, onl], action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

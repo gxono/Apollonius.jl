@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
     extent = mediator_construction(a, b; sweep=pi / 4).arcs
 end
@@ -19,6 +19,6 @@ path(m.result; add=(0.3, 0.3), action=:stroke)
 sethue(julia_red)
 label("A", :W, a)
 label("B", :E, b)
-path([a, b]); plot_point(julia_blue)
-path(m.points); plot_point(julia_green)
+sethue("white"); path([a, b], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path(m.points, action=:fillpreserve); sethue(julia_green); strokepath()
 end)

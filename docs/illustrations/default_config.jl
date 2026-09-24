@@ -3,7 +3,6 @@ using Apollonius
 using Luxor
 import Apollonius: rotate, translate, distance, midpoint
 import Luxor: julia_red, julia_blue, julia_green, julia_purple
-plot_point(color) = begin sethue("white"); fillpreserve(); sethue(color); strokepath() end
 end
 macro svg_doc(lxm, file, content)
     return quote

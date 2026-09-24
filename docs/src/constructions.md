@@ -57,7 +57,7 @@ Three of the other builders side by side: `arc_with_measure` starts at the point
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=30 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=30 begin  
         O1, P1 = APPoint(0.0, 0.0), APPoint(3.0, 0.0)
         aux = reflection(P1, O1)
         O2, P2 = APPoint(8.0, 0.0), APPoint(11.0, 0.0)
@@ -117,7 +117,7 @@ distance(A, C) ≈ r, distance(B, C) ≈ r
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         A, B = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
         C = argmax(p -> p[2], intersection(APCircle2(A, 6.0), APCircle2(B, 6.0)))
         cA, cB = APCircle2(A, 6.0), APCircle2(B, 6.0)
@@ -216,7 +216,7 @@ isapprox(m.result, perpendicular_bisector(a, b); atol=1e-9), length(m.arcs)
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
         extent = mediator_construction(a, b; sweep=pi / 4).arcs
     end
@@ -261,7 +261,7 @@ l = APLine(APPoint(0.0, 0.0), APPoint(5.0, 1.0))
 q = APPoint(2.0, 4.0)
 perp = perpendicular_construction(l, q)
 par = parallel_construction(l, q)
-is_perpendicular(perp.result, l), is_parallel(par.result, l), on_line(q, par.result)
+is_perpendicular(perp.result, l), is_parallel(par.result, l), is_on_line(q, par.result)
 ```
 
 ```@raw html
@@ -273,7 +273,7 @@ is_perpendicular(perp.result, l), is_parallel(par.result, l), on_line(q, par.res
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         A, B, p = APPoint(0.0, 0.0), APPoint(8.0, 1.0), APPoint(3.0, 4.0)
         extent = perpendicular_construction(APLine(A, B), p; sweep=pi / 4).arcs
     end
@@ -323,7 +323,7 @@ The parallel is a rhombus: `A`, `D`, `E` and the point, with the parallel throug
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         A, B, p = APPoint(0.0, 0.0), APPoint(8.0, 1.0), APPoint(2.0, 4.0)
         extent = parallel_construction(APLine(A, B), p; sweep=pi / 4).arcs
     end
@@ -380,7 +380,7 @@ result is the same kind of line.
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         A, B, p = APPoint(0.0, 0.0), APPoint(8.0, 2.0), APPoint(4.0, 1.0)
         extent = perpendicular_construction(APLine(A, B), p; sweep=pi / 4).arcs
     end
@@ -433,7 +433,7 @@ angle_measure_at(v, p1, y) ≈ angle_measure_at(v, y, p2)
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         v, p1, p2 = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
         extent = bisector_construction(v, p1, p2; sweep=pi / 4).arcs
     end
@@ -521,7 +521,7 @@ way, purple for the result.
 
 Each construction is done by hand, with the same steps the shown constructions
 above use. The first block of each one builds everything inside
-[`@to_luxor_picture`](@ref), which fits it to the canvas and returns the fitted
+[`@prepare_to_picture`](@ref), which fits it to the canvas and returns the fitted
 objects in `lxo`, under the names they were given, so every step is drawn in
 the same frame. The line `(; a, b, ...) = lxo` brings them into scope. A plain
 number such as a radius is not scaled, so the checks compare distances between
@@ -548,7 +548,7 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     a = APPoint(0.0, 0.0)
     b = APPoint(6.0, 2.0)
     c1 = APCircle2(a, 0.75 * distance(a, b))     # any radius above half of distance(a, b) works
@@ -606,7 +606,7 @@ end # hide
 
 ```@example geo
 bisector = APLine(p, q)
-(is_perpendicular(bisector, APLine(a, b)), on_line(midpoint(a, b), bisector))
+(is_perpendicular(bisector, APLine(a, b)), is_on_line(midpoint(a, b), bisector))
 ```
 
 ```@example geo
@@ -629,10 +629,10 @@ line is infinite, so it is marked `@unbounded`: it is fitted like the rest but
 does not set the size of the canvas.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     A = APPoint(0.0, 0.0)
     B = APPoint(8.0, 1.0)
-    @unbounded l = APLine(A, B)
+    l = APLine(A, B)
     p = APPoint(3.0, 4.0)
     cp = APCircle2(p, 1.5 * distance(p, l))        # a circle around p that reaches l
     x1, x2 = intersection(l, cp)                   # where it cuts l
@@ -649,7 +649,7 @@ nothing # hide
 **Step 1.** The line and the point.
 
 ```@example geo
-!on_line(p, l)
+!is_on_line(p, l)
 ```
 
 ```@example geo
@@ -717,10 +717,10 @@ The parallel to `l` through `p`, as a rhombus, as in
 gives `D` on `l`; two circles of the same radius around `D` and `p` meet at `E`.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     A = APPoint(0.0, 0.0)
     B = APPoint(8.0, 1.0)
-    @unbounded l = APLine(A, B)
+    l = APLine(A, B)
     p = APPoint(2.0, 4.0)
     cA = APCircle2(A, distance(A, p))              # the circle around A through p
     D = A + distance(A, p) * normalize(direction(l))    # ... cuts l at D
@@ -751,7 +751,7 @@ end # hide
 **Step 2.** The circle around `A` through `p` cuts `l` at `D`.
 
 ```@example geo
-(on_line(D, l), distance(A, D) ≈ cA.r)
+(is_on_line(D, l), distance(A, D) ≈ cA.r)
 ```
 
 ```@example geo
@@ -806,7 +806,7 @@ The bisector of the angle at `v` between `p1` and `p2`, as in
 equal circles around those points cross inside the angle.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     v = APPoint(0.0, 0.0)
     s1 = APSegment(v, APPoint(4.0, 0.0))
     s2 = APSegment(v, APPoint(1.0, 3.0))

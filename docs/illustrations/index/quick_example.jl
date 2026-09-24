@@ -1,6 +1,6 @@
 include("../default_config.jl")
 
-lxm, lxo = @to_luxor_picture width=500 height=320 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=320 margin=30 begin
     a, b, c = APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(1.0, 4.0)
     t = APTriangle(a, b, c)
     circ = circumcircle(t)

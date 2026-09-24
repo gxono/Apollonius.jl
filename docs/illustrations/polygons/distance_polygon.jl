@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=260 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=260 margin=30 begin
     pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 3.0), APPoint(1.0, 3.0)])
     inner = APPoint(2.0, 1.0)
     outer = APPoint(6.0, 1.0)
@@ -14,6 +14,6 @@ sethue(julia_blue)
 path(pg, action=:stroke)
 sethue(julia_purple)
 path([APSegment(inner, foot_in), APSegment(outer, foot_out)], action=:stroke)
-path([inner, outer]); plot_point(julia_blue)
-path([foot_in, foot_out]); plot_point(julia_purple)
+sethue("white"); path([inner, outer], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([foot_in, foot_out], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

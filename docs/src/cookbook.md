@@ -20,14 +20,14 @@ using Apollonius
 ```@example geo
 A, B = APPoint(1.0, 2.0), APPoint(7.0, 5.0)
 s = APSegment(A, B)
-midpoint(s), point_on_line(s, 0.25)
+midpoint(s), point_on(s, 0.25)
 ```
 
 ```@raw html
 <img src="../assets/img/cookbook/midpoint_fraction.svg" alt="A segment with its midpoint and the point a quarter of the way from A" style="width:100%; max-width: 700px;">
 ```
 
-[`point_on_line`](@ref)`(s, t)` takes a fraction of the way from the first end to the
+[`point_on`](@ref)`(s, t)` takes a fraction of the way from the first end to the
 second. It works on a line, a segment or a ray, and `t` can leave `[0, 1]` to go
 past the ends.
 
@@ -97,7 +97,7 @@ is_parallel(par, l), offset_line(l, 2.0)
 ```@example geo
 A, B = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
 m = perpendicular_bisector(A, B)
-distance(A, m) ≈ distance(B, m), on_line(midpoint(A, B), m)
+distance(A, m) ≈ distance(B, m), is_on_line(midpoint(A, B), m)
 ```
 
 ```@raw html
@@ -249,7 +249,7 @@ See [Circles](@ref) for inverting lines, segments and polygons too.
 ```@example geo
 A, B = APPoint(0.0, 0.0), APPoint(4.0, 1.0)
 l = APLine(APPoint(-3.0, 3.0), APPoint(8.0, 3.0))
-sols = tangent_circles_through_points(A, B, l)
+sols = tangent_circles(A, B, l)
 length(sols), all(c -> line_circle_position(l, c) == :tangent, sols)
 ```
 
@@ -261,7 +261,7 @@ length(sols), all(c -> line_circle_position(l, c) == :tangent, sols)
 
 ```@example geo
 l1, l2 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0))
-sols = tangent_circles_through_point(l1, l2, APPoint(3.0, 1.0))
+sols = tangent_circles(l1, l2, APPoint(3.0, 1.0))
 length(sols), all(c -> line_circle_position(l1, c) == :tangent, sols)
 ```
 
@@ -373,7 +373,7 @@ Pass `ccw=false` for the other side of the segment.
 
 ```@example geo
 t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
-on_line(centroid(t), euler_line(t)), on_line(orthocenter(t), euler_line(t)), on_line(circumcenter(t), euler_line(t))
+is_on_line(centroid(t), euler_line(t)), is_on_line(orthocenter(t), euler_line(t)), is_on_line(circumcenter(t), euler_line(t))
 ```
 
 ```@raw html
@@ -446,9 +446,9 @@ distance(n[1], n[2]) ≈ distance(n[2], n[3]) ≈ distance(n[3], n[1])
 
 ```@example geo
 t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
-p = point_on_circle(circumcircle(t), 0.7)
+p = point_on(circumcircle(t), 0.7)
 sl = simson_line(t, p)
-all(on_line(f, sl) for f in vertices(pedal_triangle(t, p)))   # the feet of the perpendiculars
+all(is_on_line(f, sl) for f in vertices(pedal_triangle(t, p)))   # the feet of the perpendiculars
 ```
 
 ```@raw html
@@ -561,7 +561,7 @@ circle:
 ```@example geo
 A, B = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
 c = apollonius_circle(A, B, 2.0)
-p = point_on_circle(c, 1.2)
+p = point_on(c, 1.2)
 distance(p, A) / distance(p, B) ≈ 2.0
 ```
 
@@ -591,9 +591,9 @@ an outside point are two:
 
 ```@example geo
 e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
-p = point_on_ellipse(e, 1.0)
+p = point_on(e, 1.0)
 at_p = polar_line(e, p)
-on_line(p, at_p), length(tangent_lines(e, APPoint(8.0, 0.0)))
+is_on_line(p, at_p), length(tangent_lines(e, APPoint(8.0, 0.0)))
 ```
 
 ```@raw html
@@ -604,7 +604,7 @@ on_line(p, at_p), length(tangent_lines(e, APPoint(8.0, 0.0)))
 
 ```@example geo
 par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(0.0, -1.0), APPoint(1.0, -1.0)))
-p = point_on_parabola(par, 0.7)
+p = point_on(par, 0.7)
 distance(p, par.focus) ≈ distance(p, par.directrix)
 ```
 
@@ -670,8 +670,8 @@ rad2deg(measure(a60)), rad2deg(measure(APAngle2(APLine(APPoint(0.0, 0.0), APPoin
 
 ```@example geo
 e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
-pt = point_on_ellipse(e, 1.0)
-on_line(pt, tangent_line(e, pt)), is_perpendicular(tangent_line(e, pt), normal_line(e, pt))
+pt = point_on(e, 1.0)
+is_on_line(pt, tangent_line(e, pt)), is_perpendicular(tangent_line(e, pt), normal_line(e, pt))
 ```
 
 ```@raw html
@@ -759,7 +759,7 @@ tangent_circle_at_point(l, APPoint(2.0, 0.0), APPoint(0.0, 2.0)), length(tangent
 
 ```@example geo
 c = APCircle2(APPoint(0.0, 0.0), 1.0)
-t = circumscribed_triangle(c, point_on_circle(c, 0.5), point_on_circle(c, 2.5), point_on_circle(c, 4.5))
+t = circumscribed_triangle(c, point_on(c, 0.5), point_on(c, 2.5), point_on(c, 4.5))
 isapprox(incircle(t), c; atol=1e-9)
 ```
 
@@ -887,7 +887,7 @@ See [Transforming in Bulk: Macros](@ref).
 
 ```@example geo
 a, b, c = APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(5.0, 4.0)
-d = point_on_circle(circumcircle(APTriangle(a, b, c)), 2.0)
+d = point_on(circumcircle(APTriangle(a, b, c)), 2.0)
 is_concyclic(a, b, c, d), is_collinear(a, b, c)
 ```
 
@@ -918,7 +918,7 @@ using Apollonius, Luxor
 t = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(1.5, 4.0))
 cc = circumcircle(t)
 
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     t
     cc
 end
@@ -968,9 +968,9 @@ Infinite lines and conics have no size, so name them with
 [`@unbounded`](@ref) inside the fitting block and draw them with `extend`:
 
 ```julia
-lxm, lxo = @to_luxor_picture width=500 begin
+lxm, lxo = @prepare_to_picture width=500 begin
     t
-    @unbounded l = APLine(t[1], t[2])
+    l = APLine(t[1], t[2])
 end
 path(lxo.l, action=:stroke, extend=500)
 ```

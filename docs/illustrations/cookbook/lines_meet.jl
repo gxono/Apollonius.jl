@@ -1,8 +1,8 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
-    @unbounded l1 = APLine(APPoint(0.0, 0.0), APPoint(4.0, 2.0))
-    @unbounded l2 = APLine(APPoint(0.0, 3.0), APPoint(4.0, 1.0))
-    @unbounded off = offset_line(APLine(APPoint(0.0, 0.0), APPoint(4.0, 2.0)), 1.0)
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+    l1 = APLine(APPoint(0.0, 0.0), APPoint(4.0, 2.0))
+    l2 = APLine(APPoint(0.0, 3.0), APPoint(4.0, 1.0))
+    off = offset_line(APLine(APPoint(0.0, 0.0), APPoint(4.0, 2.0)), 1.0)
     q = [APPoint(0.0, 0.0), APPoint(4.0, 2.0), APPoint(0.0, 3.0), APPoint(4.0, 1.0)]
     x = only(intersection(APLine(q[1], q[2]), APLine(q[3], q[4])))
 end
@@ -19,6 +19,6 @@ path([l1, l2], action=:stroke, extend=400)
 sethue(julia_purple)
 sethue(julia_red)
 label("[x]", :NE, x)
-path(q); plot_point(julia_blue)
-path([x]); plot_point(julia_purple)
+sethue("white"); path(q, action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([x], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

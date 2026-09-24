@@ -88,16 +88,16 @@ the axis, the focal parameter, and so the directrix too.
 APParabola2(vertex(par), focus) ≈ par
 ```
 
-[`point_on_parabola`](@ref) parametrizes by the signed distance `s` from
+[`point_on`](@ref) parametrizes by the signed distance `s` from
 the axis (so it's the local `y`-coordinate in the frame where the parabola
 reads `y² = 2·p·x`, with `s = 0` at the vertex):
 
 ```@example geo
-point_on_parabola(par, 2.0)
+point_on(par, 2.0)
 ```
 
 ```@example geo
-is_on_parabola(point_on_parabola(par, 2.0), par)   # true, by construction
+is_on_parabola(point_on(par, 2.0), par)   # true, by construction
 ```
 
 The parabola's own [`orthoptic`](@ref) (director curve) turns out to be
@@ -149,17 +149,17 @@ plane from which both tangents can be perpendicular, and it throws an
 orthoptic(APHyperbola2(APPoint(0.0, 0.0), 5.0, 3.0))   # a > b: APCircle2 of radius sqrt(25-9) = 4
 ```
 
-[`point_on_hyperbola`](@ref) parametrizes one branch at a time
+[`point_on`](@ref) parametrizes one branch at a time
 (`branch=1`, the default, or `branch=-1` for the other) using the
 hyperbolic functions: `x = branch·a·cosh(t)`, `y = b·sinh(t)`.
 
 ```@example geo
-point_on_hyperbola(h, 0.5)          # on the branch nearer +x
-point_on_hyperbola(h, 0.5; branch=-1)  # the mirrored point on the other branch
+point_on(h, 0.5)          # on the branch nearer +x
+point_on(h, 0.5; branch=-1)  # the mirrored point on the other branch
 ```
 
 ```@example geo
-is_on_hyperbola(point_on_hyperbola(h, 0.5), h)   # true, on either branch
+is_on_hyperbola(point_on(h, 0.5), h)   # true, on either branch
 ```
 
 `p in h` (via `Base.in`) is the natural analogue of "inside" for a curve
@@ -325,8 +325,8 @@ for every curve:
 
 ```@example geo
 ec = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
-pc = point_on_ellipse(ec, 1.0)
-tangent_line(ec, pc) ≈ polar_line(ec, pc), on_line(pc, normal_line(ec, pc))
+pc = point_on(ec, 1.0)
+tangent_line(ec, pc) ≈ polar_line(ec, pc), is_on_line(pc, normal_line(ec, pc))
 ```
 
 ## Conic constructions step by step
@@ -335,7 +335,7 @@ The blocks in this section are run when the documentation is built, and each
 figure comes from the code above it; only the geometry is shown. The figures
 use one color code: blue for the given objects, green for the construction
 aids, purple for what is found. In each part, the first block builds the
-objects inside [`@to_luxor_picture`](@ref), which fits them to the canvas and
+objects inside [`@prepare_to_picture`](@ref), which fits them to the canvas and
 returns the fitted objects in `lxo`, under the names they were given. The
 answer is built there too, so that the canvas has room for every step, and each
 step then rebuilds its part of it from the given objects. A curve that goes on
@@ -364,7 +364,7 @@ function fig_draw(f, w, h) # hide
         Luxor.origin(); fontsize(15); f() # hide
     end w h # hide
 end # hide
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     ef1 = APPoint(-3.0, 0.0)
     ef2 = APPoint(3.0, 0.0)
     eell = APEllipse2(ef1, ef2, 5.0)
@@ -445,11 +445,11 @@ its distance to the directrix is measured along the perpendicular at `D`. So it
 is where the two lines meet.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     pf = APPoint(0.0, 1.0)
     pd = APSegment(APPoint(-6.0, -1.0), APPoint(6.0, -1.0))
-    @unbounded ppar = APParabola2(pf, APLine(pd.p1, pd.p2))
-    parc = APParabolicArc2(ppar, point_on_parabola(ppar, -5.0), point_on_parabola(ppar, 5.0))
+    ppar = APParabola2(pf, APLine(pd.p1, pd.p2))
+    parc = APParabolicArc2(ppar, point_on(ppar, -5.0), point_on(ppar, 5.0))
 end
 (; pf, pd, ppar, parc) = lxo
 figH = ceil(Int, lxm.height) # hide
@@ -460,7 +460,7 @@ nothing # hide
 
 ```@example geo
 pl = APLine(pd.p1, pd.p2)
-!on_line(pf, pl)
+!is_on_line(pf, pl)
 ```
 
 ```@example geo
@@ -474,7 +474,7 @@ end # hide
 **Step 2.** A point `D` of the directrix, and the perpendicular bisector of `[F, D]`.
 
 ```@example geo
-pdp = point_on_line(pl, 0.7)
+pdp = point_on(pl, 0.7)
 pm = perpendicular_bisector(pf, pdp)
 distance(pf, pm) ≈ distance(pdp, pm)
 ```
@@ -511,7 +511,7 @@ end # hide
 **Step 4.** The same for other points of the directrix, and the parabola through all of them.
 
 ```@example geo
-pps = [only(intersection(perpendicular_bisector(pf, d), perpendicular_through(pl, d))) for d in [point_on_line(pl, t) for t in (0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95)]]
+pps = [only(intersection(perpendicular_bisector(pf, d), perpendicular_through(pl, d))) for d in [point_on(pl, t) for t in (0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95)]]
 all(p -> is_on_parabola(p, ppar), pps)
 ```
 
@@ -534,13 +534,13 @@ then at distance `|PF1| + |PF2| = 2a` from `F2`, and the tangent is the
 perpendicular bisector of `[F1, Q]`.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     tf1 = APPoint(-3.0, 0.0)
     tf2 = APPoint(3.0, 0.0)
     tell = APEllipse2(tf1, tf2, 5.0)
-    tp = point_on_ellipse(tell, 1.0)
+    tp = point_on(tell, 1.0)
     tq = only(intersection(APRay(tf2, tp), APCircle2(tf2, 2 * tell.a)))
-    @unbounded ttan = polar_line(tell, tp)
+    ttan = polar_line(tell, tp)
 end
 (; tf1, tf2, tell, tp, tq, ttan) = lxo
 figH = ceil(Int, lxm.height) # hide
@@ -598,7 +598,7 @@ end # hide
 
 ```@example geo
 ttl = perpendicular_bisector(tf1, tq)
-(on_line(tp, ttl), ttl ≈ polar_line(tell, tp))
+(is_on_line(tp, ttl), ttl ≈ polar_line(tell, tp))
 ```
 
 ```@example geo
@@ -621,12 +621,12 @@ the other. They cross at points of the branch that is nearer the first focus.
 Swapping the two circles gives the other branch.
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     hf1 = APPoint(-3.0, 0.0)
     hf2 = APPoint(3.0, 0.0)
-    @unbounded hyp = APHyperbola2(hf1, hf2, 1.5)
-    harc1 = APHyperbolicArc2(hyp, point_on_hyperbola(hyp, -1.3), point_on_hyperbola(hyp, 1.3))
-    harc2 = APHyperbolicArc2(hyp, point_on_hyperbola(hyp, -1.3; branch=-1), point_on_hyperbola(hyp, 1.3; branch=-1))
+    hyp = APHyperbola2(hf1, hf2, 1.5)
+    harc1 = APHyperbolicArc2(hyp, point_on(hyp, -1.3), point_on(hyp, 1.3))
+    harc2 = APHyperbolicArc2(hyp, point_on(hyp, -1.3; branch=-1), point_on(hyp, 1.3; branch=-1))
 end
 (; hf1, hf2, hyp, harc1, harc2) = lxo
 figH = ceil(Int, lxm.height) # hide
@@ -702,21 +702,21 @@ end # hide
 [`APHyperbolicArc2`](@ref) are the finite-arc analogues of
 [`APCircularArc2`](@ref) (see [Circles](@ref)) for these three conics: each
 holds the underlying conic plus two points `p1`/`p2` on it, and
-[`point_on_arc`](@ref)/[`arc_length`](@ref) work on all four arc types
+[`point_on`](@ref)/[`arc_length`](@ref) work on all four arc types
 uniformly:
 
 ```@example geo
-earc = APEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 2.0))
-point_on_arc(earc, 0.0) ≈ earc.p1, point_on_arc(earc, 1.0) ≈ earc.p2
+earc = APEllipticArc2(e, point_on(e, 0.2), point_on(e, 2.0))
+point_on(earc, 0.0) ≈ earc.p1, point_on(earc, 1.0) ≈ earc.p2
 ```
 
 ```@example geo
-parc = APParabolicArc2(par, point_on_parabola(par, -3.0), point_on_parabola(par, 3.0))
+parc = APParabolicArc2(par, point_on(par, -3.0), point_on(par, 3.0))
 arc_length(parc) > distance(parc.p1, parc.p2)   # the arc is always longer than its chord
 ```
 
 ```@example geo
-harc = APHyperbolicArc2(h, point_on_hyperbola(h, -0.5), point_on_hyperbola(h, 0.5))
+harc = APHyperbolicArc2(h, point_on(h, -0.5), point_on(h, 0.5))
 harc isa APHyperbolicArc2
 ```
 
@@ -747,13 +747,13 @@ All four arc types (this trio plus [`APCircularArc2`](@ref)) support
 genuinely different piece of the curve, "the rest of the way around" (same
 gotcha as [`reverse(::APAngle2)`](@ref): useful when the arc was built from
 points already in a mirrored coordinate space, e.g. after
-[`@to_luxor_picture`](@ref)'s default `flip=true`). For the *open* ones
+[`@prepare_to_picture`](@ref)'s default `flip=true`). For the *open* ones
 (`APParabolicArc2`/`APHyperbolicArc2`), there's no such ambiguity: `reverse`
-just re-parametrizes the same arc in the opposite direction (`point_on_arc(arc,
-t)` becomes `point_on_arc(reverse(arc), 1 - t)`):
+just re-parametrizes the same arc in the opposite direction (`point_on(arc,
+t)` becomes `point_on(reverse(arc), 1 - t)`):
 
 ```@example geo
-reverse(reverse(parc)) == parc, point_on_arc(reverse(parc), 0.0) ≈ parc.p2
+reverse(reverse(parc)) == parc, point_on(reverse(parc), 0.0) ≈ parc.p2
 ```
 
 ### Intersecting an arc
@@ -856,7 +856,7 @@ returns the unique `APEllipse2` or `APHyperbola2` passing through all of them
 two a line):
 
 ```@example geo
-pts = [point_on_ellipse(APEllipse2(APPoint(1.0, 2.0), 6.0, 4.0, 0.3), t) for t in (0.1, 1.0, 2.0, 3.0, 4.5)]
+pts = [point_on(APEllipse2(APPoint(1.0, 2.0), 6.0, 4.0, 0.3), t) for t in (0.1, 1.0, 2.0, 3.0, 4.5)]
 conic_through_points(pts...)
 ```
 

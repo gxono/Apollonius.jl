@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=200 margin=45 begin
+lxm, lxo = @prepare_to_picture width=500 height=200 margin=45 begin
     O1, P1 = APPoint(0.0, 0.0), APPoint(3.0, 0.0)
     aux = reflection(P1, O1)
     O2, P2 = APPoint(8.0, 0.0), APPoint(11.0, 0.0)

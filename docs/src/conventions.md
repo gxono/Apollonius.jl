@@ -13,7 +13,7 @@ often. If a function surprises you, look here first.
 |:------|:-----------|
 | Angle unit | Radians everywhere. Functions that also take degrees say so in their name (`polar_point_deg`). |
 | Orientation | Counterclockwise is positive. [`APCircularArc2`](@ref) always runs counterclockwise from `p1` to `p2`, and [`APAngle2`](@ref) is the wedge swept counterclockwise from `a` to `b`. |
-| Parameter `t` on an arc | `t = 0` is `p1` and `t = 1` is `p2`, the same for [`point_on_arc`](@ref), [`tangent_at`](@ref) and [`marks`](@ref). It is proportional to length only for a segment; on a circular arc it is proportional to the swept angle, and on the other conic arcs it follows the conic's own parameter. |
+| Parameter `t` on an arc | `t = 0` is `p1` and `t = 1` is `p2`, the same for [`point_on`](@ref), [`tangent_at`](@ref) and [`marks`](@ref). It is proportional to length only for a segment; on a circular arc it is proportional to the swept angle, and on the other conic arcs it follows the conic's own parameter. |
 | Tolerances | Predicates and constructions take `atol` (default `1e-9`). Where it is scaled, it is scaled by the size of the objects involved (a radius, a side), never by how far they sit from the origin. |
 
 ```@example geo
@@ -21,7 +21,7 @@ using Apollonius
 
 c = APCircle2(APPoint(0.0, 0.0), 3.0)
 arc = APCircularArc2(c, APPoint(3.0, 0.0), APPoint(0.0, 3.0))
-measure(arc) ≈ pi / 2, point_on_arc(arc, 0.0) ≈ arc.p1
+measure(arc) ≈ pi / 2, point_on(arc, 0.0) ≈ arc.p1
 ```
 
 The order of the two rays decides which wedge you get. Swapping `a` and `b` gives the other one:
@@ -36,7 +36,7 @@ The order of the two rays decides which wedge you get. Swapping `a` and `b` give
     import Apollonius: distance
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=240 margin=60 begin
+    lxm = @prepare_to_picture! width=500 height=240 margin=60 begin
         O1, A1, B1 = APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(2.0, 4.0)
         O2, A2, B2 = APPoint(9.0, 0.0), APPoint(14.0, 0.0), APPoint(11.0, 4.0)
         ang1 = APAngle2(O1, A1, B1)
@@ -128,9 +128,9 @@ the second. Do not rely on the order of [`tangent_circles`](@ref).
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! width=560 height=260 margin=30 begin
+    lxm = @prepare_to_picture! width=560 height=260 margin=30 begin
         c1 = APCircle2(APPoint(0.0, 0.0), 2.5)
-        @unbounded l = APLine(APPoint(-4.0, -1.0), APPoint(4.0, 1.0))
+        l = APLine(APPoint(-4.0, -1.0), APPoint(4.0, 1.0))
         lp = intersection(l, c1)
         d1 = APCircle2(APPoint(9.0, 0.0), 2.5)
         d2 = APCircle2(APPoint(12.0, 0.0), 2.5)
@@ -169,7 +169,7 @@ Two rules govern every function that decorates a figure.
 **Sizes are in the units of the objects you pass.** `marks(s; size=6)` makes
 marks 6 units long in whatever coordinates `s` is in. To get 6 pixels,
 build the decoration from objects that are already in canvas coordinates,
-such as the ones [`@to_luxor_picture`](@ref) returns, and draw them
+such as the ones [`@prepare_to_picture`](@ref) returns, and draw them
 afterwards. Decorations computed before the transform scale with the
 figure.
 
@@ -190,7 +190,7 @@ up. Call them on the transformed objects and it all lines up.
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! width=420 height=300 margin=30 begin
+    lxm = @prepare_to_picture! width=420 height=300 margin=30 begin
         O = APPoint(0.0, 0.0)
         ring = [polar_point(4.0, k * pi / 4) for k in 0:7]
     end
@@ -215,7 +215,7 @@ up. Call them on the transformed objects and it all lines up.
 The [Marks, Labels & Decorations](@ref) page has the details.
 
 !!! warning "Fit first, then decorate"
-    Marks, arrows, braces and label positions are computed in the units of the objects you give them, and the compass and side arguments read the screen convention. Give them the objects that [`@to_luxor_picture`](@ref) returns. The order of the steps is in [Workflow: From Construction to Figure](@ref).
+    Marks, arrows, braces and label positions are computed in the units of the objects you give them, and the compass and side arguments read the screen convention. Give them the objects that [`@prepare_to_picture`](@ref) returns. The order of the steps is in [Workflow: From Construction to Figure](@ref).
 
 ## Frequently asked questions
 
@@ -239,7 +239,7 @@ measure(arc) ≈ pi / 2, measure(reverse(arc)) ≈ 3pi / 2
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! width=500 height=260 margin=30 begin
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
         arc = APCircularArc2(APCircle2(APPoint(0.0, 0.0), 3.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0))
         comp = reverse(arc)
     end
@@ -257,8 +257,8 @@ measure(arc) ≈ pi / 2, measure(reverse(arc)) ≈ 3pi / 2
     path(arc, action=:stroke)
 
     sethue(julia_red)
-    label("arc", :NE, point_on_arc(arc, 0.5))
-    label("reverse(arc)", :SW, point_on_arc(comp, 0.5))
+    label("arc", :NE, point_on(arc, 0.5))
+    label("reverse(arc)", :SW, point_on(comp, 0.5))
 
     sethue("white")
     path([arc.p1, arc.p2], action=:fillpreserve)
@@ -274,12 +274,12 @@ measure(arc) ≈ pi / 2, measure(reverse(arc)) ≈ 3pi / 2
 but the `end` keyword does not, for every indexable type in the package.
 Use `s[2]`, or `vertices(polyline)[end]` for a polyline.
 
-**My marks or labels are the wrong size after `@to_luxor_picture`.** They
+**My marks or labels are the wrong size after `@prepare_to_picture`.** They
 were computed on the original objects, and the transform then scaled them.
 Compute them from the transformed objects instead.
 
-**What is the difference between `@to_luxor_picture` and
-`@to_luxor_picture!`?** The plain macro returns transformed copies and
+**What is the difference between `@prepare_to_picture` and
+`@prepare_to_picture!`?** The plain macro returns transformed copies and
 leaves your variables alone. The `!` form rebinds them in place, which also
 changes them for every later use in the same script.
 

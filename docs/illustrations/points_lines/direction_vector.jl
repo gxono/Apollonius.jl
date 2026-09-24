@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     A = APPoint(5.0, 4.0)
     O = APPoint(0.0, 0.0)
     l = APLine(A, O)
@@ -14,5 +14,5 @@ end
     path(d, action=:stroke, as=:arrow)
     sethue(julia_purple)
     path(v, action=:stroke, as=:arrow)
-    path([A,O]); plot_point(julia_blue)
+    sethue("white"); path([A,O], action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

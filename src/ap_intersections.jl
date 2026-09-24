@@ -65,9 +65,9 @@ or any conic), as a `Vector{APPoint{2,Float64}}`: the intersection of the
 *infinite* line through `s` with `x`, filtered down to the points that
 actually fall within `s`'s own two endpoints.
 """
-intersection(s::APSegment, l::APLine; atol=1e-9) = filter(p -> on_segment(p, s; atol=atol), intersection(APLine(s), l; atol=atol))
+intersection(s::APSegment, l::APLine; atol=1e-9) = filter(p -> is_on_segment(p, s; atol=atol), intersection(APLine(s), l; atol=atol))
 intersection(l::APLine, s::APSegment; atol=1e-9) = intersection(s, l; atol=atol)
-intersection(s::APSegment, c::APCircle2; atol=1e-9) = filter(p -> on_segment(p, s; atol=atol), intersection(APLine(s), c; atol=atol))
+intersection(s::APSegment, c::APCircle2; atol=1e-9) = filter(p -> is_on_segment(p, s; atol=atol), intersection(APLine(s), c; atol=atol))
 intersection(c::APCircle2, s::APSegment; atol=1e-9) = intersection(s, c; atol=atol)
 
 """
@@ -78,13 +78,13 @@ Intersection of the half-line `r` with `x` (an `APLine`, `APSegment`,
 [`intersection(::APSegment, x)`](@ref), filtered down to the points that
 fall on `r`'s own side of its `origin`.
 """
-intersection(r::APRay, l::APLine; atol=1e-9) = filter(p -> on_ray(p, r; atol=atol), intersection(APLine(r), l; atol=atol))
+intersection(r::APRay, l::APLine; atol=1e-9) = filter(p -> is_on_ray(p, r; atol=atol), intersection(APLine(r), l; atol=atol))
 intersection(l::APLine, r::APRay; atol=1e-9) = intersection(r, l; atol=atol)
-intersection(r::APRay, s::APSegment; atol=1e-9) = filter(p -> on_ray(p, r; atol=atol), intersection(APLine(r), s; atol=atol))
+intersection(r::APRay, s::APSegment; atol=1e-9) = filter(p -> is_on_ray(p, r; atol=atol), intersection(APLine(r), s; atol=atol))
 intersection(s::APSegment, r::APRay; atol=1e-9) = intersection(r, s; atol=atol)
-intersection(r::APRay, c::APCircle2; atol=1e-9) = filter(p -> on_ray(p, r; atol=atol), intersection(APLine(r), c; atol=atol))
+intersection(r::APRay, c::APCircle2; atol=1e-9) = filter(p -> is_on_ray(p, r; atol=atol), intersection(APLine(r), c; atol=atol))
 intersection(c::APCircle2, r::APRay; atol=1e-9) = intersection(r, c; atol=atol)
-intersection(r1::APRay, r2::APRay; atol=1e-9) = filter(p -> on_ray(p, r2; atol=atol), intersection(r1, APLine(r2); atol=atol))
+intersection(r1::APRay, r2::APRay; atol=1e-9) = filter(p -> is_on_ray(p, r2; atol=atol), intersection(r1, APLine(r2); atol=atol))
 
 function _radical_foot(c1::APCircle2, c2::APCircle2)
     d = distance(c1.center, c2.center)

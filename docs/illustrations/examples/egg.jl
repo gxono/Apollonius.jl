@@ -17,7 +17,7 @@ egg = APCurvilinearQuadrilateral2(
     APCircularArc2(A, B, ip2)
 )
 
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     egg
 end
 (; egg) = lxo

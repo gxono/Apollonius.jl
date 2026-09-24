@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=280 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
     pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(6.0, 1.0), APPoint(1.0, 1.0), APPoint(1.0, 4.0), APPoint(0.0, 4.0)])
     vs = collect(vertices(pg))
     avg = APPoint(sum(p[1] for p in vs) / length(vs), sum(p[2] for p in vs) / length(vs))
@@ -14,6 +14,6 @@ sethue("gray80")
 sethue(julia_purple)
 sethue(julia_red)
 label("centroid", :NE, cen); label("vertex average", :E, avg)
-path([avg]); plot_point("gray80")
-path([cen]); plot_point(julia_purple)
+sethue("white"); path([avg], action=:fillpreserve); sethue("gray80"); strokepath()
+sethue("white"); path([cen], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

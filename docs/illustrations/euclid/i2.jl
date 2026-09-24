@@ -16,7 +16,7 @@ L = only(intersection(APRay(D, A), circ(D, G)))
 BC = APSegment(B, C); AL = APSegment(A, L)
 aids = [APSegment(D, G), APSegment(D, L), APSegment(A, D), APSegment(D, B), APSegment(A, B)]
 traces = [compass_trace(B, G; angle=pi / 5), compass_trace(D, L; angle=pi / 6)]
-lxm, lxo = @to_luxor_picture width=500 height=320 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=320 margin=30 begin
     A
     B
     C
@@ -45,7 +45,7 @@ sethue(julia_purple)
 path(AL, action=:stroke)
 sethue(julia_red)
 label("A", :NW, A); label("B", :S, B); label("C", :E, C); label("D", :N, D); label("G", :S, G); label("L", :W, L)
-path([A, B, C]); plot_point(julia_blue)
-path([D, G]); plot_point(julia_green)
-path([L]); plot_point(julia_purple)
+sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([D, G], action=:fillpreserve); sethue(julia_green); strokepath()
+sethue("white"); path([L], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

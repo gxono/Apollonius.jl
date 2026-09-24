@@ -1,6 +1,6 @@
 include("../default_config.jl")
 styles = [:tick, :slash, :chevron, :cross, :circle]
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     segs = [APSegment(APPoint(4.0, 2.0 * (5 - i)), APPoint(10.0, 2.0 * (5 - i))) for i in 1:5]
     names = [APPoint(0.0, 2.0 * (5 - i)) for i in 1:5]
 end

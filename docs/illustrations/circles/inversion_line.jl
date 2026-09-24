@@ -1,7 +1,7 @@
 include("../default_config.jl")
 P = APPoint(0.0, 0.0)
 inv5 = invert(P; k=5.0)
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     P
     circ = APCircle2(P, 5.0)
     l1 = APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0))
@@ -22,5 +22,5 @@ path(l2, action=:stroke)
 setdash(:dash)
 path(t2, action=:stroke)
 setdash(:solid)
-path(P); plot_point(julia_blue)
+sethue("white"); path(P, action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

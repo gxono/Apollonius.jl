@@ -42,7 +42,7 @@ from `θ` to `2π - θ` (0 stays 0): same rays, opposite orientation.
 This is the fix for a common gotcha: [`APAngle2`](@ref)'s "counterclockwise
 from `a` to `b`" is computed straight from the `(x, y)` values it's given,
 with no idea whether those coordinates already live in a mirrored
-coordinate space (e.g. after [`@to_luxor_picture`](@ref)'s default
+coordinate space (e.g. after [`@prepare_to_picture`](@ref)'s default
 `flip=true`, which reflects everything to match Luxor's `y`-down screen
 convention). Building the angle *before* that reflection and letting the
 whole object pass through the macro handles this automatically (see

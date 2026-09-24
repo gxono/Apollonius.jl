@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture flip=false width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture flip=false width=500 height=240 margin=20 begin
     circ = APCircle2(APPoint(0.0, 0.0), 30.0)
     p1, p2 = APPoint(30.0, 0.0), APPoint(0.0, 30.0)
     arc = APCircularArc2(circ, p1, p2)
@@ -26,5 +26,5 @@ path(gap; action=:fill)
 sethue("purple"); setopacity(0.5)
 path(tinv, action=:fill)
 setopacity(1)
-path([p1 p2]); plot_point(julia_green)
+sethue("white"); path([p1 p2], action=:fillpreserve); sethue(julia_green); strokepath()
 end)

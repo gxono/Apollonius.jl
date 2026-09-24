@@ -13,7 +13,7 @@ which return a `Symbol`, and [`side_of_line`](@ref), which returns
 
 | Question | Predicates |
 |:---------|:-----------|
-| Is a point on an object? | [`on_line`](@ref), [`on_ray`](@ref), [`on_segment`](@ref), [`is_on_ellipse`](@ref), [`is_on_hyperbola`](@ref), [`is_on_parabola`](@ref), `in` |
+| Is a point on an object? | [`is_on_line`](@ref), [`is_on_ray`](@ref), [`is_on_segment`](@ref), [`is_on_ellipse`](@ref), [`is_on_hyperbola`](@ref), [`is_on_parabola`](@ref), `in` |
 | How do two lines relate? | [`is_parallel`](@ref), [`is_perpendicular`](@ref) |
 | Do points line up, or lie on a circle? | [`is_collinear`](@ref), [`is_concyclic`](@ref), [`is_degenerate`](@ref), [`is_cyclic`](@ref) |
 | Which side of a line? | [`side_of_line`](@ref) |
@@ -37,20 +37,20 @@ A, B = APPoint(0.0, 0.0), APPoint(3.0, 1.0)
 l = APLine(A, B)
 p = APPoint(6.0, 2.0 + 1e-12)   # 1e-12 above the line
 
-APPoint(6.0, 2.0) == p, on_line(p, l)
+APPoint(6.0, 2.0) == p, is_on_line(p, l)
 ```
 
 `atol` is not an absolute distance in every predicate. [`is_collinear`](@ref),
 [`is_parallel`](@ref) and [`is_perpendicular`](@ref) compare a cross or dot
 product with `atol` times the product of the lengths, so they do not depend
-on the size of the figure. [`on_line`](@ref) and the position predicates
+on the size of the figure. [`is_on_line`](@ref) and the position predicates
 compare a distance with `sqrt(atol)`, scaled by the radius where there is
 one, so a point at distance `1e-6` from a line is still on it. Pass a smaller
 `atol` when you need a stricter test.
 
 ## Points on lines, rays and segments
 
-[`on_line`](@ref), [`on_ray`](@ref) and [`on_segment`](@ref) differ only in
+[`is_on_line`](@ref), [`is_on_ray`](@ref) and [`is_on_segment`](@ref) differ only in
 how far the object reaches: the whole line, from an origin onwards, or
 between two endpoints (both included). `in` is the same test written the
 other way round.
@@ -62,7 +62,7 @@ ray = APRay(O, APPoint(1.0, 0.0))
 seg = APSegment(O, APPoint(6.0, 0.0))
 
 q = APPoint(8.0, 0.0)
-on_line(q, line), on_ray(q, ray), on_segment(q, seg)
+is_on_line(q, line), is_on_ray(q, ray), is_on_segment(q, seg)
 ```
 
 ```@raw html
@@ -74,7 +74,7 @@ point, ready for `filter`:
 
 ```@example geo
 pts = [APPoint(x, 0.0) for x in (-2.0, 3.0, 8.0)]
-filter(on_segment(seg), pts), filter(on_ray(ray), pts)
+filter(is_on_segment(seg), pts), filter(is_on_ray(ray), pts)
 ```
 
 ## Parallel and perpendicular
@@ -101,7 +101,7 @@ is_parallel(s1, s2), is_perpendicular(s3, s4), is_collinear(APPoint(0.0, 0.0), A
 [`side_of_line`](@ref) is `1` on the left of the line as it is oriented
 from its first point to its second, `-1` on the right and `0` on the line.
 It is exact: it does not use `atol`, so a point that is on the line up to
-rounding can return `1` or `-1`. Use [`on_line`](@ref) first when that
+rounding can return `1` or `-1`. Use [`is_on_line`](@ref) first when that
 matters.
 
 ```@example geo
@@ -149,7 +149,7 @@ inside it. For the inside of an ellipse or a circle, use `in`.
 
 ```@example geo
 e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
-is_on_ellipse(point_on_ellipse(e, 1.0), e), is_on_ellipse(APPoint(1.0, 0.5), e), APPoint(1.0, 0.5) in e
+is_on_ellipse(point_on(e, 1.0), e), is_on_ellipse(APPoint(1.0, 0.5), e), APPoint(1.0, 0.5) in e
 ```
 
 ```@raw html
@@ -166,7 +166,7 @@ area, that is, its three vertices are collinear, and [`is_cyclic`](@ref) is
 
 ```@example geo
 a, b, c = APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(5.0, 4.0)
-d = point_on_circle(circumcircle(APTriangle(a, b, c)), 2.2)
+d = point_on(circumcircle(APTriangle(a, b, c)), 2.2)
 
 is_concyclic(a, b, c, d), is_concyclic(a, b, c, APPoint(0.0, 5.0)), is_degenerate(APTriangle(a, b, APPoint(3.0, 0.0)))
 ```

@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=240 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
     A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
     t =  APTriangle(A, B, C)
     l1, l2, l3 = APLine.(sides(t))
@@ -27,7 +27,7 @@ sethue(julia_purple)
 path(oa, action=:stroke)
 sethue(julia_blue)
 path(t, action=:stroke)
-path([h1,h2,h3]); plot_point(julia_green)
-path([ih1 ih2 ih3]); plot_point(julia_purple)
-path(vertices(t)); plot_point(julia_blue)
+sethue("white"); path([h1,h2,h3], action=:fillpreserve); sethue(julia_green); strokepath()
+sethue("white"); path([ih1 ih2 ih3], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue("white"); path(vertices(t), action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

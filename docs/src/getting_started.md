@@ -70,14 +70,14 @@ if there are none.
 ## A first figure
 
 With Luxor loaded, every object has a [`path`](@ref) method. The macro
-[`@to_luxor_picture`](@ref) scales and centers a set of objects to fit a
+[`@prepare_to_picture`](@ref) scales and centers a set of objects to fit a
 canvas and returns them in canvas coordinates, ready to draw:
 
 ```julia
 using Apollonius, Luxor
 import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     t
     cc
     inc
@@ -102,7 +102,7 @@ The full version of this figure, with the vertices, the two centers and their la
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
-    lxm = @to_luxor_picture! width=500 height=300 margin=30 begin
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin
       A, B, C = APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(1.5, 4.0)
       t = APTriangle(A, B, C)
       cc = circumcircle(t)

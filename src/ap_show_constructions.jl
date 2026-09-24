@@ -62,7 +62,7 @@ is `[x1, x2, y1, y2]`.
 """
 function perpendicular_construction(l::APLine, p::APPoint; radius::Union{Nothing,Real}=nothing,
     radius2::Union{Nothing,Real}=nothing, sweep::Real=pi / 6)
-    if on_line(p, l)
+    if is_on_line(p, l)
         r = radius === nothing ? distance(l.p1, l.p2) / 2 : radius
         r > 0 || throw(ArgumentError("perpendicular_construction: radius must be positive"))
         u = normalize(direction(l))
@@ -102,7 +102,7 @@ and at `p` meet again at `E`; the line `p, E` is parallel to `l`. Returns a
 | `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function parallel_construction(l::APLine, p::APPoint; sweep::Real=pi / 6)
-    on_line(p, l) && throw(ArgumentError("parallel_construction: p lies on l, the parallel is l itself"))
+    is_on_line(p, l) && throw(ArgumentError("parallel_construction: p lies on l, the parallel is l itself"))
     A = l.p1
     r = distance(A, p)
     D = A + r * normalize(direction(l))
@@ -191,7 +191,7 @@ no arcs.
 | `sweep` | `π/6` | total angle of each compass trace, in radians |
 """
 function reflection_construction(p::APPoint, l::APLine; radius::Union{Nothing,Real}=nothing, sweep::Real=pi / 6)
-    on_line(p, l) && return (result=p, arcs=APCircularArc2{Float64}[], points=APPoint{2,Float64}[])
+    is_on_line(p, l) && return (result=p, arcs=APCircularArc2{Float64}[], points=APPoint{2,Float64}[])
     dl = distance(p, l)
     r = radius === nothing ? 1.5dl : radius
     r > dl || throw(ArgumentError("reflection_construction: radius must exceed the distance from p to l"))

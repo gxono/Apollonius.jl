@@ -9,7 +9,7 @@ end
 The point of `obj` at parameter `t` together with the unit tangent there,
 as an [`APEquipollentVector`](@ref) (`.point` is the point, `.vector` the
 unit direction of travel as `t` increases). `t = 0` is the start of `obj` and
-`t = 1` its end, with the same parametrization as [`point_on_arc`](@ref):
+`t = 1` its end, with the same parametrization as [`point_on`](@ref):
 for an [`APSegment`](@ref) it is proportional to length, for the
 elliptic, parabolic and hyperbolic arcs it follows the conic's own
 parameter (not arc length), and for a circular arc it is proportional to
@@ -36,7 +36,7 @@ function tangent_at(r::APRay, t::Real)
 end
 function tangent_at(arc::APCircularArc2, t::Real)
     a = _arc_angle(arc, arc.p1) + t * measure(arc)
-    return APEquipollentVector(APVector(-sin(a), cos(a)), point_on_arc(arc, t))
+    return APEquipollentVector(APVector(-sin(a), cos(a)), point_on(arc, t))
 end
 function tangent_at(arc::APEllipticArc2, t::Real)
     e = arc.ellipse
@@ -44,7 +44,7 @@ function tangent_at(arc::APEllipticArc2, t::Real)
     dx, dy = -e.a * sin(s), e.b * cos(s)
     c, sn = cos(e.angle), sin(e.angle)
     v = dx * APVector(c, sn) + dy * APVector(-sn, c)
-    return APEquipollentVector(_unit_direction(v, "an elliptic arc"), point_on_arc(arc, t))
+    return APEquipollentVector(_unit_direction(v, "an elliptic arc"), point_on(arc, t))
 end
 function tangent_at(arc::APParabolicArc2, t::Real)
     par = arc.parabola
@@ -52,7 +52,7 @@ function tangent_at(arc::APParabolicArc2, t::Real)
     s1, s2 = _parabola_param(arc, arc.p1), _parabola_param(arc, arc.p2)
     s = s1 + t * (s2 - s1)
     v = ((s / focal_parameter(par)) * u + w) * (s2 >= s1 ? 1 : -1)
-    return APEquipollentVector(_unit_direction(v, "a parabolic arc"), point_on_arc(arc, t))
+    return APEquipollentVector(_unit_direction(v, "a parabolic arc"), point_on(arc, t))
 end
 function tangent_at(arc::APHyperbolicArc2, t::Real)
     h = arc.hyperbola
@@ -62,7 +62,7 @@ function tangent_at(arc::APHyperbolicArc2, t::Real)
     dx, dy = branch * h.a * sinh(τ), h.b * cosh(τ)
     c, sn = cos(h.angle), sin(h.angle)
     v = (dx * APVector(c, sn) + dy * APVector(-sn, c)) * (t2 >= t1 ? 1 : -1)
-    return APEquipollentVector(_unit_direction(v, "a hyperbolic arc"), point_on_arc(arc, t))
+    return APEquipollentVector(_unit_direction(v, "a hyperbolic arc"), point_on(arc, t))
 end
 const _MARK_STYLES = (:tick, :slash, :chevron, :cross, :circle, :z, :s)
 function _marks_at(frame::APEquipollentVector, count::Integer, style::Symbol, size::Real, gap::Real, slant::Real)
@@ -125,7 +125,7 @@ there. Defined for an [`APSegment`](@ref) and the four conic arcs.
 
 `size` and `gap` are in the units of the coordinates of `obj`, so build the
 marks from objects already transformed to the drawing (for example the ones
-[`@to_luxor_picture`](@ref) returns) to get a size in canvas units.
+[`@prepare_to_picture`](@ref) returns) to get a size in canvas units.
 
 `style` picks the shape:
 

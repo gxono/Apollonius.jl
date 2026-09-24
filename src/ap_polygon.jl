@@ -211,7 +211,7 @@ function centroid(p::APPolygon)
         cy += (vi[2] + vj[2]) * cr
     end
     A /= 2
-    abs(A) <= 1e-12 && return o + sum(vi - o for vi in v) / n
+    abs(A) <= sqrt(eps(Float64)) * max(maximum(vi -> norm(vi - o), v), 1.0)^2 && return o + sum(vi - o for vi in v) / n
     return o + APVector(cx / (6A), cy / (6A))
 end
 """
@@ -483,4 +483,33 @@ function convex_hull(points::AbstractVector{<:APPoint})
         push!(upper, p)
     end
     return APStraightNgon(vcat(lower[1:end-1], upper[1:end-1]))
+end
+# ear-clipping triangulation of a simple polygon's vertices: a fan from one vertex only works when
+# the polygon is convex, or at least star-shaped from that vertex; this handles any simple polygon.
+function _ear_triangulate(vs::Vector{<:APPoint{2}})
+    n = length(vs)
+    n == 3 && return [(1, 2, 3)]
+    idx = collect(1:n)
+    o = vs[1]
+    ccw = sum(cross2(vs[i] - o, vs[mod1(i + 1, n)] - o) for i in 1:n) >= 0
+    tris = Tuple{Int,Int,Int}[]
+    while length(idx) > 3
+        m = length(idx)
+        clipped = false
+        for k in 1:m
+            ip, ic, inx = idx[mod1(k - 1, m)], idx[k], idx[mod1(k + 1, m)]
+            a, b, c = vs[ip], vs[ic], vs[inx]
+            cr = cross2(b - a, c - a)
+            (ccw ? cr > 0 : cr < 0) || continue
+            tri = APTriangle(a, b, c)
+            any(j -> idx[j] != ip && idx[j] != ic && idx[j] != inx && vs[idx[j]] in tri, 1:m) && continue
+            push!(tris, (ip, ic, inx))
+            deleteat!(idx, k)
+            clipped = true
+            break
+        end
+        clipped || break
+    end
+    length(idx) == 3 && push!(tris, (idx[1], idx[2], idx[3]))
+    return tris
 end

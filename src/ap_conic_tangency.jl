@@ -15,9 +15,9 @@ function intersection(l::APLine, e::APEllipse2; atol=1e-9)
     return [(p = _from_ellipse_local(ax + t * dx, ay + t * dy, e); APPoint(p[1], p[2])) for t in ts]
 end
 intersection(e::APEllipse2, l::APLine; atol=1e-9) = intersection(l, e; atol=atol)
-intersection(s::APSegment, e::APEllipse2; atol=1e-9) = filter(p -> on_segment(p, s; atol=atol), intersection(APLine(s), e; atol=atol))
+intersection(s::APSegment, e::APEllipse2; atol=1e-9) = filter(p -> is_on_segment(p, s; atol=atol), intersection(APLine(s), e; atol=atol))
 intersection(e::APEllipse2, s::APSegment; atol=1e-9) = intersection(s, e; atol=atol)
-intersection(r::APRay, e::APEllipse2; atol=1e-9) = filter(p -> on_ray(p, r; atol=atol), intersection(APLine(r), e; atol=atol))
+intersection(r::APRay, e::APEllipse2; atol=1e-9) = filter(p -> is_on_ray(p, r; atol=atol), intersection(APLine(r), e; atol=atol))
 intersection(e::APEllipse2, r::APRay; atol=1e-9) = intersection(r, e; atol=atol)
 """
     polar_line(e::APEllipse2, p::APPoint; atol=1e-9)
@@ -90,9 +90,9 @@ function intersection(l::APLine, h::APHyperbola2; atol=1e-9)
     return pts
 end
 intersection(h::APHyperbola2, l::APLine; atol=1e-9) = intersection(l, h; atol=atol)
-intersection(s::APSegment, h::APHyperbola2; atol=1e-9) = filter(p -> on_segment(p, s; atol=atol), intersection(APLine(s), h; atol=atol))
+intersection(s::APSegment, h::APHyperbola2; atol=1e-9) = filter(p -> is_on_segment(p, s; atol=atol), intersection(APLine(s), h; atol=atol))
 intersection(h::APHyperbola2, s::APSegment; atol=1e-9) = intersection(s, h; atol=atol)
-intersection(r::APRay, h::APHyperbola2; atol=1e-9) = filter(p -> on_ray(p, r; atol=atol), intersection(APLine(r), h; atol=atol))
+intersection(r::APRay, h::APHyperbola2; atol=1e-9) = filter(p -> is_on_ray(p, r; atol=atol), intersection(APLine(r), h; atol=atol))
 intersection(h::APHyperbola2, r::APRay; atol=1e-9) = intersection(r, h; atol=atol)
 """
     polar_line(h::APHyperbola2, p::APPoint; atol=1e-9)
@@ -152,9 +152,9 @@ function intersection(l::APLine, par::APParabola2; atol=1e-9)
     return [(q = _from_local_frame(Ax + t * dx, Ay + t * dy, V, u, w); APPoint(q[1], q[2])) for t in ts]
 end
 intersection(par::APParabola2, l::APLine; atol=1e-9) = intersection(l, par; atol=atol)
-intersection(s::APSegment, par::APParabola2; atol=1e-9) = filter(p -> on_segment(p, s; atol=atol), intersection(APLine(s), par; atol=atol))
+intersection(s::APSegment, par::APParabola2; atol=1e-9) = filter(p -> is_on_segment(p, s; atol=atol), intersection(APLine(s), par; atol=atol))
 intersection(par::APParabola2, s::APSegment; atol=1e-9) = intersection(s, par; atol=atol)
-intersection(r::APRay, par::APParabola2; atol=1e-9) = filter(p -> on_ray(p, r; atol=atol), intersection(APLine(r), par; atol=atol))
+intersection(r::APRay, par::APParabola2; atol=1e-9) = filter(p -> is_on_ray(p, r; atol=atol), intersection(APLine(r), par; atol=atol))
 intersection(par::APParabola2, r::APRay; atol=1e-9) = intersection(r, par; atol=atol)
 """
     polar_line(par::APParabola2, p::APPoint; atol=1e-9)

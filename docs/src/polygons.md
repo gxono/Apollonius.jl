@@ -207,7 +207,7 @@ isempty(APBoundingBox(5.0)), isempty(APBoundingBox(APLine(APPoint(0.0, 0.0), APP
 bbox_union(APBoundingBox(5.0), bb) == bb
 ```
 
-This is what lets [`@boundingbox`](@ref)/[`@to_luxor_picture`](@ref) (see
+This is what lets [`@boundingbox`](@ref)/[`@prepare_to_picture`](@ref) (see
 [Transforming in Bulk: Macros](@ref)) call `APBoundingBox` on *every*
 value named in a block (construction helpers included) without needing
 to special-case the ones that were never meant to be drawn or sized.

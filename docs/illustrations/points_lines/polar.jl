@@ -1,6 +1,6 @@
 include("../default_config.jl")
 
-lxm = @to_luxor_picture! width=500 height=260 margin=30 begin
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
     O = APPoint(0.0, 0.0)
     B = polar_point_deg(4.0, 40.0)
     radio = APSegment(O, B)
@@ -42,5 +42,5 @@ sethue(julia_purple); strokepath()
 
 sethue("white")
 path(O, action=:fillpreserve)
-plot_point(julia_blue); strokepath()
+sethue(julia_blue); strokepath()
 end)

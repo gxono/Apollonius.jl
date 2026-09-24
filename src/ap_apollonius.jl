@@ -1,10 +1,10 @@
 """
-    tangent_circles_through_points(a::APPoint, b::APPoint, l::APLine; atol=1e-9)
+    tangent_circles(a::APPoint, b::APPoint, l::APLine; atol=1e-9)
 
 Circle(s) passing through `a` and `b` and tangent to line `l`. Returns a
 `Vector{APCircle2{Float64}}` with 0, 1 or 2 solutions.
 """
-function tangent_circles_through_points(a::APPoint, b::APPoint, l::APLine; atol=1e-9)
+function tangent_circles(a::APPoint, b::APPoint, l::APLine; atol=1e-9)
     m = midpoint(a, b)
     d = orthogonal(b - a)
     ld = direction(l)
@@ -23,16 +23,16 @@ function tangent_circles_through_points(a::APPoint, b::APPoint, l::APLine; atol=
     end
     return circles
 end
-tangent_circles_through_points(l::APLine, a::APPoint, b::APPoint; atol=1e-9) =
-    tangent_circles_through_points(a, b, l; atol=atol)
+tangent_circles(l::APLine, a::APPoint, b::APPoint; atol=1e-9) =
+    tangent_circles(a, b, l; atol=atol)
 """
-    tangent_circles_through_points(a::APPoint, b::APPoint, c::APCircle2; atol=1e-9)
+    tangent_circles(a::APPoint, b::APPoint, c::APCircle2; atol=1e-9)
 
 Circle(s) passing through `a` and `b` and tangent (internally or
 externally) to circle `c`. Returns a `Vector{APCircle2{Float64}}` with 0,
 1 or 2 solutions.
 """
-function tangent_circles_through_points(a::APPoint, b::APPoint, c::APCircle2; atol=1e-9)
+function tangent_circles(a::APPoint, b::APPoint, c::APCircle2; atol=1e-9)
     m = midpoint(a, b)
     d = orthogonal(b - a)
     Cc, R = c.center, c.r
@@ -49,15 +49,15 @@ function tangent_circles_through_points(a::APPoint, b::APPoint, c::APCircle2; at
     end
     return circles
 end
-tangent_circles_through_points(c::APCircle2, a::APPoint, b::APPoint; atol=1e-9) =
-    tangent_circles_through_points(a, b, c; atol=atol)
+tangent_circles(c::APCircle2, a::APPoint, b::APPoint; atol=1e-9) =
+    tangent_circles(a, b, c; atol=atol)
 """
-    tangent_circles_through_point(l1::APLine, l2::APLine, p::APPoint; atol=1e-9)
+    tangent_circles(l1::APLine, l2::APLine, p::APPoint; atol=1e-9)
 
 Circle(s) tangent to both `l1` and `l2`, passing through `p`. Returns a
 `Vector{APCircle2{Float64}}` with up to 4 solutions (2 per bisector).
 """
-function tangent_circles_through_point(l1::APLine, l2::APLine, p::APPoint; atol=1e-9)
+function tangent_circles(l1::APLine, l2::APLine, p::APPoint; atol=1e-9)
     circles = APCircle2{Float64}[]
     for bis in angle_bisectors(l1, l2; atol=atol)
         m, d = bis.p1, direction(bis)
@@ -84,7 +84,7 @@ function _tangent_circles_through_point_via_inversion(obj1, obj2, p::APPoint; at
     tls = vcat(external_tangent_lines(i1, i2; atol=atol), internal_tangent_lines(i1, i2; atol=atol))
     circles = APCircle2{Float64}[]
     for tl in tls
-        on_line(p, tl; atol=atol) && continue
+        is_on_line(p, tl; atol=atol) && continue
         sol = invert(tl, p; atol=atol)
         scale = max(sol.r, 1.0)
         _tangent_ok(sol, obj1; atol=atol, scale=scale) && _tangent_ok(sol, obj2; atol=atol, scale=scale) &&
@@ -99,20 +99,20 @@ function _tangent_ok(sol::APCircle2, c::APCircle2; atol=1e-9, scale=1.0)
     abs(d - (c.r + sol.r)) <= tol || abs(d - abs(c.r - sol.r)) <= tol
 end
 """
-    tangent_circles_through_point(c1::APCircle2, c2::APCircle2, p::APPoint; atol=1e-9)
-    tangent_circles_through_point(l::APLine, c::APCircle2, p::APPoint; atol=1e-9)
+    tangent_circles(c1::APCircle2, c2::APCircle2, p::APPoint; atol=1e-9)
+    tangent_circles(l::APLine, c::APCircle2, p::APPoint; atol=1e-9)
 
 Circle(s) tangent to `c1`/`c2` (or to `l`/`c`), passing through `p`: the
 `CCP`/`CLP` Apollonius cases, solved by inverting about `p`. `p` must not
 lie on `c1`/`c2` (or `l`/`c`). Returns a `Vector{APCircle2{Float64}}`
 with up to 4 solutions.
 """
-tangent_circles_through_point(c1::APCircle2, c2::APCircle2, p::APPoint; atol=1e-9) =
+tangent_circles(c1::APCircle2, c2::APCircle2, p::APPoint; atol=1e-9) =
     _tangent_circles_through_point_via_inversion(c1, c2, p; atol=atol)
-tangent_circles_through_point(l::APLine, c::APCircle2, p::APPoint; atol=1e-9) =
+tangent_circles(l::APLine, c::APCircle2, p::APPoint; atol=1e-9) =
     _tangent_circles_through_point_via_inversion(l, c, p; atol=atol)
-tangent_circles_through_point(c::APCircle2, l::APLine, p::APPoint; atol=1e-9) =
-    tangent_circles_through_point(l, c, p; atol=atol)
+tangent_circles(c::APCircle2, l::APLine, p::APPoint; atol=1e-9) =
+    tangent_circles(l, c, p; atol=atol)
 _line_coeffs(l::APLine) = begin
     d = direction(l) / norm(direction(l))
     (-d[2], d[1], d[2] * l.p1[1] - d[1] * l.p1[2])

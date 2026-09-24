@@ -14,7 +14,7 @@ from breaking it.
 |:-----|:-----------------|:------------|:-----------|
 | 1. Construct | core | build the objects in your own coordinates | constructors, [`intersection`](@ref), [`projection`](@ref) |
 | 2. Measure and check | core | confirm the numbers before drawing anything | [`area`](@ref), [`distance`](@ref), [`measure`](@ref) |
-| 3. Fit the canvas | core | scale and flip everything at once | [`@to_luxor_picture`](@ref) |
+| 3. Fit the canvas | core | scale and flip everything at once | [`@prepare_to_picture`](@ref) |
 | 4. Decorate | core | compute marks, arrows, braces and label positions on the fitted objects | [`marks`](@ref), [`arrow_head`](@ref), [`label_anchor`](@ref) |
 | 5. Draw | Luxor extension | put colors, widths and text on top | [`path`](@ref) |
 
@@ -48,7 +48,7 @@ ct = contact_triangle(t)     # its vertices are the touch points, opposite A, B 
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! width=500 height=320 margin=30 begin
+    lxm = @prepare_to_picture! width=500 height=320 margin=30 begin
         A, B, C = APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(1.5, 4.0)
         t = APTriangle(A, B, C)
         inc = incircle(t)
@@ -104,14 +104,14 @@ distance(A, touch[3]) ≈ distance(A, touch[2])
 
 ## 3. Fit the canvas
 
-[`@to_luxor_picture`](@ref) scales, centers and flips a whole set of objects
+[`@prepare_to_picture`](@ref) scales, centers and flips a whole set of objects
 so they fit a canvas of a given width. It returns two `NamedTuple`s, called
 `lxm` (the "Luxor meta": canvas size, fitting function, drawable area) and
 `lxo` (the "Luxor objects": the fitted objects, under the names they have in
 the block):
 
 ```@example geo
-lxm, lxo = @to_luxor_picture width=500 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 margin=30 begin
     t
     inc
     ct
@@ -170,7 +170,7 @@ G2 = centroid(lxo.t)
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-    lxm = @to_luxor_picture! width=500 height=320 margin=30 begin
+    lxm = @prepare_to_picture! width=500 height=320 margin=30 begin
         A, B, C = APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(1.5, 4.0)
         t = APTriangle(A, B, C)
         inc = incircle(t)
@@ -257,7 +257,7 @@ type, and [Marks, Labels & Decorations](@ref) for every decoration function.
 | `NaN` in the canvas size | an infinite object (an [`APLine`](@ref), a parabola) in the fitted block | put two points in the block and build the line after fitting, or use [`@unbounded`](@ref) |
 | An arc runs the other way, or an arrow points to the wrong end | fitting flips `y`, so a counterclockwise arc is stored with its endpoints swapped | compute decorations on the fitted arc: they follow what you see |
 | A grid or axes are not where the origin is | [`grid_lines`](@ref) anchors its lines at the origin of the coordinates it receives | build them inside the fitted block, in your own coordinates |
-| Objects change unexpectedly between two figures | [`@to_luxor_picture!`](@ref) replaced the variables | use the version without `!`, which leaves the originals alone and returns the fitted ones in `lxo` |
+| Objects change unexpectedly between two figures | [`@prepare_to_picture!`](@ref) replaced the variables | use the version without `!`, which leaves the originals alone and returns the fitted ones in `lxo` |
 | A construction shows only its result | the shown constructions return the compass traces separately | use the `arcs` and `points` of the returned `NamedTuple`; see [Compass & Ruler Constructions](@ref) |
 
 ## A short checklist

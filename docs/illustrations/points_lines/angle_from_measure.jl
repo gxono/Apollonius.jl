@@ -1,10 +1,10 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=560 height=260 margin=30 begin
+lxm, lxo = @prepare_to_picture width=560 height=260 margin=30 begin
     O1, P1 = APPoint(0.0, 0.0), APPoint(4.0, 0.0)
     ang1 = angle_with_measure(O1, P1, pi / 3)
     r1 = [APSegment(O1, P1), APSegment(O1, ang1.b)]
-    @unbounded l1 = APLine(APPoint(7.0, 0.0), APPoint(11.0, 1.0))
-    @unbounded l2 = APLine(APPoint(7.0, 3.0), APPoint(11.0, 0.0))
+    l1 = APLine(APPoint(7.0, 0.0), APPoint(11.0, 1.0))
+    l2 = APLine(APPoint(7.0, 3.0), APPoint(11.0, 0.0))
     ends = [APPoint(7.0, 0.0), APPoint(11.0, 1.0), APPoint(7.0, 3.0), APPoint(11.0, 0.0)]
     ang2 = APAngle2(APLine(ends[3], ends[4]), APLine(ends[1], ends[2]))
 end

@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=320 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=320 margin=20 begin
     circle1 = APCircle2(APPoint(300.0, 300.0), 300.0)
     circle2 = APCircle2(APPoint(900.0, 200.0), 100.0)
     el1, el2 = external_tangent_lines(circle1, circle2)
@@ -13,7 +13,7 @@ using Apollonius, Luxor
 import Luxor: julia_red, julia_blue, julia_green, julia_purple
 
 
-lxm, lxo = @to_luxor_picture width=500 height=320 margin=20 begin
+lxm, lxo = @prepare_to_picture width=500 height=320 margin=20 begin
     circle1 = APCircle2(APPoint(300.0, 300.0), 300.0)
     circle2 = APCircle2(APPoint(900.0, 200.0), 100.0)
     el1, el2 = external_tangent_lines(circle1, circle2)

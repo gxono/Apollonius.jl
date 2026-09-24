@@ -169,9 +169,9 @@ Base.in(p::APPoint, e::APEllipse2) = begin
     (lx / e.a)^2 + (ly / e.b)^2 <= 1
 end
 """
-    point_on_ellipse(e::APEllipse2, t::Real)
+    point_on(e::APEllipse2, t::Real)
 """
-point_on_ellipse(e::APEllipse2, t::Real) = _from_ellipse_local(e.a * cos(t), e.b * sin(t), e)
+point_on(e::APEllipse2, t::Real) = _from_ellipse_local(e.a * cos(t), e.b * sin(t), e)
 """
     is_on_ellipse(p::APPoint, e::APEllipse2; atol=1e-9)
 """
@@ -318,6 +318,14 @@ end
 function APHyperbola2(f1::APPoint, f2::APPoint, p::APPoint)
     return APHyperbola2(f1, f2, abs(distance(p, f1) - distance(p, f2)) / 2)
 end
+"""
+    APBoundingBox(h::APHyperbola2)
+
+The empty box: a hyperbola is unbounded, so it never grows the bounding box
+of a figure it's part of, the same as an `APLine`/`APRay`. Draw it with
+[`path`](@ref) inside a range of the curve's own parameter instead.
+"""
+APBoundingBox(::APHyperbola2) = APBoundingBox()
 Base.:(==)(x::APHyperbola2, y::APHyperbola2) = x.center == y.center && x.a == y.a && x.b == y.b && x.angle == y.angle
 Base.convert(::Type{APHyperbola2{T}}, h::APHyperbola2) where {T} = APHyperbola2{T}(h.center, T(h.a), T(h.b), T(h.angle))
 function Base.isapprox(x::APHyperbola2, y::APHyperbola2; atol=1e-9, kwargs...)
@@ -336,13 +344,13 @@ Base.in(p::APPoint, h::APHyperbola2) = begin
     (lx / h.a)^2 - (ly / h.b)^2 >= 1
 end
 """
-    point_on_hyperbola(h::APHyperbola2, t::Real; branch::Int=1)
+    point_on(h::APHyperbola2, t::Real; branch::Int=1)
 
 | Keyword | Default | Meaning |
 |:--------|:--------|:--------|
 | `branch` | `1` | which branch of the hyperbola: `1` or `-1` |
 """
-function point_on_hyperbola(h::APHyperbola2, t::Real; branch::Int=1)
+function point_on(h::APHyperbola2, t::Real; branch::Int=1)
     x, y = branch * h.a * cosh(t), h.b * sinh(t)
     return _from_hyperbola_local(x, y, h)
 end
@@ -472,6 +480,14 @@ function APParabola2(focus::APPoint{2,T1}, directrix::APLine{2,T2}) where {T1,T2
     return APParabola2{T}(APPoint{2,T}(focus.coords), APLine{2,T}(directrix.p1, directrix.p2))
 end
 """
+    APBoundingBox(par::APParabola2)
+
+The empty box: a parabola is unbounded, so it never grows the bounding box
+of a figure it's part of, the same as an `APLine`/`APRay`. Draw it with
+[`path`](@ref) inside a range of the curve's own parameter instead.
+"""
+APBoundingBox(::APParabola2) = APBoundingBox()
+"""
     APParabola2(vertex::APPoint, focus::APPoint)
 
 The parabola with the given vertex and focus: the same idea as
@@ -526,9 +542,9 @@ function _parabola_frame(par::APParabola2)
     return midpoint(par.focus, foot), APVector(u), orthogonal(APVector(u))
 end
 """
-    point_on_parabola(par::APParabola2, s::Real)
+    point_on(par::APParabola2, s::Real)
 """
-function point_on_parabola(par::APParabola2, s::Real)
+function point_on(par::APParabola2, s::Real)
     V, u, w = _parabola_frame(par)
     p = focal_parameter(par)
     return _from_local_frame(s^2 / (2p), s, V, u, w)
@@ -593,7 +609,7 @@ function distance(p::APPoint, par::APParabola2)
     pf = focal_parameter(par)
     X0, Y0 = _to_local_frame(p, V, u, w)
     s = _closest_parabola_local_param(X0, Y0, pf)
-    return distance(p, point_on_parabola(par, s))
+    return distance(p, point_on(par, s))
 end
 distance(par::APParabola2, p::APPoint) = distance(p, par)
 function _project_onto_circle2(circle::APCircle2, p::APPoint)
@@ -610,7 +626,7 @@ The arc of `circle` traversed counterclockwise from `p1` to `p2`. `p1`/
 `circle.center` matters, so the constructor projects each onto `circle`
 (same angle, radius `circle.r`) before storing it. This keeps `arc.p1`/
 `arc.p2` always genuinely on the circle, matching what
-[`point_on_arc`](@ref)/[`midpoint`](@ref) already compute from the angle
+[`point_on`](@ref)/[`midpoint`](@ref) already compute from the angle
 alone: without it, anything built directly from the raw `arc.p1`/
 `arc.p2` (e.g. [`APCircularSector2`](@ref)'s own radii,
 `APSegment(circle.center, arc.p1)`) would end at the wrong point whenever
@@ -678,17 +694,17 @@ The length of `arc`: `circle.r * measure(arc)`.
 """
 arc_length(arc::APCircularArc2) = arc.circle.r * measure(arc)
 """
-    point_on_arc(arc, t::Real)
+    point_on(arc, t::Real)
 
 The point on `arc` at parameter `t` (`t = 0` gives `arc.p1`, `t = 1`
 gives `arc.p2`): defined for [`APCircularArc2`](@ref), `APEllipticArc2`,
 `APParabolicArc2` and `APHyperbolicArc2`.
 """
-function point_on_arc(arc::APCircularArc2, t::Real)
+function point_on(arc::APCircularArc2, t::Real)
     a = _arc_angle(arc, arc.p1) + t * measure(arc)
     return arc.circle.center + arc.circle.r * APVector(cos(a), sin(a))
 end
-midpoint(arc::APCircularArc2) = point_on_arc(arc, 0.5)
+midpoint(arc::APCircularArc2) = point_on(arc, 0.5)
 """
     APBoundingBox(arc::APCircularArc2)
 
@@ -809,11 +825,11 @@ The swept parameter range from `p1` to `p2`, counterclockwise, in
 `[0, 2π)` (the ellipse's own angular parameter, not true arc angle).
 """
 measure(arc::APEllipticArc2) = mod(_ellipse_param(arc, arc.p2) - _ellipse_param(arc, arc.p1), 2π)
-function point_on_arc(arc::APEllipticArc2, t::Real)
+function point_on(arc::APEllipticArc2, t::Real)
     a = _ellipse_param(arc, arc.p1) + t * measure(arc)
-    return point_on_ellipse(arc.ellipse, a)
+    return point_on(arc.ellipse, a)
 end
-midpoint(arc::APEllipticArc2) = point_on_arc(arc, 0.5)
+midpoint(arc::APEllipticArc2) = point_on(arc, 0.5)
 """
     APBoundingBox(arc::APEllipticArc2)
 
@@ -950,11 +966,11 @@ function _parabola_param(par::APParabola2, p::APPoint)
     return y
 end
 _parabola_param(arc::APParabolicArc2, p::APPoint) = _parabola_param(arc.parabola, p)
-function point_on_arc(arc::APParabolicArc2, t::Real)
+function point_on(arc::APParabolicArc2, t::Real)
     s1, s2 = _parabola_param(arc, arc.p1), _parabola_param(arc, arc.p2)
-    return point_on_parabola(arc.parabola, s1 + t * (s2 - s1))
+    return point_on(arc.parabola, s1 + t * (s2 - s1))
 end
-midpoint(arc::APParabolicArc2) = point_on_arc(arc, 0.5)
+midpoint(arc::APParabolicArc2) = point_on(arc, 0.5)
 """
     APBoundingBox(arc::APParabolicArc2)
 
@@ -1084,12 +1100,12 @@ function _hyperbola_param(h::APHyperbola2, p::APPoint)
     return asinh(ly / h.b), (lx >= 0 ? 1 : -1)
 end
 _hyperbola_param(arc::APHyperbolicArc2, p::APPoint) = _hyperbola_param(arc.hyperbola, p)
-function point_on_arc(arc::APHyperbolicArc2, t::Real)
+function point_on(arc::APHyperbolicArc2, t::Real)
     t1, branch = _hyperbola_param(arc, arc.p1)
     t2, _ = _hyperbola_param(arc, arc.p2)
-    return point_on_hyperbola(arc.hyperbola, t1 + t * (t2 - t1); branch=branch)
+    return point_on(arc.hyperbola, t1 + t * (t2 - t1); branch=branch)
 end
-midpoint(arc::APHyperbolicArc2) = point_on_arc(arc, 0.5)
+midpoint(arc::APHyperbolicArc2) = point_on(arc, 0.5)
 function _hyperbola_axis_critical_t(P::Real, Q::Real, tmin::Real, tmax::Real)
     P == 0 && return Float64[]
     r = -Q / P

@@ -1,7 +1,7 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     center = APPoint(0.0, 0.0)
-    @unbounded far_line = APLine(APPoint(2.5, -2.0), APPoint(2.5, 2.0))
+    far_line = APLine(APPoint(2.5, -2.0), APPoint(2.5, 2.0))
     base = APCircle2(center, 2.0)
     circ = APCircle2(APPoint(-4.0, 1.0), 1.5)
     I1 = invert(far_line, center; k=2.0)
@@ -19,5 +19,5 @@ path(far_line, action=:stroke, extend=20)
 path(circ, action=:stroke)
 sethue(julia_purple)
 path([I1, I2], action=:stroke)
-path([center]); plot_point(julia_blue)
+sethue("white"); path([center], action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

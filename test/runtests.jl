@@ -360,11 +360,11 @@ using Base.MathConstants: golden
         @testset "APEllipse2" begin
             e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0, 0.4)
             for t in (0.0, 0.7, 2.1, 4.4)
-                @test is_on_ellipse(point_on_ellipse(e, t), e; atol=1e-9)
+                @test is_on_ellipse(point_on(e, t), e; atol=1e-9)
             end
             @test area(e) ≈ pi * 5 * 3
             f1, f2 = foci(e)
-            p = point_on_ellipse(e, 0.4)
+            p = point_on(e, 0.4)
             @test distance(p, f1) + distance(p, f2) ≈ 2 * e.a atol = 1e-9
             v1, v2 = vertices(e)
             @test is_on_ellipse(v1, e; atol=1e-9) && is_on_ellipse(v2, e; atol=1e-9)
@@ -389,7 +389,7 @@ using Base.MathConstants: golden
         @testset "APHyperbola2" begin
             h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.3)
             for t in (0.5, 1.2), branch in (1, -1)
-                @test is_on_hyperbola(point_on_hyperbola(h, t; branch=branch), h; atol=1e-9)
+                @test is_on_hyperbola(point_on(h, t; branch=branch), h; atol=1e-9)
             end
             a1, a2 = asymptotes(h)
             @test distance(h.center, a1) < 1e-9 && distance(h.center, a2) < 1e-9
@@ -409,7 +409,7 @@ using Base.MathConstants: golden
             @test vertices(par) == (v,)
             @test focal_parameter(par) == 2.0
             @test is_on_parabola(v, par)
-            p = point_on_parabola(par, 3.0)
+            p = point_on(par, 3.0)
             @test is_on_parabola(p, par)
             @test orthoptic(par) == par.directrix
             rot = rotate(par, pi / 4, APPoint(1.0, 0.0))
@@ -422,8 +422,8 @@ using Base.MathConstants: golden
             arc = APCircularArc2(circ, p1, p2)
             @test measure(arc) ≈ pi / 2 atol = 1e-9
             @test arc_length(arc) ≈ 5.0 * pi / 2 atol = 1e-9
-            @test point_on_arc(arc, 0.0) ≈ p1
-            @test point_on_arc(arc, 1.0) ≈ p2
+            @test point_on(arc, 0.0) ≈ p1
+            @test point_on(arc, 1.0) ≈ p2
             off_circle_p2 = circ.center + APVector(0.0, 3.0)
             off_arc = APCircularArc2(circ, p1, off_circle_p2)
             @test off_arc.p2 ≈ p2
@@ -475,13 +475,13 @@ using Base.MathConstants: golden
         end
         @testset "APEllipticArc2 (new)" begin
             e2 = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0, 0.2)
-            pa = point_on_ellipse(e2, 0.3)
-            pb = point_on_ellipse(e2, 1.7)
+            pa = point_on(e2, 0.3)
+            pb = point_on(e2, 1.7)
             earc = APEllipticArc2(e2, pa, pb)
-            @test isapprox(point_on_arc(earc, 0.0), pa; atol=1e-6)
-            @test isapprox(point_on_arc(earc, 1.0), pb; atol=1e-6)
+            @test isapprox(point_on(earc, 0.0), pa; atol=1e-6)
+            @test isapprox(point_on(earc, 1.0), pb; atol=1e-6)
             for t in (0.0, 0.3, 0.6, 1.0)
-                @test is_on_ellipse(point_on_arc(earc, t), e2; atol=1e-6)
+                @test is_on_ellipse(point_on(earc, t), e2; atol=1e-6)
             end
             about_pt = APPoint(1.0, 1.0)
             refl_pt = reflection(earc, about_pt)
@@ -490,8 +490,8 @@ using Base.MathConstants: golden
             refl_l = reflection(earc, line_eg)
             @test measure(refl_l) ≈ measure(earc) atol = 1e-6
             for t in (0.0, 0.25, 0.5, 0.75, 1.0)
-                expected = reflection(point_on_arc(earc, 1 - t), line_eg)
-                @test isapprox(point_on_arc(refl_l, t), expected; atol=1e-6)
+                expected = reflection(point_on(earc, 1 - t), line_eg)
+                @test isapprox(point_on(refl_l, t), expected; atol=1e-6)
             end
             rev = reverse(earc)
             @test rev == APEllipticArc2(e2, pb, pa)
@@ -500,36 +500,36 @@ using Base.MathConstants: golden
         end
         @testset "APParabolicArc2 (new)" begin
             par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
-            pa = point_on_parabola(par, -2.0)
-            pb = point_on_parabola(par, 3.0)
+            pa = point_on(par, -2.0)
+            pb = point_on(par, 3.0)
             parc = APParabolicArc2(par, pa, pb)
-            @test isapprox(point_on_arc(parc, 0.0), pa; atol=1e-6)
-            @test isapprox(point_on_arc(parc, 1.0), pb; atol=1e-6)
+            @test isapprox(point_on(parc, 0.0), pa; atol=1e-6)
+            @test isapprox(point_on(parc, 1.0), pb; atol=1e-6)
             about_l = APLine(APPoint(0.0, 0.0), APPoint(1.0, 2.0))
             refl = reflection(parc, about_l)
             for t in (0.0, 0.3, 0.6, 1.0)
-                expected = reflection(point_on_arc(parc, t), about_l)
-                @test isapprox(point_on_arc(refl, t), expected; atol=1e-6)
+                expected = reflection(point_on(parc, t), about_l)
+                @test isapprox(point_on(refl, t), expected; atol=1e-6)
             end
             rev = reverse(parc)
             @test rev == APParabolicArc2(par, pb, pa)
-            @test isapprox(point_on_arc(rev, 0.0), pb; atol=1e-6)
-            @test isapprox(point_on_arc(rev, 1.0), pa; atol=1e-6)
+            @test isapprox(point_on(rev, 0.0), pb; atol=1e-6)
+            @test isapprox(point_on(rev, 1.0), pa; atol=1e-6)
             @test reverse(rev) == parc
             @test APParabolicArc2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)), pa, pb) == parc
         end
         @testset "APHyperbolicArc2 (new)" begin
             h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.1)
-            pa = point_on_hyperbola(h, 0.2; branch=1)
-            pb = point_on_hyperbola(h, 1.5; branch=1)
+            pa = point_on(h, 0.2; branch=1)
+            pb = point_on(h, 1.5; branch=1)
             harc = APHyperbolicArc2(h, pa, pb)
-            @test isapprox(point_on_arc(harc, 0.0), pa; atol=1e-6)
-            @test isapprox(point_on_arc(harc, 1.0), pb; atol=1e-6)
+            @test isapprox(point_on(harc, 0.0), pa; atol=1e-6)
+            @test isapprox(point_on(harc, 1.0), pb; atol=1e-6)
             about_l = APLine(APPoint(0.0, 0.0), APPoint(1.0, 2.0))
             refl = reflection(harc, about_l)
             for t in (0.0, 0.3, 0.6, 1.0)
-                expected = reflection(point_on_arc(harc, t), about_l)
-                @test isapprox(point_on_arc(refl, t), expected; atol=1e-6)
+                expected = reflection(point_on(harc, t), about_l)
+                @test isapprox(point_on(refl, t), expected; atol=1e-6)
             end
             rev = reverse(harc)
             @test rev == APHyperbolicArc2(h, pb, pa)
@@ -538,7 +538,7 @@ using Base.MathConstants: golden
         end
     end
     @testset "tangent_at / marks" begin
-        fd(arc, t) = (d = point_on_arc(arc, t + 1e-6) - point_on_arc(arc, t - 1e-6); d / norm(d))
+        fd(arc, t) = (d = point_on(arc, t + 1e-6) - point_on(arc, t - 1e-6); d / norm(d))
         @testset "tangent_at on lines" begin
             s = APSegment(APPoint(1.0, 1.0), APPoint(1.0, 5.0))
             f = tangent_at(s, 0.25)
@@ -554,16 +554,16 @@ using Base.MathConstants: golden
             h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.3)
             arcs = [APCircularArc2(c, APPoint(4.0, 2.0), APPoint(1.0, 5.0)),
                 APCircularArc2(c, APPoint(1.0, 5.0), APPoint(4.0, 2.0)),
-                APEllipticArc2(e, point_on_ellipse(e, 0.3), point_on_ellipse(e, 2.0)),
-                APEllipticArc2(e, point_on_ellipse(e, 4.0), point_on_ellipse(e, 1.0)),
-                APParabolicArc2(par, point_on_parabola(par, -2.0), point_on_parabola(par, 3.0)),
-                APParabolicArc2(par, point_on_parabola(par, 3.0), point_on_parabola(par, -2.0)),
-                APHyperbolicArc2(h, point_on_hyperbola(h, -0.5), point_on_hyperbola(h, 1.0)),
-                APHyperbolicArc2(h, point_on_hyperbola(h, 1.0), point_on_hyperbola(h, -0.5)),
-                APHyperbolicArc2(h, point_on_hyperbola(h, -0.5; branch=-1), point_on_hyperbola(h, 1.0; branch=-1))]
+                APEllipticArc2(e, point_on(e, 0.3), point_on(e, 2.0)),
+                APEllipticArc2(e, point_on(e, 4.0), point_on(e, 1.0)),
+                APParabolicArc2(par, point_on(par, -2.0), point_on(par, 3.0)),
+                APParabolicArc2(par, point_on(par, 3.0), point_on(par, -2.0)),
+                APHyperbolicArc2(h, point_on(h, -0.5), point_on(h, 1.0)),
+                APHyperbolicArc2(h, point_on(h, 1.0), point_on(h, -0.5)),
+                APHyperbolicArc2(h, point_on(h, -0.5; branch=-1), point_on(h, 1.0; branch=-1))]
             for a in arcs, t in (0.0, 0.3, 0.5, 1.0)
                 f = tangent_at(a, t)
-                @test f.point ≈ point_on_arc(a, t) atol = 1e-9
+                @test f.point ≈ point_on(a, t) atol = 1e-9
                 @test norm(f.vector) ≈ 1.0 atol = 1e-12
                 @test isapprox(f.vector, fd(a, t); atol=1e-5)
             end
@@ -603,7 +603,7 @@ using Base.MathConstants: golden
             circ = APCircle2(APPoint(1.0, 2.0), 3.0)
             arc = APCircularArc2(circ, APPoint(4.0, 2.0), APPoint(1.0, 5.0))
             mk = only(marks(arc; size=1.0))
-            @test on_line(circ.center, APLine(mk.p1, mk.p2))   # a tick on a circular arc lies along a radius
+            @test is_on_line(circ.center, APLine(mk.p1, mk.p2))   # a tick on a circular arc lies along a radius
             @test distance(midpoint(mk), circ.center) ≈ circ.r atol = 1e-9
             @test_throws ArgumentError marks(s; style=:bogus)
             @test_throws ArgumentError marks(s; count=0)
@@ -670,12 +670,12 @@ using Base.MathConstants: golden
     end
     @testset "calculation helpers: points by parameter, choosing intersections, more triangles" begin
         seg = APSegment(APPoint(0.0, 0.0), APPoint(4.0, 2.0))
-        @test point_on_line(seg, 0.5) ≈ APPoint(2.0, 1.0) && point_on_line(seg, 2.0) ≈ APPoint(8.0, 4.0)
-        @test point_on_line(APLine(APPoint(1.0, 1.0), APPoint(2.0, 1.0)), -1.0) ≈ APPoint(0.0, 1.0)
-        @test point_on_line(APRay(APPoint(1.0, 1.0), APPoint(1.0, 3.0)), 0.5) ≈ APPoint(1.0, 2.0)
+        @test point_on(seg, 0.5) ≈ APPoint(2.0, 1.0) && point_on(seg, 2.0) ≈ APPoint(8.0, 4.0)
+        @test point_on(APLine(APPoint(1.0, 1.0), APPoint(2.0, 1.0)), -1.0) ≈ APPoint(0.0, 1.0)
+        @test point_on(APRay(APPoint(1.0, 1.0), APPoint(1.0, 3.0)), 0.5) ≈ APPoint(1.0, 2.0)
         c = APCircle2(APPoint(1.0, 2.0), 5.0)
-        @test point_on_circle(c, 0.0) ≈ APPoint(6.0, 2.0) && point_on_circle(c, pi / 2) ≈ APPoint(1.0, 7.0)
-        @test distance(point_on_circle(c, 1.234), c.center) ≈ c.r
+        @test point_on(c, 0.0) ≈ APPoint(6.0, 2.0) && point_on(c, pi / 2) ≈ APPoint(1.0, 7.0)
+        @test distance(point_on(c, 1.234), c.center) ≈ c.r
         # documented order of the solutions
         line = APLine(APPoint(-10.0, 0.0), APPoint(10.0, 0.0))
         xs = intersection(line, APCircle2(APPoint(0.0, 0.0), 5.0))
@@ -724,6 +724,12 @@ using Base.MathConstants: golden
         radii = [distance(rand_inside(rng, circ), circ.center) for _ in 1:4000]
         @test 0.45 < count(<(circ.r / sqrt(2)), radii) / 4000 < 0.55   # uniform in area: half the points within r/√2
         @test rand_inside(circ) isa APPoint
+        quad = APQuadrilateral(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0), APPoint(0.0, 4.0))
+        @test all(_ -> in(rand_inside(rng, quad), quad), 1:200)
+        dart = APQuadrilateral(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 1.0), APPoint(0.0, 4.0))
+        @test !is_convex(dart) && all(_ -> in(rand_inside(rng, dart), dart), 1:400)
+        L = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 1.0), APPoint(1.0, 1.0), APPoint(1.0, 4.0), APPoint(0.0, 4.0)])
+        @test all(_ -> in(rand_inside(rng, L), L), 1:400)
     end
 
     @testset "extend_line (tkz add, relative)" begin
@@ -854,23 +860,23 @@ using Base.MathConstants: golden
         @testset "perpendicular_construction" begin
             p = APPoint(2.0, 4.0)
             pc = perpendicular_construction(l, p)
-            @test is_perpendicular(pc.result, l) && on_line(p, pc.result)
+            @test is_perpendicular(pc.result, l) && is_on_line(p, pc.result)
             x1, x2, y = pc.points
-            @test on_line(x1, l) && on_line(x2, l) && distance(p, x1) ≈ distance(p, x2)
+            @test is_on_line(x1, l) && is_on_line(x2, l) && distance(p, x1) ≈ distance(p, x2)
             @test side_of_line(y, l) != side_of_line(p, l)   # the second pair of circles crosses on the other side
             @test length(pc.arcs) == 4 && all(x -> x isa APCircularArc2, pc.arcs)
             p_on = APPoint(2.5, 0.5)   # on l
             pc2 = perpendicular_construction(l, p_on)
-            @test is_perpendicular(pc2.result, l) && on_line(p_on, pc2.result)
+            @test is_perpendicular(pc2.result, l) && is_on_line(p_on, pc2.result)
             @test length(pc2.arcs) == 6 && length(pc2.points) == 4
             @test_throws ArgumentError perpendicular_construction(l, p; radius=0.1)
         end
         @testset "parallel_construction" begin
             p = APPoint(2.0, 4.0)
             par = parallel_construction(l, p)
-            @test is_parallel(par.result, l) && on_line(p, par.result) && !on_line(p, l)
+            @test is_parallel(par.result, l) && is_on_line(p, par.result) && !is_on_line(p, l)
             D, E = par.points
-            @test on_line(D, l) && distance(D, l.p1) ≈ distance(p, l.p1)
+            @test is_on_line(D, l) && distance(D, l.p1) ≈ distance(p, l.p1)
             @test distance(E, D) ≈ distance(p, l.p1) ≈ distance(E, p)   # a rhombus: all four sides equal
             @test length(par.arcs) == 4
             @test_throws ArgumentError parallel_construction(l, APPoint(2.5, 0.5))
@@ -881,7 +887,7 @@ using Base.MathConstants: golden
             y = bc.points[3]
             @test angle_measure_at(v, p1, y) ≈ angle_measure_at(v, y, p2)
             @test angle_measure_at(v, p1, y) ≈ angle_measure_at(v, p1, p2) / 2
-            @test on_line(y, bc.result) && on_line(v, bc.result)
+            @test is_on_line(y, bc.result) && is_on_line(v, bc.result)
             @test length(bc.arcs) == 4
             wide = bisector_construction(v, APPoint(-3.0, 1.0), APPoint(2.0, -4.0); radius=1.0, radius2=1.2)   # obtuse angle, explicit radii
             @test angle_measure_at(v, APPoint(-3.0, 1.0), wide.points[3]) ≈ angle_measure_at(v, wide.points[3], APPoint(2.0, -4.0))
@@ -895,7 +901,7 @@ using Base.MathConstants: golden
         p = APPoint(2.0, 4.0)
         @testset "projection_construction" begin
             pr = projection_construction(p, l)
-            @test pr.result ≈ projection(p, l) && on_line(pr.result, l)
+            @test pr.result ≈ projection(p, l) && is_on_line(pr.result, l)
             @test length(pr.arcs) == 4 && length(pr.points) == 3
             @test isapprox(projection_construction(APPoint(2.5, 0.5), l).result, APPoint(2.5, 0.5); atol=1e-9)   # p on l: its own foot
         end
@@ -903,7 +909,7 @@ using Base.MathConstants: golden
             rf = reflection_construction(p, l)
             @test rf.result ≈ reflection(p, l)
             x1, x2 = rf.points
-            @test on_line(x1, l) && on_line(x2, l)
+            @test is_on_line(x1, l) && is_on_line(x2, l)
             @test distance(x1, p) ≈ 1.5 * distance(p, l)
             @test distance(x1, rf.result) ≈ distance(x1, p) && distance(x2, rf.result) ≈ distance(x2, p)   # both circles pass through p and its image
             @test length(rf.arcs) == 6 && all(a -> a isa APCircularArc2, rf.arcs)
@@ -930,19 +936,19 @@ using Base.MathConstants: golden
     end
     @testset "APParametricCurve2" begin
         curve = APParametricCurve2(t -> APPoint(2t, t^2), (0.0, 3.0))
-        @test point_on_curve(curve, 0.0) == APPoint(0.0, 0.0)
-        @test point_on_curve(curve, 2.0) == APPoint(4.0, 4.0)
+        @test point_on(curve, 0.0) == APPoint(0.0, 0.0)
+        @test point_on(curve, 2.0) == APPoint(4.0, 4.0)
         @test curve.trange == (0.0, 3.0)
         v = APVector(1.0, -2.0)
         tcurve = translate(curve, v)
-        @test point_on_curve(tcurve, 2.0) ≈ point_on_curve(curve, 2.0) + v
+        @test point_on(tcurve, 2.0) ≈ point_on(curve, 2.0) + v
         @test tcurve.trange == curve.trange
         rcurve = rotate(curve, pi / 2, APPoint(0.0, 0.0))
-        @test point_on_curve(rcurve, 2.0) ≈ rotate(point_on_curve(curve, 2.0), pi / 2, APPoint(0.0, 0.0))
+        @test point_on(rcurve, 2.0) ≈ rotate(point_on(curve, 2.0), pi / 2, APPoint(0.0, 0.0))
         hcurve = homothety(curve, 2.0)
-        @test point_on_curve(hcurve, 2.0) ≈ point_on_curve(curve, 2.0) * 2.0
+        @test point_on(hcurve, 2.0) ≈ point_on(curve, 2.0) * 2.0
         rfcurve = reflection(curve, APPoint(0.0, 0.0))
-        @test point_on_curve(rfcurve, 2.0) ≈ reflection(point_on_curve(curve, 2.0), APPoint(0.0, 0.0))
+        @test point_on(rfcurve, 2.0) ≈ reflection(point_on(curve, 2.0), APPoint(0.0, 0.0))
         bb = APBoundingBox(curve)
         @test isapprox(bb.min, APPoint(0.0, 0.0); atol=1e-6)
         @test isapprox(bb.max, APPoint(6.0, 9.0); atol=1e-6)
@@ -1221,7 +1227,7 @@ using Base.MathConstants: golden
         @test ell isa APEllipse2
         circle_as_ellipse = APEllipse2(c.center, c.r, c.r, 0.0)
         for t in (0.0, 0.3, 1.1, 2.5, 4.0)
-            @test is_on_ellipse(shear(point_on_ellipse(circle_as_ellipse, t)), ell; atol=1e-6)
+            @test is_on_ellipse(shear(point_on(circle_as_ellipse, t)), ell; atol=1e-6)
         end
         vec = APVector(1.0, 0.0)
         @test isapprox(rmap(vec), APVector(cos(pi / 3), sin(pi / 3)); atol=1e-9)
@@ -1285,10 +1291,10 @@ using Base.MathConstants: golden
         s = APSegment(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
         r = APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
         mid = APPoint(2.0, 0.0)
-        @test on_line(lx)(mid) == on_line(mid, lx)
-        @test on_segment(s)(mid) == on_segment(mid, s)
-        @test on_ray(r)(mid) == on_ray(mid, r)
-        @test filter(on_line(lx), [mid, APPoint(1.0, 1.0)]) == [mid]
+        @test is_on_line(lx)(mid) == is_on_line(mid, lx)
+        @test is_on_segment(s)(mid) == is_on_segment(mid, s)
+        @test is_on_ray(r)(mid) == is_on_ray(mid, r)
+        @test filter(is_on_line(lx), [mid, APPoint(1.0, 1.0)]) == [mid]
         @test in(t) isa Base.Fix2
         @test in(t)(APPoint(1.0, 1.0)) == (APPoint(1.0, 1.0) in t)
     end
@@ -1297,11 +1303,11 @@ using Base.MathConstants: golden
         @test is_collinear(a, b, c)
         @test !is_collinear(a, b, APPoint(1.0, 1.0))
         l = APLine(APPoint(0.0, 0.0), APPoint(2.0, 0.0))
-        @test on_line(APPoint(5.0, 0.0), l)
-        @test !on_line(APPoint(5.0, 1.0), l)
+        @test is_on_line(APPoint(5.0, 0.0), l)
+        @test !is_on_line(APPoint(5.0, 1.0), l)
         s = APSegment(APPoint(0.0, 0.0), APPoint(2.0, 0.0))
-        @test on_segment(APPoint(1.0, 0.0), s)
-        @test !on_segment(APPoint(5.0, 0.0), s)
+        @test is_on_segment(APPoint(1.0, 0.0), s)
+        @test !is_on_segment(APPoint(5.0, 0.0), s)
         @test side_of_line(APPoint(1.0, 1.0), l) == 1
         @test side_of_line(APPoint(1.0, -1.0), l) == -1
         @test side_of_line(APPoint(1.0, 0.0), l) == 0
@@ -1443,11 +1449,11 @@ using Base.MathConstants: golden
             @test length(epts) == 1 && is_on_ellipse(epts[1], e; atol=1e-9) && epts[1][1] > 0
             @test intersection(earc, el) == epts
             h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0)
-            harc = APHyperbolicArc2(h, point_on_hyperbola(h, -1.0), point_on_hyperbola(h, 1.0))
+            harc = APHyperbolicArc2(h, point_on(h, -1.0), point_on(h, 1.0))
             hl = APLine(APPoint(0.0, -10.0), APPoint(0.0, 10.0))
             @test isempty(intersection(hl, harc))   # the branch never crosses x=0
             par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
-            parc = APParabolicArc2(par, point_on_parabola(par, -3.0), point_on_parabola(par, 3.0))
+            parc = APParabolicArc2(par, point_on(par, -3.0), point_on(par, 3.0))
             pl = APLine(APPoint(-10.0, 1.0), APPoint(10.0, 1.0))
             ppts = intersection(pl, parc)
             @test length(ppts) == 2 && all(p -> is_on_parabola(p, par; atol=1e-9), ppts)
@@ -1516,7 +1522,7 @@ using Base.MathConstants: golden
             e1 = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
             h1 = APHyperbola2(APPoint(2.0, 0.0), 2.0, 1.5, 0.3)
             circ = APCircle2(APPoint(0.0, 0.0), 5.0)
-            earc = APEllipticArc2(e1, point_on_ellipse(e1, -0.5), point_on_ellipse(e1, 1.5))
+            earc = APEllipticArc2(e1, point_on(e1, -0.5), point_on(e1, 1.5))
             # elliptic arc against a full circle (previously impossible: different conic types)
             pts_ec = intersection(earc, circ)
             full_ec = intersection(e1, circ)
@@ -1525,7 +1531,7 @@ using Base.MathConstants: golden
             pts_ce = intersection(circ, earc)
             @test length(pts_ce) == length(pts_ec) && all(p -> any(q -> isapprox(p, q; atol=1e-6), pts_ec), pts_ce)
             # elliptic arc against a hyperbolic arc (different conic types entirely)
-            harc = APHyperbolicArc2(h1, point_on_hyperbola(h1, -1.0), point_on_hyperbola(h1, 1.0))
+            harc = APHyperbolicArc2(h1, point_on(h1, -1.0), point_on(h1, 1.0))
             pts_eh = intersection(earc, harc)
             full_eh = intersection(e1, h1)
             expected_eh = filter(p -> in(p, earc; atol=1e-9) && in(p, harc; atol=1e-9), full_eh)
@@ -1561,7 +1567,7 @@ using Base.MathConstants: golden
         pp = perpendicular_through(l, p)
         @test is_perpendicular(pp, l)
         pb = perpendicular_bisector(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
-        @test on_line(APPoint(2.0, 0.0), pb)
+        @test is_on_line(APPoint(2.0, 0.0), pb)
         @test is_perpendicular(pb, APLine(APPoint(0.0, 0.0), APPoint(4.0, 0.0)))
         @test perpendicular_bisector(APSegment(APPoint(0.0, 0.0), APPoint(4.0, 0.0))) == pb
         l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
@@ -1594,7 +1600,7 @@ using Base.MathConstants: golden
         @test cr ≈ -1.0 atol = 1e-6
         @test_throws ArgumentError harmonic_conjugate(a, b, midpoint(a, b))
         ac = apollonius_circle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), 2.0)
-        testpt = point_on_ellipse(APEllipse2(ac.center, ac.r, ac.r, 0.0), 0.7)
+        testpt = point_on(APEllipse2(ac.center, ac.r, ac.r, 0.0), 0.7)
         @test distance(testpt, APPoint(0.0, 0.0)) / distance(testpt, APPoint(4.0, 0.0)) ≈ 2.0 atol = 1e-6
         @test_throws ArgumentError apollonius_circle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), 1.0)
         c = APCircle2(APPoint(0.0, 0.0), 5.0)
@@ -1615,7 +1621,7 @@ using Base.MathConstants: golden
         esc = external_similitude_center(c1, c2)
         @test is_collinear(c1.center, c2.center, esc)
         isc = internal_similitude_center(c1, c2)
-        @test on_segment(isc, APSegment(c1.center, c2.center))
+        @test is_on_segment(isc, APSegment(c1.center, c2.center))
         @test_throws ArgumentError external_similitude_center(APCircle2(APPoint(0.0, 0.0), 3.0), APCircle2(APPoint(1.0, 0.0), 3.0))
         tk = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(2.0, 4.0))
         ak, bk, ck = distance(tk[2], tk[3]), distance(tk[1], tk[3]), distance(tk[1], tk[2])
@@ -1643,13 +1649,13 @@ using Base.MathConstants: golden
                         circles_position(c1, cc) in (:tangent_ext, :tangent_int) &&
                         circles_position(c2, cc) in (:tangent_ext, :tangent_int), cc_case)
     end
-    @testset "AP radical axis and inversion" begin
+    @testset "AP radical axis and invert" begin
         c1 = APCircle2(APPoint(0.0, 0.0), 5.0)
         c2 = APCircle2(APPoint(8.0, 0.0), 5.0)
         @test power_of_point(APPoint(5.0, 0.0), c1) ≈ 0.0 atol = 1e-9
         @test power_of_point(c1.center, c1) ≈ -25.0 atol = 1e-9
         ra = radical_axis(c1, c2)
-        @test all(p -> on_line(p, ra; atol=1e-6), intersection(c1, c2))
+        @test all(p -> is_on_line(p, ra; atol=1e-6), intersection(c1, c2))
         @test is_perpendicular(ra, APLine(c1.center, c2.center))
         @test_throws ArgumentError radical_axis(c1, APCircle2(APPoint(0.0, 0.0), 2.0))
         c3 = APCircle2(APPoint(4.0, 10.0), 3.0)
@@ -1661,16 +1667,16 @@ using Base.MathConstants: golden
         @test rcirc.r^2 ≈ power_of_point(radical_center(c1, c2, c4), c1) atol = 1e-6
         c = APCircle2(APPoint(0.0, 0.0), 5.0)
         p = APPoint(10.0, 0.0)
-        pinv = inversion(p, c)
+        pinv = invert(p, c)
         @test distance(p, c.center) * distance(pinv, c.center) ≈ 25.0 atol = 1e-9
         @test isapprox(pinv, APPoint(2.5, 0.0); atol=1e-9)
-        @test isapprox(inversion(pinv, c), p; atol=1e-9)
-        @test_throws ArgumentError inversion(c.center, c)
+        @test isapprox(invert(pinv, c), p; atol=1e-9)
+        @test_throws ArgumentError invert(c.center, c)
         l = APLine(APPoint(10.0, -5.0), APPoint(10.0, 5.0))
         circ_img = invert(l, APPoint(0.0, 0.0); k=5.0)
         @test circ_img isa APCircle2
         @test isapprox(distance(APPoint(0.0, 0.0), circ_img.center), circ_img.r; atol=1e-6)
-        testp_inv = inversion(APPoint(10.0, 3.0), c)
+        testp_inv = invert(APPoint(10.0, 3.0), c)
         @test isapprox(distance(testp_inv, circ_img.center), circ_img.r; atol=1e-6)
         @test_throws ArgumentError invert(APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)), APPoint(0.0, 0.0))
         ccirc = APCircle2(APPoint(10.0, 0.0), 5.0)
@@ -1683,12 +1689,12 @@ using Base.MathConstants: golden
         arcimg = invert(seg_off, APPoint(0.0, 0.0); k=5.0)
         @test arcimg isa APCircularArc2
         @test !Apollonius._arc_sweep_contains(arcimg, APPoint(0.0, 0.0))
-        pneg = inversion_neg(p, c)
+        pneg = invert_neg(p, c)
         @test isapprox(pneg, reflection(pinv, c.center); atol=1e-9)
         @test invert_neg(l, APPoint(0.0, 0.0); k=5.0) isa APCircle2
         pl = polar_line(c, APPoint(10.0, 0.0))
         @test is_perpendicular(pl, APLine(c.center, APPoint(10.0, 0.0)))
-        @test on_line(inversion(APPoint(10.0, 0.0), c), pl)
+        @test is_on_line(invert(APPoint(10.0, 0.0), c), pl)
         @test polar_line(c, c.center) === nothing
         pole_pt = pole(c, pl)
         @test isapprox(pole_pt, APPoint(10.0, 0.0); atol=1e-6)
@@ -1702,34 +1708,34 @@ using Base.MathConstants: golden
         end
         a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0)
         l = APLine(APPoint(0.0, -5.0), APPoint(1.0, -5.0))
-        sols = tangent_circles_through_points(a, b, l)
+        sols = tangent_circles(a, b, l)
         @test length(sols) >= 1
         @test all(s -> isapprox(distance(s.center, a), s.r; atol=1e-6) &&
                        isapprox(distance(s.center, b), s.r; atol=1e-6) && tangent_to_line(s, l), sols)
-        @test tangent_circles_through_points(l, a, b) == sols
+        @test tangent_circles(l, a, b) == sols
         cpp = APCircle2(APPoint(10.0, 0.0), 3.0)
-        sols2 = tangent_circles_through_points(a, b, cpp)
+        sols2 = tangent_circles(a, b, cpp)
         @test all(s -> isapprox(distance(s.center, a), s.r; atol=1e-6) &&
                        isapprox(distance(s.center, b), s.r; atol=1e-6) && tangent_to_circle(s, cpp), sols2)
         l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
         l2 = APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0))
         p = APPoint(3.0, 3.0)
-        sols3 = tangent_circles_through_point(l1, l2, p)
+        sols3 = tangent_circles(l1, l2, p)
         @test length(sols3) == 2
         @test all(s -> isapprox(distance(s.center, p), s.r; atol=1e-6) &&
                        tangent_to_line(s, l1) && tangent_to_line(s, l2), sols3)
         c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
         c2 = APCircle2(APPoint(10.0, 0.0), 3.0)
         p2 = APPoint(5.0, 5.0)
-        sols4 = tangent_circles_through_point(c1, c2, p2)
+        sols4 = tangent_circles(c1, c2, p2)
         @test length(sols4) == 4
         @test all(s -> isapprox(distance(s.center, p2), s.r; atol=1e-6) &&
                        tangent_to_circle(s, c1) && tangent_to_circle(s, c2), sols4)
-        @test tangent_circles_through_point(c2, c1, p2) isa Vector
-        sols5 = tangent_circles_through_point(l1, c1, p2)
+        @test tangent_circles(c2, c1, p2) isa Vector
+        sols5 = tangent_circles(l1, c1, p2)
         @test all(s -> isapprox(distance(s.center, p2), s.r; atol=1e-6) &&
                        tangent_to_line(s, l1) && tangent_to_circle(s, c1), sols5)
-        @test tangent_circles_through_point(c1, l1, p2) == sols5
+        @test tangent_circles(c1, l1, p2) == sols5
         cbig = APCircle2(APPoint(3.0, 3.0), 1.0)
         sols6 = tangent_circles(l1, l2, cbig)
         @test length(sols6) == 4
@@ -1845,14 +1851,14 @@ using Base.MathConstants: golden
         @test isapprox(angle_measure_at(p2, p1, egy.c), pi / 2; atol=1e-6)
         @test isapprox(distance(p1, egy.c), 5.0; atol=1e-6)
         e0 = APEllipse2(APPoint(1.0, 2.0), 5.0, 3.0, 0.4)
-        pts5 = [point_on_ellipse(e0, t) for t in (0.0, 1.0, 2.0, 3.0, 4.0)]
+        pts5 = [point_on(e0, t) for t in (0.0, 1.0, 2.0, 3.0, 4.0)]
         fitted = conic_through_points(pts5...)
         @test fitted isa APEllipse2
         @test isapprox(fitted.a, e0.a; atol=1e-6) && isapprox(fitted.b, e0.b; atol=1e-6)
         @test isapprox(fitted.center, e0.center; atol=1e-6)
         @test all(p -> is_on_ellipse(p, fitted; atol=1e-6), pts5)
         h0 = APHyperbola2(APPoint(0.0, 0.0), 4.0, 2.0, 0.2)
-        ptsh = [point_on_hyperbola(h0, t; branch=1) for t in (-1.0, -0.5, 0.0, 0.5, 1.0)]
+        ptsh = [point_on(h0, t; branch=1) for t in (-1.0, -0.5, 0.0, 0.5, 1.0)]
         fittedh = conic_through_points(ptsh...)
         @test fittedh isa APHyperbola2
         @test all(p -> is_on_hyperbola(p, fittedh; atol=1e-5), ptsh)
@@ -1892,7 +1898,7 @@ using Base.MathConstants: golden
         @test barycenter(vertices(tri_bary), [1.0, 1.0, 2.0]) ≈ APPoint(2.75, 4.0)
         @test barycenter([p1, p2], (1.0, 1.0)) == APPoint(2.0, 0.0)
         pb = perpendicular_bisector(p1, p2)
-        @test on_line(APPoint(2.0, 7.0), pb)
+        @test is_on_line(APPoint(2.0, 7.0), pb)
         a_ap, b_ap = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
         apc = apollonius_circle(a_ap, b_ap, 2.0)
         for t in (0.0, 1.3, 3.0)
@@ -1916,8 +1922,8 @@ using Base.MathConstants: golden
         @test is_parallel(l1, l2)
         @test is_perpendicular(l1, l3)
         s = APSegment(a, c)
-        @test on_segment(b, s)
-        @test !on_segment(APPoint(3.0, 0.0), s)
+        @test is_on_segment(b, s)
+        @test !is_on_segment(APPoint(3.0, 0.0), s)
         @test side_of_line(APPoint(0.5, 1.0), l1) == 1
         @test side_of_line(APPoint(0.5, -1.0), l1) == -1
         @test side_of_line(APPoint(0.5, 0.0), l1) == 0
@@ -1987,7 +1993,7 @@ using Base.MathConstants: golden
             @test getfield(exc, vname) == APCircle2(center, r)
         end
         el = euler_line(t)
-        @test on_line(orthocenter(t), el)
+        @test is_on_line(orthocenter(t), el)
         @test distance(nine_point_center(t), circumcenter(t)) ≈ distance(orthocenter(t), circumcenter(t)) / 2 atol = 1e-9
         @test nine_point_circle(t).r ≈ circumradius(t) / 2 atol = 1e-9
         @test barycentric_coordinates(t, t[1]) == (1.0, 0.0, 0.0)
@@ -2003,17 +2009,17 @@ using Base.MathConstants: golden
         x2, y2, z2 = trilinear_coordinates(t, p)
         @test trilinear_point(t, x2, y2, z2) ≈ p
         for i in 1:3
-            @test on_line(orthocenter(t), altitude(t, i); atol=1e-9)
-            @test on_line(centroid(t), median(t, i); atol=1e-9)
-            @test on_line(incenter(t), bisector(t, i); atol=1e-9)
-            @test on_line(circumcenter(t), mediator(t, i); atol=1e-9)
+            @test is_on_line(orthocenter(t), altitude(t, i); atol=1e-9)
+            @test is_on_line(centroid(t), median(t, i); atol=1e-9)
+            @test is_on_line(incenter(t), bisector(t, i); atol=1e-9)
+            @test is_on_line(circumcenter(t), mediator(t, i); atol=1e-9)
             @test is_perpendicular(bisector(t, i), bisector_ext(t, i))
         end
         ext1 = bisector_ext(t, 1)
         ec_local = excenters(t)
-        @test on_line(ec_local.B, ext1; atol=1e-9)
-        @test on_line(ec_local.C, ext1; atol=1e-9)
-        @test !on_line(ec_local.A, ext1; atol=1e-9)
+        @test is_on_line(ec_local.B, ext1; atol=1e-9)
+        @test is_on_line(ec_local.C, ext1; atol=1e-9)
+        @test !is_on_line(ec_local.A, ext1; atol=1e-9)
         others = ((2, 3), (1, 3), (1, 2))
         for i in 1:3
             j, k = others[i]
@@ -2049,7 +2055,7 @@ using Base.MathConstants: golden
         p_on_circ = t[1]
         sl = simson_line(t, p_on_circ)
         f3 = projection(p_on_circ, APLine(t[3], t[1]))
-        @test on_line(f3, sl; atol=1e-9)
+        @test is_on_line(f3, sl; atol=1e-9)
         npc = nine_point_circle(t)
         for ep in euler_points(t)
             @test distance(ep, npc.center) ≈ npc.r atol = 1e-9
@@ -2059,21 +2065,21 @@ using Base.MathConstants: golden
         cc = circumcircle(t)
         @test power_of_point(oax.p1, cc) ≈ power_of_point(oax.p1, npc) atol = 1e-6
         bax = brocard_axis(t)
-        @test on_line(circumcenter(t), bax; atol=1e-9)
-        @test on_line(symmedian_point(t), bax; atol=1e-9)
+        @test is_on_line(circumcenter(t), bax; atol=1e-9)
+        @test is_on_line(symmedian_point(t), bax; atol=1e-9)
         @test lemoine_axis(t) ≈ polar_line(cc, symmedian_point(t))
         r1 = reflection(p_on_circ, APLine(t[1], t[2]))
         r2 = reflection(p_on_circ, APLine(t[2], t[3]))
         r3 = reflection(p_on_circ, APLine(t[3], t[1]))
         stl = steiner_line(t, p_on_circ)
         @test is_collinear(r1, r2, r3; atol=1e-9)
-        @test on_line(r3, stl; atol=1e-9)
-        @test on_line(orthocenter(t), stl; atol=1e-9)
+        @test is_on_line(r3, stl; atol=1e-9)
+        @test is_on_line(orthocenter(t), stl; atol=1e-9)
     end
     @testset "more triangle centers and derived triangles" begin
         t = APTriangle(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(2.0, 4.0))
         dl = de_longchamps_point(t)
-        @test on_line(dl, euler_line(t))
+        @test is_on_line(dl, euler_line(t))
         @test midpoint(orthocenter(t), dl) ≈ circumcenter(t)
         bp = bevan_point(t)
         ec = excenters(t)
@@ -2102,16 +2108,16 @@ using Base.MathConstants: golden
         @test area(med) ≈ area(t) / 4 atol = 1e-9
         @test Set([med[1], med[2], med[3]]) == Set([midpoint(B, C), midpoint(A, C), midpoint(A, B)])
         orth = orthic_triangle(t)
-        @test on_segment(orth[1], APSegment(B, C))
-        @test on_segment(orth[2], APSegment(C, A))
-        @test on_segment(orth[3], APSegment(A, B))
+        @test is_on_segment(orth[1], APSegment(B, C))
+        @test is_on_segment(orth[2], APSegment(C, A))
+        @test is_on_segment(orth[3], APSegment(A, B))
         @test is_perpendicular(APLine(A, orth[1]), APLine(B, C))
         ext = excentral_triangle(t)
         @test Set([ext[1], ext[2], ext[3]]) == Set([ec.A, ec.B, ec.C])
         ct = contact_triangle(t)
         for (v, side) in zip((ct[1], ct[2], ct[3]), (APSegment(B, C), APSegment(C, A), APSegment(A, B)))
             @test distance(v, incenter(t)) ≈ inradius(t) atol = 1e-9
-            @test on_segment(v, side)
+            @test is_on_segment(v, side)
         end
         et = extouch_triangle(t)
         er = exradii(t)
@@ -2142,10 +2148,10 @@ using Base.MathConstants: golden
             sides_sq = (distance(sq[1], sq[2]), distance(sq[2], sq[3]), distance(sq[3], sq[4]), distance(sq[4], sq[1]))
             @test all(x -> isapprox(x, sides_sq[1]; atol=1e-9), sides_sq)
             @test is_perpendicular(APLine(sq[1], sq[2]), APLine(sq[2], sq[3]))
-            @test on_line(sq[1], APLine(t[j], t[k]); atol=1e-9)
-            @test on_line(sq[2], APLine(t[j], t[k]); atol=1e-9)
-            @test on_line(sq[3], APLine(t[i], t[k]); atol=1e-9)
-            @test on_line(sq[4], APLine(t[i], t[j]); atol=1e-9)
+            @test is_on_line(sq[1], APLine(t[j], t[k]); atol=1e-9)
+            @test is_on_line(sq[2], APLine(t[j], t[k]); atol=1e-9)
+            @test is_on_line(sq[3], APLine(t[i], t[k]); atol=1e-9)
+            @test is_on_line(sq[4], APLine(t[i], t[j]); atol=1e-9)
         end
         morley = morley_triangle(t)
         m1, m2, m3 = distance(morley[1], morley[2]), distance(morley[2], morley[3]), distance(morley[3], morley[1])
@@ -2260,9 +2266,9 @@ using Base.MathConstants: golden
         lA = perpendicular_through(APLine(B, C), projection(A, l))
         lB = perpendicular_through(APLine(C, A), projection(B, l))
         lC = perpendicular_through(APLine(A, B), projection(C, l))
-        @test on_line(op, lA; atol=1e-9)
-        @test on_line(op, lB; atol=1e-9)
-        @test on_line(op, lC; atol=1e-9)
+        @test is_on_line(op, lA; atol=1e-9)
+        @test is_on_line(op, lB; atol=1e-9)
+        @test is_on_line(op, lC; atol=1e-9)
         D = APPoint(5.0, -2.0)
         pp = poncelet_point(t, D)
         for tri in (APTriangle(B, C, D), APTriangle(A, C, D), APTriangle(A, B, D), t)
@@ -2286,9 +2292,9 @@ using Base.MathConstants: golden
             lB = APLine(t[2], tangency(ec.B))
             lC = APLine(t[3], tangency(ec.C))
             apt = apollonius_point_of_triangle(t)
-            @test on_line(apt, lA; atol=1e-6)
-            @test on_line(apt, lB; atol=1e-6)
-            @test on_line(apt, lC; atol=1e-6)
+            @test is_on_line(apt, lA; atol=1e-6)
+            @test is_on_line(apt, lB; atol=1e-6)
+            @test is_on_line(apt, lC; atol=1e-6)
             a, b, c = distance(t[2], t[3]), distance(t[1], t[3]), distance(t[1], t[2])
             x181 = trilinear_point(t, (a * (b + c)^2) / (b + c - a), (b * (c + a)^2) / (c + a - b), (c * (a + b)^2) / (a + b - c))
             @test apt ≈ x181 atol = 1e-6
@@ -2355,14 +2361,14 @@ using Base.MathConstants: golden
         @test (hf1 ≈ f1 && hf2 ≈ f2) || (hf1 ≈ f2 && hf2 ≈ f1)
         @test h.a == 2.0
         @test_throws ArgumentError APHyperbola2(f1, f2, distance(f1, f2) / 2 + 1.0)
-        ph = point_on_hyperbola(h, 0.6)
+        ph = point_on(h, 0.6)
         h2 = APHyperbola2(f1, f2, ph)
         @test is_on_hyperbola(ph, h2)
         @test h2.a ≈ abs(distance(ph, f1) - distance(ph, f2)) / 2
     end
     @testset "conic through 5 points" begin
         e_true = APEllipse2(APPoint(2.0, 3.0), 5.0, 3.0, 0.4)
-        pts = [point_on_ellipse(e_true, t) for t in (0.1, 1.0, 2.0, 3.3, 4.7)]
+        pts = [point_on(e_true, t) for t in (0.1, 1.0, 2.0, 3.3, 4.7)]
         fit = conic_through_points(pts...)
         @test fit isa APEllipse2
         @test fit.center ≈ e_true.center
@@ -2373,8 +2379,8 @@ using Base.MathConstants: golden
             @test is_on_ellipse(p, fit; atol=1e-6)
         end
         h_true = APHyperbola2(APPoint(2.0, 3.0), 4.0, 2.5, 0.6)
-        ptsh = vcat([point_on_hyperbola(h_true, t; branch=1) for t in (0.3, 1.0, 1.7)],
-                    [point_on_hyperbola(h_true, t; branch=-1) for t in (0.5, 1.2)])
+        ptsh = vcat([point_on(h_true, t; branch=1) for t in (0.3, 1.0, 1.7)],
+                    [point_on(h_true, t; branch=-1) for t in (0.5, 1.2)])
         fith = conic_through_points(ptsh...)
         @test fith isa APHyperbola2
         @test fith.center ≈ h_true.center
@@ -2458,29 +2464,29 @@ using Base.MathConstants: golden
                 @test side_of_line(s.center, cevian) == side_of_line(ref, cevian)
                 @test side_of_line(s.center, side_line) == side_of_line(A, side_line)
             end
-            @test on_line(incenter(t), APLine(th.near_b.center, th.near_c.center); atol=1e-9)
+            @test is_on_line(incenter(t), APLine(th.near_b.center, th.near_c.center); atol=1e-9)
         end
     end
-    @testset "inversion" begin
+    @testset "invert" begin
         c = APCircle2(APPoint(0.0, 0.0), 2.0)
         p = APPoint(4.0, 0.0)
-        p2 = inversion(p, c)
+        p2 = invert(p, c)
         @test p2 ≈ APPoint(1.0, 0.0)
-        @test inversion(p2, c) ≈ p
-        @test_throws ArgumentError inversion(c.center, c)
+        @test invert(p2, c) ≈ p
+        @test_throws ArgumentError invert(c.center, c)
         center = APPoint(1.0, 2.0)
-        point_on_circle(circ, t) = circ.center + circ.r * APVector(cos(t), sin(t))
+        point_on(circ, t) = circ.center + circ.r * APVector(cos(t), sin(t))
         l = APLine(APPoint(-10.0, 5.0), APPoint(10.0, 5.0))
         il = invert(l, center)
         @test distance(center, il.center) ≈ il.r atol = 1e-9
         for t in (0.0, 1.1, 3.0)
-            @test on_line(inversion(point_on_circle(il, t), APCircle2(center, 1.0)), l; atol=1e-6)
+            @test is_on_line(invert(point_on(il, t), APCircle2(center, 1.0)), l; atol=1e-6)
         end
         @test_throws ArgumentError invert(APLine(center, center + APVector(1.0, 0.0)), center)
         c0 = APCircle2(APPoint(6.0, 8.0), 2.0)
         ic0 = invert(c0, center)
         for t in (0.0, 1.3, 2.7)
-            img = inversion(point_on_circle(c0, t), APCircle2(center, 1.0))
+            img = invert(point_on(c0, t), APCircle2(center, 1.0))
             @test abs(distance(img, ic0.center) - ic0.r) <= 1e-6
         end
         c_through = APCircle2(center, 3.0)
@@ -2488,15 +2494,15 @@ using Base.MathConstants: golden
         img_line = invert(c_through, p_center)
         @test img_line isa APLine
         for t in (0.3, 1.7, 2.5, 4.1)
-            p = point_on_circle(c_through, t)
+            p = point_on(c_through, t)
             isapprox(p, p_center; atol=1e-6) && continue
-            pimg = inversion(p, APCircle2(p_center, 1.0))
-            @test on_line(pimg, img_line; atol=1e-6)
+            pimg = invert(p, APCircle2(p_center, 1.0))
+            @test is_on_line(pimg, img_line; atol=1e-6)
         end
         same_center_img = invert(APCircle2(center, 4.0), center; k=2.0)
         @test same_center_img.center == center
         @test same_center_img.r ≈ 2.0^2 / 4.0
-        @test invert(APPoint(4.0, 0.0), APPoint(0.0, 0.0); k=2.0) ≈ inversion(APPoint(4.0, 0.0), APCircle2(APPoint(0.0, 0.0), 2.0))
+        @test invert(APPoint(4.0, 0.0), APPoint(0.0, 0.0); k=2.0) ≈ invert(APPoint(4.0, 0.0), APCircle2(APPoint(0.0, 0.0), 2.0))
         @test_throws ArgumentError invert(APPoint(1.0, 2.0), APPoint(1.0, 2.0))
     end
     @testset "invert(APSegment/APTriangle/APStraightNgon), APCurvilinearNgon2" begin
@@ -2529,7 +2535,7 @@ using Base.MathConstants: golden
                 else
                     ts = reversed ? range(1, 0; length=n) : range(0, 1; length=n)
                     for t in ts
-                        push!(pts, point_on_arc(side, t))
+                        push!(pts, point_on(side, t))
                     end
                 end
             end
@@ -2551,16 +2557,16 @@ using Base.MathConstants: golden
             @test distance(arc.circle.center, center) ≈ arc.circle.r atol = 1e-9
             for t in (0.0, 0.3, 0.7, 1.0)
                 p = p1 + t * (p2 - p1)
-                ip = inversion(p, APCircle2(center, 1.0))
+                ip = invert(p, APCircle2(center, 1.0))
                 @test distance(ip, arc.circle.center) ≈ arc.circle.r atol = 1e-9
             end
-            @test arc.p1 ≈ inversion(p1, APCircle2(center, 1.0))
-            @test arc.p2 ≈ inversion(p2, APCircle2(center, 1.0))
+            @test arc.p1 ≈ invert(p1, APCircle2(center, 1.0))
+            @test arc.p2 ≈ invert(p2, APCircle2(center, 1.0))
             p3, p4 = APPoint(3.0, 0.0), APPoint(8.0, 0.0)
             seg = invert(APSegment(p3, p4), center)
             @test seg isa APSegment
-            @test seg[1] ≈ inversion(p3, APCircle2(center, 1.0))
-            @test seg[2] ≈ inversion(p4, APCircle2(center, 1.0))
+            @test seg[1] ≈ invert(p3, APCircle2(center, 1.0))
+            @test seg[2] ≈ invert(p4, APCircle2(center, 1.0))
         end
         @testset "invert(APTriangle) -> APCurvilinearNgon2" begin
             t = APTriangle(APPoint(5.0, 2.0), APPoint(9.0, 3.0), APPoint(6.0, 8.0))
@@ -2573,7 +2579,7 @@ using Base.MathConstants: golden
             @test perimeter(cp) ≈ sum(distance(pts[i], pts[mod1(i + 1, length(pts))]) for i in eachindex(pts)) atol = 1e-3
             on_original(p; atol=1e-4) =
                 min(distance(p, APLine(t[1], t[2])), distance(p, APLine(t[2], t[3])), distance(p, APLine(t[3], t[1]))) < atol
-            @test all(on_original, inversion(p, APCircle2(center, 1.0)) for p in pts[1:200:end])
+            @test all(on_original, invert(p, APCircle2(center, 1.0)) for p in pts[1:200:end])
             t2 = APTriangle(APPoint(-3.0, 0.0), APPoint(5.0, 0.0), APPoint(2.0, 4.0))
             cp2 = invert(t2, center)
             @test count(s -> s isa APSegment, cp2.sides) == 1
@@ -2738,13 +2744,13 @@ using Base.MathConstants: golden
         @test is_on_ellipse(APPoint(2.0, 0.0), e)
         @test is_on_ellipse(APPoint(0.0, 1.0), e)
         @test !is_on_ellipse(APPoint(2.0, 1.0), e)
-        @test is_on_ellipse(point_on_ellipse(e, 0.7), e)
+        @test is_on_ellipse(point_on(e, 0.7), e)
         @test area(e) ≈ pi * 2.0 * 1.0
         f1, f2 = foci(e)
         c = sqrt(2.0^2 - 1.0^2)
         @test f1 ≈ APPoint(c, 0.0)
         @test f2 ≈ APPoint(-c, 0.0)
-        p = point_on_ellipse(e, 0.4)
+        p = point_on(e, 0.4)
         @test distance(p, f1) + distance(p, f2) ≈ 2 * e.a atol = 1e-9
         pts = intersection(APLine(APPoint(-3.0, 0.0), APPoint(3.0, 0.0)), e)
         @test length(pts) == 2
@@ -2755,7 +2761,7 @@ using Base.MathConstants: golden
         far = APLine(APPoint(-1.0, 5.0), APPoint(1.0, 5.0))
         @test isempty(intersection(far, e))
         rot_e = APEllipse2(APPoint(1.0, 1.0), 2.0, 1.0, pi / 4)
-        @test is_on_ellipse(point_on_ellipse(rot_e, 1.1), rot_e)
+        @test is_on_ellipse(point_on(rot_e, 1.1), rot_e)
         rot_e2 = APEllipse2(APPoint(1.0, 1.0), 3.0, 2.0, pi / 6)
         pext = APPoint(8.0, 5.0)
         tpts = tangent_points(rot_e2, pext)
@@ -2768,7 +2774,7 @@ using Base.MathConstants: golden
         @test tangent_points(pext, rot_e2) == tpts
         @test isempty(tangent_points(e, e.center))
         @test isempty(tangent_points(e, e.center + APVector(0.1, 0.1)))
-        p_on = point_on_ellipse(rot_e2, 0.4)
+        p_on = point_on(rot_e2, 0.4)
         tl_on = only(tangent_lines(rot_e2, p_on))
         @test tl_on.p1 != tl_on.p2
         @test all(cand -> distance(cand, p_on) < 1e-6, intersection(tl_on, rot_e2))
@@ -2784,9 +2790,9 @@ using Base.MathConstants: golden
         @test perimeter(circle_e) ≈ 2 * pi * 3.0 atol = 1e-9
         function poly_perimeter(e; n=20_000)
             total = 0.0
-            prev = point_on_ellipse(e, 0.0)
+            prev = point_on(e, 0.0)
             for i in 1:n
-                cur = point_on_ellipse(e, 2pi * i / n)
+                cur = point_on(e, 2pi * i / n)
                 total += distance(prev, cur)
                 prev = cur
             end
@@ -2808,7 +2814,7 @@ using Base.MathConstants: golden
         φ = atan(direction(line_about)[2], direction(line_about)[1])
         @test refl_line.angle ≈ 2φ - e.angle
         for t in (0.0, 1.3, 3.1)
-            @test is_on_ellipse(reflection(point_on_ellipse(e, t), line_about), refl_line; atol=1e-6)
+            @test is_on_ellipse(reflection(point_on(e, t), line_about), refl_line; atol=1e-6)
         end
     end
     @testset "tangent circles with given radius" begin
@@ -2859,9 +2865,9 @@ using Base.MathConstants: golden
         c3 = APCircle2(APPoint(2.0, 5.0), 1.0)
         l12, l23, l13 = radical_axis(c1, c2), radical_axis(c2, c3), radical_axis(c1, c3)
         rc = radical_center(c1, c2, c3)
-        @test on_line(rc, l12; atol=1e-9)
-        @test on_line(rc, l23; atol=1e-9)
-        @test on_line(rc, l13; atol=1e-9)
+        @test is_on_line(rc, l12; atol=1e-9)
+        @test is_on_line(rc, l23; atol=1e-9)
+        @test is_on_line(rc, l13; atol=1e-9)
         @test power_of_point(rc, c1) ≈ power_of_point(rc, c2) atol = 1e-9
         @test power_of_point(rc, c2) ≈ power_of_point(rc, c3) atol = 1e-9
         @test is_perpendicular(l12, APLine(c1.center, c2.center))
@@ -2869,7 +2875,7 @@ using Base.MathConstants: golden
         @test radical_axis(c4, c5) ≈ perpendicular_bisector(c4.center, c5.center)
         c6, c7 = APCircle2(APPoint(0.0, 0.0), 2.0), APCircle2(APPoint(3.0, 0.0), 2.0)
         for p in intersection(c6, c7)
-            @test on_line(p, radical_axis(c6, c7); atol=1e-6)
+            @test is_on_line(p, radical_axis(c6, c7); atol=1e-6)
         end
         @test_throws ArgumentError radical_axis(c, APCircle2(c.center, 5.0))
         far1 = APCircle2(APPoint(0.0, 0.0), 2.0)
@@ -2900,7 +2906,7 @@ using Base.MathConstants: golden
             @test isapprox(distance(p2, oc2.center), oc2.r; atol=1e-9)
             @test_throws ArgumentError orthogonal_circle(oc0, APPoint(5.0, 0.0), APPoint(-4.0, 6.0))
             pinv = APPoint(10.0, 0.0)
-            @test_throws ArgumentError orthogonal_circle(oc0, pinv, inversion(pinv, oc0))
+            @test_throws ArgumentError orthogonal_circle(oc0, pinv, invert(pinv, oc0))
         end
         @testset "midcircle" begin
             swaps(c1, c2, M) = invert(c1, M.center; k=M.r) ≈ c2
@@ -2952,7 +2958,7 @@ using Base.MathConstants: golden
     @testset "apollonius: circle through 2 points tangent to a line/circle" begin
         a, b = APPoint(1.0, 3.0), APPoint(5.0, 4.0)
         l = APLine(APPoint(-10.0, 0.0), APPoint(10.0, 0.7))
-        lpp = tangent_circles_through_points(a, b, l)
+        lpp = tangent_circles(a, b, l)
         @test length(lpp) == 2
         for c in lpp
             @test distance(c.center, a) ≈ c.r atol = 1e-6
@@ -2961,12 +2967,12 @@ using Base.MathConstants: golden
         end
         a2, b2 = APPoint(0.0, 2.0), APPoint(4.0, 2.0)
         l2 = APLine(APPoint(-10.0, 0.0), APPoint(10.0, 0.0))
-        lpp2 = tangent_circles_through_points(a2, b2, l2)
+        lpp2 = tangent_circles(a2, b2, l2)
         @test length(lpp2) == 1
         @test lpp2[1].center ≈ APPoint(2.0, 2.0)
         @test lpp2[1].r ≈ 2.0
         c = APCircle2(APPoint(8.0, 2.0), 2.0)
-        cpp = tangent_circles_through_points(APPoint(1.0, 1.0), APPoint(2.0, 4.0), c)
+        cpp = tangent_circles(APPoint(1.0, 1.0), APPoint(2.0, 4.0), c)
         @test length(cpp) == 2
         for sol in cpp
             @test distance(sol.center, APPoint(1.0, 1.0)) ≈ sol.r atol = 1e-6
@@ -3008,7 +3014,7 @@ using Base.MathConstants: golden
         l1 = APLine(APPoint(0.0, 0.0), APPoint(3.0, 1.0))
         l2 = APLine(APPoint(0.0, 0.0), APPoint(-1.0, 2.0))
         p = APPoint(2.0, 5.0)
-        sols = tangent_circles_through_point(l1, l2, p)
+        sols = tangent_circles(l1, l2, p)
         @test !isempty(sols)
         for c in sols
             @test distance(c.center, l1) ≈ c.r atol = 1e-6
@@ -3018,7 +3024,7 @@ using Base.MathConstants: golden
         pl1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
         pl2 = APLine(APPoint(0.0, 4.0), APPoint(1.0, 4.0))
         p2 = APPoint(10.0, 1.0)
-        psols = tangent_circles_through_point(pl1, pl2, p2)
+        psols = tangent_circles(pl1, pl2, p2)
         @test length(psols) == 2
         for c in psols
             @test distance(c.center, pl1) ≈ c.r atol = 1e-6
@@ -3030,7 +3036,7 @@ using Base.MathConstants: golden
         C1 = APCircle2(APPoint(0.0, 0.0), 1.0)
         C2 = APCircle2(APPoint(5.0, 0.0), 1.5)
         P = APPoint(2.0, 3.0)
-        ccp = tangent_circles_through_point(C1, C2, P)
+        ccp = tangent_circles(C1, C2, P)
         @test length(ccp) == 4
         for sol in ccp
             @test distance(sol.center, P) ≈ sol.r atol = 1e-6
@@ -3039,11 +3045,11 @@ using Base.MathConstants: golden
                 @test abs(d - (c.r + sol.r)) <= 1e-6 || abs(d - abs(c.r - sol.r)) <= 1e-6
             end
         end
-        @test length(tangent_circles_through_point(C2, C1, P)) == 4
+        @test length(tangent_circles(C2, C1, P)) == 4
         L = APLine(APPoint(-10.0, 0.0), APPoint(10.0, 0.0))
         C = APCircle2(APPoint(3.0, 6.0), 2.0)
         Pl = APPoint(-2.0, 4.0)
-        clp = tangent_circles_through_point(L, C, Pl)
+        clp = tangent_circles(L, C, Pl)
         @test !isempty(clp)
         for sol in clp
             @test distance(sol.center, Pl) ≈ sol.r atol = 1e-6
@@ -3051,7 +3057,7 @@ using Base.MathConstants: golden
             d = distance(sol.center, C.center)
             @test abs(d - (C.r + sol.r)) <= 1e-6 || abs(d - abs(C.r - sol.r)) <= 1e-6
         end
-        @test length(tangent_circles_through_point(C, L, Pl)) == length(clp)
+        @test length(tangent_circles(C, L, Pl)) == length(clp)
     end
     @testset "apollonius: CLL, CCL, CCC (no point, every internal/external combination)" begin
         l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.2))
@@ -3124,8 +3130,8 @@ using Base.MathConstants: golden
         arc = APCircularArc2(circ, p1, p2)
         @test measure(arc) ≈ pi / 2 atol = 1e-9
         @test arc_length(arc) ≈ 5.0 * pi / 2 atol = 1e-9
-        @test point_on_arc(arc, 0.0) ≈ p1
-        @test point_on_arc(arc, 1.0) ≈ p2
+        @test point_on(arc, 0.0) ≈ p1
+        @test point_on(arc, 1.0) ≈ p2
         @test midpoint(arc) ≈ circ.center + APVector(5.0 * cos(pi / 4), 5.0 * sin(pi / 4))
         rev = APCircularArc2(circ, p2, p1)
         @test measure(rev) ≈ 3pi / 2 atol = 1e-9
@@ -3155,7 +3161,7 @@ using Base.MathConstants: golden
         about_line = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
         refl_line = reflection(arc, about_line)
         @test measure(refl_line) ≈ measure(arc) atol = 1e-9
-        @test point_on_arc(refl_line, 0.5) ≈ reflection(midpoint(arc), about_line) atol = 1e-6
+        @test point_on(refl_line, 0.5) ≈ reflection(midpoint(arc), about_line) atol = 1e-6
     end
     @testset "APCircularSector2 and APCircularSegment2" begin
         circ = APCircle2(APPoint(2.0, -1.0), 5.0)
@@ -3259,7 +3265,7 @@ using Base.MathConstants: golden
             for (a, reversed) in walk_order(g)
                 ts = reversed ? range(1, 0; length=n) : range(0, 1; length=n)
                 for t in ts
-                    push!(pts, point_on_arc(a, t))
+                    push!(pts, point_on(a, t))
                 end
             end
             total = 0.0
@@ -3340,7 +3346,7 @@ using Base.MathConstants: golden
         v = vertex(par)
         @test distance(v, focus) ≈ distance(v, directrix)
         @test is_on_parabola(v, par)
-        p = point_on_parabola(par, 3.0)
+        p = point_on(par, 3.0)
         @test is_on_parabola(p, par)
         @test p ≈ APPoint(-3.0, 2.25)
         horizontal_line = APLine(APPoint(-10.0, 2.25), APPoint(10.0, 2.25))
@@ -3362,7 +3368,7 @@ using Base.MathConstants: golden
         @test tangent_lines(par, pext) == [APLine(pext, tp) for tp in tpts]
         @test tangent_points(pext, par) == tpts
         @test isempty(tangent_points(par, par.focus))
-        p_on_par = point_on_parabola(par, 1.5)
+        p_on_par = point_on(par, 1.5)
         tl_on = only(tangent_lines(par, p_on_par))
         @test tl_on.p1 != tl_on.p2
         @test length(intersection(tl_on, par)) == 1
@@ -3384,9 +3390,9 @@ using Base.MathConstants: golden
         @test is_on_hyperbola(APPoint(2.0, 0.0), h)
         @test is_on_hyperbola(APPoint(-2.0, 0.0), h)
         @test !is_on_hyperbola(APPoint(0.0, 0.0), h)
-        @test is_on_hyperbola(point_on_hyperbola(h, 0.6), h)
-        @test is_on_hyperbola(point_on_hyperbola(h, 0.6; branch=-1), h)
-        @test point_on_hyperbola(h, 0.6; branch=-1)[1] < 0
+        @test is_on_hyperbola(point_on(h, 0.6), h)
+        @test is_on_hyperbola(point_on(h, 0.6; branch=-1), h)
+        @test point_on(h, 0.6; branch=-1)[1] < 0
         @test APPoint(2.0, 0.0) in h
         @test APPoint(3.0, 0.0) in h
         @test APPoint(-3.0, 0.0) in h
@@ -3396,11 +3402,11 @@ using Base.MathConstants: golden
         c = sqrt(2.0^2 + 1.0^2)
         @test f1 ≈ APPoint(c, 0.0)
         @test f2 ≈ APPoint(-c, 0.0)
-        p = point_on_hyperbola(h, 0.5)
+        p = point_on(h, 0.5)
         @test abs(distance(p, f1) - distance(p, f2)) ≈ 2 * h.a atol = 1e-9
         a1, a2 = asymptotes(h)
-        @test on_line(h.center, a1) && on_line(h.center, a2)
-        far = point_on_hyperbola(h, 6.0)
+        @test is_on_line(h.center, a1) && is_on_line(h.center, a2)
+        far = point_on(h, 6.0)
         @test min(distance(far, a1), distance(far, a2)) < 1e-2
         pts = intersection(APLine(APPoint(-10.0, 0.0), APPoint(10.0, 0.0)), h)
         @test length(pts) == 2
@@ -3408,7 +3414,7 @@ using Base.MathConstants: golden
         @test APPoint(-2.0, 0.0) in pts
         @test isempty(intersection(APLine(APPoint(0.0, -10.0), APPoint(0.0, 10.0)), h))
         rot_h = APHyperbola2(APPoint(1.0, 1.0), 2.0, 1.0, pi / 4)
-        @test is_on_hyperbola(point_on_hyperbola(rot_h, 0.6), rot_h)
+        @test is_on_hyperbola(point_on(rot_h, 0.6), rot_h)
         pext = APPoint(10.0, 20.0)
         tpts = tangent_points(h, pext)
         @test length(tpts) == 2
@@ -3419,7 +3425,7 @@ using Base.MathConstants: golden
         @test tangent_lines(h, pext) == [APLine(pext, tp) for tp in tpts]
         @test tangent_points(pext, h) == tpts
         @test isempty(tangent_points(h, APPoint(20.0, 1.0)))
-        p_on_h = point_on_hyperbola(h, 0.5)
+        p_on_h = point_on(h, 0.5)
         tl_on = only(tangent_lines(h, p_on_h))
         @test tl_on.p1 != tl_on.p2
         @test any(cand -> distance(cand, p_on_h) < 1e-6, intersection(tl_on, h))
@@ -3447,7 +3453,7 @@ using Base.MathConstants: golden
         φ = atan(direction(line_about)[2], direction(line_about)[1])
         @test refl_line.angle ≈ 2φ - h.angle
         for t in (0.3, 1.1), branch in (1, -1)
-            @test is_on_hyperbola(reflection(point_on_hyperbola(h, t; branch=branch), line_about), refl_line; atol=1e-6)
+            @test is_on_hyperbola(reflection(point_on(h, t; branch=branch), line_about), refl_line; atol=1e-6)
         end
     end
     @testset "additional named triangle centers and circles" begin
@@ -3494,8 +3500,8 @@ using Base.MathConstants: golden
         @testset "soddy_line" begin
             sl = soddy_line(t)
             sc = soddy_circles(t)
-            @test on_line(sc.inner.center, sl)
-            @test on_line(sc.outer.center, sl)
+            @test is_on_line(sc.inner.center, sl)
+            @test is_on_line(sc.outer.center, sl)
         end
         @testset "Kiepert hyperbola/parabola" begin
             kh = kiepert_hyperbola(t)
@@ -3544,11 +3550,11 @@ using Base.MathConstants: golden
             @test line_circle_position(APLine(APPoint(0.0, 5.0), APPoint(1.0, 5.0)), APCircle2(APPoint(0.0, 0.0), 5.0)) == :tangent
             @test line_circle_position(APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), APCircle2(APPoint(0.0, 0.0), 5.0)) == :secant
         end
-        @testset "inversion_neg / invert_neg" begin
+        @testset "invert_neg / invert_neg" begin
             p = APPoint(10.0, 0.0)
             ci = APCircle2(APPoint(0.0, 0.0), 5.0)
-            @test inversion_neg(p, ci) ≈ APPoint(-2.5, 0.0)
-            @test inversion_neg(p, ci) ≈ reflection(inversion(p, ci), ci.center)
+            @test invert_neg(p, ci) ≈ APPoint(-2.5, 0.0)
+            @test invert_neg(p, ci) ≈ reflection(invert(p, ci), ci.center)
             l = APLine(APPoint(3.0, -5.0), APPoint(3.0, 5.0))
             got_l, expected_l = invert_neg(l, ci.center), reflection(invert(l, ci.center), ci.center)
             @test got_l.center ≈ expected_l.center && got_l.r ≈ expected_l.r
@@ -3719,7 +3725,7 @@ using Base.MathConstants: golden
         tl_on = only(tangent_lines(c, on_c))
         @test tl_on.p1 != tl_on.p2
         @test is_perpendicular(tl_on, APLine(c.center, on_c))
-        @test on_line(on_c, tl_on)
+        @test is_on_line(on_c, tl_on)
         c1 = APCircle2(APPoint(0.0, 0.0), 1.0)
         c2 = APCircle2(APPoint(4.0, 0.0), 1.0)
         ext = external_tangent_lines(c1, c2)
@@ -3752,9 +3758,9 @@ using Base.MathConstants: golden
         int_sim = internal_similitude_center(cA, cB)
         @test distance(ext_sim, cA.center) / distance(ext_sim, cB.center) ≈ cA.r / cB.r atol = 1e-9
         @test distance(int_sim, cA.center) / distance(int_sim, cB.center) ≈ cA.r / cB.r atol = 1e-9
-        @test on_line(int_sim, APLine(cA.center, cB.center))
-        @test on_segment(int_sim, APSegment(cA.center, cB.center))
-        @test !on_segment(ext_sim, APSegment(cA.center, cB.center))
+        @test is_on_line(int_sim, APLine(cA.center, cB.center))
+        @test is_on_segment(int_sim, APSegment(cA.center, cB.center))
+        @test !is_on_segment(ext_sim, APSegment(cA.center, cB.center))
         @test_throws ArgumentError external_similitude_center(c1, c2)
         circ = APCircle2(APPoint(1.0, 2.0), 3.0)
         pext = APPoint(8.0, 5.0)
@@ -3762,10 +3768,10 @@ using Base.MathConstants: golden
         @test pole(circ, pl) ≈ pext atol = 1e-6
         l2 = APLine(APPoint(4.0, 1.0), APPoint(6.0, 7.0))
         p_of_l2 = pole(circ, l2)
-        @test on_line(l2.p1, polar_line(circ, p_of_l2); atol=1e-6)
+        @test is_on_line(l2.p1, polar_line(circ, p_of_l2); atol=1e-6)
         @test polar_line(circ, circ.center) === nothing
         @test Apollonius._tangent_lines_via_polar(c, on_c) == tangent_lines(c, on_c)
-        @test on_line(l2.p2, polar_line(circ, p_of_l2); atol=1e-6)
+        @test is_on_line(l2.p2, polar_line(circ, p_of_l2); atol=1e-6)
         @test_throws ArgumentError pole(circ, APLine(circ.center, circ.center + APVector(1.0, 0.0)))
         overlapping = APCircle2(APPoint(0.5, 0.0), 1.0)
         @test isempty(internal_tangent_lines(c1, overlapping))
@@ -3847,10 +3853,10 @@ using Base.MathConstants: golden
             @test bb5 == APBoundingBox(mc5)
             @test mc5 == APCircle2(APPoint(9.0, 9.0), 2.0)
         end
-        @testset "@to_luxor_picture / @to_luxor_picture!" begin
+        @testset "@prepare_to_picture / @prepare_to_picture!" begin
             fresh() = (APCircle2(APPoint(3.0, -1.0), 5.0), APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0)))
             c, s = fresh()
-            (w, h), (c2, s2) = @to_luxor_picture flip = false begin
+            (w, h), (c2, s2) = @prepare_to_picture flip = false begin
                 c
                 s
             end
@@ -3861,7 +3867,7 @@ using Base.MathConstants: golden
             @test bbox_union(APBoundingBox(c2), APBoundingBox(s2)) ==
                   APBoundingBox(APPoint(-w / 2, -h / 2), APPoint(w / 2, h / 2))
             c, s = fresh()
-            sz, _ = @to_luxor_picture begin
+            sz, _ = @prepare_to_picture begin
                 c
                 s
             end
@@ -3869,7 +3875,7 @@ using Base.MathConstants: golden
             @test sz.width == 10.0 && sz.height == 10.0
             @test sz.bb == APBoundingBox(APPoint(-5.0, -5.0), APPoint(5.0, 5.0))
             c, s = fresh()
-            sz2 = @to_luxor_picture! width = 50.0 begin
+            sz2 = @prepare_to_picture! width = 50.0 begin
                 c
                 s
             end
@@ -3877,14 +3883,14 @@ using Base.MathConstants: golden
             @test sz2.width == 50.0 && sz2.height == 50.0
             @test sz2.bb == APBoundingBox(APPoint(-25.0, -25.0), APPoint(25.0, 25.0))
             c, s = fresh()
-            sz2m = @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+            sz2m = @prepare_to_picture! width = 500.0 height = 240.0 margin = 20.0 begin
                 c
                 s
             end
             @test sz2m.bb == APBoundingBox(APPoint(-230.0, -100.0), APPoint(230.0, 100.0))
             @test bbox_width(sz2m.bb) == sz2m.width - 40.0 && bbox_height(sz2m.bb) == sz2m.height - 40.0
             c, s = fresh()
-            sz3, obj3 = @to_luxor_picture begin
+            sz3, obj3 = @prepare_to_picture begin
                 c
             end
             c2 = obj3.c
@@ -3892,14 +3898,14 @@ using Base.MathConstants: golden
             @test sz3.fct(c) == c2
             c, s = fresh()
             original_center = c.center
-            sz4 = @to_luxor_picture! begin
+            sz4 = @prepare_to_picture! begin
                 c
                 s
             end
             @test sz4.fct(original_center) == c.center
             @testset "discarding a destructured name with _ inside the block" begin
                 c, s = fresh()
-                sz5 = @to_luxor_picture! begin
+                sz5 = @prepare_to_picture! begin
                     c
                     s
                     _, only_kept = midpoint(s.p1, s.p2), s.p2
@@ -3909,7 +3915,7 @@ using Base.MathConstants: golden
             @testset "a name bound to a Tuple of shapes (e.g. broadcasting over vertices(t)) gets transformed too" begin
                 d = 100.0
                 t = equilateral_triangle_on_segment(APPoint(0.0, 0.0), APPoint(d, 0.0))
-                sz6 = @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+                sz6 = @prepare_to_picture! width = 500.0 height = 240.0 margin = 20.0 begin
                     t
                     c = APCircle2.(vertices(t), d / 2)
                 end
@@ -3919,11 +3925,11 @@ using Base.MathConstants: golden
                 @test c[1].r > d / 2
             end
             c, s = fresh()
-            (_, (c2, s2)) = @to_luxor_picture begin
+            (_, (c2, s2)) = @prepare_to_picture begin
                 c
                 s
             end
-            (_, (c2f, s2f)) = @to_luxor_picture flip = false begin
+            (_, (c2f, s2f)) = @prepare_to_picture flip = false begin
                 c
                 s
             end
@@ -3933,19 +3939,19 @@ using Base.MathConstants: golden
             @test s2f == APSegment(APPoint(-5.0, 5.0), APPoint(3.0, -2.0))
             @test s2 == APSegment(APPoint(-5.0, -5.0), APPoint(3.0, 2.0))
             c, s = fresh()
-            (w, h), _ = @to_luxor_picture width = 400.0 begin
+            (w, h), _ = @prepare_to_picture width = 400.0 begin
                 c
                 s
             end
             @test (w, h) == (400.0, 400.0)
             c, s = fresh()
-            (w, h), _ = @to_luxor_picture scale = 2.0 begin
+            (w, h), _ = @prepare_to_picture scale = 2.0 begin
                 c
                 s
             end
             @test (w, h) == (20.0, 20.0)
             c, s = fresh()
-            (w, h), (c2, s2) = @to_luxor_picture margin = 3.0 flip = false begin
+            (w, h), (c2, s2) = @prepare_to_picture margin = 3.0 flip = false begin
                 c
                 s
             end
@@ -3953,7 +3959,7 @@ using Base.MathConstants: golden
             @test c2 == APCircle2(APPoint(0.0, 0.0), 5.0)
             @test s2 == APSegment(APPoint(-5.0, 5.0), APPoint(3.0, -2.0))
             c, s = fresh()
-            (w, h), (c2, s2) = @to_luxor_picture width = 100.0 margin = 5.0 flip = false begin
+            (w, h), (c2, s2) = @prepare_to_picture width = 100.0 margin = 5.0 flip = false begin
                 c
                 s
             end
@@ -3961,7 +3967,7 @@ using Base.MathConstants: golden
             @test c2 == APCircle2(APPoint(0.0, 0.0), 45.0)
             @test s2 == APSegment(APPoint(-45.0, 45.0), APPoint(27.0, -18.0))
             c, s = fresh()
-            (w, h), (c2, s2) = @to_luxor_picture width = 400.0 height = 200.0 flip = false begin
+            (w, h), (c2, s2) = @prepare_to_picture width = 400.0 height = 200.0 flip = false begin
                 c
                 s
             end
@@ -3970,32 +3976,32 @@ using Base.MathConstants: golden
             @test c2 == APCircle2(APPoint(0.0, 0.0), 100.0)
             @test s2 == APSegment(APPoint(-100.0, 100.0), APPoint(60.0, -40.0))
             c1 = APCircle2(APPoint(0.0, 0.0), 1.0)
-            @test_throws LoadError eval(:(@to_luxor_picture scale = 2.0 width = 10.0 c1))
-            @test_throws ArgumentError @to_luxor_picture begin end
+            @test_throws LoadError eval(:(@prepare_to_picture scale = 2.0 width = 10.0 c1))
+            @test_throws ArgumentError @prepare_to_picture begin end
             c, s = fresh()
-            (w, h) = @to_luxor_picture! width = 50.0 flip = false begin
+            (w, h) = @prepare_to_picture! width = 50.0 flip = false begin
                 c
                 s
             end
             @test (w, h) == (50.0, 50.0)
             @test c == APCircle2(APPoint(0.0, 0.0), 25.0)
             @test s == APSegment(APPoint(-25.0, 25.0), APPoint(15.0, -10.0))
-            function _to_luxor_picture_unnamed_mutating_test()
+            function _prepare_to_picture_unnamed_mutating_test()
                 c = APCircle2(APPoint(0.0, 0.0), 1.0)
-                @to_luxor_picture! begin
+                @prepare_to_picture! begin
                     c
                     APCircle2(APPoint(1.0, 1.0), 1.0)
                 end
             end
-            @test_throws ArgumentError _to_luxor_picture_unnamed_mutating_test()
+            @test_throws ArgumentError _prepare_to_picture_unnamed_mutating_test()
             c, _ = fresh()
-            (w, h), obj_c = @to_luxor_picture c
+            (w, h), obj_c = @prepare_to_picture c
             @test (w, h) == (10.0, 10.0)
             @test obj_c.c == APCircle2(APPoint(0.0, 0.0), 5.0)
             centro = APPoint(2.0, 1.0)
             radio = 5.0
             circle = APCircle2(centro, radio)
-            (w, h) = @to_luxor_picture! width = 400.0 height = 300.0 begin
+            (w, h) = @prepare_to_picture! width = 400.0 height = 300.0 begin
                 centro
                 radio
                 circle
@@ -4005,7 +4011,7 @@ using Base.MathConstants: golden
             @test centro == APPoint(0.0, 0.0)
             @test circle == APCircle2(APPoint(0.0, 0.0), 150.0)
             A_dom, B_dom = APPoint(1.0, 1.0), APPoint(3.0, 3.0)
-            @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+            @prepare_to_picture! width = 500.0 height = 240.0 margin = 20.0 begin
                 A_dom
                 B_dom
                 huge_dom = APCircle2(APPoint(0.0, 0.0), 1000.0)
@@ -4013,7 +4019,7 @@ using Base.MathConstants: golden
             @test norm(direction(APLine(A_dom, B_dom))) < 1.0
             A_ub, B_ub = APPoint(1.0, 1.0), APPoint(3.0, 3.0)
             huge_ub = APCircle2(APPoint(0.0, 0.0), 1000.0)
-            @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+            @prepare_to_picture! width = 500.0 height = 240.0 margin = 20.0 begin
                 A_ub
                 B_ub
                 huge_ub = @unbounded APCircle2(APPoint(0.0, 0.0), 1000.0)
@@ -4021,20 +4027,20 @@ using Base.MathConstants: golden
             @test norm(direction(APLine(A_ub, B_ub))) > 1.0
             @test huge_ub.r > 1.0
             A_ub2, B_ub2 = APPoint(1.0, 1.0), APPoint(3.0, 3.0)
-            @to_luxor_picture! width = 500.0 height = 240.0 margin = 20.0 begin
+            @prepare_to_picture! width = 500.0 height = 240.0 margin = 20.0 begin
                 A_ub2
                 B_ub2
                 @unbounded huge_ub2 = APCircle2(APPoint(0.0, 0.0), 1000.0)
             end
             @test A_ub2 ≈ A_ub && B_ub2 ≈ B_ub && huge_ub2.r ≈ huge_ub.r
             @test (@unbounded 5.0 + 3.0) == 8.0
-            @test_throws ArgumentError @to_luxor_picture begin
+            @test_throws ArgumentError @prepare_to_picture begin
                 z = @unbounded APCircle2(APPoint(0.0, 0.0), 5.0)
             end
             from0 = APPoint(2.0, 3.0)
             v0 = APVector(1.0, -1.0)
             tip0 = from0 + v0
-            (_, (from_, v_, tip_)) = @to_luxor_picture width = 500.0 height = 240.0 begin
+            (_, (from_, v_, tip_)) = @prepare_to_picture width = 500.0 height = 240.0 begin
                 from0
                 v0
                 tip0
@@ -4042,20 +4048,20 @@ using Base.MathConstants: golden
             @test v_ isa APVector
             @test norm(v_) > norm(v0)
             @test from_ + v_ ≈ tip_
-            @test_throws ArgumentError @to_luxor_picture begin
+            @test_throws ArgumentError @prepare_to_picture begin
                 num = 5.0
                 vec = APVector(1.0, 0.0)
             end
             single_pt = APPoint(1.0, 2.0)
-            @test_throws ArgumentError @to_luxor_picture width = 100.0 begin
+            @test_throws ArgumentError @prepare_to_picture width = 100.0 begin
                 single_pt
             end   # a single point has no extent to scale to a width
-            _, sp = @to_luxor_picture begin
+            _, sp = @prepare_to_picture begin
                 single_pt
             end   # without a width or height there is nothing to divide by
             @test sp.single_pt ≈ APPoint(0.0, 0.0)
             # the second value is a NamedTuple with one field per name in the block
-            sz_nt, objs_nt = @to_luxor_picture width = 200.0 begin
+            sz_nt, objs_nt = @prepare_to_picture width = 200.0 begin
                 nt_a = APPoint(0.0, 0.0)
                 nt_c = APCircle2(nt_a, 2.0)
                 nt_p, nt_q = intersection(nt_c, APLine(nt_a, APPoint(1.0, 0.0)))
@@ -4069,16 +4075,16 @@ using Base.MathConstants: golden
             @test nt_a isa APPoint && nt_q isa APPoint
             @test all(values(objs_nt)[k] == objs_nt[k] for k in 1:5)      # positional access still works
             # an unnamed expression has no name to be returned under
-            @test_throws ArgumentError @to_luxor_picture begin
+            @test_throws ArgumentError @prepare_to_picture begin
                 nt_a2 = APPoint(0.0, 0.0)
                 APCircle2(nt_a2, 1.0)
             end
-            @test_throws ArgumentError @to_luxor_picture! begin
+            @test_throws ArgumentError @prepare_to_picture! begin
                 nt_a3 = APPoint(0.0, 0.0)
                 APCircle2(nt_a3, 1.0)
             end
             # a name assigned twice keeps its last value (the first value still counts for the size of the canvas)
-            _, dup = @to_luxor_picture begin
+            _, dup = @prepare_to_picture begin
                 dup_a = APPoint(0.0, 0.0)
                 dup_b = APPoint(4.0, 0.0)
                 dup_a = APPoint(2.0, 0.0)
@@ -4086,7 +4092,7 @@ using Base.MathConstants: golden
             @test keys(dup) == (:dup_a, :dup_b) && isapprox(dup.dup_a, APPoint(0.0, 0.0); atol=1e-9)
             c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
             c2 = APCircle2(APPoint(10.0, 0.0), 3.0)
-            (w, h) = @to_luxor_picture! width = 200.0 flip = false begin
+            (w, h) = @prepare_to_picture! width = 200.0 flip = false begin
                 c1
                 c2
                 el1, el2 = external_tangent_lines(c1, c2)
@@ -4098,7 +4104,7 @@ using Base.MathConstants: golden
             @test el2 == APLine(APPoint(-62.5, -37.5), APPoint(62.5, -37.5))
             cc1 = APCircle2(APPoint(0.0, 0.0), 3.0)
             cc2 = APCircle2(APPoint(10.0, 0.0), 3.0)
-            (w2, h2) = @to_luxor_picture! width = 200.0 begin
+            (w2, h2) = @prepare_to_picture! width = 200.0 begin
                 cc1
                 cc2
                 ee1, ee2 = external_tangent_lines(cc1, cc2)
@@ -4259,12 +4265,12 @@ using Base.MathConstants: golden
             pts = [center + scale * APVector(cos(t), sin(t)) for t in (0.3, 1.1, 2.4, 4.0)]
             @test is_concyclic(pts...)
         end
-        @testset "on_line" begin
+        @testset "is_on_line" begin
             scale = 1e8
             a = APPoint(2.5, -1.5) * scale
             dir = APVector(cos(0.37), sin(0.37))
             l = APLine(a, a + scale * dir)
-            @test on_line(a + 0.3 * scale * dir, l)
+            @test is_on_line(a + 0.3 * scale * dir, l)
         end
         @testset "intersection(APLine, APLine) with short direction vectors" begin
             p1 = APPoint(1e5, 2e5)
@@ -4291,7 +4297,7 @@ using Base.MathConstants: golden
             for scale in (1.0, 1e2, 1e4, 1e6)
                 off = APPoint(1.7, -0.9) * scale
                 e_true = APEllipse2(off, 5.0 * scale, 3.0 * scale, 0.3)
-                pts = [point_on_ellipse(e_true, t) for t in (0.1, 1.3, 2.5, 3.7, 5.0)]
+                pts = [point_on(e_true, t) for t in (0.1, 1.3, 2.5, 3.7, 5.0)]
                 fit = conic_through_points(pts...)
                 @test fit.center ≈ e_true.center rtol = 1e-6
                 @test fit.a ≈ e_true.a rtol = 1e-6
@@ -4302,17 +4308,17 @@ using Base.MathConstants: golden
             scale = 1e6
             off = APPoint(1.7, -0.9) * scale
             e = APEllipse2(off, 5.0 * scale, 3.0 * scale, 0.3)
-            pe = point_on_ellipse(e, 0.5)
+            pe = point_on(e, 0.5)
             le = polar_line(e, pe)
             @test distance(le.p1, le.p2) > 1e-3 * scale
             @test any(pt -> distance(pt, pe) <= 1e-3 * scale, intersection(le, e))
             h = APHyperbola2(off, 4.0 * scale, 2.0 * scale, 0.2)
-            ph = point_on_hyperbola(h, 0.4)
+            ph = point_on(h, 0.4)
             lh = polar_line(h, ph)
             @test distance(lh.p1, lh.p2) > 1e-3 * scale
             @test any(pt -> distance(pt, ph) <= 1e-3 * scale, intersection(lh, h))
             par = APParabola2(off, APLine(off + APVector(-5.0, -3.0) * scale, off + APVector(5.0, -3.0) * scale))
-            pp = point_on_parabola(par, 2.0 * scale)
+            pp = point_on(par, 2.0 * scale)
             lp = polar_line(par, pp)
             @test distance(lp.p1, lp.p2) > 1e-3 * scale
             @test any(pt -> distance(pt, pp) <= 1e-3 * scale, intersection(lp, par))
@@ -4329,8 +4335,8 @@ using Base.MathConstants: golden
             scale = 1e8
             off = APPoint(1.7, -0.9) * scale
             par = APParabola2(off, APLine(off + APVector(-5.0, -3.0) * scale, off + APVector(5.0, -3.0) * scale))
-            p1 = point_on_parabola(par, 0.5 * scale)
-            p2 = point_on_parabola(par, -0.8 * scale)
+            p1 = point_on(par, 0.5 * scale)
+            p2 = point_on(par, -0.8 * scale)
             l = APLine(p1, p2)
             pts = intersection(l, par)
             @test length(pts) == 2
@@ -4376,10 +4382,10 @@ using Base.MathConstants: golden
             @test !(off + APVector(0.0, 5.3) in arc)
             @test off + APVector(0.0, 5.0) in arc
         end
-        @testset "on_line" begin
+        @testset "is_on_line" begin
             l = APLine(off, off + APVector(10.0, 0.0))
-            @test !on_line(off + APVector(3.0, 0.3), l)
-            @test on_line(off + APVector(3.0, 0.0), l)
+            @test !is_on_line(off + APVector(3.0, 0.3), l)
+            @test is_on_line(off + APVector(3.0, 0.0), l)
         end
         @testset "line_circle_position / circles_position" begin
             c = APCircle2(off, 5.0)
@@ -4393,7 +4399,7 @@ using Base.MathConstants: golden
             par = APParabola2(off, APLine(off + APVector(-5.0, -3.0), off + APVector(5.0, -3.0)))
             p_off_curve = off + APVector(0.0, 3.3)
             @test !is_on_parabola(p_off_curve, par)
-            @test is_on_parabola(point_on_parabola(par, 2.0), par)
+            @test is_on_parabola(point_on(par, 2.0), par)
             @test polar_line(par, off + APVector(1.0, 5.0)) isa APLine
         end
         @testset "is_concyclic on distinct (not accidentally-concentric-looking) points" begin
@@ -4434,7 +4440,7 @@ using Base.MathConstants: golden
         @testset "circular (a == b) ellipse" begin
             e = APEllipse2(APPoint(0.0, 0.0), 3.0, 3.0, 0.0)
             @test is_on_ellipse(APPoint(3.0, 0.0), e)
-            @test point_on_ellipse(e, pi / 2) ≈ APPoint(0.0, 3.0) atol = 1e-9
+            @test point_on(e, pi / 2) ≈ APPoint(0.0, 3.0) atol = 1e-9
             f1, f2 = foci(e)
             @test f1 ≈ e.center && f2 ≈ e.center
         end
@@ -4511,7 +4517,7 @@ using Base.MathConstants: golden
             e = Apollonius.APEllipse2(APPoint(1.0, 2.0), 5.0, 3.0, 0.4)
             for (px, py) in [(20.0, 15.0), (2.0, 2.5), (1.0, 2.0), (6.0, 2.0)]
                 p = APPoint(px, py)
-                bf = minimum(distance(p, point_on_ellipse(e, t)) for t in range(0, 2pi; length=20_000))
+                bf = minimum(distance(p, point_on(e, t)) for t in range(0, 2pi; length=20_000))
                 @test isapprox(distance(p, e), bf; atol=1e-2)
             end
             ecirc = Apollonius.APEllipse2(APPoint(0.0, 0.0), 5.0, 5.0, 0.0)
@@ -4519,13 +4525,13 @@ using Base.MathConstants: golden
             h = Apollonius.APHyperbola2(APPoint(0.0, 0.0), 4.0, 2.0, 0.3)
             for (px, py) in [(20.0, 5.0), (0.0, 10.0), (0.0, 0.0)]
                 p = APPoint(px, py)
-                bf = minimum(distance(p, point_on_hyperbola(h, t; branch=b)) for t in range(-5, 5; length=10_000), b in (1, -1))
+                bf = minimum(distance(p, point_on(h, t; branch=b)) for t in range(-5, 5; length=10_000), b in (1, -1))
                 @test isapprox(distance(p, h), bf; atol=2e-2)
             end
             par = Apollonius.APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
             for (px, py) in [(20.0, 20.0), (0.0, 0.0), (-5.0, 10.0)]
                 p = APPoint(px, py)
-                bf = minimum(distance(p, point_on_parabola(par, s)) for s in range(-30, 30; length=20_000))
+                bf = minimum(distance(p, point_on(par, s)) for s in range(-30, 30; length=20_000))
                 @test isapprox(distance(p, par), bf; atol=2e-2)
             end
         end
@@ -4533,25 +4539,25 @@ using Base.MathConstants: golden
             c = Apollonius.APCircle2(APPoint(2.0, -1.0), 5.0)
             arc = APCircularArc2(c, c.center + APVector(5.0, 0.0), c.center + APVector(5.0 * cos(2.3), 5.0 * sin(2.3)))
             for p in [APPoint(2.0, -1.0), APPoint(20.0, 10.0), APPoint(-5.0, -8.0)]
-                bf = minimum(distance(p, point_on_arc(arc, t)) for t in range(0, 1; length=20_000))
+                bf = minimum(distance(p, point_on(arc, t)) for t in range(0, 1; length=20_000))
                 @test isapprox(distance(p, arc), bf; atol=1e-2)
             end
             e = Apollonius.APEllipse2(APPoint(1.0, 2.0), 5.0, 3.0, 0.4)
-            earc = APEllipticArc2(e, point_on_ellipse(e, 0.3), point_on_ellipse(e, 3.5))
+            earc = APEllipticArc2(e, point_on(e, 0.3), point_on(e, 3.5))
             for p in [APPoint(15.0, 10.0), APPoint(-10.0, -5.0)]
-                bf = minimum(distance(p, point_on_arc(earc, t)) for t in range(0, 1; length=20_000))
+                bf = minimum(distance(p, point_on(earc, t)) for t in range(0, 1; length=20_000))
                 @test isapprox(distance(p, earc), bf; atol=2e-2)
             end
             h = Apollonius.APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.1)
-            harc = APHyperbolicArc2(h, point_on_hyperbola(h, 0.2; branch=1), point_on_hyperbola(h, 1.5; branch=1))
+            harc = APHyperbolicArc2(h, point_on(h, 0.2; branch=1), point_on(h, 1.5; branch=1))
             for p in [APPoint(4.93, -0.33), APPoint(10.0, -5.0)]
-                bf = minimum(distance(p, point_on_arc(harc, t)) for t in range(0, 1; length=20_000))
+                bf = minimum(distance(p, point_on(harc, t)) for t in range(0, 1; length=20_000))
                 @test isapprox(distance(p, harc), bf; atol=5e-2)
             end
             par = Apollonius.APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
-            parc = APParabolicArc2(par, point_on_parabola(par, -3.0), point_on_parabola(par, 4.0))
+            parc = APParabolicArc2(par, point_on(par, -3.0), point_on(par, 4.0))
             for p in [APPoint(10.0, 10.0), APPoint(-8.0, 5.0)]
-                bf = minimum(distance(p, point_on_arc(parc, t)) for t in range(0, 1; length=20_000))
+                bf = minimum(distance(p, point_on(parc, t)) for t in range(0, 1; length=20_000))
                 @test isapprox(distance(p, parc), bf; atol=5e-2)
             end
         end
@@ -4619,17 +4625,17 @@ using Base.MathConstants: golden
             e = APEllipse2(APPoint(1.0, 2.0), 5.0, 3.0, 0.4)
             te = translate(e, v)
             for t in range(0, 2pi; length=10)
-                @test isapprox(point_on_ellipse(te, t), point_on_ellipse(e, t) + v; atol=1e-9)
+                @test isapprox(point_on(te, t), point_on(e, t) + v; atol=1e-9)
             end
             h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.1)
             th = translate(h, v)
-            @test isapprox(point_on_hyperbola(th, 0.5; branch=1), point_on_hyperbola(h, 0.5; branch=1) + v; atol=1e-9)
+            @test isapprox(point_on(th, 0.5; branch=1), point_on(h, 0.5; branch=1) + v; atol=1e-9)
             par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
             tpar = translate(par, v)
-            @test isapprox(point_on_parabola(tpar, 2.0), point_on_parabola(par, 2.0) + v; atol=1e-9)
+            @test isapprox(point_on(tpar, 2.0), point_on(par, 2.0) + v; atol=1e-9)
             arc = APCircularArc2(c, c.center + APVector(5.0, 0.0), c.center + APVector(0.0, 5.0))
             tarc = translate(arc, v)
-            @test isapprox(point_on_arc(tarc, 0.3), point_on_arc(arc, 0.3) + v; atol=1e-9)
+            @test isapprox(point_on(tarc, 0.3), point_on(arc, 0.3) + v; atol=1e-9)
         end
         @testset "translate: polygon family and unbounded sets" begin
             v = APVector(3.0, -2.0)
@@ -4640,7 +4646,7 @@ using Base.MathConstants: golden
             c3 = APCircle2(APPoint(3.2, 2.4), 1.0)
             g = only(interstices(c1, c2, c3))
             tg = translate(g, v)
-            @test isapprox(point_on_arc(sides(tg)[1], 0.4), point_on_arc(sides(g)[1], 0.4) + v; atol=1e-6)
+            @test isapprox(point_on(sides(tg)[1], 0.4), point_on(sides(g)[1], 0.4) + v; atol=1e-6)
             hp = APHalfPlane2(APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0)), APPoint(1.0, 0.0))
             thp = translate(hp, v)
             @test (APPoint(2.0, 3.0) in hp) == ((APPoint(2.0, 3.0) + v) in thp)
@@ -4656,17 +4662,17 @@ using Base.MathConstants: golden
             e = APEllipse2(APPoint(1.0, 2.0), 5.0, 3.0, 0.4)
             te = m(e)
             for t in range(0, 2pi; length=15)
-                @test is_on_ellipse(m(point_on_ellipse(e, t)), te; atol=1e-6)
+                @test is_on_ellipse(m(point_on(e, t)), te; atol=1e-6)
             end
             h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.1)
             th = m(h)
             for t in range(-2, 2; length=15), br in (1, -1)
-                @test is_on_hyperbola(m(point_on_hyperbola(h, t; branch=br)), th; atol=1e-6)
+                @test is_on_hyperbola(m(point_on(h, t; branch=br)), th; atol=1e-6)
             end
             par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
             tpar = m(par)
             for s in range(-5, 5; length=15)
-                @test is_on_parabola(m(point_on_parabola(par, s)), tpar; atol=1e-6)
+                @test is_on_parabola(m(point_on(par, s)), tpar; atol=1e-6)
             end
         end
         @testset "APAffineMap: conic arcs, incl. orientation-reversing maps" begin
@@ -4679,15 +4685,15 @@ using Base.MathConstants: golden
                 @test tarc isa APEllipticArc2
                 t1 = Apollonius._ellipse_param(tarc.ellipse, tarc.p1)
                 for t in range(0, 1; length=10)
-                    q = m(point_on_arc(arc, t))
+                    q = m(point_on(arc, t))
                     tp = Apollonius._ellipse_param(tarc.ellipse, q)
                     delta = mod(tp - t1, 2pi)
                     @test (delta <= measure(tarc) + 1e-6) || (delta >= 2pi - 1e-6)
                 end
                 h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.1)
-                harc = APHyperbolicArc2(h, point_on_hyperbola(h, 0.2; branch=1), point_on_hyperbola(h, 1.3; branch=1))
+                harc = APHyperbolicArc2(h, point_on(h, 0.2; branch=1), point_on(h, 1.3; branch=1))
                 tharc = m(harc)
-                @test isapprox(m(point_on_arc(harc, 0.5)), point_on_arc(tharc, 0.5); atol=1e-6)
+                @test isapprox(m(point_on(harc, 0.5)), point_on(tharc, 0.5); atol=1e-6)
             end
         end
         @testset "APAffineMap: half-plane / strip membership under a sheared map" begin
@@ -4707,7 +4713,7 @@ using Base.MathConstants: golden
             m = APAffineMap(1.3, 0.4, -0.2, 0.9, 2.0, -1.0)
             c = APCircle2(APPoint(0.5, -0.3), 4.0)
             e0 = APEllipse2(c.center, c.r, c.r, 0.0)
-            arc = APCircularArc2(c, point_on_ellipse(e0, 0.2), point_on_ellipse(e0, 2.0))
+            arc = APCircularArc2(c, point_on(e0, 0.2), point_on(e0, 2.0))
             sec = APCircularSector2(arc)
             tsec = m(sec)
             @test tsec isa APCurvilinearTriangle2
@@ -4730,7 +4736,7 @@ using Base.MathConstants: golden
             e = APEllipse2(APPoint(1.0, 2.0), 5.0, 3.0, 0.4)
             bb = APBoundingBox(e)
             for t in range(0, 2pi; length=30)
-                p = point_on_ellipse(e, t)
+                p = point_on(e, t)
                 @test bb.min[1] - 1e-6 <= p[1] <= bb.max[1] + 1e-6
                 @test bb.min[2] - 1e-6 <= p[2] <= bb.max[2] + 1e-6
             end
@@ -4740,40 +4746,40 @@ using Base.MathConstants: golden
         @testset "conic arcs stay within their own bounding box" begin
             c = APCircle2(APPoint(1.0, -2.0), 5.0)
             e0 = APEllipse2(c.center, c.r, c.r, 0.0)
-            arc = APCircularArc2(c, point_on_ellipse(e0, 0.3), point_on_ellipse(e0, 2.5))
+            arc = APCircularArc2(c, point_on(e0, 0.3), point_on(e0, 2.5))
             bb = APBoundingBox(arc)
             for t in range(0, 1; length=20)
-                p = point_on_arc(arc, t)
+                p = point_on(arc, t)
                 @test bb.min[1] - 1e-6 <= p[1] <= bb.max[1] + 1e-6 && bb.min[2] - 1e-6 <= p[2] <= bb.max[2] + 1e-6
             end
             e = APEllipse2(APPoint(2.0, 1.0), 3.0, 1.5, 0.3)
-            earc = APEllipticArc2(e, point_on_ellipse(e, 0.2), point_on_ellipse(e, 3.5))
+            earc = APEllipticArc2(e, point_on(e, 0.2), point_on(e, 3.5))
             bb2 = APBoundingBox(earc)
             for t in range(0, 1; length=20)
-                p = point_on_arc(earc, t)
+                p = point_on(earc, t)
                 @test bb2.min[1] - 1e-6 <= p[1] <= bb2.max[1] + 1e-6 && bb2.min[2] - 1e-6 <= p[2] <= bb2.max[2] + 1e-6
             end
             h = APHyperbola2(APPoint(0.0, 0.0), 2.0, 1.0, 0.1)
-            harc = APHyperbolicArc2(h, point_on_hyperbola(h, -1.0; branch=1), point_on_hyperbola(h, 1.5; branch=1))
+            harc = APHyperbolicArc2(h, point_on(h, -1.0; branch=1), point_on(h, 1.5; branch=1))
             bb3 = APBoundingBox(harc)
             for t in range(0, 1; length=20)
-                p = point_on_arc(harc, t)
+                p = point_on(harc, t)
                 @test bb3.min[1] - 1e-6 <= p[1] <= bb3.max[1] + 1e-6 && bb3.min[2] - 1e-6 <= p[2] <= bb3.max[2] + 1e-6
             end
             par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
-            parc = APParabolicArc2(par, point_on_parabola(par, -3.0), point_on_parabola(par, 4.0))
+            parc = APParabolicArc2(par, point_on(par, -3.0), point_on(par, 4.0))
             bb4 = APBoundingBox(parc)
             for t in range(0, 1; length=20)
-                p = point_on_arc(parc, t)
+                p = point_on(parc, t)
                 @test bb4.min[1] - 1e-6 <= p[1] <= bb4.max[1] + 1e-6 && bb4.min[2] - 1e-6 <= p[2] <= bb4.max[2] + 1e-6
             end
         end
         @testset "curved regions (via sides -- vertices(p) is now derived from sides(p))" begin
             point_on_arc_or_seg(s::APSegment, t) = s.p1 + t * (s.p2 - s.p1)
-            point_on_arc_or_seg(s, t) = point_on_arc(s, t)
+            point_on_arc_or_seg(s, t) = point_on(s, t)
             c = APCircle2(APPoint(1.0, -2.0), 5.0)
             e0 = APEllipse2(c.center, c.r, c.r, 0.0)
-            arc = APCircularArc2(c, point_on_ellipse(e0, 0.3), point_on_ellipse(e0, 2.5))
+            arc = APCircularArc2(c, point_on(e0, 0.3), point_on(e0, 2.5))
             sec = APCircularSector2(arc)
             bb_sec = APBoundingBox(sec)
             for side in sides(sec), t in range(0, 1; length=15)
@@ -4793,13 +4799,13 @@ using Base.MathConstants: golden
             g = only(interstices(c1, c2, c3))
             bb_g = APBoundingBox(g)
             for side in sides(g), t in range(0, 1; length=15)
-                p = point_on_arc(side, t)
+                p = point_on(side, t)
                 @test bb_g.min[1] - 1e-6 <= p[1] <= bb_g.max[1] + 1e-6 && bb_g.min[2] - 1e-6 <= p[2] <= bb_g.max[2] + 1e-6
             end
         end
     end
     @testset "Base.in coverage: every APCurve/APPolygon type, not just the named predicates" begin
-        @testset "APSegment / APLine / APRay: in matches on_segment/on_line/on_ray" begin
+        @testset "APSegment / APLine / APRay: in matches is_on_segment/is_on_line/is_on_ray" begin
             s = APSegment(APPoint(0.0, 0.0), APPoint(4.0, 4.0))
             l = APLine(APPoint(0.0, 0.0), APPoint(4.0, 4.0))
             r = APRay(APPoint(0.0, 0.0), APPoint(4.0, 4.0))
@@ -4810,17 +4816,17 @@ using Base.MathConstants: golden
             @test mid in s
             @test !(off_line in s)
             @test !(beyond in s)
-            @test (mid in s) == on_segment(mid, s)
-            @test (beyond in s) == on_segment(beyond, s)
+            @test (mid in s) == is_on_segment(mid, s)
+            @test (beyond in s) == is_on_segment(beyond, s)
             @test mid in l
             @test beyond in l
             @test !(off_line in l)
-            @test (mid in l) == on_line(mid, l)
+            @test (mid in l) == is_on_line(mid, l)
             @test mid in r
             @test beyond in r
             @test !(behind in r)
-            @test on_ray(mid, r) && on_ray(beyond, r) && !on_ray(behind, r)
-            @test (mid in r) == on_ray(mid, r)
+            @test is_on_ray(mid, r) && is_on_ray(beyond, r) && !is_on_ray(behind, r)
+            @test (mid in r) == is_on_ray(mid, r)
         end
         @testset "conic arcs: in tests the arc's own sweep, not the full curve" begin
             circ = APCircle2(APPoint(0.0, 0.0), 5.0)
@@ -4829,17 +4835,17 @@ using Base.MathConstants: golden
             @test !(APPoint(-5.0, 0.0) in carc)
             @test !(APPoint(3.0, 3.0) in carc)
             ell = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
-            earc = APEllipticArc2(ell, point_on_ellipse(ell, 0.2), point_on_ellipse(ell, 2.0))
-            @test point_on_arc(earc, 0.5) in earc
-            @test !(point_on_ellipse(ell, 4.0) in earc)
+            earc = APEllipticArc2(ell, point_on(ell, 0.2), point_on(ell, 2.0))
+            @test point_on(earc, 0.5) in earc
+            @test !(point_on(ell, 4.0) in earc)
             par = APParabola2(APPoint(0.0, 1.0), APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0)))
-            parc = APParabolicArc2(par, point_on_parabola(par, -3.0), point_on_parabola(par, 3.0))
-            @test point_on_arc(parc, 0.5) in parc
-            @test !(point_on_parabola(par, 10.0) in parc)
+            parc = APParabolicArc2(par, point_on(par, -3.0), point_on(par, 3.0))
+            @test point_on(parc, 0.5) in parc
+            @test !(point_on(par, 10.0) in parc)
             hyp = APHyperbola2(APPoint(0.0, 0.0), 3.0, 4.0)
-            harc = APHyperbolicArc2(hyp, point_on_hyperbola(hyp, -0.5), point_on_hyperbola(hyp, 0.5))
-            @test point_on_arc(harc, 0.5) in harc
-            @test !(point_on_hyperbola(hyp, 0.5; branch=-1) in harc)
+            harc = APHyperbolicArc2(hyp, point_on(hyp, -0.5), point_on(hyp, 0.5))
+            @test point_on(harc, 0.5) in harc
+            @test !(point_on(hyp, 0.5; branch=-1) in harc)
         end
         @testset "curved regions: in/distance work via sides(), agree with the bespoke sector/segment methods" begin
             circ = APCircle2(APPoint(0.0, 0.0), 5.0)
@@ -4970,8 +4976,8 @@ using Base.MathConstants: golden
             xz = APPlane3(APPoint(0.0, 0.0, 0.0), APVector(0.0, 1.0, 0.0))
             iline = intersection(xy, xz)
             @test iline isa APLine
-            @test on_line(APPoint(0.0, 0.0, 0.0), iline)
-            @test on_line(APPoint(7.0, 0.0, 0.0), iline)
+            @test is_on_line(APPoint(0.0, 0.0, 0.0), iline)
+            @test is_on_line(APPoint(7.0, 0.0, 0.0), iline)
             @test distance(xy, xz) == 0.0
             z1 = APPlane3(APPoint(0.0, 0.0, 1.0), APVector(0.0, 0.0, 1.0))
             @test intersection(xy, z1) === nothing
@@ -5310,8 +5316,8 @@ using Base.MathConstants: golden
             f1h, f2h = foci(h)
             @test distance(f1h, h.center) ≈ sqrt(9.0 + 16.0)
             asym1, asym2 = asymptotes(h)
-            @test on_line(h.center, asym1)
-            @test on_line(h.center, asym2)
+            @test is_on_line(h.center, asym1)
+            @test is_on_line(h.center, asym2)
             f1b, f2b = APPoint(-5.0, 0.0, 0.0), APPoint(5.0, 0.0, 0.0)
             pb = APPoint(3.0, 0.0, 0.0)
             hb = APHyperbola3(f1b, f2b, pb)
@@ -5326,7 +5332,7 @@ using Base.MathConstants: golden
             @test is_on_parabola3(pp, par3)
             @test orthoptic(par3) == directrix3
         end
-        @testset "Arcs: measure/arc_length/reverse/point_on_arc/Base.in" begin
+        @testset "Arcs: measure/arc_length/reverse/point_on/Base.in" begin
             circ = APCircle3(APPoint(0.0, 0.0, 0.0), 5.0, APVector(0.0, 0.0, 1.0))
             u0 = point_on_circle3(circ, 0.0)
             u90 = point_on_circle3(circ, pi / 2)
@@ -5338,8 +5344,8 @@ using Base.MathConstants: golden
             ell = APEllipse3(APPoint(0.0, 0.0, 0.0), 5.0, 3.0, APVector(0.0, 0.0, 1.0), APVector(1.0, 0.0, 0.0))
             p1e, p2e = point_on_ellipse3(ell, 0.2), point_on_ellipse3(ell, 2.0)
             earc = APEllipticArc3(ell, p1e, p2e)
-            @test point_on_arc(earc, 0.0) ≈ p1e
-            @test point_on_arc(earc, 1.0) ≈ p2e
+            @test point_on(earc, 0.0) ≈ p1e
+            @test point_on(earc, 1.0) ≈ p2e
             @test arc_length(earc) > distance(p1e, p2e)
             par = APParabola3(APPoint(0.0, 1.0, 0.0), APLine(APPoint(-5.0, -1.0, 0.0), APPoint(5.0, -1.0, 0.0)))
             parc = APParabolicArc3(par, point_on_parabola3(par, -3.0), point_on_parabola3(par, 3.0))
@@ -5347,7 +5353,7 @@ using Base.MathConstants: golden
             hyp = APHyperbola3(APPoint(0.0, 0.0, 0.0), 3.0, 4.0, APVector(0.0, 0.0, 1.0), APVector(1.0, 0.0, 0.0))
             harc = APHyperbolicArc3(hyp, point_on_hyperbola3(hyp, -0.5), point_on_hyperbola3(hyp, 0.5))
             @test harc isa APHyperbolicArc3
-            @test point_on_arc(harc, 0.0) ≈ harc.p1 atol = 1e-9
+            @test point_on(harc, 0.0) ≈ harc.p1 atol = 1e-9
         end
     end
     @testset "Quadric surfaces" begin
@@ -5488,7 +5494,7 @@ using Base.MathConstants: golden
         @test ev3dh.point ≈ APPoint(3.0, 6.0, 9.0)
         @test ev3dh.vector ≈ APVector(3.0, 0.0, 0.0)
         raw = APEquipollentVector(direction(APLine(APPoint(3.0, 4.0), APPoint(0.0, 0.0))), APPoint(0.0, 0.0))
-        sz, ev_placed = @to_luxor_picture width=500 height=240 margin=20 begin
+        sz, ev_placed = @prepare_to_picture width=500 height=240 margin=20 begin
             evp = raw
         end
         @test norm(ev_placed.evp.vector) > norm(raw.vector)
@@ -5548,6 +5554,10 @@ using Base.MathConstants: golden
                 @test (path(APVector(20.0, 10.0); as=:doublearrow); true)
                 @test (path(APEquipollentVector(APVector(20.0, 10.0), APPoint(5.0, 5.0)); as=:doublearrow); true)
             end
+            @testset "Luxor.Point(::APPoint)" begin
+                lp = Luxor.Point(APPoint(3.0, -4.0))
+                @test lp isa Luxor.Point && lp.x == 3.0 && lp.y == -4.0
+            end
             @testset "point shapes, dimension and tickline" begin
                 for shape in (:circle, :square, :cross, :plus)
                     path(APPoint(0.0, 0.0); as=shape, radius=4, action=:stroke)
@@ -5579,7 +5589,7 @@ using Base.MathConstants: golden
                 @test near(first(cbw), 0, 30) && near(last(cbw), 30, 0)
                 @test all(p -> isapprox(hypot(p.x, p.y), 30.0; atol=0.1), cbw)   # still on the same circle
                 e2 = APEllipse2(APPoint(0.0, 0.0), 40.0, 20.0)
-                earc = APEllipticArc2(e2, point_on_ellipse(e2, 0.2), point_on_ellipse(e2, 1.4))
+                earc = APEllipticArc2(e2, point_on(e2, 0.2), point_on(e2, 1.4))
                 efw, ebw = pts_of(earc), pts_of(earc; reverse=true)
                 @test near(first(efw), earc.p1[1], earc.p1[2]) && near(first(ebw), earc.p2[1], earc.p2[2])
                 @test near(last(ebw), earc.p1[1], earc.p1[2])
@@ -5629,13 +5639,13 @@ using Base.MathConstants: golden
             path(t)
             Luxor.strokepath()
             e2 = APEllipse2(APPoint(0.0, 0.0), 40.0, 20.0, pi / 6)
-            earc = APEllipticArc2(e2, point_on_ellipse(e2, 0.2), point_on_ellipse(e2, 2.0))
+            earc = APEllipticArc2(e2, point_on(e2, 0.2), point_on(e2, 2.0))
             path(earc; action=:stroke)
             par2 = APParabola2(APPoint(0.0, 20.0), APLine(APPoint(-50.0, -20.0), APPoint(50.0, -20.0)))
-            parc = APParabolicArc2(par2, point_on_parabola(par2, -30.0), point_on_parabola(par2, 30.0))
+            parc = APParabolicArc2(par2, point_on(par2, -30.0), point_on(par2, 30.0))
             path(parc; action=:stroke)
             hyp2 = APHyperbola2(APPoint(0.0, 0.0), 20.0, 10.0)
-            hyparc = APHyperbolicArc2(hyp2, point_on_hyperbola(hyp2, -0.5; branch=1), point_on_hyperbola(hyp2, 0.5; branch=1))
+            hyparc = APHyperbolicArc2(hyp2, point_on(hyp2, -0.5; branch=1), point_on(hyp2, 0.5; branch=1))
             path(hyparc; action=:stroke)
             pcurve = APParametricCurve2(t -> APPoint(30 * cos(t), 15 * sin(2t)), (0.0, 2pi))
             path(pcurve; action=:stroke)
@@ -5797,10 +5807,10 @@ using Base.MathConstants: golden
                 Luxor.finish()
             end
         end
-        @testset "current_path_bbox and @to_luxor_picture together" begin
+        @testset "current_path_bbox and @prepare_to_picture together" begin
             t = APTriangle(APPoint(2.0, -5.0), APPoint(9.0, 3.0), APPoint(-1.0, 6.0))
             circ = Apollonius.APCircle2(APPoint(4.0, 1.0), 4.0)
-            (w, h), (t2, c2) = @to_luxor_picture width = 300.0 margin = 10.0 begin
+            (w, h), (t2, c2) = @prepare_to_picture width = 300.0 margin = 10.0 begin
                 t
                 circ
             end
@@ -5856,7 +5866,7 @@ end
     pg = APStraightNgon([P(0.0, 0.0), P(5.0, 0.0), P(6.0, 3.0), P(2.0, 4.0), P(-1.0, 2.0)])
     l = APLine(P(-2.0, 1.0), P(7.0, 2.5))
     pts = intersection(pg, l)
-    @test length(pts) == 2 && all(p -> on_line(p, l) && Apollonius.distance(p, pg; mode=:boundary) < 1e-9, pts)
+    @test length(pts) == 2 && all(p -> is_on_line(p, l) && Apollonius.distance(p, pg; mode=:boundary) < 1e-9, pts)
     @test length(intersection(l, pg)) == 2
     # a vertex shared by two sides is reported once
     @test length(intersection(pg, APLine(P(-1.0, 2.0), P(0.0, 0.0)))) == 2
@@ -5919,7 +5929,7 @@ end
     c = circle_with_diameter(a, b)
     @test c.center ≈ APPoint(3.0, 1.0) && c.r ≈ sqrt(10)
     @test circle_with_diameter(APSegment(a, b)) == c
-    @test angle_measure_at(point_on_circle(c, 1.0), a, b) ≈ pi / 2
+    @test angle_measure_at(point_on(c, 1.0), a, b) ≈ pi / 2
     @test circle_with_diameter(APPoint(0, 0), APPoint(4, 0)) ≈ APCircle2(APPoint(2.0, 0.0), 2.0)
 end
 
@@ -5972,14 +5982,14 @@ end
         @test is_perpendicular(tangent_line(c, P(3.0, 4.0)), APLine(O, P(3.0, 4.0)))
         @test_throws ArgumentError tangent_line(c, P(1.0, 1.0))
         e = APEllipse2(O, 5.0, 3.0)
-        pe = point_on_ellipse(e, 1.0)
-        @test on_line(pe, tangent_line(e, pe)) && on_line(O, normal_line(c, P(3.0, 4.0)))
+        pe = point_on(e, 1.0)
+        @test is_on_line(pe, tangent_line(e, pe)) && is_on_line(O, normal_line(c, P(3.0, 4.0)))
         h = APHyperbola2(O, 3.0, 2.0)
-        ph = point_on_hyperbola(h, 0.5)
-        @test on_line(ph, tangent_line(h, ph)) && line_circle_position(tangent_line(c, P(3.0, 4.0)), c) == :tangent
+        ph = point_on(h, 0.5)
+        @test is_on_line(ph, tangent_line(h, ph)) && line_circle_position(tangent_line(c, P(3.0, 4.0)), c) == :tangent
         par = APParabola2(P(0.0, 1.0), APLine(P(0.0, -1.0), P(1.0, -1.0)))
-        pp = point_on_parabola(par, 2.0)
-        @test on_line(pp, tangent_line(par, pp))
+        pp = point_on(par, 2.0)
+        @test is_on_line(pp, tangent_line(par, pp))
         arc = APCircularArc2(c, P(5.0, 0.0), P(0.0, 5.0))
         @test tangent_line(arc, P(3.0, 4.0)) ≈ tangent_line(c, P(3.0, 4.0))
         @test_throws ArgumentError tangent_line(arc, P(-3.0, 4.0))
@@ -6016,7 +6026,7 @@ end
         @test incircle(regular_polygon(O, P(2.0, 0.0), 6)).r ≈ 2cos(pi / 6)
         @test_throws ArgumentError incircle(APQuadrilateral(P(0.0, 0.0), P(4.0, 0.0), P(4.0, 1.0), P(0.0, 3.0)))
         c = APCircle2(O, 1.0)
-        t = circumscribed_triangle(c, point_on_circle(c, 0.5), point_on_circle(c, 2.5), point_on_circle(c, 4.5))
+        t = circumscribed_triangle(c, point_on(c, 0.5), point_on(c, 2.5), point_on(c, 4.5))
         @test isapprox(incircle(t), c; atol=1e-9)
         @test_throws ArgumentError circumscribed_triangle(c, P(1.0, 0.0), P(-1.0, 0.0), P(0.0, 1.0))
     end
@@ -6055,11 +6065,11 @@ end
     @testset "conics" begin
         F, d = O, APLine(P(4.0, -1.0), P(4.0, 1.0))
         e = conic_with_focus(F, d, 0.5)
-        @test e isa APEllipse2 && all(t -> (p = point_on_ellipse(e, t); Apollonius.distance(p, F) ≈ 0.5 * Apollonius.distance(p, d)), 0:0.7:6)
+        @test e isa APEllipse2 && all(t -> (p = point_on(e, t); Apollonius.distance(p, F) ≈ 0.5 * Apollonius.distance(p, d)), 0:0.7:6)
         @test conic_with_focus(F, d, 1.0) isa APParabola2
         h = conic_with_focus(F, d, 2.0)
-        @test h isa APHyperbola2 && all(t -> (p = point_on_hyperbola(h, t); Apollonius.distance(p, F) ≈ 2 * Apollonius.distance(p, d)), -1:0.5:1)
-        @test all(t -> (p = point_on_hyperbola(h, t; branch=-1); Apollonius.distance(p, F) ≈ 2 * Apollonius.distance(p, d)), -1:0.5:1)
+        @test h isa APHyperbola2 && all(t -> (p = point_on(h, t); Apollonius.distance(p, F) ≈ 2 * Apollonius.distance(p, d)), -1:0.5:1)
+        @test all(t -> (p = point_on(h, t; branch=-1); Apollonius.distance(p, F) ≈ 2 * Apollonius.distance(p, d)), -1:0.5:1)
         @test_throws ArgumentError conic_with_focus(P(4.0, 0.0), d, 0.5)
         el = ellipse_with_axis(O, P(5.0, 0.0), P(3.0, 2.4))
         @test el.a ≈ 5 && el.b ≈ 3 && is_on_ellipse(P(3.0, 2.4), el)
@@ -6094,13 +6104,25 @@ end
         c = APCircle2(APPoint(b + 1.0, b), APPoint(b, b + 1.0), APPoint(b - 1.0, b))
         @test isapprox(c.center[1] - b, 0.0; atol=1e-4) && isapprox(c.center[2] - b, 0.0; atol=1e-4) && isapprox(c.r, 1.0; rtol=1e-4)
         e = APEllipse2(APPoint(b, b), 5.0, 3.0)
-        @test all(t -> is_on_ellipse(point_on_ellipse(e, t), e), 0.0:0.9:6.0)
+        @test all(t -> is_on_ellipse(point_on(e, t), e), 0.0:0.9:6.0)
     end
+end
+
+@testset "vertical and horizontal lines" begin
+    P(x, y) = APPoint(x, y)
+    @test vertical_line(3.0) ≈ vertical_line(P(3.0, -8.0))
+    @test is_on_line(P(3.0, 100.0), vertical_line(3.0)) && !is_on_line(P(3.1, 0.0), vertical_line(3.0))
+    @test horizontal_line(-2.0) ≈ horizontal_line(P(7.0, -2.0))
+    @test is_on_line(P(-40.0, -2.0), horizontal_line(-2.0)) && !is_on_line(P(0.0, -2.1), horizontal_line(-2.0))
+    @test is_perpendicular(vertical_line(1.0), horizontal_line(1.0))
 end
 
 @testset "elementary operations" begin
     P(x, y) = APPoint(x, y)
     O = P(0.0, 0.0)
+    @test Apollonius.distance(P(2.0, 0.0), APEquipollentVector(APVector(4.0, 0.0), O)) ≈ 0.0 atol = 1e-12
+    @test Apollonius.distance(P(0.0, 2.0), APEquipollentVector(APVector(4.0, 0.0), O)) ≈ 2.0
+    @test Apollonius.distance(APEquipollentVector(APVector(4.0, 0.0), O), P(0.0, 2.0)) ≈ 2.0
     @testset "direction and angle of vectors" begin
         @test direction(APVector(1.0, 2.0)) == APVector(1.0, 2.0)
         @test slope_angle(APVector(0.0, 2.0)) ≈ π / 2
@@ -6143,8 +6165,8 @@ end
     end
     @testset "polylines and parametric curves" begin
         pl = APPolyline2(O, P(2.0, 0.0), P(2.0, 2.0))
-        @test point_on_curve(pl, 0.0) ≈ O && point_on_curve(pl, 1.0) ≈ P(2.0, 2.0) && point_on_curve(pl, 0.5) ≈ P(2.0, 0.0)
-        @test_throws ArgumentError point_on_curve(pl, 1.5)
+        @test point_on(pl, 0.0) ≈ O && point_on(pl, 1.0) ≈ P(2.0, 2.0) && point_on(pl, 0.5) ≈ P(2.0, 0.0)
+        @test_throws ArgumentError point_on(pl, 1.5)
         @test tangent_line(pl, P(1.0, 0.0)) ≈ APLine(O, P(1.0, 0.0))
         @test tangent_line(pl, P(2.0, 1.0)) ≈ APLine(P(2.0, 0.0), P(2.0, 1.0))
         @test_throws ArgumentError tangent_line(pl, P(5.0, 5.0))

@@ -107,7 +107,7 @@ Base.convert(::Type{APRay{Dim,T}}, r::APRay{Dim}) where {Dim,T} = APRay{Dim,T}(r
 Base.isapprox(a::APSegment, b::APSegment; kwargs...) = isapprox(a.p1, b.p1; kwargs...) && isapprox(a.p2, b.p2; kwargs...)
 function Base.isapprox(a::APLine{2}, b::APLine{2}; atol=1e-9, kwargs...)
     is_parallel(a, b; atol=atol) &&
-        on_line(a.p1, b; atol=atol)
+        is_on_line(a.p1, b; atol=atol)
 end
 function Base.isapprox(a::APRay, b::APRay; atol=1e-9, kwargs...)
     isapprox(a.origin, b.origin; atol=atol, kwargs...) || return false
@@ -147,7 +147,7 @@ end
 position), so it's accepted purely for signature symmetry with every
 other `homothety` method (points, curves, [`APEquipollentVector`](@ref)).
 Having this defined for a bare `APVector` is what lets
-[`@to_luxor_picture`](@ref) scale one to the picture's own scale factor
+[`@prepare_to_picture`](@ref) scale one to the picture's own scale factor
 even though it has no [`APBoundingBox`](@ref) to shift into position:
 see `_place_in_picture`'s own comment for the reasoning.
 """
@@ -422,7 +422,7 @@ The [`bbox_union`](@ref) of a fixed-size group of shapes: e.g. the
 `(A=..., B=..., C=...)` returned by [`excenters`](@ref)/[`excircles`](@ref)
 or the plain 3-tuple returned by [`euler_points`](@ref): so these work
 directly wherever a single shape would (like inside
-[`@to_luxor_picture`](@ref)) without first calling `collect`.
+[`@prepare_to_picture`](@ref)) without first calling `collect`.
 """
 function APBoundingBox(shapes::Union{Tuple,NamedTuple})
     isempty(shapes) && throw(ArgumentError("APBoundingBox requires at least one shape"))
@@ -447,7 +447,7 @@ contribute to a picture's extent: a plain number, an [`APVector`](@ref)
 its own degenerate box above), or an unbounded curve/region
 ([`APLine`](@ref), [`APRay`](@ref), `APAngle2`, `APHalfPlane2`,
 `APStrip2`, which have no finite extent to report). It exists so generic
-code, [`@boundingbox`](@ref), [`@to_luxor_picture`](@ref), can call
+code, [`@boundingbox`](@ref), [`@prepare_to_picture`](@ref), can call
 `APBoundingBox` on every value named in a block without special-casing the
 ones that aren't meant to be drawn or sized.
 """
@@ -466,7 +466,7 @@ the way [`APBoundingBox(::AbstractVector{<:APPoint})`](@ref) does. This is
 what lets a plain `Vector` of shapes, what [`intersection`](@ref)/
 [`tangent_points`](@ref) return, since they can give 0, 1 or 2 points
 depending on the geometry, work as a single named item inside a
-[`@boundingbox`](@ref)/[`@to_luxor_picture`](@ref) block, without
+[`@boundingbox`](@ref)/[`@prepare_to_picture`](@ref) block, without
 unwrapping it by hand first.
 """
 APBoundingBox(v::AbstractVector{<:APObject}) = reduce(bbox_union, APBoundingBox.(v); init=APBoundingBox())
@@ -661,7 +661,7 @@ end
 function _picture_layout(bw::Real, bh::Real, width, height, scale, margin::Real)
     fit_width, fit_height = width !== nothing && scale === nothing, height !== nothing && scale === nothing
     ((fit_width && !fit_height && bw == 0) || (fit_height && !fit_width && bh == 0) || (fit_width && fit_height && bw == 0 && bh == 0)) &&
-        throw(ArgumentError("@to_luxor_picture: the content has no extent in the direction to fit (a single point, for example), so it cannot be scaled to width/height"))
+        throw(ArgumentError("@prepare_to_picture: the content has no extent in the direction to fit (a single point, for example), so it cannot be scaled to width/height"))
     if scale !== nothing
         s = Float64(scale)
         W = bw * s + 2margin
@@ -713,7 +713,7 @@ function _parse_picture_kwargs(macroname, exprs)
 end
 function _picture_body(mutating::Bool, block, width, height, scale, margin, flip)
     block isa Expr && block.head === :block || (block = Expr(:block, block))
-    macroname = mutating ? "@to_luxor_picture!" : "@to_luxor_picture"
+    macroname = mutating ? "@prepare_to_picture!" : "@prepare_to_picture"
     shapes = gensym(:picture_shapes)
     sizing_shapes = gensym(:picture_sizing_shapes)
     slots = Union{Symbol,Nothing}[]
@@ -776,7 +776,7 @@ end
 """
     @unbounded expr
 
-Inside a [`@to_luxor_picture`](@ref)/[`@to_luxor_picture!`](@ref) block,
+Inside a [`@prepare_to_picture`](@ref)/[`@prepare_to_picture!`](@ref) block,
 marks `expr` as excluded from that picture's fit-to-canvas *sizing*, its
 own [`APBoundingBox`](@ref) is left out of the union that determines the
 canvas size and scale factor, while still binding/transforming it
@@ -792,7 +792,7 @@ but isn't meant to set the picture's own scale: e.g. a big locus circle
 used only to build an intersection point:
 
 ```julia
-lxm = @to_luxor_picture! width=500 height=240 begin
+lxm = @prepare_to_picture! width=500 height=240 begin
     A = APPoint(1.0, 1.0)
     locus = @unbounded APCircle2(APPoint(0.0, 0.0), 1000.0)   # huge, but shouldn't zoom the picture out
     B = intersection(locus, APLine(A, APPoint(2.0, 2.0)))[1]
@@ -801,25 +801,25 @@ end
 
 If *every* shape in the block ends up marked `@unbounded` (or the block
 otherwise has nothing with a finite bounding box), the same
-`ArgumentError` [`@to_luxor_picture`](@ref) already throws for an empty
+`ArgumentError` [`@prepare_to_picture`](@ref) already throws for an empty
 bounding box applies: there's nothing left to size the canvas by.
 """
 macro unbounded(expr)
     return esc(expr)
 end
 """
-    @to_luxor_picture begin
+    @prepare_to_picture begin
         c = APCircle2(...)
         s = APSegment(...)
         t                     # a shape already defined earlier
     end
-    @to_luxor_picture c        # a single shape/expression also works
-    @to_luxor_picture width=400 begin ... end
-    @to_luxor_picture height=300 begin ... end
-    @to_luxor_picture width=400 height=300 begin ... end
-    @to_luxor_picture scale=2.0 begin ... end
-    @to_luxor_picture width=400 margin=10 begin ... end
-    @to_luxor_picture flip=false width=400 begin ... end
+    @prepare_to_picture c        # a single shape/expression also works
+    @prepare_to_picture width=400 begin ... end
+    @prepare_to_picture height=300 begin ... end
+    @prepare_to_picture width=400 height=300 begin ... end
+    @prepare_to_picture scale=2.0 begin ... end
+    @prepare_to_picture width=400 margin=10 begin ... end
+    @prepare_to_picture flip=false width=400 begin ... end
 
 Prepares every shape named in the block for drawing at a known, exact
 canvas size: translate/scale them so their combined [`APBoundingBox`](@ref)
@@ -841,7 +841,7 @@ block, holding the translated/scaled copy: `lxo.c`, `lxo.s`, or all at
 once with `(; c, s) = lxo`. Nothing has to be listed twice, so a shape
 built inside the block is returned without writing its name again. The
 originals (`c`/`s`/`t` themselves) are untouched: see
-[`@to_luxor_picture!`](@ref) for the mutating form. It also destructures by
+[`@prepare_to_picture!`](@ref) for the mutating form. It also destructures by
 position, in the order of the block, as a plain tuple would. A name assigned
 more than once keeps its last value, in the position of its first appearance
 (the earlier values still count for the size of the canvas).
@@ -859,7 +859,7 @@ coordinates instead (e.g. if you're already deliberately working in
 screen/y-down coordinates).
 
 ```julia
-lxm, lxo = @to_luxor_picture width=400 begin
+lxm, lxo = @prepare_to_picture width=400 begin
     c = APCircle2(APPoint(3.0, -1.0), 5.0)
     s = APSegment(APPoint(-2.0, 4.0), APPoint(6.0, -3.0))
 end
@@ -917,27 +917,27 @@ e.g. a large auxiliary construction circle used only to build an
 intersection point, that you don't want forcing the picture to zoom out
 to fit.
 """
-macro to_luxor_picture(args...)
-    isempty(args) && error("@to_luxor_picture: missing the shapes block")
-    width, height, scale, margin, flip = _parse_picture_kwargs("@to_luxor_picture", args[1:end-1])
+macro prepare_to_picture(args...)
+    isempty(args) && error("@prepare_to_picture: missing the shapes block")
+    width, height, scale, margin, flip = _parse_picture_kwargs("@prepare_to_picture", args[1:end-1])
     return _picture_body(false, args[end], width, height, scale, margin, flip)
 end
 """
-    @to_luxor_picture! begin ... end
-    @to_luxor_picture! width=400 begin ... end
+    @prepare_to_picture! begin ... end
+    @prepare_to_picture! width=400 begin ... end
 
-The mutating counterpart of [`@to_luxor_picture`](@ref): rebinds each
+The mutating counterpart of [`@prepare_to_picture`](@ref): rebinds each
 *named* shape (an assignment, or a bare reference to a shape defined
 earlier) to its own translated/scaled image, instead of returning copies.
 Returns just `(width=w, height=h, fct=fct, bb=bb)`, a `NamedTuple` (see
-[`@to_luxor_picture`](@ref) for what `fct`/`bb` give you beyond `width`/
+[`@prepare_to_picture`](@ref) for what `fct`/`bb` give you beyond `width`/
 `height`), the shapes are already accessible under their own names. A
 bare, unnamed expression has nothing to rebind, so this form rejects it
 (same as [`@translate!`](@ref) and the rest of that family).
 """
-macro to_luxor_picture!(args...)
-    isempty(args) && error("@to_luxor_picture!: missing the shapes block")
-    width, height, scale, margin, flip = _parse_picture_kwargs("@to_luxor_picture!", args[1:end-1])
+macro prepare_to_picture!(args...)
+    isempty(args) && error("@prepare_to_picture!: missing the shapes block")
+    width, height, scale, margin, flip = _parse_picture_kwargs("@prepare_to_picture!", args[1:end-1])
     return _picture_body(true, args[end], width, height, scale, margin, flip)
 end
 function _shape_transform_body(mutating::Bool, make_call, block)

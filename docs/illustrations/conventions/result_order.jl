@@ -1,8 +1,8 @@
 include("../default_config.jl")
 import Apollonius: distance
-lxm = @to_luxor_picture! width=500 height=240 margin=60 begin
+lxm = @prepare_to_picture! width=500 height=240 margin=60 begin
     c1 = APCircle2(APPoint(0.0, 0.0), 2.5)
-    @unbounded l = APLine(APPoint(-4.0, -1.0), APPoint(4.0, 1.0))
+    l = APLine(APPoint(-4.0, -1.0), APPoint(4.0, 1.0))
     lp = intersection(l, c1)
     d1 = APCircle2(APPoint(9.0, 0.0), 2.5)
     d2 = APCircle2(APPoint(12.0, 0.0), 2.5)

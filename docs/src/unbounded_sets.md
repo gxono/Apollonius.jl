@@ -24,7 +24,7 @@ Being unbounded, none of the three has a finite extent to report:
 [Bounding boxes](@ref) for what that means and why), they still get
 `translate`/`rotate`/`homothety`/`reflection`ed normally, they just don't
 contribute anything if mixed into a [`@boundingbox`](@ref)/
-[`@to_luxor_picture`](@ref) block alongside bounded shapes.
+[`@prepare_to_picture`](@ref) block alongside bounded shapes.
 
 ## `APHalfPlane2`
 

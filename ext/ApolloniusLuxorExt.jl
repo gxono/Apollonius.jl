@@ -4,6 +4,14 @@ using Luxor
 const AP = Apollonius
 _lp(p::AP.APPoint) = Luxor.Point(Float64(p[1]), Float64(p[2]))
 _lp(pts::AbstractVector{<:AP.APPoint}) = _lp.(pts)
+"""
+    Luxor.Point(p::APPoint{2})
+
+Converts `p` to a Luxor `Point`, so any Luxor function that takes a `Point`
+also takes an `APPoint` by calling this first (Luxor itself has no such
+call: nothing coerces the argument for you).
+"""
+Luxor.Point(p::AP.APPoint{2}) = _lp(p)
 const _ARROWS = (:arrow, :doublearrow)
 function _arrow(p1, p2; as::Symbol=:arrow, startarrow::Bool=as == :doublearrow, finisharrow::Bool=true, kwargs...)
     lw = get(kwargs, :linewidth, Luxor.getline())
@@ -133,7 +141,7 @@ Draws the segment `ev.point -> tip(ev)`: the [`APEquipollentVector`](@ref)
 analogue of `path(::APVector, ::APPoint)` above, with the point of
 application already built into the value instead of a separate `from`
 argument (and, unlike a bare `APVector`, correctly scaled/placed by
-`@to_luxor_picture` beforehand, since this type has a real
+`@prepare_to_picture` beforehand, since this type has a real
 `APBoundingBox`). `as=:arrow` draws it as an arrow instead.
 """
 function AP.path(ev::AP.APEquipollentVector; as::Symbol=:plain, action=:path, reverse::Bool=false, kwargs...)
@@ -297,10 +305,10 @@ end
     path(par::APParabola2; srange=(-100.0, 100.0), n=60, action=:path)
 
 Luxor has no native parabola primitive, so this samples `n` points via
-[`point_on_parabola`](@ref) over `srange` and adds them as an open polyline.
+[`point_on`](@ref) over `srange` and adds them as an open polyline.
 """
 function AP.path(par::AP.APParabola2; srange=(-100.0, 100.0), n=60, action=:path, reverse::Bool=false)
-    pts = [_lp(AP.point_on_parabola(par, s)) for s in range(srange[1], srange[2]; length=n)]
+    pts = [_lp(AP.point_on(par, s)) for s in range(srange[1], srange[2]; length=n)]
     reverse && Base.reverse!(pts)
     Luxor.poly(pts, action; close=false)
 end
@@ -308,12 +316,12 @@ end
     path(h::APHyperbola2; trange=(-2.0, 2.0), n=60, branch=1, action=:path)
 
 Luxor has no native hyperbola primitive, so this samples `n` points via
-[`point_on_hyperbola`](@ref) on the given `branch` over `trange` and adds
+[`point_on`](@ref) on the given `branch` over `trange` and adds
 them as an open polyline. Call twice (`branch=1` and `branch=-1`) for both
 branches.
 """
 function AP.path(h::AP.APHyperbola2; trange=(-2.0, 2.0), n=60, branch::Int=1, action=:path, reverse::Bool=false)
-    pts = [_lp(AP.point_on_hyperbola(h, t; branch=branch)) for t in range(trange[1], trange[2]; length=n)]
+    pts = [_lp(AP.point_on(h, t; branch=branch)) for t in range(trange[1], trange[2]; length=n)]
     reverse && Base.reverse!(pts)
     Luxor.poly(pts, action; close=false)
 end
@@ -394,12 +402,12 @@ end
 
 Luxor has no native primitive for a partial arc of an ellipse, parabola
 or hyperbola, so each is added as an `n`-point open polyline, sampled via
-[`point_on_arc`](@ref) over the arc's own parameter range `[0, 1]`
+[`point_on`](@ref) over the arc's own parameter range `[0, 1]`
 (`arc.p1` to `arc.p2`).
 """
 function AP.path(arc::Union{AP.APEllipticArc2,AP.APParabolicArc2,AP.APHyperbolicArc2}; n=60, action=:path, reverse::Bool=false)
     ts = reverse ? range(1.0, 0.0; length=n) : range(0.0, 1.0; length=n)
-    pts = [_lp(AP.point_on_arc(arc, t)) for t in ts]
+    pts = [_lp(AP.point_on(arc, t)) for t in ts]
     Luxor.poly(pts, action; close=false)
 end
 """
@@ -407,12 +415,12 @@ end
 
 Luxor has no native primitive for an arbitrary parametrized curve, so
 it's added as an `n`-point open polyline, sampled via
-[`point_on_curve`](@ref) over `curve.trange`: same idea as the sampled
+[`point_on`](@ref) over `curve.trange`: same idea as the sampled
 conic-arc types above.
 """
 function AP.path(curve::AP.APParametricCurve2; n=60, action=:path, reverse::Bool=false)
     ts = reverse ? range(curve.trange[2], curve.trange[1]; length=n) : range(curve.trange[1], curve.trange[2]; length=n)
-    pts = [_lp(AP.point_on_curve(curve, t)) for t in ts]
+    pts = [_lp(AP.point_on(curve, t)) for t in ts]
     Luxor.poly(pts, action; close=false)
 end
 """
@@ -454,7 +462,7 @@ end
 function _add_arc!(arc::Union{AP.APEllipticArc2,AP.APParabolicArc2,AP.APHyperbolicArc2}, reversed::Bool; n=60)
     ts = reversed ? range(1.0, 0.0; length=n) : range(0.0, 1.0; length=n)
     for t in ts
-        Luxor.line(_lp(AP.point_on_arc(arc, t)))
+        Luxor.line(_lp(AP.point_on(arc, t)))
     end
 end
 """

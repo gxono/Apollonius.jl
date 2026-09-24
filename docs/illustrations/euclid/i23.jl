@@ -19,7 +19,7 @@ aids = [APSegment(X, Y), APSegment(E2, F)]
 traces = [compass_trace(D, E2; angle=pi / 6), compass_trace(D, F; angle=pi / 6), compass_trace(E2, F; angle=pi / 6)]
 dup = APSegment(D, F)
 angs = [APAngle2(A, B, C), APAngle2(D, E2, F)]
-lxm, lxo = @to_luxor_picture width=560 height=300 margin=30 begin
+lxm, lxo = @prepare_to_picture width=560 height=300 margin=30 begin
     A
     B
     C
@@ -54,7 +54,7 @@ path(marks(angs[1]; size=40); action=:stroke)
 path(marks(angs[2]; size=40); action=:stroke)
 sethue(julia_red)
 label("A", :SW, A); label("B", :E, B); label("C", :N, C); label("D", :SW, D); label("E", :E, E); label("F", :N, F)
-path([A, B, C, D, E]); plot_point(julia_blue)
-path([X, Y, E2]); plot_point(julia_green)
-path([F]); plot_point(julia_purple)
+sethue("white"); path([A, B, C, D, E], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([X, Y, E2], action=:fillpreserve); sethue(julia_green); strokepath()
+sethue("white"); path([F], action=:fillpreserve); sethue(julia_purple); strokepath()
 end)

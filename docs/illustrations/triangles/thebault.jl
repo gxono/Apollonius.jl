@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm, lxo = @to_luxor_picture width=500 height=340 margin=30 begin
+lxm, lxo = @prepare_to_picture width=500 height=340 margin=30 begin
     A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
     t = APTriangle(A, B, C)
     cc = circumcircle(t)
@@ -7,7 +7,7 @@ lxm, lxo = @to_luxor_picture width=500 height=340 margin=30 begin
     th = thebault_circles(t, D)
     nb, nc = th.near_b, th.near_c
     I = incenter(t)
-    @unbounded lk = APLine(nb.center, nc.center)
+    lk = APLine(nb.center, nc.center)
     cev = APSegment(A, D)
 end
 (; A, B, C, t, cc, D, th, nb, nc, I, lk, cev) = lxo
@@ -27,7 +27,7 @@ path([nb, nc], action=:stroke)
 path(lk, action=:stroke, extend=30)
 sethue(julia_red)
 label("D", :S, D)
-path([A, B, C]); plot_point(julia_blue)
-path([I]); plot_point(julia_purple)
-path([D]); plot_point(julia_blue)
+sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue("white"); path([I], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue("white"); path([D], action=:fillpreserve); sethue(julia_blue); strokepath()
 end)

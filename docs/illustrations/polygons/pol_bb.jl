@@ -1,5 +1,5 @@
 include("../default_config.jl")
-lxm = @to_luxor_picture! width=500 height=240 margin=20 begin
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
     pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 3.0), APPoint(1.0, 3.0)])
 end
 
