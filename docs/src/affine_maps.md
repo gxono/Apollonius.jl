@@ -167,7 +167,7 @@ needs to be stored, inspected (`m.a11`, etc.), or reapplied many times as
 one precomputed object, and the generic-conic tradeoff is acceptable.
 
 [`invert`](@ref)/[`invert_neg`](@ref) have the same single-argument
-convenience (`invert(center; k=1.0)`, see [Circles](@ref)), also a plain
+convenience (`invert(center; k=1.0)`, see [Circles: Inversion](@ref)), also a plain
 closure, circle inversion isn't an affine transformation at all, so
 there's no `APAffineMap`-based alternative for it in the first place.
 

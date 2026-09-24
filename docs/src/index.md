@@ -260,9 +260,9 @@ m isa APTransform, m isa APObject   # (true, false): APTransform is its own sepa
   braces, label placement, guides and grids, and
   [Compass & Ruler Constructions](@ref) for figures that show the
   compass traces.
-* [Points, Lines & Rays](@ref), [Circles](@ref),
-  [Triangles & Triangle Centers](@ref), [Tangency & Apollonius Problems](@ref),
-  [Polygons & Bounding Boxes](@ref) and
+* [Points, Lines & Rays: Creating Them](@ref), [Circles: Basics](@ref),
+  [Triangles: The Classical Centers](@ref), [Tangency & Apollonius Problems](@ref),
+  [Polygons: Measurements & Operations](@ref) and
   [Conics: Ellipse, Parabola & Hyperbola](@ref) for a guided tour of the
   geometry itself, with worked examples.
 * [Unbounded Regions: Half-Planes, Strips & Angles](@ref), [Affine Maps](@ref) and

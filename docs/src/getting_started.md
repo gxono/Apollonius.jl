@@ -158,17 +158,17 @@ through it and lists the usual mistakes.
 | I want to | Read |
 |:----------|:-----|
 | Understand the types and how they relate | [The type hierarchy](@ref) on the Home page |
-| Make points, lines, segments and rays | [Points, Lines & Rays](@ref) |
+| Make points, lines, segments and rays | [Points, Lines & Rays: Creating Them](@ref) |
 | Know if something is true (on a line, parallel, inside) | [Predicates](@ref) |
 | Get a distance, area, angle or center | [Measurements & Queries](@ref) |
 | Find where two objects meet | [Intersections](@ref) |
-| Work with circles, inversion, radical axes | [Circles](@ref) |
-| Find triangle centers and derived triangles | [Triangles & Triangle Centers](@ref) |
+| Work with circles, inversion, radical axes | [Circles: Basics](@ref) |
+| Find triangle centers and derived triangles | [Triangles: The Classical Centers](@ref) |
 | Find circles tangent to given objects | [Tangency & Apollonius Problems](@ref) |
-| Work with polygons and bounding boxes | [Polygons & Bounding Boxes](@ref) |
+| Work with polygons and bounding boxes | [Polygons: Measurements & Operations](@ref) |
 | Work with ellipses, parabolas and hyperbolas | [Conics: Ellipse, Parabola & Hyperbola](@ref) |
 | Draw a compass and ruler construction | [Compass & Ruler Constructions](@ref) |
 | Draw figures, add marks, labels and braces | [Drawing with Luxor.jl](@ref), [Marks, Labels & Decorations](@ref) |
 | Move or scale a whole figure at once | [Affine Maps](@ref), [Transforming in Bulk: Macros](@ref) |
-| Find a ready-made recipe | [Cookbook](@ref) |
+| Find a ready-made recipe | [Cookbook: Points & Segments](@ref) |
 | Look up a function | [API Reference](@ref) |

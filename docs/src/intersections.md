@@ -156,7 +156,7 @@ Since the order of the result is only fixed for a line and a circle, and for
 two circles, pick a point by where it is, not by its index.
 [`nearest_point`](@ref) takes the one closest to a reference, and
 [`other_intersection`](@ref) returns the second point when you already know
-one. Both are in [Circles](@ref), under "Choosing among the intersections".
+one. Both are in [Circles: How They Relate](@ref), under "Choosing among the intersections".
 
 ```@example geo
 nearest_point(intersection(l, c), APPoint(3.0, 3.0)), other_intersection(l, c, APPoint(-sqrt(8.0), 1.0))
@@ -170,4 +170,4 @@ nearest_point(intersection(l, c), APPoint(3.0, 3.0)), other_intersection(l, c, A
 * [`tangent_points`](@ref) and [`tangent_lines`](@ref) give the points and lines of
   tangency from a point to a circle, and [`external_tangent_lines`](@ref) and
   [`internal_tangent_lines`](@ref) the common tangents of two circles. All
-  of them are in [Circles](@ref).
+  of them are in [Circles: How They Relate](@ref).

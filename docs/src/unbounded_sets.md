@@ -10,7 +10,7 @@ of the [`APSet`](@ref) family, genuine regions of the plane (they support
 `in`, `distance`, and the usual transforms), but with infinite area, so
 none of them is an [`APRegion`](@ref)/[`APPolygon`](@ref) and none has an
 `area`/`perimeter`. `APAngle2` already has its own worked-example section;
-see [Angles](@ref) on the [Points, Lines & Rays](@ref) page. This page
+see [Points, Lines & Rays: Angles](@ref). This page
 covers the other two.
 
 | Type | Represents | Bounded by |
@@ -21,7 +21,7 @@ covers the other two.
 
 Being unbounded, none of the three has a finite extent to report:
 [`APBoundingBox`](@ref) returns the empty box for all three (see
-[Bounding boxes](@ref) for what that means and why), they still get
+[Polygons: Bounding Boxes](@ref) for what that means and why), they still get
 `translate`/`rotate`/`homothety`/`reflection`ed normally, they just don't
 contribute anything if mixed into a [`@boundingbox`](@ref)/
 [`@prepare_to_picture`](@ref) block alongside bounded shapes.

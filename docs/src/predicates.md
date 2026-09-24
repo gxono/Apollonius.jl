@@ -135,7 +135,7 @@ circles_position(c1, c2), line_circle_position(APLine(APPoint(0.0, 1.5), APPoint
 | `:identical` | same center and radius |
 
 `line_circle_position` returns `:disjoint`, `:tangent` or `:secant`. The
-figures for both are in [Circles](@ref).
+figures for both are in [Circles: How They Relate](@ref).
 
 ```@raw html
 <img src="../assets/img/circles/circle_positions.svg" alt="The six relative positions of two circles, with the symbol circles_position returns for each" style="width:100%; max-width: 700px;">
@@ -180,7 +180,7 @@ is_concyclic(a, b, c, d), is_concyclic(a, b, c, APPoint(0.0, 5.0)), is_degenerat
 [`is_convex`](@ref) is true when no interior angle exceeds a straight
 angle, and [`point_in_polygon`](@ref) says whether a point is strictly
 inside. The latter is what `in` calls for a polygon. See
-[Polygons & Bounding Boxes](@ref) for the rules at the boundary.
+[Polygons: Measurements & Operations](@ref) for the rules at the boundary.
 
 ```@example geo
 convex = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(5.0, 3.0), APPoint(1.0, 4.0)])

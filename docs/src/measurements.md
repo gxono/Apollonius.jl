@@ -44,7 +44,7 @@ What "the object" means depends on the type:
   only the piece drawn, so a point past the end is measured to the endpoint.
 * For a region (a polygon, an angle, a half-plane, a strip) it is `0` inside,
   unless you pass `mode=:boundary`. See
-  [Polygons & Bounding Boxes](@ref) and
+  [Polygons: Measurements & Operations](@ref) and
   [Unbounded Regions: Half-Planes, Strips & Angles](@ref).
 
 ```@example geo
@@ -126,7 +126,7 @@ angle_measure_at(v, APPoint(1.0, 0.0), APPoint(0.0, -1.0)), angle_measure_betwee
 
 The first is the plain opening between the two rays, the second says the
 turn from the first vector to the second is clockwise. See
-[Points, Lines & Rays](@ref) for the angle type and its marks.
+[Points, Lines & Rays: Angles](@ref) for the angle type and its marks.
 
 ## Shape of conics, arcs and polygons
 
@@ -248,7 +248,7 @@ foci(e), nearest_point([APPoint(1.0, 1.0), APPoint(4.0, 4.0)], APPoint(0.0, 0.0)
 For a triangle, [`circumradius`](@ref) and [`inradius`](@ref) give the radii
 of its circumscribed and inscribed circles. For a point and a circle,
 [`power_of_point`](@ref) is `d² - r²`, and [`tangent_length`](@ref) is its
-square root, the length of the tangent from the point (see [Circles](@ref)).
+square root, the length of the tangent from the point (see [Circles: Basics](@ref)).
 
 ```@example geo
 circumradius(t), inradius(t), power_of_point(APPoint(13.0, 0.0), c), tangent_length(c, APPoint(13.0, 0.0))
