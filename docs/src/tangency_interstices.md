@@ -26,7 +26,7 @@ length(gaps)   # 1: an externally tangent "chain" of 3 has exactly one gap
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/ccc_gap.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccc_gap.svg" alt="Three pairwise tangent circles in a chain, with the single curvilinear gap between them filled in" style="width:100%;">
 ```
 
 It's built by reusing `tangent_circles(c1, c2, c3)` above: every genuine
@@ -52,7 +52,7 @@ length(interstices(big, A, B))   # 2
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/ccc_gap2.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccc_gap2.svg" alt="A large circle containing two smaller tangent circles, with the two curvilinear gaps between them filled in separately" style="width:100%;">
 ```
 
 [`interstices`](@ref) figures out which of these two cases applies (and in

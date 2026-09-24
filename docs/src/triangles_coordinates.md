@@ -29,7 +29,7 @@ barycentric_coordinates(t, centroid(t)) # (1/3, 1/3, 1/3)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/barycenter.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/barycenter.svg" alt="A triangle with its three medians and the centroid where they meet" style="width:100%;">
 ```
 
 Most of the named centers below have simple, well-known barycentric
@@ -58,7 +58,7 @@ trilinear_point(t, 1.0, 1.0, 1.0) ≈ incenter(t)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/trilinear.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/trilinear.svg" alt="A triangle with its three angle bisectors and the point where they meet" style="width:100%;">
 ```
 
 Many named centers found in a reference like the *Encyclopedia of Triangle
@@ -73,4 +73,8 @@ construction:
 ```@example geo
 angA, angB, angC = angle_measure_at(t[1], t[2], t[3]), angle_measure_at(t[2], t[1], t[3]), angle_measure_at(t[3], t[1], t[2])
 clawson_point(t) ≈ trilinear_point(t, tan(angA), tan(angB), tan(angC))
+```
+
+```@raw html
+<img src="../assets/img/triangles/clawson.svg" alt="A triangle and its Clawson point" style="width:100%; max-width: 700px;">
 ```

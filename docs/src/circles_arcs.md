@@ -35,7 +35,7 @@ midpoint(arc)                   # point_on(arc, 0.5)
 ```
 
 ```@raw html
-<img src="../assets/img/circles/arc.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/arc.svg" alt="A circle with two points on it joined by dashed radii, and the counterclockwise arc between the points highlighted" style="width:100%; max-width: 700px;">
 ```
 
 `APCircularArc2(center, r, p1, p2)` builds the same arc straight from the

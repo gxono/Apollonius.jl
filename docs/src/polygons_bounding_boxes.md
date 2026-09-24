@@ -34,7 +34,7 @@ bbox_aspect_ratio(bb)             # width / height
 ```
 
 ```@raw html
-<img src="../assets/img/polygons/pol_bb.svg" alt="" style="width:100%;">
+<img src="../assets/img/polygons/pol_bb.svg" alt="A quadrilateral and its axis-aligned bounding box, with the box's corners and center marked" style="width:100%;">
 ```
 
 Translating (`+`/`-` an `APPoint`) and scaling (`*` a real number) an
@@ -59,7 +59,7 @@ bbox_intersection(bb, bb2)    # the overlapping region itself
 ```
 
 ```@raw html
-<img src="../assets/img/polygons/bb_int.svg" alt="" style="width:100%;">
+<img src="../assets/img/polygons/bb_int.svg" alt="Two overlapping bounding boxes and the smaller box formed by their intersection" style="width:100%;">
 ```
 
 [`distance`](@ref)`(p, bb)` has the same `mode = :region`/`:boundary` pair
@@ -84,7 +84,7 @@ bbox_union(bb, bb2)
 ```
 
 ```@raw html
-<img src="../assets/img/polygons/bb_uni.svg" alt="" style="width:100%;">
+<img src="../assets/img/polygons/bb_uni.svg" alt="Two bounding boxes and the larger box formed by their union" style="width:100%;">
 ```
 
 Not everything has a *finite* box to report. [`APPoint`](@ref) gets a real
@@ -106,7 +106,7 @@ bbox_union(APBoundingBox(5.0), bb) == bb
 ```
 
 This is what lets [`@boundingbox`](@ref)/[`@prepare_to_picture`](@ref) (see
-[Transforming in Bulk: Macros](@ref)) call `APBoundingBox` on *every*
+[Macros: Sizing a Picture](@ref)) call `APBoundingBox` on *every*
 value named in a block (construction helpers included) without needing
 to special-case the ones that were never meant to be drawn or sized.
 
@@ -122,24 +122,13 @@ bx = APBoundingBox(APPoint(1.0, 1.0), 4.0, 2.0)
 bx, inflate(bx, 1.0), inflate(bx, 1.0, 0.5)
 ```
 
-## Offsetting a polygon
-
-[`offset_polygon`](@ref)`(pg, d)` is the polygon parallel to `pg` at distance `d`:
-outward for a positive `d`, inward for a negative one. Each side moves along its
-normal, and every new vertex is where two neighbouring moved sides meet. A
-concave polygon, or an inward offset larger than the polygon, can cross itself.
-To round the corners instead, see [`round_corners`](@ref) in
-[Rounding a corner](@ref).
-
-```@example geo
-sq_o = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0), APPoint(0.0, 4.0)])
-area(offset_polygon(sq_o, 1.0)), area(offset_polygon(sq_o, -1.0))
-```
-
 ```@raw html
 <img src="../assets/img/polygons/offset_box.svg" alt="A pentagon with its outward and inward offsets, and a box with its inflated box" style="width:100%; max-width: 700px;">
 ```
 
+The box on the right is `bx` inflated; the pentagon on the left is
+[`offset_polygon`](@ref), a different construction covered in
+[Polygons: Measurements & Operations](@ref).
 
 ## Random points on a perimeter
 

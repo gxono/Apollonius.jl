@@ -22,7 +22,7 @@ length(sols_p)
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/ccp.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccp.svg" alt="Two circles, a point between them, and the circles tangent to both that pass through the point" style="width:100%;">
 ```
 
 ## Fixing the radius in advance
@@ -41,7 +41,7 @@ length(sols_r), all(s -> s.r == 3.0, sols_r)   # 4 solutions, one per quadrant
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/llr.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/llr.svg" alt="Two intersecting lines and four circles of the same fixed radius, tangent to both, one in each quadrant" style="width:100%;">
 ```
 
 (`l1`/`l2` need to actually meet somewhere for this to have solutions:
@@ -85,7 +85,7 @@ length(sols), sols[1].r, sols[2].r   # internal (7.0) then external (13.0)
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/center_fixed.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/center_fixed.svg" alt="A fixed center point, a circle, and the two circles centered there tangent to it, one internally and one externally" style="width:100%;">
 ```
 
 The two solutions merge into one when `center` sits exactly on `c` (only

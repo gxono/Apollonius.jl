@@ -55,7 +55,7 @@ area(asec)        # outer sector area minus inner sector area
 ```
 
 ```@raw html
-<img src="../assets/img/circles/sec_ann.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/sec_ann.svg" alt="Three circles, showing a filled circular sector, a filled circular segment, and a filled annular sector" style="width:100%; max-width: 700px;">
 ```
 
 None of these three formulas is hand-derived per type. Every one comes
@@ -87,7 +87,7 @@ homothety(arc, -2.0)   # negative k: still no swap needed
 ```
 
 ```@raw html
-<img src="../assets/img/circles/arc_rot_hom.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/arc_rot_hom.svg" alt="An arc with its images under a rotation and under a homothety of negative ratio, and the rotation angle marked as a filled sector" style="width:100%; max-width: 700px;">
 ```
 
 Reflecting about an `APPoint` is likewise a point reflection: no
@@ -102,7 +102,7 @@ reflection(arc, APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))  # line reflection
 ```
 
 ```@raw html
-<img src="../assets/img/circles/arc_cen_axi.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/arc_cen_axi.svg" alt="An arc with its point reflection and its reflection across a mirror line, dashed segments linking corresponding endpoints" style="width:100%; max-width: 700px;">
 ```
 
 Without that swap, the reflected endpoints alone would trace out the arc's
@@ -125,7 +125,7 @@ area(gap), perimeter(gap)
 ```
 
 ```@raw html
-<img src="../assets/img/circles/circle_gap.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/circle_gap.svg" alt="Three pairwise tangent circles and the curvilinear triangular gap between them, filled in" style="width:100%; max-width: 700px;">
 ```
 
 The result is an [`APInterstice2`](@ref): a specific 3-arc
@@ -165,7 +165,7 @@ area(ct), perimeter(ct)
 ```
 
 ```@raw html
-<img src="../assets/img/circles/cur_pol.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/cur_pol.svg" alt="A circle and the curvilinear triangle formed by two of its radii and the arc between them, filled in" style="width:100%; max-width: 700px;">
 ```
 
 This is exactly what [`APCircularSector2`](@ref) computes for the same
@@ -185,7 +185,7 @@ area(cq) > 0   # a genuine 4-sided mixed straight/circular/elliptic region
 ```
 
 ```@raw html
-<img src="../assets/img/circles/cur_pol_cua.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/cur_pol_cua.svg" alt="A circle and an ellipse, and a curvilinear quadrilateral mixing an elliptic arc, a circular arc, and two straight segments" style="width:100%; max-width: 700px;">
 ```
 
 [`APCurvilinearNgon2`](@ref)`(sides)` is the same idea for any number of

@@ -210,6 +210,14 @@ hyperbola, a parabola or an arc of any of them. For a line, a ray or a
 segment it is the line itself. Throws an `ArgumentError` if `p` is not on
 the curve (or, for an arc, not on the arc). See also [`normal_line`](@ref),
 and [`tangent_lines`](@ref) for the tangents from a point off the curve.
+
+For an [`APPolyline2`](@ref)/[`APCurvilinearPolyline2`](@ref) it is the
+tangent of whichever side `p` falls on, and for an
+[`APParametricCurve2`](@ref) it is found numerically:
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `n` | `400` | number of parameter samples used to locate `p` on the curve (parametric curves only) |
 """
 function tangent_line(c::APCircle2, p::APPoint; atol=1e-9)
     abs(distance(p, c.center) - c.r) <= _on_curve_tol(atol, c.r) || throw(ArgumentError("tangent_line: the point is not on the circle"))

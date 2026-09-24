@@ -25,7 +25,7 @@ and a side), [`triangle_on_segment_sss`](@ref) (three sides) and the named
 ones such as [`equilateral_triangle_on_segment`](@ref). See
 [Triangles: The Classical Centers](@ref).
 
-### An equilateral triangle on a segment, or a square
+### An equilateral triangle on a segment
 
 ```@example geo
 A, B = APPoint(0.0, 0.0), APPoint(4.0, 0.0)

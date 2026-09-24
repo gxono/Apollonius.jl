@@ -35,7 +35,7 @@ distance(ext[1].p1, c1.center), distance(ext[1].p2, c2.center)   # (c1.r, c2.r)
 ```
 
 ```@raw html
-<img src="../assets/img/circles/similitude_center.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/similitude_center.svg" alt="Two circles with their two external and two internal common tangent lines, meeting at the external and internal similitude centers" style="width:100%; max-width: 700px;">
 ```
 
 The external center is far from both circles here because `c1` and `c2`
@@ -60,7 +60,7 @@ t1, t2 = tangent_parallel(c, APLine(APPoint(0.0, 3.0), APPoint(1.0, 4.0)))
 ```
 
 ```@raw html
-<img src="../assets/img/circles/tangent_parallel.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/tangent_parallel.svg" alt="A circle, a line, and the two tangent lines to the circle parallel to it" style="width:100%; max-width: 700px;">
 ```
 
 ## Choosing among the intersections

@@ -40,7 +40,7 @@ altitude.(t, 1:3)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/altitude.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/altitude.svg" alt="A triangle with its three altitudes, concurring at the orthocenter" style="width:100%;">
 ```
 
 
@@ -49,7 +49,7 @@ bisector.(t, 1:3)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/median.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/bisector.svg" alt="A triangle with its three internal angle bisectors, concurring at the incenter" style="width:100%;">
 ```
 
 
@@ -60,7 +60,7 @@ median.(t, 1:3)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/median.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/median.svg" alt="A triangle with its three medians, concurring at the centroid" style="width:100%;">
 ```
 
 
@@ -87,7 +87,7 @@ bisector_ext.(t, 1:3)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/bisector_ext.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/bisector_ext.svg" alt="A triangle with its three external angle bisectors, meeting pairwise at the three excenters" style="width:100%;">
 ```
 
 ```@example geo
@@ -95,7 +95,7 @@ mediator.(t, 1:3)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/mediator.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/mediator.svg" alt="A triangle with the perpendicular bisectors of its three sides, concurring at the circumcenter" style="width:100%;">
 ```
 
 
@@ -109,5 +109,5 @@ trisector.(t, 1:3)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/trisector.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/trisector.svg" alt="A triangle with the two rays from each vertex trisecting its interior angle" style="width:100%;">
 ```

@@ -139,6 +139,17 @@ major, minor = Luxor.tickline(APPoint(-100.0, 0.0), APPoint(100.0, 0.0);
 path(major; radius=2, action=:fill)                                              # draw them as dots
 ```
 
+Drawn immediately (`vertices=false`, the default), `tickline` adds its own
+major/minor ticks and numbers along the way:
+
+```julia
+Luxor.tickline(a, b; major=7, minor=3, startnumber=0, finishnumber=7, rounding=0)
+```
+
+```@raw html
+<img src="../assets/img/drawing/tickline.svg" alt="A tick-marked axis between two points, with major and minor ticks and numbered labels" style="width:100%; max-width: 700px;">
+```
+
 The measured text is the distance between the two points you pass, so on a
 canvas it is a length in pixels. Use `format` to show the value in your own
 units, and `textrotation=-pi/2` to keep the text upright on a horizontal

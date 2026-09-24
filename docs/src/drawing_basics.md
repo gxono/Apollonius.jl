@@ -48,7 +48,7 @@ preview()
 ```
 
 ```@raw html
-<img src="../assets/img/drawing/ej1.png" alt="" style="width:100%; max-width: 400px;">
+<img src="../assets/img/drawing/ej1.png" alt="A triangle and its circumcircle, with the incenter and the three vertices marked as filled points" style="width:100%; max-width: 400px;">
 ```
 
 If you only ever `using Apollonius` and never load Luxor, `path`
@@ -139,7 +139,7 @@ Setting up a `Drawing` normally means guessing values by hand: how wide
 and tall does the canvas need to be, how far do the shapes need to shift
 so nothing ends up off-canvas, how much breathing room to leave around
 the edges? [`@prepare_to_picture`](@ref) (from the core package; see
-[Transforming in Bulk: Macros](@ref) for the full option reference)
+[Macros: Sizing a Picture](@ref) for the full option reference)
 answers all of that in one call: it translates and uniformly scales a
 whole set of shapes so they fit centered on `(0, 0)`, and hands back the
 exact canvas size directly. Centering on `(0, 0)` matches Luxor's own
@@ -169,7 +169,7 @@ end lxm.width lxm.height
 ```
 
 ```@raw html
-<img src="../assets/img/drawing/to_luxor1.svg" alt="" style="width:100%;">
+<img src="../assets/img/drawing/to_luxor1.svg" alt="A triangle and a circle drawn on a canvas automatically sized to fit them" style="width:100%;">
 ```
 
 Building the `Drawing` by hand instead needs its own `origin()` call
@@ -263,87 +263,20 @@ same way. The object is still in `lxo`, fitted like the rest. Outside a picture 
 harmless no-op, so it's always safe to leave in place regardless of
 context.
 
-Note here how `@unbounded` allows me to ignore the circumcenter when computing the bounding box of the entire figure.
+A common case: a triangle's circumcircle is usually much bigger than the
+triangle itself, and would dominate the sizing if it were fitted like an
+ordinary shape. Marking it `@unbounded` keeps the picture scaled to the
+triangle instead:
 
 ```julia
 lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
-    A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
-    triangle =  APTriangle(A, B, C)
-    G = centroid(triangle)
-    O = circumcenter(triangle)
-    I = incenter(triangle)
-    H = orthocenter(triangle)
-    l = euler_line(triangle)
-    tsides = APLine.(sides(triangle))
-    @unbounded cc = circumcircle(triangle) #<---
-    ic = incircle(triangle)
-    iv = projection.(I, tsides)
-    npc = nine_point_circle(triangle)
-    npc_c = nine_point_center(triangle)
-    ep = euler_points(triangle)   # a Tuple of 3 points, no `collect` needed
-    ips = reduce(vcat, intersection.(npc, tsides))
+    t = APTriangle(APPoint(0.0, 0.0), APPoint(10.0, 0.0), APPoint(7.0, 5.0))
+    @unbounded cc = circumcircle(t)   # sized by t alone, not by cc's larger radius
 end
-(; A, B, C, triangle, G, O, I, H, l, tsides, cc, ic, iv, npc, npc_c, ep, ips) = lxo
 ```
 
-```@raw html
-<img src="../assets/img/triangles/tri_cen.svg" alt="" style="width:100%;">
-```
-
-!!! details "See script"
-    ```julia
-    using Apollonius, Luxor
-    import Luxor: julia_red, julia_blue, julia_green, julia_purple
-
-
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
-        A, B, C = APPoint(0.0,0), APPoint(10,0), APPoint(7,5)
-        triangle =  APTriangle(A, B, C)
-        G = centroid(triangle)
-        O = circumcenter(triangle)
-        I = incenter(triangle)
-        H = orthocenter(triangle)
-        l = euler_line(triangle)
-        lados = APLine.(sides(triangle))
-        @unbounded cc = circumcircle(triangle)
-        ic = incircle(triangle)
-        iv = projection.(I, lados)
-        npc = nine_point_circle(triangle)
-        npc_c = nine_point_center(triangle)
-        ep = collect(euler_points(triangle))
-        ips = reduce(vcat, intersection.(npc, lados))
-    end
-
-
-    begin
-    Drawing(lxm.width, lxm.height, :svg)
-    origin()
-
-    sethue("gray80")
-    @layer begin
-        setline(1); setdash(:dash)
-        path([cc, ic, APSegment.([O,I], [A,iv[2]])...], action=:stroke)
-    end
-
-    sethue(julia_purple)
-    path([l, npc], action=:stroke)
-    sethue(julia_blue)
-    path(triangle, action=:stroke)
-
-    sethue("white")
-    path([G,O,I,H,[iv; ips; ep]...], action=:fillpreserve)
-    sethue(julia_purple); strokepath()
-    sethue("white")
-    path([A,B,C], action=:fillpreserve)
-    sethue(julia_blue); strokepath()
-    sethue("white")
-    path(npc_c, action=:fillpreserve)
-    sethue("gray80"); strokepath()
-
-    finish()
-    preview()
-    end
-    ```
+See [Triangles: The Classical Centers](@ref) for a full worked figure of a
+triangle with its circumcircle, incircle and Euler line together.
 
 !!! warning "A block with no extent cannot be fitted to a width"
     If everything in the block has zero size, a single point for example, and `width` or `height` is given, the scale would be infinite and the macro throws an `ArgumentError`. Add another object, or drop `width` and `height`.

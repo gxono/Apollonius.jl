@@ -36,6 +36,10 @@ divide_segment(s, 4), divide_segment(s, 1, 2), point_at_distance(s, 6.5)
 equally_spaced_points(APCircle2(APPoint(0.0, 0.0), 2.0), 6)
 ```
 
+```@raw html
+<img src="../assets/img/points_lines/equally_spaced.svg" alt="Points spread evenly along a segment (both ends included) and around a circle" style="width:100%; max-width: 700px;">
+```
+
 ### An angle of a given measure, or between two lines
 
 ```@example geo
@@ -56,7 +60,7 @@ is_on_line(pt, tangent_line(e, pt)), is_perpendicular(tangent_line(e, pt), norma
 ```
 
 ```@raw html
-<img src="../assets/img/conics/tangents.svg" alt="An ellipse with a tangent at a point and the two tangents from an outside point" style="width:100%; max-width: 700px;">
+<img src="../assets/img/points_lines/tangent_normal.svg" alt="An ellipse with the tangent and the normal line at one of its points" style="width:100%; max-width: 700px;">
 ```
 
 ### A regular polygon on a side, and a star
@@ -260,5 +264,5 @@ C2.r, C2.center ≈ APPoint(-2.0, 1.0)
 <img src="../assets/img/cookbook/macro_rotate.svg" alt="A circle and a segment with their images rotated a quarter turn about the origin" style="width:100%; max-width: 700px;">
 ```
 
-See [Transforming in Bulk: Macros](@ref).
+See [Macros: Transforming Shapes](@ref).
 

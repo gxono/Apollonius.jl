@@ -315,8 +315,8 @@ T1, C1
 
 `tri`/`circ` themselves are untouched. [`@affinemap!`](@ref) is the
 mutating counterpart, rebinding each named shape to its own image under
-`m` instead of returning copies. See
-[Transforming in Bulk: Macros](@ref) for the full family this belongs to
-(`@translate`, `@rotate`, `@homothety`, `@reflection`, `@invert`,
-`@invert_neg`, `@boundingbox`), every `!` mutating counterpart, and how
-the block itself is read.
+`m` instead of returning copies. See [Macros: Transforming Shapes](@ref)
+for the full family this belongs to (`@translate`, `@rotate`,
+`@homothety`, `@reflection`, `@invert`, `@invert_neg`) and every `!`
+mutating counterpart, and [Macros: Sizing a Picture](@ref) for
+[`@boundingbox`](@ref) and how a block is read.

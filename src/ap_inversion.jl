@@ -155,6 +155,11 @@ The image of `shape` under inversion of *negative* ratio with respect to
 [`invert`](@ref) image, point-reflected through the center of inversion.
 For a point, this is the point on ray `p -> center` (not `center -> p`)
 at distance `r² / |center p|` from `center`.
+
+| Keyword | Default | Meaning |
+|:--------|:--------|:--------|
+| `k` | `1.0` | the radius of inversion, when `center` is given instead of a circle |
+| `atol` | `1e-9` | tolerance passed through to [`invert`](@ref) |
 """
 invert_neg(p::APPoint, c::APCircle2) = reflection(invert(p, c), c.center)
 invert_neg(shape, c::APCircle2; kwargs...) = reflection(invert(shape, c; kwargs...), c.center)

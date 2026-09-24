@@ -49,7 +49,7 @@ length(sols)   # exactly 1, in this symmetric case
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/ppl.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ppl.svg" alt="Two points, a line, and the single circle through the points tangent to the line" style="width:100%;">
 ```
 
 The circle's center lies on the perpendicular bisector of `[a,b]` and it
@@ -70,7 +70,7 @@ length(sols_c)   # 2 here: one tangent externally, one internally
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/ppc.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ppc.svg" alt="Two points, a given circle, and the two circles through the points tangent to it, one externally and one internally" style="width:100%;">
 ```
 
 ## Tangent to two or three circles/lines
@@ -89,7 +89,7 @@ length(sols_cll)   # 4
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/llc.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/llc.svg" alt="Two lines, a circle, and the four circles tangent to all three" style="width:100%;">
 ```
 
 
@@ -103,7 +103,7 @@ length(sols_ccl)   # 6
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/ccl.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccl.svg" alt="Two circles, a line, and the six circles tangent to all three" style="width:100%;">
 ```
 
 ## Tangent to three circles
@@ -122,7 +122,7 @@ length(sols3)   # 8 solutions
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/ccc.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccc.svg" alt="Three circles arranged symmetrically and the eight circles tangent to all three" style="width:100%;">
 ```
 
 Two of those eight happen to be concentric with the given configuration by
@@ -135,5 +135,5 @@ big = sols3[argmax(s.r for s in sols3)]
 ```
 
 ```@raw html
-<img src="../assets/img/tangency/ccc_bs.svg" alt="" style="width:100%;">
+<img src="../assets/img/tangency/ccc_bs.svg" alt="Three circles with the smallest and largest of their tangent circles, one nested between them and one enclosing them" style="width:100%;">
 ```

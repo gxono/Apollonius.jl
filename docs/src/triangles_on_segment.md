@@ -75,7 +75,7 @@ golden_triangle_on_segment(p1, p2)   # apex angle 36°, both base angles 72°
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/tronseg_gold.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/tronseg_gold.svg" alt="A segment and the golden triangle built on it, with base angles of 72 degrees" style="width:100%;">
 ```
 
 ```@example geo
@@ -83,7 +83,25 @@ egyptian_triangle_on_segment(p1, p2)   # legs 4:3 (here 6:4.5), hypotenuse 5 (he
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/tronseg_egy.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/tronseg_egy.svg" alt="A segment and the 3-4-5 right triangle built on it" style="width:100%;">
+```
+
+```@example geo
+cheops = cheops_triangle_on_segment(p1, p2)   # sides in ratio 2:φ:φ (Cheops profile)
+distance(cheops[1], cheops[3]) / distance(p1, p2)   # φ/2
+```
+
+```@raw html
+<img src="../assets/img/triangles/tronseg_cheops.svg" alt="A segment and the Cheops triangle built on it, sides in the ratio 2:φ:φ" style="width:100%;">
+```
+
+```@example geo
+gr = golden_right_triangle_on_segment(p1, p2)   # right angle at p2, legs in the golden ratio
+distance(p1, p2) / distance(gr[2], gr[3]), rad2deg(angle_measure_at(gr[2], gr[1], gr[3]))   # φ, 90°
+```
+
+```@raw html
+<img src="../assets/img/triangles/tronseg_goldright.svg" alt="A segment and the golden right triangle built on it, legs in the golden ratio" style="width:100%;">
 ```
 
 
@@ -93,7 +111,7 @@ distance(eq[1], eq[2]), distance(eq[2], eq[3]), distance(eq[3], eq[1])   # all 3
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/tronseg_eq.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/tronseg_eq.svg" alt="A segment and the equilateral triangle built on it" style="width:100%;">
 ```
 
 ```@example geo
@@ -102,7 +120,7 @@ rad2deg(angle_measure_at(gnomon[1], gnomon[3], gnomon[2])), rad2deg(angle_measur
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/tronseg_goldgnom.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/tronseg_goldgnom.svg" alt="A segment and the golden gnomon built on it, with base angles of 36 degrees and an apex angle of 108 degrees" style="width:100%;">
 ```
 
 
@@ -112,7 +130,7 @@ distance(iso[1], iso[3]) ≈ 5.0, distance(iso[2], iso[3]) ≈ 5.0
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/tronseg_iso.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/tronseg_iso.svg" alt="A segment and the isosceles triangle built on it as the base, with a given leg length" style="width:100%;">
 ```
 
 ```@example geo
@@ -121,7 +139,7 @@ rad2deg(angle_measure_at(r306090[1], r306090[2], r306090[3])), rad2deg(angle_mea
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/tronseg_306090.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/tronseg_306090.svg" alt="A segment and the 30-60-90 right triangle built on it as the hypotenuse" style="width:100%;">
 ```
 
 ```@example geo
@@ -130,7 +148,7 @@ rad2deg(angle_measure_at(isr[3], isr[1], isr[2]))   # 90°: the right angle sits
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/tronseg_isor.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/tronseg_isor.svg" alt="A segment and the isosceles right triangle built on it as the hypotenuse" style="width:100%;">
 ```
 
 The four generic constructors behind all of the above, named after which

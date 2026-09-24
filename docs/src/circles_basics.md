@@ -20,7 +20,7 @@ APCircle2(APPoint(0.0, 0.0), APPoint(3.0, 4.0))   # radius 5, same as APCircle2(
 ```
 
 ```@raw html
-<img src="../assets/img/circles/circle_cp.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/circle_cp.svg" alt="A circle drawn from its center and a point on the circumference" style="width:100%; max-width: 700px;">
 ```
 
 Three points on the circumference work too: `APCircle2(p1, p2, p3)` is
@@ -33,7 +33,7 @@ APCircle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0))
 ```
 
 ```@raw html
-<img src="../assets/img/circles/circle_3p.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/circle_3p.svg" alt="A circle drawn through three points" style="width:100%; max-width: 700px;">
 ```
 
 A diameter works too. [`circle_with_diameter`](@ref) takes the two ends, or the
@@ -90,7 +90,7 @@ pts = tangent_points(c, p)
 ```
 
 ```@raw html
-<img src="../assets/img/circles/circle_tanp.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/circle_tanp.svg" alt="A circle, an external point, and the two tangent lines from it to the circle, forming a dashed kite with the center and the tangent points" style="width:100%; max-width: 700px;">
 ```
 
 This is the classic *tangent from an external point* construction: `pts[1]`
@@ -126,7 +126,7 @@ rcirc = radical_circle(c1, c2, c3)
 ```
 
 ```@raw html
-<img src="../assets/img/circles/circle_radical.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/circle_radical.svg" alt="Three circles with their three pairwise radical axes meeting at the radical center, and the radical circle centered there" style="width:100%; max-width: 700px;">
 ```
 
 [`radical_circle`](@ref) is itself one instance of a more general idea:

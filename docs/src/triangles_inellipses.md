@@ -31,7 +31,7 @@ inell.center ≈ circumell.center ≈ centroid(t)
 
 
 ```@raw html
-<img src="../assets/img/triangles/steiner.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/steiner.svg" alt="A triangle with its Steiner inellipse, tangent to the sides at their midpoints, and its Steiner circumellipse through the vertices" style="width:100%;">
 ```
 
 

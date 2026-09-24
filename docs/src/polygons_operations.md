@@ -37,7 +37,7 @@ centroid(pg)   # area-weighted centroid, not the plain vertex average
 ```
 
 ```@raw html
-<img src="../assets/img/polygons/pol1.svg" alt="" style="width:100%;">
+<img src="../assets/img/polygons/pol1.svg" alt="A quadrilateral with its vertices and its area-weighted centroid marked" style="width:100%;">
 ```
 
 
@@ -56,7 +56,7 @@ homothety(pg, 2.0)
 ```
 
 ```@raw html
-<img src="../assets/img/polygons/pol_rothom.svg" alt="" style="width:100%;">
+<img src="../assets/img/polygons/pol_rothom.svg" alt="A quadrilateral with its images under a rotation and under a homothety, and the rotation angle marked" style="width:100%;">
 ```
 
 ## Distance to a polygon
@@ -106,7 +106,7 @@ vertices(hull)
 ```
 
 ```@raw html
-<img src="../assets/img/polygons/pol_hull.svg" alt="" style="width:100%;">
+<img src="../assets/img/polygons/pol_hull.svg" alt="A set of points, one strictly inside the others, and the convex hull polygon through the outer points" style="width:100%;">
 ```
 
 [`convex_hull`](@ref) is Andrew's monotone chain algorithm (`O(n log n)`,

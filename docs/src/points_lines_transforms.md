@@ -33,10 +33,17 @@ is_on_segment(APPoint(6.0, 8.0), s) # false: beyond A
 |:---------|:--------|:--------|
 | [`direction`](@ref) | `APVector` | non-normalized direction of an `APLine`/`APRay`/`APSegment` |
 | [`slope_angle`](@ref) | angle | `atan(dy, dx)` of that direction, in radians; also for an `APVector` |
+| [`orthogonal`](@ref) | `APVector` | the vector rotated 90° counterclockwise |
+| [`cross2`](@ref) | number | the 2D cross product `u[1]*v[2] - u[2]*v[1]` (twice the signed area of the triangle `0,u,v`) |
 | [`is_collinear`](@ref) | `Bool` | do three points lie on a common line? |
 | [`is_parallel`](@ref) / [`is_perpendicular`](@ref) | `Bool` | relation between two lines |
 | [`is_on_line`](@ref) / [`is_on_segment`](@ref) / [`is_on_ray`](@ref) | `Bool` | is a point on this line / this finite segment / this half-line? |
 | [`side_of_line`](@ref) | `-1`, `0` or `1` | which side of a line a point falls on |
+
+```@example geo
+w = orthogonal(v)
+dot(v, w) ≈ 0.0, cross2(v, w)   # perpendicular, and the sign says which way it turned
+```
 
 ```@example geo
 l_horiz = APLine(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
@@ -182,7 +189,7 @@ barycenter([P, Q, C], [1.0, 1.0, 2.0])   # weighted average of the three
 ```
 
 ```@raw html
-<img src="../assets/img/points_lines/rotation_homothety_translation.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/points_lines/rotation_homothety_translation.svg" alt="A triangle P, Q, C with its side midpoints, and the images of vertex C under a rotation, a homothety and a translation, labeled R, H and T, with the barycenter B and the rotation angle marked" style="width:100%; max-width: 700px;">
 ```
 
 
@@ -204,7 +211,7 @@ horizontal_line(APPoint(3.0, -8.0))
 ```
 
 ```@raw html
-<img src="../assets/img/points_lines/par_per_bis.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/points_lines/par_per_bis.svg" alt="A line through two labeled points and a third labeled point, with the parallel and perpendicular lines through that point and the perpendicular bisector of the first two" style="width:100%; max-width: 700px;">
 ```
 
 
@@ -219,6 +226,6 @@ angle_bisectors(xaxis, yaxis)   # the two diagonals y = x and y = -x
 ```
 
 ```@raw html
-<img src="../assets/img/points_lines/ang_bis.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/points_lines/ang_bis.svg" alt="Two intersecting lines through three labeled points and their two mutually perpendicular angle bisectors" style="width:100%; max-width: 700px;">
 ```
 

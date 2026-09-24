@@ -25,7 +25,7 @@ begin
 using Apollonius
 using Luxor
 import Apollonius: distance, rotate
-import Luxor: julia_red, julia_blue, julia_green, julia_green
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
 end
 
 colors = [julia_red, julia_purple, julia_green]

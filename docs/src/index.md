@@ -266,7 +266,7 @@ m isa APTransform, m isa APObject   # (true, false): APTransform is its own sepa
   [Conics: Ellipse, Parabola & Hyperbola](@ref) for a guided tour of the
   geometry itself, with worked examples.
 * [Unbounded Regions: Half-Planes, Strips & Angles](@ref), [Affine Maps](@ref) and
-  [Transforming in Bulk: Macros](@ref) for half-planes and strips, the
+  [Macros: Transforming Shapes](@ref) for half-planes and strips, the
   affine transformations, and the macros that apply a transform to a whole
   block of shapes.
 * The [README](https://github.com/gxono/Apollonius.jl#readme) for the

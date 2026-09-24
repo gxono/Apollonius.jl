@@ -46,6 +46,16 @@ measure(trace) ≈ pi / 3, isapprox(midpoint(trace), p; atol=1e-9)
 <img src="../assets/img/constructions/compass_trace.svg" alt="A compass trace around a point P, centered at O" style="width:100%; max-width: 700px;">
 ```
 
+[`arc_with_measure`](@ref) and [`arc_with_length`](@ref) both start at the
+given point and sweep from it; the difference is only in what you give as
+the third argument, an angle or a length:
+
+```@example geo
+by_angle = arc_with_measure(center, p, pi / 3)
+by_length = arc_with_length(center, p, 5.0 * pi / 3)
+isapprox(by_angle, by_length; atol=1e-9)
+```
+
 Three of the other builders side by side: `arc_with_measure` starts at the point and sweeps from it, `semicircle` is a half turn, and `extend_arc` lengthens an arc (the blue part is the original).
 
 ```@raw html
@@ -524,10 +534,11 @@ using Apollonius, Luxor
 m = mediator_construction(a, b; sweep=pi / 5)
 
 @svg begin
-    sethue("orange"); setline(0.5)
+    sethue(julia_green); setline(0.5)
     path(m.arcs; action=:stroke)                    # the compass traces
-    sethue("black"); setline(1)
+    sethue(julia_purple); setline(1)
     path(m.result; add=(0.2, 0.2), action=:stroke)  # the bisector, a bit past both crossings
+    sethue(julia_blue)
     path([a, b, m.points...]; action=:fill)         # the points involved
 end 400 300
 ```

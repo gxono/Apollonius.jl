@@ -53,6 +53,8 @@ return an `APPoint`, an `APCircle2`, an `APLine`, or (where there's naturally mo
 than one, like `soddy_circles` or `three_apollonius_circles`) a tuple or
 named tuple. See the [API Reference](@ref) for exact signatures.
 
+### Simson and Steiner lines, the orthopole and pedal triangles
+
 [`steiner_line`](@ref)`(t, p)` is closely related to [`simson_line`](@ref)`(t,
 p)`: reflecting (rather than projecting) `p` across the three side-lines
 gives three points that are collinear exactly when `p` is on the
@@ -82,6 +84,10 @@ orthopole(APLine(t[2], t[3]), t) isa APPoint
 pedal_triangle(t, incenter(t)) ≈ contact_triangle(t)
 ```
 
+```@raw html
+<img src="../assets/img/triangles/orthopole.svg" alt="The orthopole of a line with respect to a triangle: each vertex is projected onto the line, and the perpendicular from that projection to the opposite side; the three perpendiculars concur at the orthopole" style="width:100%; max-width: 700px;">
+```
+
 [`pedal_circle`](@ref)`(t, p)` is just the circumcircle of that pedal
 triangle:
 
@@ -93,11 +99,19 @@ pedal_circle(t, incenter(t)) ≈ incircle(t)   # the incircle is the pedal circl
 <img src="../assets/img/triangles/pedal.svg" alt="The pedal triangle and pedal circle of a point" style="width:100%; max-width: 700px;">
 ```
 
+### A preview: Brocard midpoint, Kenmotu and MacBeath points
+
 ```@example geo
 brocard_midpoint(t)   # midpoint of the two Brocard points (Kimberling X(39))
 kenmotu_point(t)       # X(371): common vertex of 3 congruent inscribed squares
 macbeath_point(t)      # X(264): isotomic conjugate of the circumcenter
 ```
+
+```@raw html
+<img src="../assets/img/triangles/macbeath.svg" alt="A triangle, its circumcenter, and the MacBeath point (the isotomic conjugate of the circumcenter)" style="width:100%; max-width: 700px;">
+```
+
+### More cevian-intersection points: the symmedian point
 
 [`symmedian_point`](@ref) is the fourth cevian-intersection point, built
 from barycentric coordinates `a² : b² : c²` the same way `nagel_point`/
@@ -106,6 +120,8 @@ from barycentric coordinates `a² : b² : c²` the same way `nagel_point`/
 ```@example geo
 symmedian_point(t)
 ```
+
+### Conjugates of a point
 
 [`isogonal_conjugate`](@ref)`(t, p)` reflects each cevian `vertex -> p`
 across the internal bisector at that vertex; [`isotomic_conjugate`](@ref)`(t,
@@ -132,12 +148,16 @@ isotomic_conjugate(t, isotomic_conjugate(t, incenter(t))) ≈ incenter(t)
 <img src="../assets/img/triangles/isotomic.svg" alt="A point and its isotomic conjugate" style="width:100%; max-width: 700px;">
 ```
 
+### Complement and anticomplement of a point
+
 [`anticomplement`](@ref)`(t, p)` is the inverse of [`complement`](@ref)`(t,
 p)`: homothety by `-2` instead of `-1/2` about the centroid:
 
 ```@example geo
 anticomplement(t, complement(t, incenter(t))) ≈ incenter(t)
 ```
+
+### Built from the incenter and excenters
 
 Built from the incenter/excenters: [`spieker_center`](@ref) (the incenter
 of the medial triangle) and [`spieker_circle`](@ref) (its incircle);
@@ -164,6 +184,8 @@ is_on_line(de_longchamps_point(t), euler_line(t))
 <img src="../assets/img/triangles/de_longchamps.svg" alt="The orthocenter, circumcenter and de Longchamps point on the Euler line" style="width:100%; max-width: 700px;">
 ```
 
+### The three Apollonius circles and the isodynamic points
+
 The two [`isodynamic_points`](@ref) are where the three
 [`three_apollonius_circles`](@ref) (one per vertex, for points whose
 distances to the other two vertices are in the same ratio as the two sides
@@ -178,6 +200,8 @@ all(c -> distance(c.center, iso1) ≈ c.r, apo), all(c -> distance(c.center, iso
 ```@raw html
 <img src="../assets/img/triangles/isodynamic.svg" alt="The three Apollonius circles of a triangle and the two isodynamic points" style="width:100%; max-width: 700px;">
 ```
+
+### The Apollonius circle and point of a triangle
 
 Despite the shared name, [`apollonius_circle_of_triangle`](@ref) is a
 different construction: the circle tangent to and enclosing all three
@@ -200,6 +224,8 @@ distance(ap_circle.center, ex.A.center) ≈ ap_circle.r - ex.A.r  # internally t
 apollonius_point_of_triangle(t)
 ```
 
+### The Brocard configuration
+
 The Brocard configuration: [`first_brocard_point`](@ref)/
 [`second_brocard_point`](@ref) are the two points seeing all three sides at
 the same angle, whose measure is [`angle_measure_brocard`](@ref); [`brocard_circle`](@ref) passes through
@@ -214,6 +240,8 @@ rad2deg(angle_measure_brocard(t)), distance(bc.center, Om1) ≈ bc.r, distance(b
 ```@raw html
 <img src="../assets/img/triangles/brocard.svg" alt="The Brocard points, the symmedian point and the Brocard circle" style="width:100%; max-width: 700px;">
 ```
+
+### Named auxiliary circles through the incenter or the symmedian point
 
 Named auxiliary circles: [`conway_points`](@ref)/[`conway_circle`](@ref)
 (extend the two sides at each vertex outward by the length of the
@@ -247,6 +275,8 @@ all(p -> on_circ(p, conway_circle(t)), conway_points(t)),
 <img src="../assets/img/triangles/lemoine_circles.svg" alt="The first Lemoine, second Lemoine and symmedial circles" style="width:100%; max-width: 700px;">
 ```
 
+### Mixtilinear incircles and the Soddy circles
+
 [`mixtilinear_incircle`](@ref)`(t, i)` is tangent to the two sides through
 `t[i]` and internally tangent to the circumcircle; [`soddy_circles`](@ref)
 (`inner`/`outer`) and [`soddy_line`](@ref) extend
@@ -276,6 +306,8 @@ soddy_center(t) == sc.inner.center
 soddy_points(t) == (inner=sc.inner.center, outer=sc.outer.center)
 ```
 
+### The second Fermat point and the Fermat axis
+
 [`second_fermat_point`](@ref) is built exactly like [`fermat_point`](@ref)
 but with the three equilateral triangles erected *inward* instead of
 outward; [`fermat_axis`](@ref) is the line through both:
@@ -287,6 +319,8 @@ fermat_axis(t)   # APLine(fermat_point(t), second_fermat_point(t))
 ```@raw html
 <img src="../assets/img/triangles/fermat.svg" alt="The two Fermat points and the line through them" style="width:100%; max-width: 700px;">
 ```
+
+### The Poncelet point
 
 [`poncelet_point`](@ref)`(t, p)` uses a striking fact about *any* 4 points
 in general position (here, `t`'s 3 vertices plus a 4th, `p`): the
@@ -300,6 +334,8 @@ poncelet_point(t, APPoint(5.0, -2.0))
 ```@raw html
 <img src="../assets/img/triangles/poncelet.svg" alt="The nine-point circles of four triangles meeting at the Poncelet point" style="width:100%; max-width: 700px;">
 ```
+
+### The Thébault circles
 
 [`thebault_circles`](@ref) builds the two circles of the classical
 **Sawayama–Thébault configuration**: given a point `p` on side `[t[2],
@@ -324,6 +360,8 @@ is_on_line(incenter(t), APLine(th.near_b.center, th.near_c.center))
 <img src="../assets/img/triangles/thebault.svg" alt="The two Thébault circles and the line through their centers, which passes through the incenter" style="width:100%; max-width: 700px;">
 ```
 
+### Three tangent circles at the vertices
+
 [`three_tangent_circles`](@ref) is the simpler configuration
 [`soddy_circles`](@ref) is itself built from: one circle per vertex,
 radius equal to the tangent length from that vertex to the incircle, each
@@ -338,6 +376,8 @@ distance(base[1].center, base[2].center) ≈ base[1].r + base[2].r   # pairwise 
 <img src="../assets/img/triangles/three_tangent.svg" alt="Three pairwise tangent circles centered at the vertices" style="width:100%; max-width: 700px;">
 ```
 
+### The Taylor points, in detail
+
 [`taylor_points`](@ref) is the full 6-point construction behind
 [`taylor_circle`](@ref): project each vertex of the [`orthic_triangle`](@ref)
 onto each of the two sides *not* used to define it; all 6 results are
@@ -350,6 +390,8 @@ length(taylor_points(t))   # 6
 ```@raw html
 <img src="../assets/img/triangles/taylor.svg" alt="The orthic triangle and the Taylor circle through six projections" style="width:100%; max-width: 700px;">
 ```
+
+### The Van Lamoen points, in detail
 
 [`van_lamoen_points`](@ref) is another 6-concyclic-points theorem: the
 circumcenters of the 6 small triangles the 3 medians cut `t` into (each
@@ -364,6 +406,8 @@ length(van_lamoen_points(t))   # 6
 <img src="../assets/img/triangles/van_lamoen.svg" alt="The three medians and the Van Lamoen circle" style="width:100%; max-width: 700px;">
 ```
 
+### Complement and anticomplement: the medial triangle
+
 [`complement`](@ref)`(t, p)` and [`anticomplement`](@ref)`(t, p)` are the
 homotheties of ratio `-1/2` and `-2` about the centroid, inverses of each
 other. Applied to `t`'s own vertices they give the [`medial_triangle`](@ref)
@@ -373,6 +417,8 @@ respectively:
 ```@example geo
 complement(t, A) ≈ midpoint(B, C)
 ```
+
+### The Kenmotu circle
 
 [`kenmotu_circle`](@ref) is centered at the [`kenmotu_point`](@ref), with
 radius `√2·a·b·c / (4·Area + a²+b²+c²)`; it passes through the 6 points
@@ -387,10 +433,19 @@ kenmotu_circle(t)
 <img src="../assets/img/triangles/kenmotu.svg" alt="The Kenmotu point and the Kenmotu circle" style="width:100%; max-width: 700px;">
 ```
 
-[`feuerbach_points`](@ref) is the excircle analogue of
-[`feuerbach_point`](@ref): besides its internal tangency with the
-incircle, the nine-point circle is *externally* tangent to each of the
-three excircles too, at these three points.
+### The Feuerbach point and points
+
+[`feuerbach_point`](@ref) is where the incircle and the nine-point circle
+touch, internally:
+
+```@example geo
+fp = feuerbach_point(t)
+distance(fp, incenter(t)) ≈ inradius(t), distance(fp, nine_point_center(t)) ≈ nine_point_circle(t).r
+```
+
+[`feuerbach_points`](@ref) is its excircle analogue: besides that internal
+tangency with the incircle, the nine-point circle is *externally* tangent
+to each of the three excircles too, at these three points.
 
 ```@example geo
 feuerbach_points(t)
@@ -399,6 +454,8 @@ feuerbach_points(t)
 ```@raw html
 <img src="../assets/img/triangles/feuerbach.svg" alt="The nine-point circle tangent to the incircle and the three excircles" style="width:100%; max-width: 700px;">
 ```
+
+### The Kiepert hyperbola and parabola
 
 [`kiepert_hyperbola`](@ref) is the unique rectangular hyperbola through
 `t`'s 3 vertices, its centroid and its orthocenter (built directly via

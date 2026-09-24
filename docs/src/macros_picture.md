@@ -2,7 +2,7 @@
 CurrentModule = Apollonius
 ```
 
-# Transforming in Bulk: Macros
+# Macros: Sizing a Picture
 
 Applying the same transform to several shapes one at a time is repetitive:
 `c2 = rotate(c, angle); s2 = rotate(s, angle); t2 = rotate(t, angle)`. Every

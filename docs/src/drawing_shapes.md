@@ -21,6 +21,7 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | `APEllipse2` | a smooth, Bézier-curve ellipse (Luxor's own axis-aligned `ellipse(center, w, h)`, `w = 2a`, `h = 2b`) inside a rotated/translated frame matching `e.center`/`e.angle`, so the path stays a true curve at any zoom level | (none) |
 | `APParabola2` | Luxor has no native parabola primitive: sampled at `n` points via [`point_on`](@ref) over the parameter range `srange`, added as an open polyline | `srange=(-100.0, 100.0)`, `n=60` |
 | `APHyperbola2` | likewise (no native primitive), sampled via [`point_on`](@ref) on one branch at a time | `trange=(-2.0, 2.0)`, `n=60`, `branch=1` (pass `branch=-1` and call again for the other branch) |
+| `APParametricCurve2` | likewise no native primitive for an arbitrary curve, sampled via [`point_on`](@ref) over `curve.trange`, added as an open polyline | `n=60` |
 | `APCircularArc2` | a true circular arc from `p1` to `p2`, via Luxor's own `arc2r` (Cairo's native arc primitive, not a polygonal approximation) | (none) |
 | `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
 | `APAngle2` | see below; it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
@@ -123,7 +124,7 @@ path(l; extend=0.0, as=:arrow, arrowheadlength=15)   # extend=0.0: the exact fin
 ```
 
 ```@raw html
-<img src="../assets/img/drawing/arrows.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/drawing/arrows.svg" alt="A segment drawn as a single arrow, a line drawn as an arrow, and a segment drawn as a double-headed arrow" style="width:100%; max-width: 700px;">
 ```
 
 !!! details "See script"
@@ -191,7 +192,7 @@ path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
 ```
 
 ```@raw html
-<img src="../assets/img/drawing/angles.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/drawing/angles.svg" alt="Five copies of a triangle with the same angle drawn as its two rays, as a small arc, as a filled pie sector, as an open corner marker, and as a filled corner marker" style="width:100%; max-width: 700px;">
 ```
 
 !!! details "See script"
@@ -278,7 +279,7 @@ path(invert(APTriangle(APPoint(50.0, 20.0), APPoint(90.0, 30.0), APPoint(60.0, 8
 ```
 
 ```@raw html
-<img src="../assets/img/drawing/curves.svg" alt="" style="width:100%;">
+<img src="../assets/img/drawing/curves.svg" alt="A circle with an arc highlighted along with its shaded sector and segment, three mutually tangent circles with the curvilinear gap between them filled in, and the curved image of an inverted triangle filled in" style="width:100%;">
 ```
 
 Every curved side here is built from Luxor's own `arc2r`/`carc2r` (Cairo's
@@ -301,7 +302,7 @@ path(earc; action=:stroke)
 ```
 
 ```@raw html
-<img src="../assets/img/drawing/earcs.svg" alt="" style="width:100%;">
+<img src="../assets/img/drawing/earcs.svg" alt="An ellipse with an elliptic arc between two of its points highlighted" style="width:100%;">
 ```
 
 They can also turn up as a *side* of a curvilinear region, not from
@@ -316,9 +317,25 @@ path(skew(sec); action=:stroke)   # an APCurvilinearTriangle2 with one elliptic-
 ```
 
 ```@raw html
-<img src="../assets/img/drawing/affine_skew.svg" alt="" style="width:100%;">
+<img src="../assets/img/drawing/affine_skew.svg" alt="A circular sector and its image under a skewing affine map, which turns the circular arc side into an elliptic arc" style="width:100%;">
 ```
 
 `path(::APPolygon)` handles this transparently: a side is drawn with
 `arc2r` if it's an `APCircularArc2`, or sampled at `n` points (the same
 `n` `path` itself takes) if it's any of the other three arc types.
+
+## Parametric curves
+
+[`APParametricCurve2`](@ref) (see [Points, Lines & Rays: Special Points & Curves](@ref))
+draws the same way as `APParabola2`/`APHyperbola2`: Luxor has no native
+primitive for an arbitrary curve either, so it's sampled at `n` points via
+[`point_on`](@ref) over `curve.trange`, added as an open polyline.
+
+```julia
+curve = APParametricCurve2(t -> APPoint(t, t^2), (-2.0, 2.0))
+path(curve; action=:stroke)
+```
+
+```@raw html
+<img src="../assets/img/drawing/parametric_curve.svg" alt="A parabola-shaped parametric curve drawn as a sampled open polyline" style="width:100%; max-width: 700px;">
+```

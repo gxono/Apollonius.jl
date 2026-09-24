@@ -55,7 +55,7 @@ map(inv5, [APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0)), APLine(APPoint(-3.0, 0.
 ```
 
 ```@raw html
-<img src="../assets/img/circles/inversion_line.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/inversion_line.svg" alt="The circle of inversion, two lines, and the circle each line inverts to, both passing through the inversion center" style="width:100%; max-width: 700px;">
 ```
 
 ## Midcircles: swapping two circles by inversion
@@ -115,7 +115,7 @@ invert(APSegment(APPoint(0.5, -1.5), APPoint(1.5, -1.0)), APPoint(0.0, 0.0))  # 
 ```
 
 ```@raw html
-<img src="../assets/img/circles/inversion_segment.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/inversion_segment.svg" alt="Two segments and their images under inversion, one becoming a circular arc and the other staying a straight segment, along with the circle of inversion" style="width:100%; max-width: 700px;">
 ```
 
 Since a triangle's, a quadrilateral's or a straight n-gon's sides invert
@@ -135,16 +135,20 @@ area(cp), perimeter(cp)
 ```
 
 ```@raw html
-<img src="../assets/img/circles/inversion_triangle.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/inversion_triangle.svg" alt="A triangle and the circle of inversion, with the triangle's image under inversion having all three sides curved into arcs" style="width:100%; max-width: 700px;">
 ```
 
 In the first example, none of the triangle's sides passes through the inversion center, so all three become circular arcs. If one side does lie on a line through the center, that side stays straight; the other two still become arcs.
 
 ```@raw html
-<img src="../assets/img/circles/inversion_triangle2.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/circles/inversion_triangle2.svg" alt="A triangle and the circle of inversion, with the triangle's image under inversion having one straight side, since that side's line passes through the center, and two curved arcs" style="width:100%; max-width: 700px;">
 ```
 
 Same rule for any straight-sided polygon: each side inverts on its own, straight if its line passes through the center, an arc otherwise, so the result can freely mix both.
+
+```@raw html
+<img src="../assets/img/circles/inversion_ngon.svg" alt="A hexagon and the circle of inversion, with the hexagon's image under inversion bounded by a mix of curved arcs" style="width:100%; max-width: 700px;">
+```
 
 A circular arc inverts to another arc of the image circle (or to a straight
 segment, if its own circle passes through the inversion center); an
@@ -154,10 +158,6 @@ invert to another conic at all, so `invert` gives back a sampled
 
 ```@example geo
 invert(APEllipse2(APPoint(4.0, 0.0), 2.0, 1.0), APPoint(0.0, 0.0)) isa APParametricCurve2
-```
-
-```@raw html
-<img src="../assets/img/circles/inversion_ngon.svg" alt="" style="width:100%; max-width: 700px;">
 ```
 
 `area`/`perimeter` are the same generic, sides-based [`APPolygon`](@ref)
@@ -174,4 +174,8 @@ recovering `p` from that line.
 ```@example geo
 pl = polar_line(c, p)   # the line through pts[1] and pts[2] above
 pole(c, pl)              # back to p = APPoint(13.0, 0.0)
+```
+
+```@raw html
+<img src="../assets/img/circles/polar_line.svg" alt="The polar line of a point outside a circle, through the two tangent points from it, and the pole of another line recovered by the inverse construction" style="width:100%; max-width: 700px;">
 ```

@@ -169,6 +169,6 @@ through it and lists the usual mistakes.
 | Work with ellipses, parabolas and hyperbolas | [Conics: Ellipse, Parabola & Hyperbola](@ref) |
 | Draw a compass and ruler construction | [Compass & Ruler Constructions](@ref) |
 | Draw figures, add marks, labels and braces | [Drawing with Luxor.jl](@ref), [Marks, Labels & Decorations](@ref) |
-| Move or scale a whole figure at once | [Affine Maps](@ref), [Transforming in Bulk: Macros](@ref) |
+| Move or scale a whole figure at once | [Affine Maps](@ref), [Macros: Transforming Shapes](@ref) |
 | Find a ready-made recipe | [Cookbook: Points & Segments](@ref) |
 | Look up a function | [API Reference](@ref) |

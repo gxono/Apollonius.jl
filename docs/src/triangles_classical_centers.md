@@ -45,7 +45,7 @@ circumradius(t)   # the radius of circumcircle(t), same as npc.r * 2
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/tri_cen.svg" alt="" style="width:100%;">
+<img src="../assets/img/triangles/tri_cen.svg" alt="A triangle with its circumcircle, incircle and nine-point circle, the four classical centers G, O, I, H, and the Euler line through three of them" style="width:100%;">
 ```
 
 
@@ -75,11 +75,11 @@ orthic_axis(t), brocard_axis(t), lemoine_axis(t)
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/obl_axis.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/triangles/obl_axis.svg" alt="A triangle with its orthic axis, Brocard axis and Lemoine axis" style="width:100%; max-width: 700px;">
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/orthic_axis.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/triangles/orthic_axis.svg" alt="A triangle with its altitude feet, the lines joining them in pairs, and the orthic axis where those lines meet the extended sides" style="width:100%; max-width: 700px;">
 ```
 
 
@@ -101,5 +101,5 @@ exc.A.r == er.A   # excircles(t).A already has radius exradii(t).A
 ```
 
 ```@raw html
-<img src="../assets/img/triangles/excircles.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/triangles/excircles.svg" alt="A triangle with its three excircles and excenters, each excircle tangent to one side and to the extensions of the other two" style="width:100%; max-width: 700px;">
 ```

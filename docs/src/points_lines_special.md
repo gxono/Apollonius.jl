@@ -44,7 +44,7 @@ distance(Ptest, A) / distance(Ptest, B)          # ≈ 2.0, regardless of the an
 ```
 
 ```@raw html
-<img src="../assets/img/points_lines/ap_circ.svg" alt="" style="width:100%; max-width: 700px;">
+<img src="../assets/img/points_lines/ap_circ.svg" alt="Two points and the Apollonius circle of constant distance ratio between them, with two points on the circle joined to the pair by a dashed quadrilateral" style="width:100%; max-width: 700px;">
 ```
 
 

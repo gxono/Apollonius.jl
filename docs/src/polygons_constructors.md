@@ -29,7 +29,7 @@ regular_polygon(APPoint(0.0, 0.0), APPoint(1.0, 0.0), 6)  # a regular hexagon
 ```
 
 ```@raw html
-<img src="../assets/img/polygons/pol_nam.svg" alt="" style="width:100%;">
+<img src="../assets/img/polygons/pol_nam.svg" alt="A parallelogram, a square, a rectangle, and a regular hexagon, each built by a named constructor" style="width:100%;">
 ```
 
 `square_on_segment` and `rectangle_on_segment` both take a `ccw` keyword

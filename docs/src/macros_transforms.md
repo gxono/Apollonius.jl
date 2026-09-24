@@ -4,7 +4,7 @@ CurrentModule = Apollonius
 
 # Macros: Transforming Shapes
 
-The triangle, circle and segment left over from [Transforming in Bulk: Macros](@ref):
+The triangle, circle and segment left over from [Macros: Sizing a Picture](@ref):
 
 ```@example geo
 using Apollonius
@@ -161,6 +161,10 @@ near_line   # rebound to its own inverted image
 far_line2 = APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0))
 @invert_neg! center far_line2
 far_line2
+```
+
+```@raw html
+<img src="../assets/img/macros/invert_neg.svg" alt="A line and a circle inverted with negative ratio with respect to a circle centered at the origin" style="width:100%; max-width: 700px;">
 ```
 
 ## `@affinemap` / `@affinemap!`

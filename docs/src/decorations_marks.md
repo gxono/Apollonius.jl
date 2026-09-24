@@ -134,6 +134,53 @@ length(two_ticks), only(marks(s; style=:circle, size=2.0))
     end
     ```
 
+The two letter styles, `:z` and `:s`, stand upright on a vertical segment
+and lie on their side on a horizontal one, so `gap` is raised to `size`
+for them automatically:
+
+```@example geo
+z_marks = marks(s; style=:z, count=2)
+s_marks = marks(s; style=:s)
+length(z_marks), all(x -> x isa APPolyline2, z_marks), length(s_marks), all(x -> x isa APCircularArc2, s_marks)
+```
+
+```@raw html
+<img src="../assets/img/decorations/marks_segment_zs.svg" alt="The :z and :s mark styles on a segment" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    styles = [:z, :s]
+    lxm = @prepare_to_picture! flip=false width=500 height=140 margin=20 begin
+        segs = [APSegment(APPoint(4.0, 2.0 * (2 - i)), APPoint(10.0, 2.0 * (2 - i))) for i in 1:2]
+        names = [APPoint(0.0, 2.0 * (2 - i)) for i in 1:2]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(segs, action=:stroke)
+
+    sethue(julia_purple)
+    for (s, style) in zip(segs, styles)
+        path(marks(s; count=2, style=style, size=20, gap=12); action=:stroke)
+    end
+
+    sethue(julia_red)
+    for (p, style) in zip(names, styles)
+        label(":" * string(style), :E, p)
+    end
+
+    finish()
+    preview()
+    end
+    ```
 
 Marks lie on the tangent at `at`, so with a small `gap` they follow the
 curve closely. On a circular arc a tick lies along a radius:
