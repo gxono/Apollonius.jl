@@ -101,6 +101,35 @@ hp_n = APHalfPlane2(APPoint(0.0, 1.0), APVector(0.0, 1.0))
 APPoint(0.0, 2.0) in hp_n, APPoint(0.0, 0.0) in hp_n
 ```
 
+### Clipping a line, segment or ray
+
+[`intersection`](@ref)`(hp, obj)` for a line, a segment or a ray is not the
+usual points-where-they-cross: `hp` is a region, and this is the part of
+`obj` that lies *inside* it, in `obj`'s own type. A line crossing the
+boundary comes back as a ray; a ray or a segment already fully inside comes
+back unchanged; one fully outside, or a line parallel to the boundary on
+the wrong side, comes back as `nothing`:
+
+```@example geo
+crossing = APLine(APPoint(-6.0, -3.0), APPoint(6.0, 3.0))
+intersection(hp1, crossing)
+```
+
+```@raw html
+<img src="../assets/img/unbounded/halfplane_clip.svg" alt="A half-plane's boundary, a line crossing it, and the ray that is the part of the line inside the half-plane, drawn over it in purple" style="width:100%; max-width: 700px;">
+```
+
+```@example geo
+intersection(hp1, APLine(APPoint(2.0, -6.0), APPoint(2.0, 6.0))),    # parallel to the boundary, on the inside: the whole line
+    intersection(hp1, APLine(APPoint(-2.0, -6.0), APPoint(-2.0, 6.0)))   # parallel, on the outside: nothing
+```
+
+A point works the same way, just without a range to clip: the point itself
+if it's in `hp`, `nothing` otherwise. Both argument orders work, and see
+[Points, Lines & Rays: Angles](@ref) for the same idea on an `APAngle2`,
+including the one case (a *reflex* angle) where the result can be two
+separate pieces instead of one.
+
 ## `APStrip2`
 
 The closed band between two **parallel** lines: think of it as an
@@ -162,3 +191,23 @@ both.
 st_w = APStrip2(APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), 2.0)
 APPoint(0.0, 1.0) in st_w, APPoint(0.0, 3.0) in st_w, strip_width(st_w)
 ```
+
+### Clipping a line, segment or ray to the strip
+
+The same idea as for a half-plane, above: `s` is a region, so
+`intersection(s, obj)` is the part of `obj` inside the band, not crossing
+points. A transversal line comes back as a segment,
+clipped by each of `s`'s two boundary lines in turn:
+
+```@example geo
+crossing = APLine(APPoint(-6.0, -1.5), APPoint(6.0, 4.5))
+intersection(s, crossing)
+```
+
+```@raw html
+<img src="../assets/img/unbounded/strip_clip.svg" alt="A strip's two boundary lines, a line crossing the band, and the segment that is the part of the line inside the strip, drawn over it in purple" style="width:100%; max-width: 700px;">
+```
+
+A strip is bounded by two parallel lines, so unlike a half-plane or an
+angle, clipping a line/segment/ray to a strip is always a single piece:
+there's no way for it to leave and come back.

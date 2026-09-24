@@ -1189,6 +1189,57 @@ using Base.MathConstants: golden
             @test strip_width(rotate(strip, 0.4, APPoint(0.0, 0.0))) ≈ strip_width(strip) atol = 1e-9
             @test strip_width(homothety(strip, 2.0, APPoint(0.0, 0.0))) ≈ 2 * strip_width(strip) atol = 1e-9
         end
+        @testset "region intersected with a line, segment or ray: the part inside, not boundary points" begin
+            P(x, y) = APPoint(x, y)
+            hp = APHalfPlane2(APLine(P(0.0, 0.0), P(1.0, 0.0)), P(0.0, 1.0))   # y >= 0
+            @test intersection(hp, APLine(P(2.0, -3.0), P(2.0, 3.0))) ≈ APRay(P(2.0, 0.0), P(2.0, 6.0))
+            @test intersection(hp, APLine(P(-5.0, 2.0), P(5.0, 2.0))) ≈ APLine(P(-5.0, 2.0), P(5.0, 2.0))
+            @test intersection(hp, APLine(P(-5.0, -2.0), P(5.0, -2.0))) === nothing
+            @test intersection(hp, APLine(P(-5.0, 0.0), P(5.0, 0.0))) ≈ APLine(P(-5.0, 0.0), P(5.0, 0.0))
+            @test intersection(hp, APSegment(P(1.0, 1.0), P(2.0, 2.0))) ≈ APSegment(P(1.0, 1.0), P(2.0, 2.0))
+            @test intersection(hp, APSegment(P(1.0, -1.0), P(2.0, -2.0))) === nothing
+            @test intersection(hp, APSegment(P(1.0, -1.0), P(1.0, 3.0))) ≈ APSegment(P(1.0, 0.0), P(1.0, 3.0))
+            @test intersection(hp, APRay(P(1.0, 1.0), P(1.0, 5.0))) ≈ APRay(P(1.0, 1.0), P(1.0, 5.0))
+            @test intersection(hp, APRay(P(1.0, 1.0), P(1.0, -5.0))) ≈ APSegment(P(1.0, 1.0), P(1.0, 0.0))
+            @test intersection(hp, P(1.0, 1.0)) ≈ P(1.0, 1.0)
+            @test intersection(hp, P(1.0, -1.0)) === nothing
+            @test intersection(APLine(P(2.0, -3.0), P(2.0, 3.0)), hp) ≈ APRay(P(2.0, 0.0), P(2.0, 6.0))   # reverse order
+            @test intersection(P(1.0, 1.0), hp) ≈ P(1.0, 1.0)
+
+            st = APStrip2(APLine(P(0.0, 0.0), P(1.0, 0.0)), APLine(P(0.0, 3.0), P(1.0, 3.0)))   # 0 <= y <= 3
+            @test intersection(st, APLine(P(2.0, -2.0), P(2.0, 10.0))) ≈ APSegment(P(2.0, 0.0), P(2.0, 3.0))
+            @test intersection(st, APSegment(P(2.0, 1.0), P(2.0, 2.0))) ≈ APSegment(P(2.0, 1.0), P(2.0, 2.0))
+            @test intersection(st, APSegment(P(2.0, -1.0), P(2.0, 1.0))) ≈ APSegment(P(2.0, 0.0), P(2.0, 1.0))
+            @test intersection(st, APLine(P(-5.0, 1.0), P(5.0, 1.0))) ≈ APLine(P(-5.0, 1.0), P(5.0, 1.0))
+            @test intersection(st, APLine(P(-5.0, 5.0), P(5.0, 5.0))) === nothing
+            @test intersection(st, APRay(P(2.0, -5.0), P(2.0, 5.0))) ≈ APSegment(P(2.0, 0.0), P(2.0, 3.0))
+            @test intersection(st, P(2.0, 1.5)) ≈ P(2.0, 1.5)
+            @test intersection(st, P(2.0, 5.0)) === nothing
+            @test intersection(APSegment(P(2.0, -1.0), P(2.0, 1.0)), st) ≈ APSegment(P(2.0, 0.0), P(2.0, 1.0))   # reverse order
+
+            ang = APAngle2(P(0.0, 0.0), P(4.0, 0.0), P(0.0, 4.0))   # convex: the first quadrant
+            @test only(intersection(ang, APLine(P(-1.0, 2.0), P(5.0, 2.0)))) ≈ APRay(P(0.0, 2.0), P(6.0, 2.0))
+            @test isempty(intersection(ang, APLine(P(-5.0, -1.0), P(5.0, -1.0))))
+            @test only(intersection(ang, APLine(P(-2.0, 2.0), P(2.0, -2.0)))) ≈ P(0.0, 0.0)   # touches only at the vertex
+            @test only(intersection(ang, APRay(P(1.0, 1.0), P(10.0, 10.0)))) ≈ APRay(P(1.0, 1.0), P(10.0, 10.0))
+            @test intersection(ang, P(1.0, 1.0)) ≈ P(1.0, 1.0)
+            @test intersection(ang, P(1.0, -1.0)) === nothing
+            @test only(intersection(APLine(P(-1.0, 2.0), P(5.0, 2.0)), ang)) ≈ APRay(P(0.0, 2.0), P(6.0, 2.0))   # reverse order
+
+            angr = APAngle2(P(0.0, 0.0), P(1.0, 0.0), P(0.0, -1.0))   # reflex: everything except the 4th quadrant
+            @test normalized_measure(angr) ≈ 3pi / 2
+            @test only(intersection(angr, APLine(P(-5.0, 2.0), P(5.0, 2.0)))) ≈ APLine(P(-5.0, 2.0), P(5.0, 2.0))   # never touches the excluded quadrant
+            # y = x - 2 crosses the axes at (2,0) and (0,-2): the excluded interval is x in (0,2), so two pieces survive
+            l = APLine(P(-3.0, -5.0), P(7.0, 5.0))
+            pieces = intersection(angr, l)
+            @test length(pieces) == 2
+            @test any(pc -> pc isa APRay && isapprox(pc, APRay(P(0.0, -2.0), P(-1.0, -3.0)); atol=1e-9), pieces)
+            @test any(pc -> pc isa APRay && isapprox(pc, APRay(P(2.0, 0.0), P(3.0, 1.0)); atol=1e-9), pieces)
+            seg_pieces = intersection(angr, APSegment(P(-3.0, -5.0), P(7.0, 5.0)))
+            @test length(seg_pieces) == 2
+            @test any(pc -> pc isa APSegment && isapprox(pc, APSegment(P(-3.0, -5.0), P(0.0, -2.0)); atol=1e-9), seg_pieces)
+            @test any(pc -> pc isa APSegment && isapprox(pc, APSegment(P(2.0, 0.0), P(7.0, 5.0)); atol=1e-9), seg_pieces)
+        end
     end
     @testset "APAffineMap" begin
         src = (APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))

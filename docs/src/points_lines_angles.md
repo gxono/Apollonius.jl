@@ -148,4 +148,38 @@ rad2deg(measure(APAngle2(la, lb))), rad2deg(measure(APAngle2(lb, la)))
 <img src="../assets/img/points_lines/angle_from_measure.svg" alt="An angle of 60 degrees built from a ray and a measure, and the angle between two crossing lines" style="width:100%; max-width: 700px;">
 ```
 
+### Clipping a line, segment or ray
+
+`ang` is a region, so [`intersection`](@ref)`(ang, obj)` for a line, a
+segment or a ray is the part of `obj` that lies inside the wedge, not the
+points where its two rays are crossed (see
+[Unbounded Regions: Half-Planes, Strips & Angles](@ref) for the same idea
+on `APHalfPlane2`/`APStrip2`). The result is always a `Vector`, though, not
+the bare value those two give: a convex `ang` (`normalized_measure(ang) <=
+π`, the ordinary case) never gives more than one piece, but a **reflex**
+one can give two.
+
+```@example geo
+crossing = APLine(APPoint(-1.0, 2.0), APPoint(5.0, 2.0))
+intersection(ang, crossing)
+```
+
+A reflex angle (more than half the plane) is not convex: a line can cross
+into it, back out through the excluded wedge on the other side, and back
+in again, leaving two disjoint pieces instead of one:
+
+```@example geo
+reflex = APAngle2(O, P1, APPoint(0.0, -4.0))   # everything except the fourth quadrant
+rad2deg(normalized_measure(reflex))            # 270°: more than a straight angle
+intersection(reflex, APLine(APPoint(-6.0, -6.0), APPoint(16.0, 5.0)))
+```
+
+```@raw html
+<img src="../assets/img/points_lines/angle_clip_reflex.svg" alt="A reflex wedge's two boundary rays, a line crossing through the excluded quadrant, and the two disjoint rays of the line that lie inside the wedge, drawn over it in purple" style="width:100%; max-width: 700px;">
+```
+
+A point works the same way as `in`, without the two-piece question: the
+point itself if it's inside `ang`, `nothing` otherwise. Both argument
+orders work for all of these.
+
 
