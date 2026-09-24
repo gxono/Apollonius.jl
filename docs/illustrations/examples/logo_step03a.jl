@@ -11,9 +11,8 @@ end
 circles = APCircle2[three_circles[1]]
 
 while true
-  circles[end].r < 1 && break
   new_circle = argmin(c -> c.r, tangent_circles(outer_circle, three_circles[2], circles[end]))
-  push!(circles, new_circle)
+  new_circle.r > 1 ? push!(circles, new_circle) : break
 end
 
 

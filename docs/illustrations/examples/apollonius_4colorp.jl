@@ -1,9 +1,9 @@
 include("../default_config.jl")
 
-const COLORES = (julia_red, julia_blue, julia_green, julia_purple)
+const COLORS = (julia_red, julia_blue, julia_green, julia_purple)
 
-@inline function color_libre(c1, c2, c3)
-    @inbounds for color in COLORES
+@inline function free_color(c1, c2, c3)
+    @inbounds for color in COLORS
         if color != c1 && color != c2 && color != c3
             return color
         end
@@ -17,7 +17,7 @@ function iteration!(out, itm1, itm2, itm3)
 
     ic0 = argmin(c -> c.r, tangent_circles(c1, c2, c3))
 
-    color = color_libre(itm1[2], itm2[2], itm3[2])
+    color = free_color(itm1[2], itm2[2], itm3[2])
 
     itmr = (ic0, color)
     push!(out, itmr)
@@ -68,7 +68,4 @@ append!(all_circles, (cr, cp, cg))
         sethue(color)
         path(circle, action=:fill)
     end
-
-    finish()
-    preview()
 end)
