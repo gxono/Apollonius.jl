@@ -1,2 +1,332 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · Apollonius.jl</title><meta name="title" content="Examples · Apollonius.jl"/><meta property="og:title" content="Examples · Apollonius.jl"/><meta property="twitter:title" content="Examples · Apollonius.jl"/><meta name="description" content="Documentation for Apollonius.jl."/><meta property="og:description" content="Documentation for Apollonius.jl."/><meta property="twitter:description" content="Documentation for Apollonius.jl."/><meta property="og:url" content="https://gxono.github.io/Apollonius.jl/examples/"/><meta property="twitter:url" content="https://gxono.github.io/Apollonius.jl/examples/"/><link rel="canonical" href="https://gxono.github.io/Apollonius.jl/examples/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="Apollonius.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Apollonius.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../getting_started/">Getting Started</a></li><li><a class="tocitem" href="../conventions/">Conventions &amp; FAQ</a></li><li><a class="tocitem" href="../workflow/">Workflow: From Construction to Figure</a></li><li><a class="tocitem" href="../drawing/">Drawing with Luxor.jl</a></li><li><a class="tocitem" href="../decorations/">Marks, Labels &amp; Decorations</a></li><li><a class="tocitem" href="../constructions/">Compass &amp; Ruler Constructions</a></li><li><a class="tocitem" href="../points_lines/">Points, Lines &amp; Rays</a></li><li><a class="tocitem" href="../predicates/">Predicates</a></li><li><a class="tocitem" href="../measurements/">Measurements &amp; Queries</a></li><li><a class="tocitem" href="../intersections/">Intersections</a></li><li><a class="tocitem" href="../numbers/">Numbers &amp; Tolerances</a></li><li><a class="tocitem" href="../types/">Types &amp; Operations</a></li><li><a class="tocitem" href="../cookbook/">Cookbook</a></li><li><a class="tocitem" href="../euclid/">Euclid, Book I</a></li><li><a class="tocitem" href="../circles/">Circles</a></li><li><a class="tocitem" href="../triangles/">Triangles &amp; Triangle Centers</a></li><li><a class="tocitem" href="../tangency/">Tangency &amp; Apollonius Problems</a></li><li><a class="tocitem" href="../polygons/">Polygons &amp; Bounding Boxes</a></li><li><a class="tocitem" href="../conics/">Conics: Ellipse, Parabola &amp; Hyperbola</a></li><li><a class="tocitem" href="../unbounded_sets/">Unbounded Regions</a></li><li><a class="tocitem" href="../affine_maps/">Affine Maps</a></li><li><a class="tocitem" href="../macros/">Transforming in Bulk: Macros</a></li><li class="is-active"><a class="tocitem" href>Examples</a></li><li><a class="tocitem" href="../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/gxono/Apollonius.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/gxono/Apollonius.jl/blob/master/docs/src/examples.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../macros/">« Transforming in Bulk: Macros</a><a class="docs-footer-nextpage" href="../api/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Thursday 24 September 2026 15:20">Thursday 24 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · Apollonius.jl</title><meta name="title" content="Examples · Apollonius.jl"/><meta property="og:title" content="Examples · Apollonius.jl"/><meta property="twitter:title" content="Examples · Apollonius.jl"/><meta name="description" content="Documentation for Apollonius.jl."/><meta property="og:description" content="Documentation for Apollonius.jl."/><meta property="twitter:description" content="Documentation for Apollonius.jl."/><meta property="og:url" content="https://gxono.github.io/Apollonius.jl/examples/"/><meta property="twitter:url" content="https://gxono.github.io/Apollonius.jl/examples/"/><link rel="canonical" href="https://gxono.github.io/Apollonius.jl/examples/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="Apollonius.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Apollonius.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../getting_started/">Getting Started</a></li><li><a class="tocitem" href="../workflow/">Workflow: From Construction to Figure</a></li><li><a class="tocitem" href="../euclid/">Euclid, Book I</a></li></ul></li><li><span class="tocitem">Core Concepts</span><ul><li><a class="tocitem" href="../conventions/">Conventions &amp; FAQ</a></li><li><a class="tocitem" href="../numbers/">Numbers &amp; Tolerances</a></li><li><a class="tocitem" href="../types/">Types &amp; Operations</a></li><li><a class="tocitem" href="../predicates/">Predicates</a></li><li><a class="tocitem" href="../measurements/">Measurements &amp; Queries</a></li><li><a class="tocitem" href="../intersections/">Intersections</a></li></ul></li><li><span class="tocitem">Points, Lines &amp; Rays</span><ul><li><a class="tocitem" href="../points_lines_creating/">Creating Them</a></li><li><a class="tocitem" href="../points_lines_transforms/">Direction &amp; Transforms</a></li><li><a class="tocitem" href="../points_lines_angles/">Angles</a></li><li><a class="tocitem" href="../points_lines_special/">Special Points &amp; Curves</a></li></ul></li><li><span class="tocitem">Circles</span><ul><li><a class="tocitem" href="../circles_basics/">Basics</a></li><li><a class="tocitem" href="../circles_inversion/">Inversion</a></li><li><a class="tocitem" href="../circles_relations/">How They Relate</a></li><li><a class="tocitem" href="../circles_arcs/">Arcs</a></li><li><a class="tocitem" href="../circles_regions/">Sectors, Segments &amp; Curvilinear Chains</a></li></ul></li><li><span class="tocitem">Conics: Ellipse, Parabola &amp; Hyperbola</span><ul><li><a class="tocitem" href="../conics_basics/">Ellipse, Parabola &amp; Hyperbola</a></li><li><a class="tocitem" href="../conics_constructors/">Building From Other Data</a></li><li><a class="tocitem" href="../conics_tangents_arcs/">Tangents, Duality &amp; Arcs</a></li><li><a class="tocitem" href="../conics_transform_fit/">Transforming &amp; Fitting</a></li></ul></li><li><span class="tocitem">Triangles &amp; Triangle Centers</span><ul><li><a class="tocitem" href="../triangles_classical_centers/">The Classical Centers</a></li><li><a class="tocitem" href="../triangles_coordinates/">Barycentric &amp; Trilinear Coordinates</a></li><li><a class="tocitem" href="../triangles_vertex_lines/">Vertex-Indexed Lines</a></li><li><a class="tocitem" href="../triangles_named_centers/">Further Named Centers</a></li><li><a class="tocitem" href="../triangles_inellipses/">Steiner &amp; Other Inellipses</a></li><li><a class="tocitem" href="../triangles_derived/">Derived Triangles</a></li><li><a class="tocitem" href="../triangles_on_segment/">Inscribed Squares &amp; Triangles on a Segment</a></li></ul></li><li><span class="tocitem">Polygons &amp; Bounding Boxes</span><ul><li><a class="tocitem" href="../polygons_operations/">Measurements &amp; Operations</a></li><li><a class="tocitem" href="../polygons_bounding_boxes/">Bounding Boxes</a></li><li><a class="tocitem" href="../polygons_constructors/">Named Constructors &amp; Quadrilaterals</a></li></ul></li><li><span class="tocitem">Tangency &amp; Apollonius Problems</span><ul><li><a class="tocitem" href="../tangency_basics/">The Ten Apollonius Problems</a></li><li><a class="tocitem" href="../tangency_interstices/">Interstices</a></li><li><a class="tocitem" href="../tangency_fixed/">Fixing a Point, Radius or Center</a></li></ul></li><li><a class="tocitem" href="../unbounded_sets/">Unbounded Regions</a></li><li><a class="tocitem" href="../affine_maps/">Affine Maps</a></li><li><span class="tocitem">Drawing &amp; Illustration</span><ul><li><a class="tocitem" href="../drawing_basics/">Drawing with Luxor.jl</a></li><li><a class="tocitem" href="../drawing_shapes/">What Each Type Builds</a></li><li><a class="tocitem" href="../drawing_advanced/">Clipping, Dimensions &amp; Reversing</a></li><li><a class="tocitem" href="../drawing_appendix/">The Package Logo &amp; Name Collisions</a></li><li><a class="tocitem" href="../decorations_marks/">Marks: <code>tangent_at</code> &amp; <code>marks</code></a></li><li><a class="tocitem" href="../decorations_arrows_braces/">Arrowheads &amp; Braces</a></li><li><a class="tocitem" href="../decorations_labels_guides/">Labels, Guides &amp; Grids</a></li><li><a class="tocitem" href="../constructions/">Compass &amp; Ruler Constructions</a></li><li><a class="tocitem" href="../macros_picture/">Macros: Sizing a Picture</a></li><li><a class="tocitem" href="../macros_transforms/">Macros: Transforming Shapes</a></li></ul></li><li><span class="tocitem">Cookbook</span><ul><li><a class="tocitem" href="../cookbook_points_segments/">Points &amp; Segments</a></li><li><a class="tocitem" href="../cookbook_lines/">Lines</a></li><li><a class="tocitem" href="../cookbook_circles/">Circles</a></li><li><a class="tocitem" href="../cookbook_tangent_circles/">Tangent Circles</a></li><li><a class="tocitem" href="../cookbook_triangles/">Triangles</a></li><li><a class="tocitem" href="../cookbook_polygons/">Polygons</a></li><li><a class="tocitem" href="../cookbook_conics/">Conics</a></li><li><a class="tocitem" href="../cookbook_building_moving/">Building &amp; Moving Shapes</a></li><li><a class="tocitem" href="../cookbook_utility/">Checking &amp; Drawing Recipes</a></li></ul></li><li class="is-active"><a class="tocitem" href>Examples</a><ul class="internal"><li><a class="tocitem" href="#An-Apollonian-gasket-in-four-colors"><span>An Apollonian gasket in four colors</span></a></li><li><a class="tocitem" href="#Building-the-package-logo"><span>Building the package logo</span></a></li></ul></li><li><a class="tocitem" href="../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/gxono/Apollonius.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/gxono/Apollonius.jl/blob/master/docs/src/examples.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><p>Two complete, worked examples that combine several pages of this manual into one figure: an Apollonian gasket colored with four colors, and the construction behind the package&#39;s own logo.</p><h2 id="An-Apollonian-gasket-in-four-colors"><a class="docs-heading-anchor" href="#An-Apollonian-gasket-in-four-colors">An Apollonian gasket in four colors</a><a id="An-Apollonian-gasket-in-four-colors-1"></a><a class="docs-heading-anchor-permalink" href="#An-Apollonian-gasket-in-four-colors" title="Permalink"></a></h2><p>Start from three mutually tangent circles and repeatedly fill every gap between three already-placed circles with <a href="../api/#Apollonius.tangent_circles"><code>tangent_circles</code></a>&#39;s smallest solution. The result is an <a href="https://en.wikipedia.org/wiki/Apollonian_gasket">Apollonian gasket</a>: every new circle touches exactly three older ones, and the gaps it leaves behind are filled the same way, recursively, down to whatever size cutoff you choose.</p><p>That &quot;touches exactly three others&quot; property is also what makes the gasket easy to color: pick any four colors, and give each new circle whichever one isn&#39;t already used by its three neighbors. Since a circle only ever has three neighbors at the moment it is colored, there is always at least one color left over. This is a direct, constructive instance of the <a href="https://en.wikipedia.org/wiki/Four_color_theorem">four color theorem</a>, for the friendliest possible case.</p><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+const COLORS = (julia_red, julia_blue, julia_green, julia_purple)
+
+free_color(c1, c2, c3) = only(c for c in COLORS if c ∉ (c1, c2, c3))
+
+function iteration!(out, itm1, itm2, itm3)
+    c1, c2, c3 = itm1[1], itm2[1], itm3[1]
+    ic0 = argmin(c -&gt; c.r, tangent_circles(c1, c2, c3))
+    color = free_color(itm1[2], itm2[2], itm3[2])
+    itmr = (ic0, color)
+    push!(out, itmr)
+
+    if ic0.r &gt; 1
+        iteration!(out, itmr, itm1, itm2)
+        iteration!(out, itmr, itm1, itm3)
+        iteration!(out, itmr, itm2, itm3)
+    end
+    return out
+end</code></pre><p>Each circle is carried around together with its color, as a <code>(circle, color)</code> pair. <code>iteration!</code> finds the smallest circle tangent to three given ones, colors it, and recurses into the three new triples it just created with its neighbors, stopping once a circle gets smaller than radius <code>1</code>.</p><p>Starting the recursion from a triangle&#39;s three tangent circles and their common outer tangent, then coloring the whole gasket:</p><pre><code class="language-julia hljs">C1, C2 = APPoint(0.0, 0.0), APPoint(100.0, 0.0)
+t = equilateral_triangle_on_segment(C1, C2)
+three_circles = three_tangent_circles(t)
+outer_circle = argmax(c -&gt; c.r, tangent_circles(three_circles...))
+
+co = (outer_circle, julia_blue)
+cr, cp, cg = zip(three_circles, (julia_red, julia_purple, julia_green))
+
+all_circles = typeof(co)[]
+iteration!(all_circles, co, cr, cp)
+iteration!(all_circles, co, cp, cg)
+iteration!(all_circles, co, cg, cr)
+iteration!(all_circles, cr, cp, cg)
+append!(all_circles, (cr, cp, cg))</code></pre><img src="../assets/img/examples/apollonius_4colorp.svg" alt="An Apollonian gasket of circles colored with four colors so that no two tangent circles share a color" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-14f676b0260be93f"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-14f676b0260be93f" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+const COLORS = (julia_red, julia_blue, julia_green, julia_purple)
+
+@inline function free_color(c1, c2, c3)
+    @inbounds for color in COLORS
+        if color != c1 &amp;&amp; color != c2 &amp;&amp; color != c3
+            return color
+        end
+    end
+end
+
+function iteration!(out, itm1, itm2, itm3)
+    c1 = itm1[1]
+    c2 = itm2[1]
+    c3 = itm3[1]
+
+    ic0 = argmin(c -&gt; c.r, tangent_circles(c1, c2, c3))
+
+    color = free_color(itm1[2], itm2[2], itm3[2])
+
+    itmr = (ic0, color)
+    push!(out, itmr)
+
+    if ic0.r &gt; 1
+        iteration!(out, itmr, itm1, itm2)
+        iteration!(out, itmr, itm1, itm3)
+        iteration!(out, itmr, itm2, itm3)
+    end
+
+    return out
+end
+
+function iteration(itm1, itm2, itm3)
+    out = typeof(itm1)[]
+    iteration!(out, itm1, itm2, itm3)
+end
+
+lxm = @prepare_to_picture! width=500 height=500 margin=20 begin
+    C1, C2 = APPoint(0.0, 0.0), APPoint(100.0, 0.0)
+
+    t = equilateral_triangle_on_segment(C1, C2)
+    three_circles = three_tangent_circles(t)
+
+    outer_circle = argmax(
+        c -&gt; c.r,
+        tangent_circles(three_circles...)
+    )
+end
+
+co = (outer_circle, julia_blue)
+cr = (three_circles[1], julia_red)
+cp = (three_circles[2], julia_purple)
+cg = (three_circles[3], julia_green)
+
+all_circles = typeof(co)[]
+
+iteration!(all_circles, co, cr, cp)
+iteration!(all_circles, co, cp, cg)
+iteration!(all_circles, co, cg, cr)
+iteration!(all_circles, cr, cp, cg)
+
+append!(all_circles, (cr, cp, cg))
+
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+
+for (circle, color) in all_circles
+    sethue(color)
+    path(circle, action=:fill)
+end
+
+finish()</code></pre></div></details><h2 id="Building-the-package-logo"><a class="docs-heading-anchor" href="#Building-the-package-logo">Building the package logo</a><a id="Building-the-package-logo-1"></a><a class="docs-heading-anchor-permalink" href="#Building-the-package-logo" title="Permalink"></a></h2><p>The package logo is an Apollonian gasket with most of its circles removed, one of its three symmetric arms kept, rotated into place and colored:</p><img src="../assets/img/examples/logo.svg" alt="The package logo: three colored arms of circles shrinking towards the center, arranged with three-fold symmetry" style="width:60%; max-width: 320px;"><p>The strategy is to build one arm iteratively, then make two rotated copies of it and color the three arms.</p><p>Start with the big outer circle and the three central ones: fix a segment, build the equilateral triangle on it, get the three circles tangent to its sides and centered at its vertices, and take the one tangent circle that encloses all three (the <code>tangent_circles</code> solution with the largest radius):</p><pre><code class="language-julia hljs">A, B = APPoint(0.0, 0.0), APPoint(100.0, 0.0)
+s = APSegment(A, B)
+t = equilateral_triangle_on_segment(s)
+three_circles = three_tangent_circles(t)
+outer_circle = argmax(c -&gt; c.r, tangent_circles(three_circles...))</code></pre><img src="../assets/img/examples/logo_step01a.svg" alt="A triangle inscribed between three tangent circles, with a fourth circle enclosing them" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-82f0eb8f9d40cf1f"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-82f0eb8f9d40cf1f" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">include(&quot;../default_config.jl&quot;)
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+  A, B = APPoint(0.0,0.0), APPoint(100.0, 0.0)
+  s = APSegment(A, B)
+  t = equilateral_triangle_on_segment(s)
+  three_circles = three_tangent_circles(t)
+  outer_circle = argmax(c -&gt; c.r, tangent_circles(three_circles...))
+end
+
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+@layer begin
+  sethue(julia_green); setdash(:dash)
+  path(t, action=:stroke)
+end
+
+sethue(julia_blue)
+path(s, action=:stroke)
+
+sethue(julia_purple)
+path(three_circles, action=:stroke)
+path(outer_circle, action=:stroke)
+
+sethue(&quot;white&quot;)
+path(vertices(t), action=:fillpreserve)
+sethue(julia_green); strokepath()
+finish()</code></pre></div></details><img src="../assets/img/examples/logo_step01b.svg" alt="The same figure with outer_circle and the three central circles labeled" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-3f585e0d3f84e75c"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-3f585e0d3f84e75c" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">include(&quot;../default_config.jl&quot;)
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+  A, B = APPoint(0.0,0.0), APPoint(100.0, 0.0)
+  s = APSegment(A, B)
+  t = equilateral_triangle_on_segment(s)
+  three_circles = three_tangent_circles(t)
+  outer_circle = argmax(c -&gt; c.r, tangent_circles(three_circles...))
+end
+
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+sethue(julia_blue)
+path(three_circles, action=:stroke)
+path(outer_circle, action=:stroke)
+
+sethue(julia_red)
+for (i, c) in enumerate(three_circles)
+  text(&quot;three_circles[$i]&quot;, c.center, halign=:center, valign=:center)
+end
+
+label(&quot;outer_circle&quot;, label_anchor(outer_circle, -pi/4)...)
+finish()</code></pre></div></details><p>Now build one arm: a chain of circles, each tangent to <code>outer_circle</code>, <code>three_circles[2]</code> and the previous circle in the chain. Starting from <code>three_circles[1]</code> and repeatedly taking the smallest tangent solution traces out a chain that shrinks towards the gap between <code>outer_circle</code> and <code>three_circles[2]</code>:</p><img src="../assets/img/examples/logo_step02a.svg" alt="A chain of shrinking circles wedged between outer_circle and three_circles[2]" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-7a349bc1509cb49d"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-7a349bc1509cb49d" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">include(&quot;../default_config.jl&quot;)
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+  A, B = APPoint(0.0,0.0), APPoint(100.0, 0.0)
+  s = APSegment(A, B)
+  t = equilateral_triangle_on_segment(s)
+  three_circles = three_tangent_circles(t)
+  outer_circle = argmax(c -&gt; c.r, tangent_circles(three_circles...))
+end
+
+circles = APCircle2[three_circles[1]]
+
+while true
+  circles[end].r &lt; 1 &amp;&amp; break
+  new_circle = argmin(c -&gt; c.r, tangent_circles(outer_circle, three_circles[2], circles[end]))
+  push!(circles, new_circle)
+end
+
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+@layer begin
+  setopacity(0.25)
+  sethue(julia_purple)
+  path(circles, action=:fill)
+  setopacity(1)
+  path(circles, action=:stroke)
+end
+
+@layer begin
+  sethue(julia_blue)
+  path([outer_circle, three_circles[2]], action=:stroke)
+end
+
+sethue(julia_red)
+text(&quot;three_circles[2]&quot;, three_circles[2].center, halign=:center, valign=:middle)
+label(&quot;outer_circle&quot;, label_anchor(outer_circle, -pi/4)...)
+
+sethue(&quot;white&quot;)
+for (i, c) in enumerate(circles)
+  fontsize(1.75 * c.r)
+  text(&quot;$i&quot;, c.center, halign=:center, valign=:middle)
+end
+finish()</code></pre></div></details><p>Each circle in the chain is tangent to three others, so <a href="../api/#Apollonius.tangent_circles"><code>tangent_circles</code></a> returns two solutions: the previous circle in the chain, and the next one. <code>argmin</code> always picks the next, smaller one, so the chain keeps shrinking instead of doubling back on itself. Stop once a circle&#39;s radius drops to <code>1</code> or below:</p><pre><code class="language-julia hljs">circles = APCircle2[three_circles[1]]
+
+while true
+  new_circle = argmin(c -&gt; c.r, tangent_circles(outer_circle, three_circles[2], circles[end]))
+  new_circle.r &gt; 1 ? push!(circles, new_circle) : break
+end</code></pre><img src="../assets/img/examples/logo_step02b.svg" alt="The finished chain of tangent circles, filled in solid red" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-4666cb2efb3c8802"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-4666cb2efb3c8802" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">include(&quot;../default_config.jl&quot;)
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+  A, B = APPoint(0.0,0.0), APPoint(100.0, 0.0)
+  s = APSegment(A, B)
+  t = equilateral_triangle_on_segment(s)
+  three_circles = three_tangent_circles(t)
+  outer_circle = argmax(c -&gt; c.r, tangent_circles(three_circles...))
+end
+
+circles = APCircle2[three_circles[1]]
+
+while true
+  new_circle = argmin(c -&gt; c.r, tangent_circles(outer_circle, three_circles[2], circles[end]))
+  new_circle.r &gt; 1 ? push!(circles, new_circle) : break
+end
+
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+@layer begin
+  sethue(julia_blue); setdash(:dash); setline(1)
+  path([outer_circle, three_circles...], action=:stroke)
+end
+
+sethue(julia_red)
+path(circles, action=:fill)
+finish()</code></pre></div></details><p>Now copy the chain, rotate two copies by 120° and 240° around <code>outer_circle</code>&#39;s center, and color the three arms:</p><pre><code class="language-julia hljs">c = outer_circle.center
+
+for (i, color) in enumerate([julia_red, julia_purple, julia_green])
+  rot_copy = rotate.(circles, deg2rad((i-1) * 120), c)
+
+  sethue(color)
+  path(rot_copy, action=:fill)
+end</code></pre><img src="../assets/img/examples/logo_step03a.svg" alt="Three colored arms of circles arranged with three-fold symmetry around the center" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-4bfb6b15d012a2b7"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-4bfb6b15d012a2b7" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">include(&quot;../default_config.jl&quot;)
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+  A, B = APPoint(0.0,0.0), APPoint(100.0, 0.0)
+  s = APSegment(A, B)
+  t = equilateral_triangle_on_segment(s)
+  three_circles = three_tangent_circles(t)
+  outer_circle = argmax(c -&gt; c.r, tangent_circles(three_circles...))
+end
+
+circles = APCircle2[three_circles[1]]
+
+while true
+  new_circle = argmin(c -&gt; c.r, tangent_circles(outer_circle, three_circles[2], circles[end]))
+  new_circle.r &gt; 1 ? push!(circles, new_circle) : break
+end
+
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+c = outer_circle.center
+
+for (i, color) in enumerate([julia_red, julia_purple, julia_green])
+  rot_copy = rotate.(circles, deg2rad((i-1) * 120), c)
+
+  sethue(color)
+  path(rot_copy, action=:fill)
+end
+finish()</code></pre></div></details><p>The last step shrinks every circle by a fixed amount <code>Δr</code>, so the finished logo has a visible gap between neighboring circles instead of tangent ones touching edge to edge. In the package logo this is 5% of <code>t</code>&#39;s circumradius. Shrinking only makes sense once every circle in the chain is already past that size, so the loop&#39;s cutoff changes from a fixed radius of <code>1</code> to <code>Δr</code> itself:</p><pre><code class="language-julia hljs">C = circumcenter(t)
+Δr = 0.05 * distance(C, A)
+circles = APCircle2[three_circles[1]]
+while true
+  new_circle = argmin(c -&gt; c.r, tangent_circles(outer_circle, three_circles[2], circles[end]))
+  new_circle.r &gt; Δr ? push!(circles, new_circle) : break
+end
+map!(c -&gt; APCircle2(c.center, c.r - Δr), circles)</code></pre><img src="../assets/img/examples/logo_step04a.svg" alt="The same three arms with a visible gap between adjacent circles" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-a0202733cad2350a"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-a0202733cad2350a" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">include(&quot;../default_config.jl&quot;)
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+  A, B = APPoint(0.0,0.0), APPoint(100.0, 0.0)
+  s = APSegment(A, B)
+  t = equilateral_triangle_on_segment(s)
+  three_circles = three_tangent_circles(t)
+  outer_circle = argmax(c -&gt; c.r, tangent_circles(three_circles...))
+end
+
+C = circumcenter(t)
+Δr = 0.05 * distance(C, A)
+circles = APCircle2[three_circles[1]]
+while true
+  new_circle = argmin(c -&gt; c.r, tangent_circles(outer_circle, three_circles[2], circles[end]))
+  new_circle.r &gt; Δr ? push!(circles, new_circle) : break
+end
+map!(c -&gt; APCircle2(c.center, c.r - Δr), circles)
+
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+c = outer_circle.center
+
+for (i, color) in enumerate([julia_red, julia_purple, julia_green])
+  rot_copy = rotate.(circles, deg2rad((i-1) * 120), c)
+
+  sethue(color)
+  path(rot_copy, action=:fill)
+end
+finish()</code></pre></div></details><p>This is exactly the construction the real logo uses, only starting from a polar layout instead of a segment on the x-axis:</p><details class="admonition is-details" id="See-script-f7f8993c82dc7987"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-f7f8993c82dc7987" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius
+using Luxor: Drawing, finish, origin,
+    sethue, julia_blue, julia_green, julia_red, julia_purple
+
+colors = [julia_red, julia_purple, julia_green]
+
+Δr = 5
+p1, p2 = polar_point_deg.(100, [30, 30+120])
+t = equilateral_triangle_on_segment(p1, p2)
+three_circles = APCircle2.(vertices(t), distance(p1, p2) / 2)
+outer_circle = argmax(c -&gt; c.r, tangent_circles(three_circles...))
+circles = [three_circles[2]]
+
+while true
+    tc = argmin(c -&gt; c.r, tangent_circles(outer_circle, three_circles[1], circles[end]))
+    tc.r &gt; Δr ? push!(circles, tc) : break
+end
+
+map!(c -&gt; APCircle2(c.center, c.r - Δr), circles)
+
+Drawing(500, 500, &quot;docs/src/assets/img/examples/logo.svg&quot;)
+origin()
+
+for (i, color) in enumerate(colors)
+    sethue(color)
+    path(rotate(circles, (1-i)*2pi/3), action=:fill)
+end
+
+finish()</code></pre></div></details></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../cookbook_utility/">« Checking &amp; Drawing Recipes</a><a class="docs-footer-nextpage" href="../api/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Thursday 24 September 2026 17:22">Thursday 24 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
