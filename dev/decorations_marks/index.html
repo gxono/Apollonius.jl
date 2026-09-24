@@ -36,6 +36,37 @@ end
 
 finish()
 preview()
+end</code></pre></div></details><p>The two letter styles, <code>:z</code> and <code>:s</code>, stand upright on a vertical segment and lie on their side on a horizontal one, so <code>gap</code> is raised to <code>size</code> for them automatically:</p><pre><code class="language-julia hljs">z_marks = marks(s; style=:z, count=2)
+s_marks = marks(s; style=:s)
+length(z_marks), all(x -&gt; x isa APPolyline2, z_marks), length(s_marks), all(x -&gt; x isa APCircularArc2, s_marks)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(2, true, 2, true)</code></pre><img src="../assets/img/decorations/marks_segment_zs.svg" alt="The :z and :s mark styles on a segment" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-2c84fa233f8fb6d0"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-2c84fa233f8fb6d0" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+styles = [:z, :s]
+lxm = @prepare_to_picture! flip=false width=500 height=140 margin=20 begin
+    segs = [APSegment(APPoint(4.0, 2.0 * (2 - i)), APPoint(10.0, 2.0 * (2 - i))) for i in 1:2]
+    names = [APPoint(0.0, 2.0 * (2 - i)) for i in 1:2]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(julia_blue)
+path(segs, action=:stroke)
+
+sethue(julia_purple)
+for (s, style) in zip(segs, styles)
+    path(marks(s; count=2, style=style, size=20, gap=12); action=:stroke)
+end
+
+sethue(julia_red)
+for (p, style) in zip(names, styles)
+    label(&quot;:&quot; * string(style), :E, p)
+end
+
+finish()
+preview()
 end</code></pre></div></details><p>Marks lie on the tangent at <code>at</code>, so with a small <code>gap</code> they follow the curve closely. On a circular arc a tick lies along a radius:</p><pre><code class="language-julia hljs">tick = only(marks(arc; size=1.0))
 is_on_line(circ.center, APLine(tick.p1, tick.p2))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/decorations/marks_arc.svg" alt="A tick, two chevrons and a circle on an arc" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-a2485e0901d38731"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-a2485e0901d38731" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
 import Luxor: julia_red, julia_blue, julia_green, julia_purple
@@ -118,4 +149,4 @@ end
 
 finish()
 preview()
-end</code></pre></div></details><div class="admonition is-warning" id="The-order-of-the-rays-matters-8df0495da83985aa"><header class="admonition-header">The order of the rays matters<a class="admonition-anchor" href="#The-order-of-the-rays-matters-8df0495da83985aa" title="Permalink"></a></header><div class="admonition-body"><p>An <a href="../api/#Apollonius.APAngle2"><code>APAngle2</code></a> is the wedge swept counterclockwise from <code>a</code> to <code>b</code>, and the marks go on that wedge. Swapping <code>a</code> and <code>b</code> marks the other one. If you give the points in drawn coordinates (<code>y</code> downward), the counterclockwise wedge looks reversed on the screen.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../drawing_appendix/">« The Package Logo &amp; Name Collisions</a><a class="docs-footer-nextpage" href="../decorations_arrows_braces/">Arrowheads &amp; Braces »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Thursday 24 September 2026 19:37">Thursday 24 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre></div></details><div class="admonition is-warning" id="The-order-of-the-rays-matters-8df0495da83985aa"><header class="admonition-header">The order of the rays matters<a class="admonition-anchor" href="#The-order-of-the-rays-matters-8df0495da83985aa" title="Permalink"></a></header><div class="admonition-body"><p>An <a href="../api/#Apollonius.APAngle2"><code>APAngle2</code></a> is the wedge swept counterclockwise from <code>a</code> to <code>b</code>, and the marks go on that wedge. Swapping <code>a</code> and <code>b</code> marks the other one. If you give the points in drawn coordinates (<code>y</code> downward), the counterclockwise wedge looks reversed on the screen.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../drawing_appendix/">« The Package Logo &amp; Name Collisions</a><a class="docs-footer-nextpage" href="../decorations_arrows_braces/">Arrowheads &amp; Braces »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Thursday 24 September 2026 21:07">Thursday 24 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
