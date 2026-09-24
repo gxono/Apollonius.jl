@@ -167,7 +167,7 @@ through it and lists the usual mistakes.
 | Find circles tangent to given objects | [Tangency & Apollonius Problems](@ref) |
 | Work with polygons and bounding boxes | [Polygons & Bounding Boxes](@ref) |
 | Work with ellipses, parabolas and hyperbolas | [Conics: Ellipse, Parabola & Hyperbola](@ref) |
-| Draw a compass and ruler construction step by step | [Compass & Ruler Constructions](@ref) |
+| Draw a compass and ruler construction | [Compass & Ruler Constructions](@ref) |
 | Draw figures, add marks, labels and braces | [Drawing with Luxor.jl](@ref), [Marks, Labels & Decorations](@ref) |
 | Move or scale a whole figure at once | [Affine Maps](@ref), [Transforming in Bulk: Macros](@ref) |
 | Find a ready-made recipe | [Cookbook](@ref) |

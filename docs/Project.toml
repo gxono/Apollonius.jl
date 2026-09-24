@@ -2,9 +2,7 @@
 Apollonius = "54d4ec63-6df0-448b-bd74-e1b9ab51cc02"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
-Luxor = "ae8d54c2-7ccd-5906-9d76-62fc9837b5bc"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [compat]
 Documenter = "1"
-Luxor = "4"

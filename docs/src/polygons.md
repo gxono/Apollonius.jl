@@ -231,7 +231,7 @@ outward for a positive `d`, inward for a negative one. Each side moves along its
 normal, and every new vertex is where two neighbouring moved sides meet. A
 concave polygon, or an inward offset larger than the polygon, can cross itself.
 To round the corners instead, see [`round_corners`](@ref) in
-[Circle constructions step by step](@ref).
+[Rounding a corner](@ref).
 
 ```@example geo
 sq_o = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0), APPoint(0.0, 4.0)])
