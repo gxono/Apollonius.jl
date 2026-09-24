@@ -53,7 +53,7 @@ return an `APPoint`, an `APCircle2`, an `APLine`, or (where there's naturally mo
 than one, like `soddy_circles` or `three_apollonius_circles`) a tuple or
 named tuple. See the [API Reference](@ref) for exact signatures.
 
-### Simson and Steiner lines, the orthopole and pedal triangles
+### Simson and Steiner lines
 
 [`steiner_line`](@ref)`(t, p)` is closely related to [`simson_line`](@ref)`(t,
 p)`: reflecting (rather than projecting) `p` across the three side-lines
@@ -99,7 +99,7 @@ pedal_circle(t, incenter(t)) ≈ incircle(t)   # the incircle is the pedal circl
 <img src="../assets/img/triangles/pedal.svg" alt="The pedal triangle and pedal circle of a point" style="width:100%; max-width: 700px;">
 ```
 
-### A preview: Brocard midpoint, Kenmotu and MacBeath points
+### Brocard, Kenmotu and MacBeath
 
 ```@example geo
 brocard_midpoint(t)   # midpoint of the two Brocard points (Kimberling X(39))
@@ -111,7 +111,7 @@ macbeath_point(t)      # X(264): isotomic conjugate of the circumcenter
 <img src="../assets/img/triangles/macbeath.svg" alt="A triangle, its circumcenter, and the MacBeath point (the isotomic conjugate of the circumcenter)" style="width:100%; max-width: 700px;">
 ```
 
-### More cevian-intersection points: the symmedian point
+### The symmedian point
 
 [`symmedian_point`](@ref) is the fourth cevian-intersection point, built
 from barycentric coordinates `a² : b² : c²` the same way `nagel_point`/
@@ -148,7 +148,7 @@ isotomic_conjugate(t, isotomic_conjugate(t, incenter(t))) ≈ incenter(t)
 <img src="../assets/img/triangles/isotomic.svg" alt="A point and its isotomic conjugate" style="width:100%; max-width: 700px;">
 ```
 
-### Complement and anticomplement of a point
+### Complement and anticomplement
 
 [`anticomplement`](@ref)`(t, p)` is the inverse of [`complement`](@ref)`(t,
 p)`: homothety by `-2` instead of `-1/2` about the centroid:
@@ -157,7 +157,7 @@ p)`: homothety by `-2` instead of `-1/2` about the centroid:
 anticomplement(t, complement(t, incenter(t))) ≈ incenter(t)
 ```
 
-### Built from the incenter and excenters
+### Incenter and excenters
 
 Built from the incenter/excenters: [`spieker_center`](@ref) (the incenter
 of the medial triangle) and [`spieker_circle`](@ref) (its incircle);
@@ -184,7 +184,7 @@ is_on_line(de_longchamps_point(t), euler_line(t))
 <img src="../assets/img/triangles/de_longchamps.svg" alt="The orthocenter, circumcenter and de Longchamps point on the Euler line" style="width:100%; max-width: 700px;">
 ```
 
-### The three Apollonius circles and the isodynamic points
+### Apollonius circles and isodynamic points
 
 The two [`isodynamic_points`](@ref) are where the three
 [`three_apollonius_circles`](@ref) (one per vertex, for points whose
@@ -201,7 +201,7 @@ all(c -> distance(c.center, iso1) ≈ c.r, apo), all(c -> distance(c.center, iso
 <img src="../assets/img/triangles/isodynamic.svg" alt="The three Apollonius circles of a triangle and the two isodynamic points" style="width:100%; max-width: 700px;">
 ```
 
-### The Apollonius circle and point of a triangle
+### The Apollonius circle and point
 
 Despite the shared name, [`apollonius_circle_of_triangle`](@ref) is a
 different construction: the circle tangent to and enclosing all three
@@ -241,7 +241,7 @@ rad2deg(angle_measure_brocard(t)), distance(bc.center, Om1) ≈ bc.r, distance(b
 <img src="../assets/img/triangles/brocard.svg" alt="The Brocard points, the symmedian point and the Brocard circle" style="width:100%; max-width: 700px;">
 ```
 
-### Named auxiliary circles through the incenter or the symmedian point
+### Named auxiliary circles
 
 Named auxiliary circles: [`conway_points`](@ref)/[`conway_circle`](@ref)
 (extend the two sides at each vertex outward by the length of the
@@ -275,7 +275,7 @@ all(p -> on_circ(p, conway_circle(t)), conway_points(t)),
 <img src="../assets/img/triangles/lemoine_circles.svg" alt="The first Lemoine, second Lemoine and symmedial circles" style="width:100%; max-width: 700px;">
 ```
 
-### Mixtilinear incircles and the Soddy circles
+### Mixtilinear incircles and Soddy circles
 
 [`mixtilinear_incircle`](@ref)`(t, i)` is tangent to the two sides through
 `t[i]` and internally tangent to the circumcircle; [`soddy_circles`](@ref)
@@ -306,7 +306,7 @@ soddy_center(t) == sc.inner.center
 soddy_points(t) == (inner=sc.inner.center, outer=sc.outer.center)
 ```
 
-### The second Fermat point and the Fermat axis
+### The second Fermat point
 
 [`second_fermat_point`](@ref) is built exactly like [`fermat_point`](@ref)
 but with the three equilateral triangles erected *inward* instead of
@@ -360,7 +360,7 @@ is_on_line(incenter(t), APLine(th.near_b.center, th.near_c.center))
 <img src="../assets/img/triangles/thebault.svg" alt="The two Thébault circles and the line through their centers, which passes through the incenter" style="width:100%; max-width: 700px;">
 ```
 
-### Three tangent circles at the vertices
+### Three tangent circles
 
 [`three_tangent_circles`](@ref) is the simpler configuration
 [`soddy_circles`](@ref) is itself built from: one circle per vertex,
@@ -376,7 +376,7 @@ distance(base[1].center, base[2].center) ≈ base[1].r + base[2].r   # pairwise 
 <img src="../assets/img/triangles/three_tangent.svg" alt="Three pairwise tangent circles centered at the vertices" style="width:100%; max-width: 700px;">
 ```
 
-### The Taylor points, in detail
+### The Taylor points
 
 [`taylor_points`](@ref) is the full 6-point construction behind
 [`taylor_circle`](@ref): project each vertex of the [`orthic_triangle`](@ref)
@@ -391,7 +391,7 @@ length(taylor_points(t))   # 6
 <img src="../assets/img/triangles/taylor.svg" alt="The orthic triangle and the Taylor circle through six projections" style="width:100%; max-width: 700px;">
 ```
 
-### The Van Lamoen points, in detail
+### The Van Lamoen points
 
 [`van_lamoen_points`](@ref) is another 6-concyclic-points theorem: the
 circumcenters of the 6 small triangles the 3 medians cut `t` into (each
@@ -406,7 +406,7 @@ length(van_lamoen_points(t))   # 6
 <img src="../assets/img/triangles/van_lamoen.svg" alt="The three medians and the Van Lamoen circle" style="width:100%; max-width: 700px;">
 ```
 
-### Complement and anticomplement: the medial triangle
+### The medial triangle
 
 [`complement`](@ref)`(t, p)` and [`anticomplement`](@ref)`(t, p)` are the
 homotheties of ratio `-1/2` and `-2` about the centroid, inverses of each
@@ -433,7 +433,7 @@ kenmotu_circle(t)
 <img src="../assets/img/triangles/kenmotu.svg" alt="The Kenmotu point and the Kenmotu circle" style="width:100%; max-width: 700px;">
 ```
 
-### The Feuerbach point and points
+### The Feuerbach point
 
 [`feuerbach_point`](@ref) is where the incircle and the nine-point circle
 touch, internally:

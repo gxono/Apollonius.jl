@@ -83,3 +83,15 @@ first(angle_bisectors(ang)), length(angle_trisectors(ang))
 <img src="../assets/img/points_lines/angle_split.svg" alt="A right angle with its two trisectors and its bisector" style="width:100%; max-width: 700px;">
 ```
 
+### Copy an angle to a new vertex
+
+```@example geo
+O2, ray_pt = APPoint(9.0, -1.0), APPoint(13.0, -1.0)
+copied = angle_with_measure(O2, ray_pt, measure(ang))
+measure(copied) ≈ measure(ang)
+```
+
+```@raw html
+<img src="../assets/img/cookbook/copy_angle.svg" alt="An angle and a copy of the same measure built at a new vertex from one ray" style="width:100%; max-width: 700px;">
+```
+

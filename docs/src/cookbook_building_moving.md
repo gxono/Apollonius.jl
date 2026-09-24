@@ -226,6 +226,23 @@ Every type accepts these. `rotate` and `homothety` turn and scale about the orig
 unless you give a center as the last argument, as in `rotate(t, pi / 2, c)`. See
 [Affine Maps](@ref).
 
+### Repeat a shape in a circular pattern
+
+Broadcast [`rotate`](@ref) over a vector of angles to place several copies
+of the same shape evenly around a center, the same idea behind
+[Building the package logo](@ref):
+
+```@example geo
+center = APPoint(0.0, 0.0)
+petal = APCircle2(APPoint(3.0, 0.0), 1.2)
+copies = rotate.(petal, (1:5) .* (2pi / 6), center)   # 5 more, 6 in total
+length(copies)
+```
+
+```@raw html
+<img src="../assets/img/cookbook/rosette.svg" alt="A circle repeated six times in a ring around a center" style="width:100%; max-width: 700px;">
+```
+
 ### Apply several steps as one
 
 ```@example geo

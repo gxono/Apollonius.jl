@@ -32,6 +32,21 @@ by_diameter.r, by_point.r
 <img src="../assets/img/circles/circle_diameter.svg" alt="A segment, the circle that has it as a diameter, and a point of the circle that sees the segment under a right angle" style="width:100%; max-width: 700px;">
 ```
 
+### Where a line or two circles meet
+
+```@example geo
+c1, c2 = APCircle2(APPoint(0.0, 0.0), 3.0), APCircle2(APPoint(4.0, 0.0), 3.0)
+l = APLine(APPoint(-4.0, 1.0), APPoint(4.0, 1.0))
+intersection(c1, c2), intersection(l, c1)
+```
+
+```@raw html
+<img src="../assets/img/cookbook/circle_intersections.svg" alt="Two circles crossing at two points, and a line crossing one of them at two other points" style="width:100%; max-width: 700px;">
+```
+
+An empty result means no intersection; see [Intersections](@ref) for
+tangency and every other pair of shapes `intersection` accepts.
+
 ### The tangent lines from a point to a circle
 
 ```@example geo

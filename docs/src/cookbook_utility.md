@@ -71,6 +71,22 @@ end
 <img src="../assets/img/workflow/decorate.svg" alt="Equal tangent segments marked with ticks and vertex labels placed outside the triangle" style="width:100%; max-width: 700px;">
 ```
 
+### Label every vertex of a polygon
+
+The same idea for any polygon, naming vertices in order (`'A':'E'` gives 5
+letters; use any list of names, they don't need to be single letters):
+
+```@example geo
+pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(9.0, 5.0), APPoint(4.0, 7.0), APPoint(-1.0, 4.0)])
+names = string.(collect('A':'E'))
+G = centroid(pg)
+[label_anchor(v, G) for v in vertices(pg)]   # (alignment, point) per vertex, ready for label
+```
+
+```@raw html
+<img src="../assets/img/cookbook/label_vertices.svg" alt="A pentagon with each vertex labeled A through E, placed away from the centroid" style="width:100%; max-width: 700px;">
+```
+
 ### Mark equal sides and a right angle
 
 On the fitted vertices `A2`, `B2` and `C2` of the previous recipe:

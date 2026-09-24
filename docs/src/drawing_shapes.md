@@ -175,7 +175,7 @@ arrowhead in the middle of a line, or at the end of an arc, build it with
 [`arrow_head`](@ref) and draw it like any other shape; see
 [Marks, Labels & Decorations](@ref).
 
-### `APAngle2`: rays, arc, sector, or the parallelogram-law marker
+### `APAngle2`: several draw styles
 
 An `APAngle2` is genuinely just the space between two rays, but it's
 conventionally *drawn* as a small arc, a filled wedge, or (especially for
@@ -248,7 +248,7 @@ the same idea. `:rarc` draws just the two "far" sides, `pa -> pc -> pb`
 (open, so it doesn't retrace the rays themselves); `:rsector` closes the
 whole parallelogram, for filling.
 
-## Circular arcs, sectors, segments, interstices and curvilinear polygons
+## Arcs and curvilinear regions
 
 [`APCircularArc2`](@ref), [`APCircularSector2`](@ref),
 [`APCircularSegment2`](@ref), [`APAnnularSector2`](@ref) and
