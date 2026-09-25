@@ -1,8 +1,3 @@
-# APUnboundedPolygon2: the general shape an intersection of 3-4 halfplanes can
-# produce when it isn't bounded and doesn't collapse to APHalfPlane2/APStrip2/
-# APAngle2 either (see ap_region_intersections.jl, Phase 3). Two infinite rays
-# capping a chain of 0+ straight segments in between.
-
 """
     APUnboundedPolygon2(ray1::APRay, vertices::Vector{<:APPoint}, ray2::APRay)
 
@@ -46,19 +41,13 @@ Base.show(io::IO, u::APUnboundedPolygon2) =
 """
 vertices(u::APUnboundedPolygon2) = [u.ray1.origin; u.vertices; u.ray2.origin]
 
-# The actual boundary pieces (for distance/rendering): ray1, the segments
-# between consecutive vertices, ray2 -- geometrically as stored, unchanged.
 function _boundary_edges(u::APUnboundedPolygon2)
     vs = vertices(u)
     segs = [APSegment(vs[i], vs[i+1]) for i in 1:length(vs)-1]
     return (u.ray1, segs..., u.ray2)
 end
 
-# Same edges, but each as (base, dir) with dir flipped so the interior is
-# consistently on the left (side_of_line's convention): every edge already
-# comes out of construction that way except ray1, whose own stored direction
-# points away from the chain (toward -infinity, "backwards" relative to the
-# walk), so only it needs negating here.
+# same edges as (base, dir) with interior on the left; only ray1 needs negating
 function _orientation_edges(u::APUnboundedPolygon2)
     vs = vertices(u)
     segs = [(vs[i], vs[i+1] - vs[i]) for i in 1:length(vs)-1]

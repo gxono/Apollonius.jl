@@ -1,19 +1,5 @@
-# Phase 2 of the region-clipping intersections (see ap_unbounded_intersections.jl
-# for Phase 1, lines/segments/rays): APAngle2/APHalfPlane2/APStrip2 against
-# APCircle2/APEllipse2 and their arcs. Same convention: the part of the curve
-# that lies INSIDE the region, not the points where a boundary is crossed.
-#
-# Both APCircle2 and APEllipse2 (and their arcs) are described here as a base
-# closed curve plus an angular range (start, sweep), sweep in (0, 2π], using
-# each curve's own natural parameter (true angle for a circle, the ellipse's
-# own elliptic parameter for an ellipse -- the same one `point_on`/arc
-# `measure` already use). sweep == 2π means the full circle/ellipse; an
-# existing arc is just a range with sweep = its own `measure`. Clipping to a
-# single halfplane always keeps this a single range (or empty, or the whole
-# thing): a line crosses a circle/ellipse at most twice. Clipping to a strip
-# or an angle combines two such halfplane clips (AND for a strip or a convex
-# angle, OR of the two flipped halves for a reflex angle), which is where two
-# disjoint arcs can appear, the same way two disjoint rays could in Phase 1.
+# Phase 2: region vs APCircle2/APEllipse2/arcs, described as a base curve
+# plus an angular range (start, sweep in (0, 2π]) in its own parameter.
 
 _closed_param_point(c::APCircle2, θ::Real) = c.center + c.r * APVector(cos(θ), sin(θ))
 _closed_param_point(e::APEllipse2, θ::Real) = point_on(e, θ)
@@ -28,17 +14,11 @@ _closed_curve_and_range(a::APEllipticArc2) = (a.ellipse, _ellipse_param(a, a.p1)
 _make_closed_arc(c::APCircle2, θ1::Real, θ2::Real) = APCircularArc2(c, _closed_param_point(c, θ1), _closed_param_point(c, θ2))
 _make_closed_arc(e::APEllipse2, θ1::Real, θ2::Real) = APEllipticArc2(e, _closed_param_point(e, θ1), _closed_param_point(e, θ2))
 
-# Builds the result object for a clipped (θ, sweep) range on `curve` (a bare
-# APCircle2/APEllipse2, full period 2π): a point for sweep ≈ 0, `curve`
-# itself unchanged for sweep ≈ 2π (the whole thing survived), else the arc.
 function _closed_object_from_range(curve::Union{APCircle2,APEllipse2}, θ::Real, sweep::Real; atol=1e-9)
     sweep <= atol && return _closed_param_point(curve, θ)
     sweep >= 2π - atol && return curve
     return _make_closed_arc(curve, θ, θ + sweep)
 end
-# Same, but the input was already an arc (not the bare conic): a full sweep
-# means "all of the original arc survived", so return that arc back, not the
-# bare circle/ellipse it sits on.
 function _closed_object_from_range(arc::Union{APCircularArc2,APEllipticArc2}, θ::Real, sweep::Real; atol=1e-9)
     sweep <= atol && return _closed_param_point(_closed_curve_and_range(arc)[1], θ)
     sweep >= _closed_curve_and_range(arc)[3] - atol && return arc
@@ -46,9 +26,6 @@ function _closed_object_from_range(arc::Union{APCircularArc2,APEllipticArc2}, θ
     return _make_closed_arc(curve, θ, θ + sweep)
 end
 
-# Clips the angular range [θ, θ+sweep] (sweep in (0, 2π]) of `curve`'s own
-# parameter to the side of hp.boundary that hp keeps. Returns `nothing` for
-# empty, else (θ', sweep').
 function _clip_range_to_halfplane(curve, θ::Real, sweep::Real, hp::APHalfPlane2; atol=1e-9)
     pts = intersection(hp.boundary, curve)
     scale = atol * max(1.0, norm(_closed_param_point(curve, θ) - hp.boundary.p1))
@@ -77,16 +54,12 @@ function _clip_range_to_halfplane(curve, θ::Real, sweep::Real, hp::APHalfPlane2
             (_closed_param_point(curve, θ + mid) in hp) && push!(pieces, (lo, hi))
         end
         isempty(pieces) && return nothing
-        # if this range is a full period, its own start (0) and end (sweep) are
-        # the same physical point, so the first and last surviving piece are
-        # really one arc wrapping through it, not two separate ones
+        # a full period wraps: start and end are the same point
         if sweep >= 2π - scale && length(pieces) > 1 && pieces[1][1] <= scale && pieces[end][2] >= sweep - scale
             hi1 = pieces[1][2]
             lo2 = pieces[end][1]
             pieces = [(lo2, hi1 + sweep); pieces[2:end-1]]
         end
-        # merge adjacent surviving pieces (there are at most 2 left now, and they
-        # can only be adjacent, never overlapping, since they came from consecutive cuts)
         merged_lo, merged_hi = pieces[1]
         result = Tuple{Float64,Float64}[]
         for (lo, hi) in pieces[2:end]
@@ -103,10 +76,8 @@ function _clip_range_to_halfplane(curve, θ::Real, sweep::Real, hp::APHalfPlane2
     end
 end
 
-# Union (OR) of two ranges, each `nothing` or (θ, sweep): at most 2 pieces
-# going in, merges them into 1 piece if they overlap or touch (either
-# directly, or by wrapping all the way around into a full circle), else
-# keeps both.
+# union of two (θ, sweep) ranges (or nothing): 1 piece if they touch/overlap
+# (possibly wrapping into a full circle), else both
 function _or_ranges(a, b)
     a === nothing && return b === nothing ? Tuple{Float64,Float64}[] : [b]
     b === nothing && return [a]
@@ -115,24 +86,18 @@ function _or_ranges(a, b)
     sa >= 2π - 1e-9 && return [(θa, 2π)]
     sb >= 2π - 1e-9 && return [(θb, 2π)]
     b0 = mod(θb - θa, 2π)
-    # b's end, unrolled relative to a's start (0..sa is a; b spans b0..b0+sb)
     bend = b0 + sb
     if b0 <= sa + 1e-9
-        # b starts inside (or right at the end of) a: they merge into one piece,
-        # possibly wrapping past 2π into the full circle
         newhi = max(sa, bend)
         newhi >= 2π - 1e-9 && return [(θa, 2π)]
         return [(θa, newhi)]
     elseif bend >= 2π - 1e-9
-        # b wraps back around and reaches (or passes) a's own start
         return [(θa, 2π)]
     else
         return [a, b]
     end
 end
 
-# General fallback for a handful of pieces (at most 4 in practice here) that may
-# need pairwise merging: repeatedly merges any two that touch or overlap.
 function _merge_all_ranges(ranges::Vector{Tuple{Float64,Float64}})
     rs = copy(ranges)
     changed = true

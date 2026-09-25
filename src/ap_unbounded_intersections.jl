@@ -1,14 +1,5 @@
-# Intersection of an unbounded region (APAngle2, APHalfPlane2, APStrip2) with a
-# straight object (APLine, APRay, APSegment): the portion of the object that lies
-# INSIDE the region, not the points where the region's boundary crosses it. This is
-# a different convention from the rest of `intersection` (always Vector{APPoint}
-# elsewhere), agreed on with the user since these three types are the only ones
-# where "region" and "curve" are genuinely different questions, and this package
-# doesn't publish anything yet, so the break has no external cost.
-#
-# All three regions are convex halfplane intersections except a reflex APAngle2
-# (measure > π), which is instead the UNION of the two flipped halfplanes -- the
-# one case that can give two disjoint pieces of the object instead of one.
+# Phase 1: region (APAngle2/APHalfPlane2/APStrip2) vs APLine/APRay/APSegment,
+# the part of the object INSIDE the region rather than boundary crossings.
 
 _param_base_dir(l::APLine) = (l.p1, direction(l))
 _param_base_dir(r::APRay) = (r.origin, direction(r))

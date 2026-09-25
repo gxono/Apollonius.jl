@@ -1,23 +1,5 @@
-# Phase 3 of the region-clipping intersections (see ap_unbounded_intersections.jl
-# for Phase 1, ap_conic_region_intersections.jl for Phase 2): APAngle2/
-# APHalfPlane2/APStrip2 against EACH OTHER.
-#
-# APHalfPlane2 is one halfplane; APStrip2 is the AND of two (parallel,
-# opposite-facing); a convex APAngle2 (normalized_measure <= π) is the AND of
-# two (the lines through its rays, each kept on the side of the other ray); a
-# reflex APAngle2 is instead the OR of those same two, flipped. So any pair of
-# these three, as long as neither is reflex, reduces to ANDing 2-4 halfplanes;
-# a reflex operand distributes the OR over the intersection, `(A∪B)∩R =
-# (A∩R)∪(B∩R)`, which is why (and the only way) two disjoint pieces can appear.
-#
-# ANDing halfplanes: each boundary line, clipped by ALL of them (including
-# itself, a no-op) using Phase 1's own _clip_to_halfplane, gives that
-# boundary's surviving edge -- nothing (redundant), a point, a segment, a ray,
-# or the whole unclipped line. Classifying the set of survivors (see
-# _classify_halfplane_intersection) says exactly what the AND is, with no
-# further casework: APHalfPlane2/APStrip2/APLine/APAngle2/APPoint/nothing when
-# it collapses to something already known, APTriangle/APQuadrilateral when
-# it's bounded, or the new APUnboundedPolygon2 otherwise.
+# Phase 3: intersection between two of APAngle2/APHalfPlane2/APStrip2. Full
+# design rationale in scratch/TODO.md.
 
 _halfplanes_of(hp::APHalfPlane2) = [hp]
 _halfplanes_of(s::APStrip2) = [
@@ -34,10 +16,7 @@ function _same_line(l1::APLine, l2::APLine; atol=1e-9)
     return abs(cross2(d1, diff)) <= atol * norm(d1) * max(norm(diff), 1.0)
 end
 
-# Walks segments nose-to-tail (matching p1 of the next to p2 of the last),
-# starting from `start` (or the first segment's own p1 if not given), until no
-# more segments connect: an open chain if some are left dangling, a closed
-# loop (path[1] == path[end]) if they use every segment and return to start.
+# Walks segments nose-to-tail from `start`, until none connect.
 function _stitch_chain(segs::AbstractVector; start::Union{APPoint,Nothing}=nothing, atol=1e-9)
     remaining = collect(segs)
     current = start === nothing ? remaining[1].p1 : start
@@ -52,8 +31,7 @@ function _stitch_chain(segs::AbstractVector; start::Union{APPoint,Nothing}=nothi
 end
 
 _edges_equal(a::APPoint, b::APPoint; atol) = isapprox(a, b; atol=atol)
-# same origin AND same (not just parallel) direction: two rays with the same
-# origin pointing opposite ways along one line are NOT the same ray
+# same origin and direction, not just the same line
 function _edges_equal(a::APRay, b::APRay; atol)
     isapprox(a.origin, b.origin; atol=atol) || return false
     d1, d2 = direction(a), direction(b)
@@ -64,11 +42,7 @@ _edges_equal(a::APSegment, b::APSegment; atol) =
     (isapprox(a.p1, b.p2; atol=atol) && isapprox(a.p2, b.p1; atol=atol))
 _edges_equal(::Any, ::Any; atol) = false
 
-# Whether hp1 and hp2 are the same physical region (same boundary line,
-# possibly stored with p1/p2 in either order, and same side): unlike
-# comparing the two boundary APLines directly, this tells apart "redundant
-# duplicate of one halfplane" from "the OTHER side of the same line", which
-# must stay distinguishable in _classify_halfplane_intersection below.
+# Same boundary line (either order) AND same side, not just the same line.
 function _same_halfplane(hp1::APHalfPlane2, hp2::APHalfPlane2; atol=1e-9)
     _same_line(hp1.boundary, hp2.boundary; atol=atol) || return false
     d = direction(hp1.boundary)
@@ -76,15 +50,8 @@ function _same_halfplane(hp1::APHalfPlane2, hp2::APHalfPlane2; atol=1e-9)
     return (test_pt in hp1) == (test_pt in hp2)
 end
 
-# Two different boundary lines can clip down to the exact same physical edge
-# (e.g. two angles sharing a boundary ray: the ray's own line is also the
-# OTHER ray's boundary line, seen twice, from two different owning
-# halfplanes) -- deduping first is what lets a single leftover edge collapse
-# correctly below instead of being mistaken for a second, distinct one. A
-# full-line edge only dedupes against another from the SAME physical
-# halfplane: two opposite-side halfplanes sharing a line both surviving
-# unclipped is the genuine "AND reduces to just that line" case (handled
-# below), not a redundant duplicate.
+# Full-line edges only dedupe within the same halfplane (opposite sides
+# sharing a line must stay distinct, see the APLine case below).
 function _dedup_owned(owned::Vector{<:Tuple{APHalfPlane2,Any}}; atol=1e-9)
     kept = Tuple{APHalfPlane2,Any}[]
     for (hp, e) in owned
@@ -118,10 +85,7 @@ function _classify_halfplane_intersection(survivors::Vector{<:Tuple{APHalfPlane2
         return normalized_measure(ang) <= pi + atol ? ang : reverse(ang)
     end
 
-    # a lone surviving point alongside the rest is redundant with a
-    # neighboring edge's own endpoint (the constraints agree exactly there),
-    # so it carries no extra information and is dropped
-    rest = filter(e -> !(e isa APPoint), edges)
+    rest = filter(e -> !(e isa APPoint), edges)   # a lone point is redundant with a neighbor's endpoint
     segs = filter(e -> e isa APSegment, rest)
     rays2 = filter(e -> e isa APRay, rest)
     if length(rays2) == 0
@@ -189,12 +153,7 @@ intersection(hp::APHalfPlane2, s::APStrip2; atol=1e-9) = _intersect_halfplanes(v
 intersection(s::APStrip2, hp::APHalfPlane2; atol=1e-9) = intersection(hp, s; atol=atol)
 intersection(s1::APStrip2, s2::APStrip2; atol=1e-9) = _intersect_halfplanes(vcat(_halfplanes_of(s1), _halfplanes_of(s2)); atol=atol)
 
-# A convex ang contributes its 2 halfplanes AND'ed together, as one group; a
-# reflex one is the OR of its 2 flipped halfplanes, so it contributes 2
-# separate 1-halfplane groups instead. Combining every group from one operand
-# with every group from the other (see the 3 methods below) is exactly the
-# distributive expansion of (A∪B) ∩ (C∪D), and reduces to a single group when
-# neither side is reflex.
+# convex: 1 group of its 2 halfplanes (AND); reflex: 2 groups of 1 (OR)
 _angle_groups(ang::APAngle2; atol=1e-9) =
     normalized_measure(ang) <= pi + atol ? [_halfplanes_of(ang)] : [[h] for h in map(_flip, _halfplanes_of(ang))]
 
