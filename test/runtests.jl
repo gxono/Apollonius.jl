@@ -1240,6 +1240,52 @@ using Base.MathConstants: golden
             @test any(pc -> pc isa APSegment && isapprox(pc, APSegment(P(-3.0, -5.0), P(0.0, -2.0)); atol=1e-9), seg_pieces)
             @test any(pc -> pc isa APSegment && isapprox(pc, APSegment(P(2.0, 0.0), P(7.0, 5.0)); atol=1e-9), seg_pieces)
         end
+        @testset "region intersected with a circle or an ellipse: the arc(s) inside, not boundary points" begin
+            P(x, y) = APPoint(x, y)
+            hp = APHalfPlane2(APLine(P(0.0, 0.0), P(0.0, 1.0)), P(1.0, 0.0))   # x >= 0
+            c = APCircle2(P(0.0, 0.0), 3.0)
+            @test isapprox(intersection(hp, c), APCircularArc2(c, P(0.0, -3.0), P(0.0, 3.0)); atol=1e-9)   # the x >= 0 half
+            @test intersection(hp, APCircle2(P(-10.0, 0.0), 3.0)) === nothing   # fully outside
+            @test intersection(hp, APCircle2(P(10.0, 0.0), 3.0)) === APCircle2(P(10.0, 0.0), 3.0)   # fully inside: itself, unchanged
+            @test intersection(hp, APCircle2(P(-3.0, 0.0), 3.0)) ≈ P(0.0, 0.0)   # tangent from outside: just the touch point
+            @test intersection(hp, APCircle2(P(3.0, 0.0), 3.0)) === APCircle2(P(3.0, 0.0), 3.0)   # tangent from inside: nothing lost
+            @test isapprox(intersection(c, hp), APCircularArc2(c, P(0.0, -3.0), P(0.0, 3.0)); atol=1e-9)   # reverse order
+            @test intersection(hp, P(1.0, 0.0)) ≈ P(1.0, 0.0)
+            @test intersection(hp, P(-1.0, 0.0)) === nothing
+
+            # a strip narrower than the circle's diameter: the circle pokes out both sides, 2 arcs survive
+            st = APStrip2(APLine(P(-10.0, -1.0), P(10.0, -1.0)), APLine(P(-10.0, 1.0), P(10.0, 1.0)))
+            big_c = APCircle2(P(0.0, 0.0), 5.0)
+            pieces = intersection(st, big_c)
+            @test length(pieces) == 2
+            half_angle = asin(1 / 5)
+            @test all(pc -> pc isa APCircularArc2 && isapprox(measure(pc), 2half_angle; atol=1e-9), pieces)
+            @test any(pc -> isapprox(midpoint(pc), P(5.0, 0.0); atol=1e-9), pieces)
+            @test any(pc -> isapprox(midpoint(pc), P(-5.0, 0.0); atol=1e-9), pieces)
+            @test intersection(big_c, st) == pieces   # reverse order
+
+            # convex angle centered at the circle's own center: a clean quarter-circle arc
+            ang = APAngle2(P(0.0, 0.0), P(4.0, 0.0), P(0.0, 4.0))
+            only_piece = only(intersection(ang, c))
+            @test only_piece isa APCircularArc2 && isapprox(measure(only_piece), pi / 2; atol=1e-9)
+            @test intersection(ang, P(1.0, 1.0)) ≈ P(1.0, 1.0)
+            @test intersection(ang, P(-1.0, -1.0)) === nothing
+
+            # reflex angle, circle centered at the vertex: excludes exactly its own quadrant slice
+            reflex = APAngle2(P(0.0, 0.0), P(1.0, 0.0), P(0.0, -1.0))   # excludes the 4th quadrant
+            reflex_piece = only(intersection(reflex, c))
+            @test reflex_piece isa APCircularArc2 && isapprox(measure(reflex_piece), 3pi / 2; atol=1e-9)
+
+            # clipping an existing arc further keeps it an arc, restricted correctly
+            top_half = APCircularArc2(c, P(3.0, 0.0), P(-3.0, 0.0))   # 0 to 180 degrees
+            quarter = intersection(hp, top_half)
+            @test quarter isa APCircularArc2 && isapprox(quarter, APCircularArc2(c, P(3.0, 0.0), P(0.0, 3.0)); atol=1e-9)
+
+            # an ellipse behaves the same way through the same machinery
+            e = APEllipse2(P(0.0, 0.0), 5.0, 3.0)
+            e_piece = only(intersection(ang, e))
+            @test e_piece isa APEllipticArc2 && isapprox(e_piece.p1, P(5.0, 0.0); atol=1e-9) && isapprox(e_piece.p2, P(0.0, 3.0); atol=1e-9)
+        end
     end
     @testset "APAffineMap" begin
         src = (APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
@@ -5925,8 +5971,10 @@ end
     @test length(intersection(pg, pg2)) == 2
     @test length(intersection(APBoundingBox(pg), l)) == 2
     @test length(intersection(APPolyline2(P(0.0, -1.0), P(2.0, 5.0), P(4.0, -1.0)), pg)) == 4
-    @test length(intersection(APAngle2(P(0.0, 0.0), P(4.0, 0.0), P(0.0, 4.0)), APCircle2(P(0.0, 0.0), 2.0))) == 2
-    @test length(intersection(APStrip2(APLine(P(0.0, 0.0), P(1.0, 0.0)), APLine(P(0.0, 3.0), P(1.0, 3.0))), APCircle2(P(0.0, 1.0), 2.0))) == 3
+    # since Phase 2 (see ap_conic_region_intersections.jl), these two are the part of the
+    # circle INSIDE the region (an arc), not boundary-crossing points
+    @test only(intersection(APAngle2(P(0.0, 0.0), P(4.0, 0.0), P(0.0, 4.0)), APCircle2(P(0.0, 0.0), 2.0))) isa APCircularArc2
+    @test only(intersection(APStrip2(APLine(P(0.0, 0.0), P(1.0, 0.0)), APLine(P(0.0, 3.0), P(1.0, 3.0))), APCircle2(P(0.0, 1.0), 2.0))) isa APCircularArc2
     sec = APCircularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 3.0), P(3.0, 0.0), P(0.0, 3.0)))
     @test length(intersection(sec, APLine(P(-4.0, 1.0), P(4.0, 1.0)))) == 2
     @test length(intersection(pg, APCircle2(P(2.0, 2.0), 2.0))) == 4

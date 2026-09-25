@@ -10,11 +10,13 @@ so the result is always safe to `filter`, `map` or `length`, and it is never
 `nothing`. The arguments can be given in either order.
 
 **Except** when one side is an [`APAngle2`](@ref), [`APHalfPlane2`](@ref) or
-[`APStrip2`](@ref) and the other a line, segment or ray: those three are
-regions, not curves, so there `intersection` gives the *part of the line/
-segment/ray that lies inside the region* (a point, a segment, a ray, the
-whole object, `nothing`, or, only for a reflex `APAngle2`, a `Vector` of two
-pieces), not the points where a boundary is crossed. See
+[`APStrip2`](@ref) and the other a line, segment, ray, circle or ellipse (or
+an arc of one of the last two): those three are regions, not curves, so
+there `intersection` gives the *part of the other object that lies inside
+the region*, in that object's own type (a point, a segment, a ray, an arc,
+the whole object, `nothing`, or, for a reflex `APAngle2` or for a strip wide
+enough to be crossed on both sides, a `Vector` of two pieces), not the
+points where a boundary is crossed. See
 [Unbounded Regions: Half-Planes, Strips & Angles](@ref) and
 [Points, Lines & Rays: Angles](@ref).
 
@@ -34,8 +36,8 @@ using Apollonius
 | segment or ray with anything above | as above | only the points inside the segment or ray are kept |
 | arc of a conic with anything above | as above | only the points on the arc are kept |
 | polyline, polygon, chain, bounding box | as many as the sides cross | the points on the boundary, see below |
-| angle, half-plane or strip with a circle, ellipse, hyperbola or parabola | as many as the boundary crosses | the points on the boundary, same as above |
-| angle, half-plane or strip with a line, segment or ray | **not points** | the part of the line/segment/ray inside the region, see above |
+| angle, half-plane or strip with a hyperbola or parabola | as many as the boundary crosses | the points on the boundary, same as above |
+| angle, half-plane or strip with a line, segment, ray, circle or ellipse | **not points** | the part of the other object inside the region, see above |
 | parametric curve with a line, conic or any of the above | found by sampling | see below |
 | point with anything above | 0 or 1 | the point itself, if it lies on the curve or boundary |
 

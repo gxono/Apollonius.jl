@@ -182,4 +182,18 @@ A point works the same way as `in`, without the two-piece question: the
 point itself if it's inside `ang`, `nothing` otherwise. Both argument
 orders work for all of these.
 
+The same clipping works against an [`APCircle2`](@ref) or [`APEllipse2`](@ref)
+(or one of their arcs), still always as a `Vector` of pieces in that curve's
+own type, since a reflex `ang` can split a circle into two arcs too:
+
+```@example geo
+c = APCircle2(O, 2.0)
+quarter = only(intersection(ang, c))
+rad2deg(measure(quarter))
+```
+
+```@raw html
+<img src="../assets/img/points_lines/angle_clip_circle.svg" alt="A wedge and a circle at its vertex, with the quarter of the circle inside the wedge drawn over it in purple" style="width:100%; max-width: 700px;">
+```
+
 

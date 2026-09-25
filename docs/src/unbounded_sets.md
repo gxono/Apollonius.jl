@@ -130,6 +130,21 @@ if it's in `hp`, `nothing` otherwise. Both argument orders work, and see
 including the one case (a *reflex* angle) where the result can be two
 separate pieces instead of one.
 
+The same clipping works against an [`APCircle2`](@ref) or [`APEllipse2`](@ref)
+(or one of their arcs), in that curve's own type: a circle crossed by the
+boundary comes back as an arc, not a `Vector` (a single line only ever
+crosses a circle twice, so there's at most one piece to keep):
+
+```@example geo
+c = APCircle2(APPoint(0.0, 0.0), 3.0)
+half_circle = intersection(hp1, c)
+rad2deg(measure(half_circle))
+```
+
+```@raw html
+<img src="../assets/img/unbounded/halfplane_clip_circle.svg" alt="A half-plane's boundary and a circle centered on it, with the half of the circle inside the half-plane drawn over it in purple" style="width:100%; max-width: 700px;">
+```
+
 ## `APStrip2`
 
 The closed band between two **parallel** lines: think of it as an
@@ -211,3 +226,17 @@ intersection(s, crossing)
 A strip is bounded by two parallel lines, so unlike a half-plane or an
 angle, clipping a line/segment/ray to a strip is always a single piece:
 there's no way for it to leave and come back.
+
+A closed curve, though, can: a circle or ellipse large enough to poke out
+through *both* boundary lines comes back clipped into **two** disjoint arcs,
+one on each side, so this case always returns a `Vector`:
+
+```@example geo
+big_circle = APCircle2(APPoint(3.0, 1.5), 4.0)
+pieces = intersection(s, big_circle)
+length(pieces), round.(rad2deg.(measure.(pieces)); digits=1)
+```
+
+```@raw html
+<img src="../assets/img/unbounded/strip_clip_circle.svg" alt="A strip and a circle wider than the band, split into two disjoint arcs where the circle pokes out on each side, drawn over it in purple" style="width:100%; max-width: 700px;">
+```

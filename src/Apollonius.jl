@@ -31,6 +31,7 @@ include("ap_predicates.jl")
 include("ap_intersections.jl")
 include("ap_intersections_composite.jl")
 include("ap_unbounded_intersections.jl")
+include("ap_conic_region_intersections.jl")
 using Base.MathConstants: golden
 include("ap_constructions.jl")
 include("ap_marks.jl")
