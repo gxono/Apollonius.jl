@@ -56,6 +56,44 @@ angle_measure_at(p_d, d.p1, d.p2) ≈ pi / 2
 <img src="../assets/img/circles/circle_diameter.svg" alt="A segment, the circle that has it as a diameter, and a point of the circle that sees the segment under a right angle" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=280 margin=30 begin  
+        d = APSegment(APPoint(0.0, 0.0), APPoint(6.0, 2.0))
+        c = circle_with_diameter(d)
+        p = point_on(c, 1.0)
+        legs = [APSegment(p, d.p1), APSegment(p, d.p2)]
+        ang = APAngle2(p, d.p1, d.p2)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(legs, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(d, action=:stroke)
+    sethue(julia_purple)
+    path(c, action=:stroke)
+    path(only(marks(APAngle2(p, d.p1, d.p2); style=:parallelogram, size=14)); action=:stroke)
+    sethue(julia_red)
+    label("center", :S, c.center); label("p", :N, p)
+    sethue("white"); path([d.p1, d.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([c.center, p], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 It throws an `ArgumentError` if the three points are (or are too close
 to) collinear, same as [`affine_map`](@ref) does for its three source
 points. There's no finite circle through them in that case.

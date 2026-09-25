@@ -34,6 +34,37 @@ inell.center ≈ circumell.center ≈ centroid(t)
 <img src="../assets/img/triangles/steiner.svg" alt="A triangle with its Steiner inellipse, tangent to the sides at their midpoints, and its Steiner circumellipse through the vertices" style="width:100%;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        inell = steiner_inellipse(t)
+        circumell = steiner_circumellipse(t)
+        ii = reduce(vcat, intersection.(APLine.(sides(t)), inell))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_purple)
+    path([inell, circumell], action=:stroke)
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    path(vertices(t))
+    sethue("white"); path(ii, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 
 The circumellipse is always exactly the image of the inellipse under a
 homothety of ratio `-2` about the centroid, the same ratio that relates a
@@ -88,3 +119,31 @@ orthic_inellipse(t).center ≈ symmedian_point(t)                             # 
 ```@raw html
 <img src="../assets/img/triangles/inellipses.svg" alt="The five named inellipses" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        ells = [lemoine_inellipse(t), brocard_inellipse(t), macbeath_inellipse(t), mandart_inellipse(t), orthic_inellipse(t)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(ells, action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```

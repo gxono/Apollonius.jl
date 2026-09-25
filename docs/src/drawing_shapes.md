@@ -132,6 +132,7 @@ path(l; extend=0.0, as=:arrow, arrowheadlength=15)   # extend=0.0: the exact fin
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
 
     lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
@@ -212,6 +213,7 @@ path(APQuadrilateral(ang.vertex, poly.vertices...); action=:fill)   # ...wrapped
     using Apollonius, Luxor
     import Apollonius: translate
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
 
     lxm = @prepare_to_picture! flip=false width=500 height=240 margin=20 begin
@@ -279,6 +281,50 @@ path(invert(APTriangle(APPoint(50.0, 20.0), APPoint(90.0, 30.0), APPoint(60.0, 8
 ```@raw html
 <img src="../assets/img/drawing/curves.svg" alt="A circle with an arc highlighted along with its shaded sector and segment, three mutually tangent circles with the curvilinear gap between them filled in, and the curved image of an inverted triangle filled in" style="width:100%;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! flip=false width=500 height=240 margin=20 begin
+        circ = APCircle2(APPoint(0.0, 0.0), 30.0)
+        p1, p2 = APPoint(30.0, 0.0), APPoint(0.0, 30.0)
+        arc = APCircularArc2(circ, p1, p2)
+        c1 = APCircle2(APPoint(0.0, 0.0), 40.0)
+        c2 = APCircle2(APPoint(90.0, 0.0), 50.0)
+        c3_center = intersection(APCircle2(c1.center, c1.r + 35.0), APCircle2(c2.center, c2.r + 35.0))[1]
+        c3 = APCircle2(c3_center, 35.0)
+        tinv = invert(APTriangle(APPoint(50.0, 20.0), APPoint(90.0, 30.0), APPoint(60.0, 80.0)), APPoint(0.0, 0.0), k = 100)
+        gap = interstices(c1, c2, c3)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue("steelblue"); setopacity(0.4)
+    path(APCircularSector2(arc); action=:fill)
+    path(APCircularSegment2(arc); action=:fill)
+    setopacity(1)
+    sethue(julia_blue)
+    path(circ, action=:stroke)
+    sethue(julia_green)
+    path(arc, action=:stroke)
+    path([c1, c2, c3], action=:stroke)
+    sethue("red"); setopacity(0.5)
+    path(gap; action=:fill)
+    sethue("purple"); setopacity(0.5)
+    path(tinv, action=:fill)
+    setopacity(1)
+    sethue("white"); path([p1 p2], action=:fillpreserve); sethue(julia_green); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 Every curved side here is built from Luxor's own `arc2r`/`carc2r` (Cairo's
 native circular-arc path primitive, driven by a center and the two

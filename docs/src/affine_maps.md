@@ -49,6 +49,54 @@ affine_map(src[1] => dst[1], src[2] => dst[2], src[3] => dst[3]) == m
 <img src="../assets/img/affine/create.svg" alt="A triangle and its image under the affine map defined by three point pairs" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin
+        a = APPoint(0.0, 0.0)
+        b = APPoint(1.0, 0.0)
+        c = APPoint(0.0, 1.0)
+        a2 = APPoint(2.0, 3.0)
+        b2 = APPoint(5.0, 3.0)
+        c2 = APPoint(2.0, 7.0)
+        @unbounded m = affine_map(a => a2, b => b2, c => c2)
+        t = APTriangle(a, b, c)
+        timg = m(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path([APSegment(a, a2), APSegment(b, b2), APSegment(c, c2)], action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(timg, action=:stroke)
+    sethue(julia_red)
+    label("a", :S, a, offset=8);
+    label("b", :S, b, offset=8);
+    label("c", :W, c, offset=8)
+    label("a'", :S, a2, offset=8);
+    label("b'", :S, b2, offset=8);
+    label("c'", :W, c2, offset=8)
+    sethue("white"); path([a, b, c], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([a2, b2, c2], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
+
 It throws an `ArgumentError` if the three source points are (or are too
 close to) collinear, since then no unique affine map is determined (there
 are either none or infinitely many, depending on `dst`).
@@ -111,6 +159,42 @@ scaling_map(2.0, 3.0)(APCircle2(APPoint(0.0, 0.0), 1.0)) isa APEllipse2, shear_m
 ```@raw html
 <img src="../assets/img/affine/similarity_shear.svg" alt="A square and its images under a similarity, a scaling and a shear" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=240 margin=30 begin
+        s1 = square_with_center(APPoint(0.0, 0.0), 2.0)
+        s2 = square_with_center(APPoint(5.0, 0.0), 2.0)
+        s3 = square_with_center(APPoint(10.0, 0.0), 2.0)
+        @unbounded m1 = similarity_map(1.4, 0.4, APPoint(0.0, 0.0))
+        @unbounded m2 = scaling_map(1.8, 0.6, APPoint(5.0, 0.0))
+        @unbounded m3 = shear_map(0.6, 0.0, APPoint(10.0, 0.0))
+        i1, i2, i3 = m1(s1), m2(s2), m3(s3)
+        labs = [APPoint(0.0, -3.2), APPoint(5.0, -3.2), APPoint(10.0, -3.2)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(14)
+
+    sethue(julia_blue)
+    path([s1, s2, s3], action=:stroke)
+    sethue(julia_purple)
+    path([i1, i2, i3], action=:stroke)
+    sethue(julia_red)
+    for (n, p) in zip(("similarity_map", "scaling_map", "shear_map"), labs)
+        label(n, :S, p)
+    end
+
+    finish()
+    preview()
+    end
+    ```
 
 
 ## `rotate`/`homothety`/`translate`/`reflection`, called with one argument

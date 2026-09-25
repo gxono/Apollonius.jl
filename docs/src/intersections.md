@@ -92,6 +92,45 @@ intersection(r, c), intersection(s, c)   # one point each: the other point of th
 <img src="../assets/img/intersections/extent.svg" alt="A circle crossed by a segment, a ray and another segment. The points kept are purple; the points of the extended lines that fall outside the ray and the segment are gray" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        c = APCircle2(APPoint(0.0, 0.0), 3.0)
+        l = APSegment(APPoint(-6.0, 1.0), APPoint(6.0, 1.0))
+        r = APRay(APPoint(0.0, -1.0), APPoint(1.0, -1.0))
+        s = APSegment(APPoint(-6.0, -2.0), APPoint(0.0, -2.0))
+        rl = APLine(APPoint(0.0, -1.0), APPoint(1.0, -1.0))
+        sl = APLine(APPoint(-6.0, -2.0), APPoint(0.0, -2.0))
+        kept = [intersection(l, c); intersection(r, c); intersection(s, c)]
+        dropped = [intersection(rl, c)[1]; intersection(sl, c)[2]]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    setline(1); setdash("dash")
+    sethue("gray80")
+    path([rl, sl], action=:stroke, extend=200)
+    grestore()
+    sethue(julia_blue)
+    path([c, l, s], action=:stroke)
+    path(r, action=:stroke, extend=200)
+    sethue(julia_purple)
+    sethue("gray80")
+    sethue("white"); path(kept, action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path(dropped, action=:fillpreserve); sethue("gray80"); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@example geo
 arc = APCircularArc2(c, APPoint(3.0, 0.0), APPoint(0.0, 3.0))
 intersection(arc, l), intersection(arc, c2)

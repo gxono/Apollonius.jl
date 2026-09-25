@@ -70,6 +70,43 @@ tangent_lines(e, p)
 <img src="../assets/img/conics/tangents.svg" alt="The two tangent lines from an outside point to an ellipse, the points of tangency and the polar line" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin  
+        e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+        p = APPoint(13.0, 0.0)
+        tp = tangent_points(e, p)
+        tl = tangent_lines(e, p)
+        pol = polar_line(e, p)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(pol, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(e, action=:stroke)
+    sethue(julia_purple)
+    path(tl, action=:stroke, extend=0)
+    sethue(julia_red)
+    label("P", :N, p)
+    sethue("white"); path(tp, action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([p], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 For an `APHyperbola2` specifically, note that being far from the curve doesn't
 guarantee real tangents (or the lack of them) the way it does for an
 ellipse. It depends on which side of which branch `p` sits on;
@@ -148,6 +185,42 @@ APEllipticArc2(e.center, e.a, e.b, earc.p1, earc.p2; angle=e.angle) == earc
 ```@raw html
 <img src="../assets/img/conics/arcs.svg" alt="An elliptic, a parabolic and a hyperbolic arc, each on its full conic" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=240 margin=30 begin  
+        e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+        earc = APEllipticArc2(e, point_on(e, 0.2), point_on(e, 2.0))
+        par = APParabola2(APPoint(12.0, 1.0), APLine(APPoint(8.0, -1.0), APPoint(16.0, -1.0)))
+        parc = APParabolicArc2(par, point_on(par, -3.0), point_on(par, 3.0))
+        h = APHyperbola2(APPoint(24.0, 0.0), 3.0, 4.0)
+        harc = APHyperbolicArc2(h, point_on(h, -0.5), point_on(h, 0.5))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    setline(1); setdash("dash")
+    sethue("gray80")
+    path(e, action=:stroke)
+    path(par, action=:stroke, srange=(-120.0, 120.0))
+    path(h, action=:stroke, trange=(-1.5, 1.5))
+    grestore()
+    sethue(julia_blue)
+    path([earc, parc, harc], action=:stroke)
+    sethue(julia_purple)
+    sethue("white"); path([earc.p1, earc.p2, parc.p1, parc.p2, harc.p1, harc.p2], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 Unlike a circular or elliptic arc (where "the arc from `p1` to `p2`" means
 one of two complementary, closed possibilities), a single hyperbola branch

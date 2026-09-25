@@ -65,6 +65,44 @@ distance(c1, c2), distance(sa, sb), distance(la, lb)
 <img src="../assets/img/measurements/distance_pairs.svg" alt="The shortest distance between two circles, two segments and two parallel lines" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=240 margin=30 begin
+        c1 = APCircle2(APPoint(0.0, 0.0), 1.0)
+        c2 = APCircle2(APPoint(5.0, 0.0), 1.0)
+        gap1 = APSegment(APPoint(1.0, 0.0), APPoint(4.0, 0.0))
+        sa = APSegment(APPoint(9.0, 0.0), APPoint(10.0, 0.0))
+        sb = APSegment(APPoint(12.0, 1.0), APPoint(12.0, 5.0))
+        gap2 = APSegment(APPoint(10.0, 0.0), APPoint(12.0, 1.0))
+        la = APSegment(APPoint(15.0, 0.0), APPoint(19.0, 0.0))
+        lb = APSegment(APPoint(15.0, 2.5), APPoint(19.0, 2.5))
+        gap3 = APSegment(APPoint(17.0, 0.0), APPoint(17.0, 2.5))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path([c1, c2, sa, sb], action=:stroke)
+    path([la, lb], action=:stroke)
+    sethue(julia_purple)
+    path([gap1, gap2, gap3], action=:stroke)
+    sethue(julia_red)
+    label("3.0", :N, midpoint(gap1.p1, gap1.p2))
+    label("√5", :SE, midpoint(gap2.p1, gap2.p2))
+    label("2.5", :E, midpoint(gap3.p1, gap3.p2))
+
+    finish()
+    preview()
+    end
+    ```
+
 ## Area, perimeter and length
 
 [`area`](@ref) and [`perimeter`](@ref) cover every closed shape: polygons of
@@ -91,6 +129,45 @@ measure(arc), arc_length(arc) ≈ 3.0 * measure(arc)
 ```@raw html
 <img src="../assets/img/measurements/arc_measure.svg" alt="A circular arc with the angle it sweeps, its measure, and its length" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin
+        c = APCircle2(APPoint(0.0, 0.0), 3.0)
+        arc = APCircularArc2(c, point_on(c, pi / 9), point_on(c, 7pi / 9))
+        ang = APAngle2(c.center, arc.p1, arc.p2)
+        mid = midpoint(arc)
+        radii = [APSegment(c.center, arc.p1), APSegment(c.center, arc.p2)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(radii, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(arc, action=:stroke)
+    sethue(julia_purple)
+    path(marks(ang; size=40); action=:stroke)
+    sethue(julia_red)
+    label("measure", label_anchor(ang; dist=75)...)
+    label("arc_length", :N, mid)
+    sethue("white"); path([c.center, arc.p1, arc.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([mid], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ```@example geo
 arc_length(APPolyline2(APPoint(0.0, 0.0), APPoint(3.0, 4.0), APPoint(3.0, 6.0)))
@@ -146,6 +223,43 @@ semi_major(el), semi_minor(el), linear_eccentricity(el), eccentricity(el)
 <img src="../assets/img/measurements/ellipse_axes.svg" alt="An ellipse with its semi-axes, its foci and the linear eccentricity" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=300 margin=30 begin
+        e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+        f1, f2 = foci(e)
+        major = APSegment(e.center, point_on(e, 0.0))
+        minor = APSegment(e.center, point_on(e, pi / 2))
+        lin = APSegment(e.center, f2)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(e, action=:stroke)
+    sethue(julia_purple)
+    path([major, minor], action=:stroke)
+    sethue(julia_green)
+    path(lin, action=:stroke)
+    sethue(julia_blue)
+    sethue(julia_red)
+    label("semi_major", :N, midpoint(major.p1, major.p2)); label("semi_minor", :E, midpoint(minor.p1, minor.p2))
+    label("linear_eccentricity", :S, midpoint(lin.p1, lin.p2))
+    sethue("white"); path([f1, f2], action=:fillpreserve); sethue(julia_green); strokepath()
+    sethue("white"); path([e.center], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 [`curvature`](@ref) is `1 / r` for a circle or a circular arc and depends on
 the point for the other conics, which must lie on the curve. On an ellipse it
 is largest at the ends of the major axis:
@@ -168,6 +282,46 @@ signed_curvature(cubic, -0.5), signed_curvature(cubic, 0.5), curvature(cubic, 0.
 ```@raw html
 <img src="../assets/img/measurements/curvature_cubic.svg" alt="A cubic curve with its osculating circles on both sides of the inflection point, one turning each way" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=380 margin=30 begin
+        cubic = APParametricCurve2(t -> APPoint(t, t^3), (-1.1, 1.1))
+        tl, tr = tangent_at(cubic, -0.6), tangent_at(cubic, 0.6)
+        pl, pr = tl.point, tr.point
+        cl = APCircle2(pl + orthogonal(tl.vector) / signed_curvature(cubic, -0.6), 1 / curvature(cubic, -0.6))
+        cr = APCircle2(pr + orthogonal(tr.vector) / signed_curvature(cubic, 0.6), 1 / curvature(cubic, 0.6))
+        rl, rr = APSegment(pl, cl.center), APSegment(pr, cr.center)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path([rl, rr], action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(cubic, action=:stroke)
+    sethue(julia_purple)
+    path([cl, cr], action=:stroke)
+    sethue(julia_green)
+    sethue(julia_red)
+    label("κ < 0", :S, cl.center); label("κ > 0", :N, cr.center)
+    sethue("white"); path([pl, pr], action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([cl.center, cr.center], action=:fillpreserve); sethue(julia_green); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 An arc has a [`chord_length`](@ref) (the distance between its endpoints) and,
 if it is circular, a [`sagitta`](@ref), the height of the arc over its chord:
@@ -198,6 +352,41 @@ rad2deg.(normalized_measure.(interior_angles(L))), side_lengths(L), signed_area(
 ```@raw html
 <img src="../assets/img/measurements/polygon_angles.svg" alt="An L-shaped polygon with the interior angle marked at each vertex, 270 degrees at the reflex one" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=380 margin=30 begin
+        vs = [APPoint(0.0, 0.0), APPoint(2.0, 0.0), APPoint(2.0, 1.0), APPoint(1.0, 1.0), APPoint(1.0, 2.0), APPoint(0.0, 2.0)]
+        pg = APStraightNgon(vs)
+        angs = interior_angles(pg)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(pg, action=:stroke)
+    sethue(julia_purple)
+    for a in angs
+        path(marks(a; size=26); action=:stroke)
+    end
+    sethue(julia_red)
+    for (a, d) in zip(angs, round.(Int, rad2deg.(normalized_measure.(angs))))
+        label("$(d)°", label_anchor(a; dist=40)...)
+    end
+    sethue(julia_blue)
+    sethue("white"); path(vs, action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ```@example geo
 cvt = APCurvilinearTriangle2(APSegment(APPoint(0.0, 0.0), APPoint(4.0, 0.0)),

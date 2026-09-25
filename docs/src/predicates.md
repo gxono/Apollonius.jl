@@ -69,6 +69,41 @@ is_on_line(q, line), is_on_ray(q, ray), is_on_segment(q, seg)
 <img src="../assets/img/predicates/membership.svg" alt="Test points against a line, a ray and a segment: points on the object are purple, the others gray" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=520 height=300 margin=30 begin  
+        l = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
+        r = APRay(APPoint(0.0, -3.0), APPoint(1.0, -3.0))
+        s = APSegment(APPoint(0.0, -6.0), APPoint(6.0, -6.0))
+        tl = [APPoint(x, y) for (x, y) in ((-2.0, 0.0), (3.0, 0.0), (8.0, 0.0), (3.0, 1.0))]
+        tr = [APPoint(x, y) for (x, y) in ((-2.0, -3.0), (3.0, -3.0), (8.0, -3.0), (3.0, -2.0))]
+        ts = [APPoint(x, y) for (x, y) in ((-2.0, -6.0), (3.0, -6.0), (8.0, -6.0), (3.0, -5.0))]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    sethue(julia_blue)
+    path(l, action=:stroke, extend=500)
+    path(r, action=:stroke, extend=500)
+    path(s, action=:stroke)
+    sethue(julia_purple)
+    sethue("gray80")
+    sethue(julia_red)
+    label("is_on_line", :NW, tl[1]); label("is_on_ray", :NW, tr[1]); label("is_on_segment", :NW, ts[1])
+    sethue("white"); path([[p for p in tl if p in l]; [p for p in tr if p in r]; [p for p in ts if p in s]], action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([[p for p in tl if !(p in l)]; [p for p in tr if !(p in r)]; [p for p in ts if !(p in s)]], action=:fillpreserve); sethue("gray80"); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 Each predicate has a one-argument form that returns a function of the
 point, ready for `filter`:
 
@@ -95,6 +130,40 @@ is_parallel(s1, s2), is_perpendicular(s3, s4), is_collinear(APPoint(0.0, 0.0), A
 ```@raw html
 <img src="../assets/img/predicates/relations.svg" alt="Two parallel segments, two perpendicular segments and three collinear points with a fourth point off the line" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=260 margin=30 begin  
+        p1 = [APSegment(APPoint(0.0, 0.0), APPoint(5.0, 1.0)), APSegment(APPoint(0.0, 2.0), APPoint(5.0, 3.0))]
+        p2 = [APSegment(APPoint(8.0, 0.0), APPoint(13.0, 0.0)), APSegment(APPoint(10.0, -2.0), APPoint(10.0, 3.0))]
+        cl = [APPoint(16.0, 0.0), APPoint(18.0, 1.0), APPoint(21.0, 2.5)]
+        cn = APPoint(19.0, -1.5)
+        cline = APSegment(APPoint(15.5, -0.25), APPoint(21.5, 2.75))
+        lab = [APPoint(2.5, -1.0), APPoint(10.0, -3.5), APPoint(18.0, -3.5)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    sethue(julia_blue)
+    path([p1; p2; cline], action=:stroke)
+    sethue("gray80")
+    sethue(julia_red)
+    for (n, p) in zip(("is_parallel", "is_perpendicular", "is_collinear"), lab)
+        label(n, :S, p)
+    end
+    sethue("white"); path(cl, action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([cn], action=:fillpreserve); sethue("gray80"); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ## Which side of a line
 
@@ -140,6 +209,33 @@ figures for both are in [Circles: How They Relate](@ref).
 ```@raw html
 <img src="../assets/img/circles/circle_positions.svg" alt="The six relative positions of two circles, with the symbol circles_position returns for each" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=300 margin=30 begin  
+        cs = [c for (i, (r1, r2, d)) in enumerate([(1.5, 1.0, 4.0), (1.5, 1.0, 2.5), (1.5, 1.0, 1.8), (1.5, 0.75, 0.75), (1.5, 0.5, 0.4), (1.5, 1.0, 0.0)]) for c in (APCircle2(APPoint(8.0 * mod(i - 1, 3), -6.0 * fld(i - 1, 3)), r1), APCircle2(APPoint(8.0 * mod(i - 1, 3) + d, -6.0 * fld(i - 1, 3)), r2))]
+        labpts = [APPoint(8.0 * mod(i - 1, 3) + 1.5, -6.0 * fld(i - 1, 3) - 2.4) for i in 1:6]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(13)
+    sethue(julia_blue)
+    path(cs, action=:stroke)
+    sethue(julia_red)
+    for (n, p) in zip((":disjoint_ext", ":tangent_ext", ":secant", ":tangent_int", ":disjoint_int", ":concentric"), labpts)
+        label(n, :S, p)
+    end
+
+    finish()
+    preview()
+    end
+    ```
 
 ## Points on conics
 

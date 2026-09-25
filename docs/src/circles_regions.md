@@ -58,6 +58,44 @@ area(asec)        # outer sector area minus inner sector area
 <img src="../assets/img/circles/sec_ann.svg" alt="Three circles, showing a filled circular sector, a filled circular segment, and a filled annular sector" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        vt1 = APVector(12.5,0)
+        o1 = APPoint(0.0, 0.0)
+        o2 = o1 |> translate(vt1)
+        o3 = o2 |> translate(vt1)
+        c1,c2,c3 = APCircle2.([o1,o2,o3], 5.0)
+        s1, e1 = APPoint(5.0, 0.0), APPoint(0.0, 5.0)
+        s2, e2 = translate.([s1, e1], vt1)
+        s3, e3 = translate.([s2, e2], vt1)
+        arc1 = APCircularArc2(c1, s1, e1)
+        arc2 = APCircularArc2(c2, s2, e2)
+        arc3 = APCircularArc2(c3, s3, e3)
+        sec3 = APAnnularSector2(arc3, 2.0)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple)
+    path(APCircularSector2(arc1), action=:fill)
+    path(APCircularSegment2(arc2), action=:fill)
+    path(sec3, action=:fill)
+    sethue(julia_blue)
+    path([c1,c2,c3], action=:stroke)
+    sethue("white"); path([s1,e1,s2,e2,s3,e3], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 None of these three formulas is hand-derived per type. Every one comes
 for free from the generic, sides-based `area`/`perimeter` every
 [`APPolygon`](@ref) shares (see [`APPolygon`](@ref)'s own docstring), and
@@ -90,6 +128,44 @@ homothety(arc, -2.0)   # negative k: still no swap needed
 <img src="../assets/img/circles/arc_rot_hom.svg" alt="An arc with its images under a rotation and under a homothety of negative ratio, and the rotation angle marked as a filled sector" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        c = APCircle2(APPoint(0.0, 0.0), 5.0)
+        p1, p2 = APPoint(0.0, 1.0), APPoint(-2.0, 0.0)
+        arc = APCircularArc2(c, p1, p2)
+        arc_rot = rotate(arc, 2pi/3)
+        arc_hom = homothety(arc, -2.0)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple)
+    path(APCircularSector2(only(marks(APAngle2(arc.circle.center, arc_rot.p1, arc.p1)))), action=:fill)
+    setdash(:dash)
+    path(APSegment(arc.circle.center, arc_rot.p1), action=:stroke)
+    path(APSegment(arc.circle.center, arc_hom.p1), action=:stroke)
+    sethue(julia_green)
+    path(APSegment(arc.circle.center, arc.p1), action=:stroke)
+    setdash(:solid)
+    sethue(julia_blue)
+    path(arc, action=:stroke)
+    sethue(julia_purple)
+    path([arc_rot, arc_hom], action=:stroke)
+    sethue("white"); path([arc_rot.p1, arc_hom.p1], action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([arc.circle.center, arc.p1], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 Reflecting about an `APPoint` is likewise a point reflection: no
 swap. Reflecting about an `APLine`, however, is a true mirror: it *does*
 reverse orientation, so `reflection(::APCircularArc2, ::APLine)` also swaps
@@ -104,6 +180,47 @@ reflection(arc, APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))  # line reflection
 ```@raw html
 <img src="../assets/img/circles/arc_cen_axi.svg" alt="An arc with its point reflection and its reflection across a mirror line, dashed segments linking corresponding endpoints" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        c = APCircle2(APPoint(0.0, 0.0), 5.0)
+        p1, p2 = APPoint(0.0, 1.0), APPoint(-2.0, 0.0)
+        arc = APCircularArc2(c, p1, p2)
+        p = APPoint(1.0, 1.0)
+        l = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
+        arc_ref_p = reflection(arc, p)
+        arc_ref_l = reflection(arc, l)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_blue)
+    path(arc, action=:stroke)
+    sethue(julia_purple)
+    path([arc_ref_p, arc_ref_l], action=:stroke)
+    setdash(:dash)
+    path(APSegment(arc.p1, arc_ref_l.p2), action=:stroke)
+    path(APSegment(arc.p2, arc_ref_l.p1), action=:stroke)
+    path(APSegment(arc.p2, arc_ref_p.p2), action=:stroke)
+    path(APSegment(arc.p1, arc_ref_p.p1), action=:stroke)
+    setdash(:solid)
+    sethue(julia_green)
+    path(l, action=:stroke)
+    sethue("white"); path(p, action=:fillpreserve); sethue(julia_green); strokepath()
+    sethue("white"); path([arc.p1, arc.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([arc_ref_l.p1, arc_ref_l.p2, arc_ref_p.p1, arc_ref_p.p2], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 Without that swap, the reflected endpoints alone would trace out the arc's
 *complementary* 3/4-of-the-circle instead of its true mirror image.

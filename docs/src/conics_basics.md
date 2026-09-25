@@ -65,6 +65,54 @@ orthoptic(e)   # APCircle2(center, sqrt(5^2+3^2)) ≈ APCircle2(center, 5.83)
 <img src="../assets/img/conics/ellipse_foci.svg" alt="An ellipse with its foci, vertices and director circle, and a point whose distances to the foci add up to 2a" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+        c = e.center
+        f1, f2 = foci(e)
+        v1, v2 = vertices(e)
+        p = point_on(e, 1.0)
+        od = orthoptic(e)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+        setline(1); setdash(:dash)
+        sethue("gray80")
+        path(od, action=:stroke)
+        sethue(julia_green)
+        path([APSegment(p, f1), APSegment(p, f2)], action=:stroke)
+    end
+
+    sethue(julia_blue)
+    path(e, action=:stroke)
+    sethue(julia_purple)
+    sethue(julia_red)
+    label("F1", :SW, f1, offset=8)
+    label("F2", :SE, f2, offset=8)
+    label("P", :N, p, offset=8)
+
+    sethue("white")
+    path(c, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+    sethue("white")
+    path([f1, f2, v1, v2, p], action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ## Parabola
 
 ```@example geo
@@ -112,6 +160,56 @@ orthoptic(par) == par.directrix
 <img src="../assets/img/conics/parabola.svg" alt="A parabola with its focus, directrix and vertex, and a point equally far from the focus and the directrix" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        focus = APPoint(0.0, 1.0)
+        dl = APSegment(APPoint(-6.0, -1.0), APPoint(6.0, -1.0))
+        par = APParabola2(focus, APLine(dl.p1, dl.p2))
+        arc = APParabolicArc2(par, point_on(par, -5.0), point_on(par, 5.0))
+        p = point_on(par, 3.0)
+        foot = projection(p, APLine(dl.p1, dl.p2))
+        vtx = vertex(par)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    sethue(julia_blue)
+    path(dl, action=:stroke)
+
+    @layer begin
+        setline(1); setdash("dash")
+        sethue(julia_green)
+        path([APSegment(p, focus), APSegment(p, foot)], action=:stroke)
+    end
+
+    sethue(julia_purple)
+    path(arc, action=:stroke)
+
+    sethue(julia_red)
+    label("F", :N, focus, offset=8)
+    label("P", :NE, p, offset=8)
+    text("directrix", dl.p2 + APVector(0.0,5.0), halign=:right, valign=:top)
+
+    sethue("white")
+    path([vtx, p, foot], action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+
+    sethue("white")
+    path(focus, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ## Hyperbola
 
 ```@example geo
@@ -139,6 +237,58 @@ vertices(h)     # the two points where each branch meets the transverse axis, at
 ```@raw html
 <img src="../assets/img/conics/hyperbola.svg" alt="A hyperbola with its two branches, asymptotes, foci and vertices" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        c = APPoint(0.0, 0.0)
+        h = APHyperbola2(c, 3.0, 4.0)
+        arc1 = APHyperbolicArc2(h, point_on(h, -1.2), point_on(h, 1.2))
+        arc2 = reflection(arc1, APLine(c, APPoint(0.0,1.0)))
+        asy1, asy2 = asymptotes(h)
+        f1, f2 = foci(h)
+        v1, v2 = vertices(h)
+    end
+
+    lp(p::APPoint) = Point(p[1],p[2])
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+        setline(1); setdash(:dash)
+        sethue(julia_green)
+        path([asy1, asy2], action=:stroke)
+    end
+
+    @layer begin
+        sethue(julia_blue)
+        path([arc1, arc2], action=:stroke)
+        setline(1); setdash(:dash)
+        rect(lp(c), h.a, -h.b, action=:stroke)
+    end
+
+    sethue(julia_red)
+    label("F1", :E, f1, offset=8)
+    label("F2", :W, f2, offset=8)
+
+    sethue("white")
+    path(c, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+
+    sethue("white")
+    path([f1, f2, v1, v2], action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 [`orthoptic`](@ref) (the director circle) exists for a hyperbola only when
 `a > b`, with radius `sqrt(a² - b²)`; otherwise there's no point in the

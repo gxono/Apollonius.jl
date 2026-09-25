@@ -50,6 +50,7 @@ isapprox(head[1], arc.p2; atol=1e-9)
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
     lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         segs = [APSegment(APPoint(0.0, 2.0 * (3 - i)), APPoint(7.0, 2.0 * (3 - i))) for i in 1:3]
@@ -63,7 +64,7 @@ isapprox(head[1], arc.p2; atol=1e-9)
 
     begin
     Drawing(lxm.width, lxm.height, :svg)
-    origin(); fontsize(15)
+    origin(); fontsize(14)
 
     sethue(julia_blue)
     path([segs..., arc], action=:stroke)
@@ -106,25 +107,26 @@ vertices(dec)
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=30 begin  
         s1 = APSegment(APPoint(0.0, 4.0), APPoint(7.0, 4.0))
         s2 = APSegment(APPoint(0.0, 0.0), APPoint(7.0, 0.0))
         s3 = APSegment(APPoint(10.0, 0.0), APPoint(13.0, 5.0))
-        b1 = APDecorationBrace2(s1.p1, s1.p2; height=14, side=:left)
-        b2 = APDecorationBrace2(s2.p1, s2.p2; height=14, side=:right)
-        b3 = APDecorationBrace2(s3.p1, s3.p2; height=14, side=:right)
     end
 
 
     begin
     Drawing(lxm.width, lxm.height, :svg)
-    origin(); fontsize(15)
+    origin(); fontsize(14)
 
     sethue(julia_blue)
     path([s1, s2, s3], action=:stroke)
 
     sethue(julia_purple)
+    b1 = APDecorationBrace2(s1.p1, s1.p2; height=14, side=:left)
+    b2 = APDecorationBrace2(s2.p1, s2.p2; height=14, side=:right)
+    b3 = APDecorationBrace2(s3.p1, s3.p2; height=14, side=:right)
     path(b1; action=:stroke)
     path(b2; action=:stroke)
     path(b3; action=:stroke)

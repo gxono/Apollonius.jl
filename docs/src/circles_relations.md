@@ -102,6 +102,43 @@ angle_measure_intersection(c1, orthogonal_circle(c1, APPoint(13.0, 0.0))) ≈ pi
 <img src="../assets/img/circles/intersection_choice.svg" alt="Choosing the second point where a line meets a circle, and the nearest point of two circles' intersection" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        c = APCircle2(APPoint(0.0, 0.0), 5.0)
+        l = APLine(APPoint(-5.0, 0.0), APPoint(0.0, 3.0))
+        known = APPoint(-5.0, 0.0)
+        other = other_intersection(l, c, known)
+        c2 = APCircle2(APPoint(6.0, 0.0), 5.0)
+        pts = intersection(c, c2)
+        ref = APPoint(3.0, 8.0)
+        chosen = nearest_point(pts, ref)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    sethue(julia_blue)
+    path([c, c2], action=:stroke)
+    path(l, action=:stroke, extend=40)
+    sethue(julia_purple)
+    sethue("gray80")
+    sethue(julia_red)
+    label("known", :NW, known); label("other", :N, other); label("p", :N, ref)
+    sethue("white"); path([known, ref], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([other, chosen], action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([p for p in pts if p != chosen], action=:fillpreserve); sethue("gray80"); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 !!! warning "The order of the intersections is fixed for two cases only"
     A line and a circle give their points along the line, and two circles give the point on the left first. For any other pair the order is not specified: choose with [`nearest_point`](@ref) or [`other_intersection`](@ref).
 
@@ -121,6 +158,33 @@ line_circle_position(APLine(APPoint(0.0, 5.0), APPoint(1.0, 5.0)), APCircle2(APP
 ```@raw html
 <img src="../assets/img/circles/circle_positions.svg" alt="The six relative positions of two circles, with the symbol circles_position returns for each" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=300 margin=30 begin  
+        cs = [c for (i, (r1, r2, d)) in enumerate([(1.5, 1.0, 4.0), (1.5, 1.0, 2.5), (1.5, 1.0, 1.8), (1.5, 0.75, 0.75), (1.5, 0.5, 0.4), (1.5, 1.0, 0.0)]) for c in (APCircle2(APPoint(8.0 * mod(i - 1, 3), -6.0 * fld(i - 1, 3)), r1), APCircle2(APPoint(8.0 * mod(i - 1, 3) + d, -6.0 * fld(i - 1, 3)), r2))]
+        labpts = [APPoint(8.0 * mod(i - 1, 3) + 1.5, -6.0 * fld(i - 1, 3) - 2.4) for i in 1:6]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(13)
+    sethue(julia_blue)
+    path(cs, action=:stroke)
+    sethue(julia_red)
+    for (n, p) in zip((":disjoint_ext", ":tangent_ext", ":secant", ":tangent_int", ":disjoint_int", ":concentric"), labpts)
+        label(n, :S, p)
+    end
+
+    finish()
+    preview()
+    end
+    ```
 
 `circles_position` returns one of `:identical`, `:concentric`,
 `:disjoint_ext`, `:tangent_ext`, `:secant`, `:tangent_int` or
@@ -151,3 +215,39 @@ offset_circle(c_o, 1.0), offset_circle(c_o, -1.0)
 ```@raw html
 <img src="../assets/img/circles/chord_diameter.svg" alt="A circle with a chord, a diameter and the two circles offset by plus and minus one" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        c = APCircle2(APPoint(0.0, 0.0), 3.0)
+        out = offset_circle(c, 1.0)
+        inn = offset_circle(c, -1.0)
+        ch = chord(c, 0.5, 2.4)
+        di = diameter(c, 5.0)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    gsave()
+    setline(1); setdash("dash")
+    sethue("gray80")
+    path([out, inn], action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(c, action=:stroke)
+    sethue(julia_purple)
+    path([ch, di], action=:stroke)
+    sethue(julia_red)
+    label("chord", :NW, ch.p1); label("diameter", :SE, di.p1); label("offset_circle(c, 1)", :S, APPoint(0.0, -4.0))
+    sethue("white"); path([ch.p1, ch.p2, di.p1, di.p2], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```

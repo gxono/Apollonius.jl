@@ -52,8 +52,9 @@ t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=40 begin  
         A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
         t = APTriangle(A, B, C)
         sides = [APSegment(A, B), APSegment(B, C), APSegment(C, A)]
@@ -121,8 +122,9 @@ length(grid_lines(bb)), length(grid_lines(bb; step=0.5)), length(axes_lines(bb))
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=30 begin  
         grid = grid_lines(APBoundingBox(APPoint(-1.0, -1.0), APPoint(7.0, 5.0)); step=1.0)
         axes = axes_lines(APBoundingBox(APPoint(-1.0, -1.0), APPoint(7.0, 5.0)))
         P = APPoint(4.0, 3.0)
@@ -216,8 +218,9 @@ Put together, the pieces make a figure like this one: an isosceles triangle with
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=30 begin  
+    lxm = @prepare_to_picture! width=500 height=300 margin=45 begin  
         A, B, C = APPoint(0.0, 0.0), APPoint(10.0, 0.0), APPoint(5.0, 6.0)
         t = APTriangle(A, B, C)
         base, right, left = sides(t)

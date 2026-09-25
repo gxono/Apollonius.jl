@@ -148,6 +148,41 @@ rad2deg(measure(APAngle2(la, lb))), rad2deg(measure(APAngle2(lb, la)))
 <img src="../assets/img/points_lines/angle_from_measure.svg" alt="An angle of 60 degrees built from a ray and a measure, and the angle between two crossing lines" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=260 margin=30 begin
+        O1, P1 = APPoint(0.0, 0.0), APPoint(4.0, 0.0)
+        ang1 = angle_with_measure(O1, P1, pi / 3)
+        r1 = [APSegment(O1, P1), APSegment(O1, ang1.b)]
+        l1 = APLine(APPoint(7.0, 0.0), APPoint(11.0, 1.0))
+        l2 = APLine(APPoint(7.0, 3.0), APPoint(11.0, 0.0))
+        ends = [APPoint(7.0, 0.0), APPoint(11.0, 1.0), APPoint(7.0, 3.0), APPoint(11.0, 0.0)]
+        ang2 = APAngle2(APLine(ends[3], ends[4]), APLine(ends[1], ends[2]))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(r1, action=:stroke)
+    path([l1, l2], action=:stroke, extend=300)
+    sethue(julia_purple)
+    path(marks(ang1; size=40); action=:stroke)
+    path(marks(ang2; size=40); action=:stroke)
+    sethue(julia_red)
+    label("60°", label_anchor(ang1; dist=64)...); label("θ", label_anchor(ang2; dist=64)...)
+
+    finish()
+    preview()
+    end
+    ```
+
 ### Clipping a line, segment or ray
 
 `ang` is a region, so [`intersection`](@ref)`(ang, obj)` for a line, a

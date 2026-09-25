@@ -29,6 +29,51 @@ Ge = gergonne_point(t)  # point where the incircle-tangency cevians meet
 <img src="../assets/img/triangles/nagel_gergonne.svg" alt="The Gergonne and Nagel points, where the cevians to the incircle and excircle touch points meet" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        ct = contact_triangle(t)
+        et = extouch_triangle(t)
+        Na = nagel_point(t)
+        Ge = gergonne_point(t)
+        gcev = [APSegment(v, p) for (v, p) in zip((A, B, C), vertices(ct))]
+        ncev = [APSegment(v, p) for (v, p) in zip((A, B, C), vertices(et))]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(gcev, action=:stroke)
+    grestore()
+    gsave()
+    setline(1); setdash("dash")
+    sethue("gray80")
+    path(ncev, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    sethue(julia_red)
+    label("Ge", :N, Ge); label("Na", :S, Na)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([Ge, Na], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 The rest, grouped by what they're built from:
 
 | Group | Functions |
@@ -72,6 +117,51 @@ is_on_line(orthocenter(t), stl), is_parallel(sl, stl)
 <img src="../assets/img/triangles/simson_steiner.svg" alt="The Simson and Steiner lines of a point on the circumcircle" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=320 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        cc = circumcircle(t)
+        P = polar_point(circumradius(t), 0.7, circumcenter(t))
+        feet = [projection(P, APLine(s.p1, s.p2)) for s in sides(t)]
+        sl = simson_line(t, P)
+        stl = steiner_line(t, P)
+        H = orthocenter(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    sethue("gray80")
+    path(cc, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(sl, action=:stroke, extend=30)
+    gsave()
+    setline(1); setdash("dash")
+    path(stl, action=:stroke, extend=30)
+    grestore()
+    sethue(julia_red)
+    label("P", :NE, P); label("H", :E, H)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(feet, action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([P, H], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 [`orthopole`](@ref)`(l, t)` is the point where the three perpendiculars
 (one per vertex, dropped from that vertex's projection onto `l`, to the
 *opposite* side) always concur. [`pedal_triangle`](@ref)`(t, p)` (the feet
@@ -88,6 +178,57 @@ pedal_triangle(t, incenter(t)) ≈ contact_triangle(t)
 <img src="../assets/img/triangles/orthopole.svg" alt="The orthopole of a line with respect to a triangle: each vertex is projected onto the line, and the perpendicular from that projection to the opposite side; the three perpendiculars concur at the orthopole" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        l = APLine(APPoint(-2.0, -1.0), APPoint(10.0, 6.0))
+
+        projA = projection(A, l)
+        projB = projection(B, l)
+        projC = projection(C, l)
+
+        lA = perpendicular_through(APLine(B, C), projA)
+        lB = perpendicular_through(APLine(C, A), projB)
+        lC = perpendicular_through(APLine(A, B), projC)
+
+        op = orthopole(l, t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path([APSegment(A, projA), APSegment(B, projB), APSegment(C, projC)], action=:stroke)
+    path([lA, lB, lC], action=:stroke)
+    grestore()
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    path(l, action=:stroke)
+
+    sethue(julia_red)
+    label("l", :N, l.p2)
+    label("orthopole", :SE, op)
+
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([projA, projB, projC], action=:fillpreserve); sethue(julia_green); strokepath()
+    sethue("white"); path([op], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 [`pedal_circle`](@ref)`(t, p)` is just the circumcircle of that pedal
 triangle:
 
@@ -98,6 +239,47 @@ pedal_circle(t, incenter(t)) ≈ incircle(t)   # the incircle is the pedal circl
 ```@raw html
 <img src="../assets/img/triangles/pedal.svg" alt="The pedal triangle and pedal circle of a point" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        P = APPoint(4.0, 2.0)
+        pt = pedal_triangle(t, P)
+        pc = pedal_circle(t, P)
+        feet = collect(vertices(pt))
+        legs = [APSegment(P, f) for f in feet]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(legs, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path([pt, pc], action=:stroke)
+    sethue(julia_red)
+    label("P", :NE, P)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(feet, action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([P], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ### Brocard, Kenmotu and MacBeath
 
@@ -140,6 +322,46 @@ isogonal_conjugate(t, centroid(t)) ≈ symmedian_point(t)
 <img src="../assets/img/triangles/isogonal.svg" alt="A point and its isogonal conjugate" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        P = APPoint(4.0, 2.0)
+        Q = isogonal_conjugate(t, P)
+        toP = [APSegment(v, P) for v in (A, B, C)]
+        toQ = [APSegment(v, Q) for v in (A, B, C)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1)
+    sethue("gray80")
+    path(toP, action=:stroke)
+    sethue(julia_purple)
+    path(toQ, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_red)
+    label("P", :NE, P); label("P*", :N, Q)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([P], action=:fillpreserve); sethue("gray80"); strokepath()
+    sethue("white"); path([Q], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@example geo
 isotomic_conjugate(t, isotomic_conjugate(t, incenter(t))) ≈ incenter(t)
 ```
@@ -147,6 +369,46 @@ isotomic_conjugate(t, isotomic_conjugate(t, incenter(t))) ≈ incenter(t)
 ```@raw html
 <img src="../assets/img/triangles/isotomic.svg" alt="A point and its isotomic conjugate" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        P = APPoint(4.0, 2.0)
+        Q = isotomic_conjugate(t, P)
+        toP = [APSegment(v, P) for v in (A, B, C)]
+        toQ = [APSegment(v, Q) for v in (A, B, C)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1)
+    sethue("gray80")
+    path(toP, action=:stroke)
+    sethue(julia_purple)
+    path(toQ, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_red)
+    label("P", :NE, P); label("P'", :N, Q)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([P], action=:fillpreserve); sethue("gray80"); strokepath()
+    sethue("white"); path([Q], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ### Complement and anticomplement
 
@@ -176,9 +438,79 @@ is_on_line(de_longchamps_point(t), euler_line(t))
 <img src="../assets/img/triangles/spieker.svg" alt="The medial triangle with its incircle, the Spieker circle" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        mt = medial_triangle(t)
+        sc = spieker_circle(t)
+        S = spieker_center(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue("gray80")
+    path(mt, action=:stroke)
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(sc, action=:stroke)
+    sethue(julia_red)
+    label("S", :N, S)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([S], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@raw html
 <img src="../assets/img/triangles/bevan.svg" alt="The excentral triangle with its circumcircle, centered at the Bevan point" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=320 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        ext = excentral_triangle(t)
+        bc = circumcircle(ext)
+        Be = bevan_point(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue("gray80")
+    path(ext, action=:stroke)
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(bc, action=:stroke)
+    sethue(julia_red)
+    label("Be", :N, Be)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([Be], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ```@raw html
 <img src="../assets/img/triangles/de_longchamps.svg" alt="The orthocenter, circumcenter and de Longchamps point on the Euler line" style="width:100%; max-width: 700px;">
@@ -201,6 +533,38 @@ all(c -> distance(c.center, iso1) ≈ c.r, apo), all(c -> distance(c.center, iso
 <img src="../assets/img/triangles/isodynamic.svg" alt="The three Apollonius circles of a triangle and the two isodynamic points" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        apo = collect(three_apollonius_circles(t))
+        iso1, iso2 = isodynamic_points(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_purple)
+    path(apo, action=:stroke)
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_red)
+    label("1", :N, iso1); label("2", :N, iso2)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([iso1, iso2], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ### The Apollonius circle and point
 
 Despite the shared name, [`apollonius_circle_of_triangle`](@ref) is a
@@ -219,6 +583,40 @@ distance(ap_circle.center, ex.A.center) ≈ ap_circle.r - ex.A.r  # internally t
 ```@raw html
 <img src="../assets/img/triangles/apollonius_triangle.svg" alt="The three excircles and the circle tangent to all of them" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        ex = excircles(t)
+        exc = [ex.A, ex.B, ex.C]
+        apc = apollonius_circle_of_triangle(t)
+        ap = apollonius_point_of_triangle(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue("gray80")
+    path(exc, action=:stroke)
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(apc, action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([ap], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ```@example geo
 apollonius_point_of_triangle(t)
@@ -271,9 +669,81 @@ all(p -> on_circ(p, conway_circle(t)), conway_points(t)),
 <img src="../assets/img/triangles/conway_adams.svg" alt="The Conway and Adams circles, both centered at the incenter" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        inc = incircle(t)
+        cwc = conway_circle(t)
+        cwp = collect(conway_points(t))
+        adc = adams_circle(t)
+        adp = collect(adams_points(t))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue("gray80")
+    path(inc, action=:stroke)
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path([cwc, adc], action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(cwp, action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path(adp, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@raw html
 <img src="../assets/img/triangles/lemoine_circles.svg" alt="The first Lemoine, second Lemoine and symmedial circles" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        K = symmedian_point(t)
+        c1 = first_lemoine_circle(t)
+        c2 = second_lemoine_circle(t)
+        c3 = symmedial_circle(t)
+        p1 = collect(first_lemoine_points(t))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path([c1, c2, c3], action=:stroke)
+    sethue(julia_red)
+    label("K", :N, K)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(p1, action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([K], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ### Mixtilinear incircles and Soddy circles
 
@@ -295,6 +765,42 @@ is_on_line(sc.inner.center, soddy_line(t)), is_on_line(sc.outer.center, soddy_li
 ```@raw html
 <img src="../assets/img/triangles/soddy.svg" alt="The three tangent circles, the inner Soddy circle and the Soddy line" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        base = collect(three_tangent_circles(t))
+        sc = soddy_circles(t)
+        sdl = soddy_line(t)
+        soddy_pts = [sc.inner.center, sc.outer.center]
+        inner = sc.inner
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue("gray80")
+    path(base, action=:stroke)
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(inner, action=:stroke)
+    path(sdl, action=:stroke, extend=30)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(soddy_pts, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 [`soddy_center`](@ref)`(t; outer=false)` is just the center of one of
 those two circles, as a point on its own (Kimberling X(176) for the
@@ -335,6 +841,41 @@ poncelet_point(t, APPoint(5.0, -2.0))
 <img src="../assets/img/triangles/poncelet.svg" alt="The nine-point circles of four triangles meeting at the Poncelet point" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=320 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        D = APPoint(5.0, -2.0)
+        tris = [APTriangle(A, B, C), APTriangle(A, B, D), APTriangle(B, C, D), APTriangle(C, A, D)]
+        npc = [nine_point_circle(x) for x in tris]
+        pp = poncelet_point(t, D)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(npc, action=:stroke)
+    sethue(julia_red)
+    label("D", :S, D)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([pp], action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([D], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ### The Thébault circles
 
 [`thebault_circles`](@ref) builds the two circles of the classical
@@ -359,6 +900,52 @@ is_on_line(incenter(t), APLine(th.near_b.center, th.near_c.center))
 ```@raw html
 <img src="../assets/img/triangles/thebault.svg" alt="The two Thébault circles and the line through their centers, which passes through the incenter" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        cc = circumcircle(t)
+        D = B + 0.4 * (C - B)
+        th = thebault_circles(t, D)
+        nb, nc = th.near_b, th.near_c
+        I = incenter(t)
+        lk = APLine(nb.center, nc.center)
+        cev = APSegment(A, D)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue("gray80")
+    path(cc, action=:stroke)
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(cev, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path([nb, nc], action=:stroke)
+    path(lk, action=:stroke, extend=30)
+    sethue(julia_red)
+    label("D", :S, D)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([I], action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([D], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ### Three tangent circles
 
@@ -405,6 +992,42 @@ length(van_lamoen_points(t))   # 6
 ```@raw html
 <img src="../assets/img/triangles/van_lamoen.svg" alt="The three medians and the Van Lamoen circle" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        vc = van_lamoen_circle(t)
+        vp = collect(van_lamoen_points(t))
+        meds = [APSegment(v, midpoint(w1, w2)) for (v, w1, w2) in ((A, B, C), (B, C, A), (C, A, B))]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue("gray80")
+    path(meds, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(vc, action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(vp, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ### The medial triangle
 
@@ -454,6 +1077,42 @@ feuerbach_points(t)
 ```@raw html
 <img src="../assets/img/triangles/feuerbach.svg" alt="The nine-point circle tangent to the incircle and the three excircles" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=360 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        np = nine_point_circle(t)
+        inc = incircle(t)
+        ex = excircles(t)
+        exc = [ex.A, ex.B, ex.C]
+        fp = feuerbach_point(t)
+        fps = collect(feuerbach_points(t))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue("gray80")
+    path([inc; exc], action=:stroke)
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(np, action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([fp; fps], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ### The Kiepert hyperbola and parabola
 

@@ -104,9 +104,10 @@ length(two_ticks), only(marks(s; style=:circle, size=2.0))
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
     styles = [:tick, :slash, :chevron, :cross, :circle]
-    lxm = @prepare_to_picture! flip=false width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
         segs = [APSegment(APPoint(4.0, 2.0 * (5 - i)), APPoint(10.0, 2.0 * (5 - i))) for i in 1:5]
         names = [APPoint(0.0, 2.0 * (5 - i)) for i in 1:5]
     end
@@ -114,7 +115,7 @@ length(two_ticks), only(marks(s; style=:circle, size=2.0))
 
     begin
     Drawing(lxm.width, lxm.height, :svg)
-    origin(); fontsize(15)
+    origin(); fontsize(14)
 
     sethue(julia_blue)
     path(segs, action=:stroke)
@@ -152,9 +153,10 @@ length(z_marks), all(x -> x isa APPolyline2, z_marks), length(s_marks), all(x ->
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
     styles = [:z, :s]
-    lxm = @prepare_to_picture! flip=false width=500 height=140 margin=20 begin
+    lxm = @prepare_to_picture! width=500 height=140 margin=20 begin
         segs = [APSegment(APPoint(4.0, 2.0 * (2 - i)), APPoint(10.0, 2.0 * (2 - i))) for i in 1:2]
         names = [APPoint(0.0, 2.0 * (2 - i)) for i in 1:2]
     end
@@ -162,7 +164,7 @@ length(z_marks), all(x -> x isa APPolyline2, z_marks), length(s_marks), all(x ->
 
     begin
     Drawing(lxm.width, lxm.height, :svg)
-    origin(); fontsize(15)
+    origin(); fontsize(14)
 
     sethue(julia_blue)
     path(segs, action=:stroke)
@@ -198,6 +200,7 @@ is_on_line(circ.center, APLine(tick.p1, tick.p2))
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
 
     lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
@@ -261,14 +264,15 @@ arcs = marks(ang; count=2, size=0.8, gap=0.3)
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    lxm = @prepare_to_picture! width=500 height=200 margin=20 begin
         angs = [APAngle2(
                     APPoint(8.0 * (i - 1), 0.0), 
                     APPoint(8.0 * (i - 1) + 6.0, 0.0), 
                     APPoint(8.0 * (i - 1) + 4.0, 4.0)) for i in 1:3]
-        rays = [APSegment(a.vertex, x) for a in angs for x in (a.a, a.b)] #for bb
+        rays = [APSegment(a.vertex, x) for a in angs for x in (a.a, a.b)]
     end
 
 
@@ -310,9 +314,10 @@ In the first panel `arcs=2` puts a tick across two arcs. The other five panels s
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
     styles = [:tick, :slash, :chevron, :cross, :circle]
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=20 begin  
         angs = [APAngle2(APPoint(8.0 * mod(i - 1, 3), -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 6.0, -6.0 * fld(i - 1, 3)), APPoint(8.0 * mod(i - 1, 3) + 4.0, 4.0 - 6.0 * fld(i - 1, 3))) for i in 1:6]
         rays = [APSegment(a.vertex, x) for a in angs for x in (a.a, a.b)]
     end
@@ -372,6 +377,7 @@ APQuadrilateral(right.vertex, poly.vertices...)
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
     lxm = @prepare_to_picture! width=500 height=200 margin=20 begin
         right = APAngle2(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(0.0, 6.0))

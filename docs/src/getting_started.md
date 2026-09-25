@@ -76,6 +76,7 @@ canvas and returns them in canvas coordinates, ready to draw:
 ```julia
 using Apollonius, Luxor
 import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
 
 lxm, lxo = @prepare_to_picture width=500 height=300 margin=30 begin
     t
@@ -101,6 +102,7 @@ The full version of this figure, with the vertices, the two centers and their la
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
     lxm = @prepare_to_picture! width=500 height=300 margin=30 begin
       A, B, C = APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(1.5, 4.0)

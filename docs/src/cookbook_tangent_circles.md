@@ -85,6 +85,43 @@ other_intersection(l, c, APPoint(-5.0, 0.0))
 <img src="../assets/img/circles/intersection_choice.svg" alt="Choosing the second point where a line meets a circle" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        c = APCircle2(APPoint(0.0, 0.0), 5.0)
+        l = APLine(APPoint(-5.0, 0.0), APPoint(0.0, 3.0))
+        known = APPoint(-5.0, 0.0)
+        other = other_intersection(l, c, known)
+        c2 = APCircle2(APPoint(6.0, 0.0), 5.0)
+        pts = intersection(c, c2)
+        ref = APPoint(3.0, 8.0)
+        chosen = nearest_point(pts, ref)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    sethue(julia_blue)
+    path([c, c2], action=:stroke)
+    path(l, action=:stroke, extend=40)
+    sethue(julia_purple)
+    sethue("gray80")
+    sethue(julia_red)
+    label("known", :NW, known); label("other", :N, other); label("p", :N, ref)
+    sethue("white"); path([known, ref], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([other, chosen], action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([p for p in pts if p != chosen], action=:fillpreserve); sethue("gray80"); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ### Circles that touch each other in a ring
 
 The three circles centered at the vertices of a triangle that touch pairwise

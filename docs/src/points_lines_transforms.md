@@ -73,6 +73,47 @@ APPoint(6.0, 8.0) in l, APPoint(10.0, 0.0) in r
 <img src="../assets/img/points_lines/direction_slope.svg" alt="A line with its direction vector, its slope angle and a point on it" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin
+        O = APPoint(0.0, 0.0)
+        A = APPoint(3.0, 4.0)
+        l = APLine(O, A)
+        d = APEquipollentVector(direction(l), O)
+        onl = APPoint(6.0, 8.0)
+        h = APSegment(O, APPoint(4.0, 0.0))
+        ang = APAngle2(O, APPoint(3.0, 0.0), A)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1)
+    sethue("gray80")
+    path(h, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(l, action=:stroke, extend=40)
+    sethue(julia_purple)
+    path(d; as=:arrow, action=:stroke)
+    path(marks(ang; size=40); action=:stroke)
+    sethue(julia_red)
+    label("53.13°", label_anchor(ang; dist=70)...)
+    label("direction(l)", :E, midpoint(O, A))
+    sethue("white"); path([O, A, onl], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ## Lengthening a line or segment
 
 [`extend_line`](@ref)`(l, before, after)` lengthens the line through
@@ -191,6 +232,59 @@ barycenter([P, Q, C], [1.0, 1.0, 2.0])   # weighted average of the three
 ```@raw html
 <img src="../assets/img/points_lines/rotation_homothety_translation.svg" alt="A triangle P, Q, C with its side midpoints, and the images of vertex C under a rotation, a homothety and a translation, labeled R, H and T, with the barycenter B and the rotation angle marked" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+    using Apollonius: rotate, translate, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(2.0, 6.0)
+        R = rotate(C, pi / 2, P)
+        angTR = APAngle2(P, C, R)
+        H = homothety(C, 2.0, P)
+        vecCT = APVector(1.0, -1.0)
+        T = translate(C, vecCT)
+        trian = APTriangle(P,Q,C)
+        B = barycenter(vertices(trian), [1.0, 1.0, 2.0])
+        m1, m2, m3 = midpoint.(sides(trian))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue("gray80")
+    path([APSegment(p,m) for (p,m) in zip([C,P,Q], [m1,m2,m3])], action = :stroke)
+    path(APTriangle(P, Q, C), action=:stroke)
+    sethue(julia_purple)
+    path(APLine(C,P), action=:stroke)
+    sethue(julia_blue)
+    path(APSegment(P,C), action=:stroke)
+    sethue(julia_purple)
+    path(APQuadrilateral(angTR.vertex, only(marks(angTR; style=:parallelogram)).vertices...), action=:fill)
+    path(APSegment(P,R), action=:stroke)
+    path(APEquipollentVector(vecCT, C), action=:stroke, as=:arrow)
+    sethue(julia_red)
+    label("Q", :E ,Q)
+    label("P", :SE ,P)
+    label("C", :NW ,C)
+    label("R", :W ,R)
+    label("H", :SE ,H)
+    label("T", :SE ,T)
+    label("B", :W ,B)
+    sethue("white"); path(P, action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([C,Q], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([R,H,T,B], action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([m1,m2,m3], action=:fillpreserve); sethue("gray80"); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 
 ## Parallels, perpendiculars and bisectors

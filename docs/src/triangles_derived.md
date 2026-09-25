@@ -54,6 +54,37 @@ distance(t[1], rt[1]) ≈ 2 * distance(t[1], oh[1])   # reflecting doubles the p
 <img src="../assets/img/triangles/derived_medial.svg" alt="The medial and orthic triangles" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        mt = medial_triangle(t)
+        ot = orthic_triangle(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path([mt, ot], action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(vertices(mt), action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path(vertices(ot), action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@example geo
 ct = contact_triangle(t)        # incircle touch points
 et = extouch_triangle(t)        # excircle touch points
@@ -66,9 +97,70 @@ is_on_line(circumcenter(t), APLine(t[1], tt[1])) == false   # circumcenter isn't
 <img src="../assets/img/triangles/derived_touch.svg" alt="The contact and extouch triangles" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        ct = contact_triangle(t)
+        et = extouch_triangle(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path([ct, et], action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(vertices(ct), action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path(vertices(et), action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@raw html
 <img src="../assets/img/triangles/derived_outer.svg" alt="The tangential, excentral and reflection triangles" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        tt = tangential_triangle(t)
+        xt = excentral_triangle(t)
+        rt = reflection_triangle(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path([tt, xt, rt], action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ```@example geo
 np_tri = napoleon_triangle(t)          # always equilateral (Napoleon's theorem)
@@ -85,6 +177,35 @@ distance(mor[1], mor[2]) ≈ distance(mor[2], mor[3]) ≈ distance(mor[3], mor[1
 <img src="../assets/img/triangles/derived_equilateral.svg" alt="The Napoleon and Morley triangles, both equilateral" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        np_tri = napoleon_triangle(t)
+        mor = morley_triangle(t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path([np_tri, mor], action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@example geo
 cev = cevian_triangle(t, incenter(t))            # feet of the cevians through the incenter
 ccev = circumcevian_triangle(t, incenter(t))     # same cevians, extended to the circumcircle
@@ -94,6 +215,48 @@ is_on_segment(cev[1], APSegment(t[2], t[3])), is_on_line(ccev[1], APLine(t[1], i
 ```@raw html
 <img src="../assets/img/triangles/derived_cevian.svg" alt="The cevian triangle and circumcevian triangle of the incenter" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+        A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+        t = APTriangle(A, B, C)
+        cc = circumcircle(t)
+        I = incenter(t)
+        cev = cevian_triangle(t, I)
+        ccev = circumcevian_triangle(t, I)
+        segs = [APSegment(v, w) for (v, w) in zip((A, B, C), vertices(ccev))]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue("gray80")
+    path(cc, action=:stroke)
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(segs, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path([cev, ccev], action=:stroke)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(vertices(cev), action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path(vertices(ccev), action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([I], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ### A triangle around a circle
 

@@ -46,6 +46,7 @@ ct = contact_triangle(t)     # its vertices are the touch points, opposite A, B 
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
 
     lxm = @prepare_to_picture! width=500 height=320 margin=30 begin
@@ -168,6 +169,7 @@ G2 = centroid(lxo.t)
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
 
     lxm = @prepare_to_picture! width=500 height=320 margin=30 begin

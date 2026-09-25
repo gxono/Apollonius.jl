@@ -32,6 +32,35 @@ regular_polygon(APPoint(0.0, 0.0), APPoint(1.0, 0.0), 6)  # a regular hexagon
 <img src="../assets/img/polygons/pol_nam.svg" alt="A parallelogram, a square, a rectangle, and a regular hexagon, each built by a named constructor" style="width:100%;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        a, b, c = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(5.0, 2.0)
+        d = APPoint(1.0, 0.0)
+        pa = parallelogram(a, b, c)
+        ps = square_on_segment(a, b)
+        pr = rectangle_on_segment(a, b, 2.0)
+        pp = regular_polygon(a, d, 6)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_purple)
+    path([pa, ps, pr, pp], action=:stroke)
+    sethue("white"); path([a, b, c, d], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 `square_on_segment` and `rectangle_on_segment` both take a `ccw` keyword
 (default `true`) to build on the other side of `[a,b]` instead, useful
 when the side you're extending from is itself part of a larger polygon and
@@ -69,9 +98,67 @@ area(sd), area(rectangle_with_center(APPoint(1.0, 1.0), 4.0, 2.0; angle=pi / 6))
 <img src="../assets/img/polygons/on_segment_family.svg" alt="A regular pentagon, hexagon and triangle built on segments, and a pentagram" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=220 margin=30 begin
+        pent = regular_polygon_on_segment(APPoint(0.0, 0.0), APPoint(3.0, 0.0), 5)
+        hexa = regular_polygon_on_segment(APPoint(7.0, 0.0), APPoint(10.0, 0.0), 6)
+        tri = regular_polygon_on_segment(APPoint(13.0, 0.0), APPoint(16.0, 0.0), 3; ccw=false)
+        star = star_polygon(APPoint(20.0, 2.0), APPoint(20.0, 4.0), 5, 2)
+        bases = [APSegment(APPoint(0.0, 0.0), APPoint(3.0, 0.0)), APSegment(APPoint(7.0, 0.0), APPoint(10.0, 0.0)), APSegment(APPoint(13.0, 0.0), APPoint(16.0, 0.0))]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(bases, action=:stroke)
+    sethue(julia_purple)
+    path([pent, hexa, tri, star], action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@raw html
 <img src="../assets/img/polygons/quad_family.svg" alt="A rhombus, a square, a rectangle, an isosceles trapezoid, a right trapezoid, a kite and a turned rectangle" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=320 margin=30 begin
+        rh = rhombus_on_segment(APPoint(0.0, 0.0), APPoint(3.0, 0.0), pi / 3)
+        sq = square_from_diagonal(APPoint(5.0, 0.0), APPoint(8.0, 3.0))
+        re = rectangle_from_diagonal(APPoint(10.0, 0.0), APPoint(15.0, 3.0), 0.5)
+        it = isosceles_trapezoid_on_segment(APPoint(0.0, -5.0), APPoint(4.0, -5.0), 2.0, 2.5)
+        rt = right_trapezoid_on_segment(APPoint(6.0, -5.0), APPoint(10.0, -5.0), 2.0, 2.5)
+        kt = kite_on_diagonal(APPoint(13.0, -5.0), APPoint(13.0, -1.0), 0.6, 1.5)
+        rc = rectangle_with_center(APPoint(16.5, -3.0), 3.0, 1.5; angle=0.6)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_purple)
+    path([rh, sq, re, it, rt, kt, rc], action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
 
 
 ## Quadrilaterals

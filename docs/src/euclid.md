@@ -82,6 +82,71 @@ meets the circle around `D` at a single point, which is `L`.
 <img src="../assets/img/euclid/i2.svg" alt="The segment BC, the equilateral triangle ABD, and the segment AL equal to BC found with two compass arcs" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    circ(center, through) = APCircle2(center, distance(center, through))
+    far(points, from) = argmax(p -> distance(p, from), points)
+    equilateral(A, B; left=true) = (pts = intersection(circ(A, B), circ(B, A)); left ? first(pts) : last(pts))
+    function bisect(V, P, Q)
+        r = min(distance(V, P), distance(V, Q)) / 2
+        D = only(intersection(APCircle2(V, r), APSegment(V, P)))
+        E = only(intersection(APCircle2(V, r), APSegment(V, Q)))
+        F = far(intersection(circ(D, E), circ(E, D)), V)
+        return APLine(V, F)
+    end
+    A, B, C = APPoint(1.0, 4.0), APPoint(6.0, 1.0), APPoint(9.0, 3.0)
+    D = equilateral(A, B)
+    G = far(intersection(APRay(D, B), circ(B, C)), D)
+    L = only(intersection(APRay(D, A), circ(D, G)))
+    BC = APSegment(B, C); AL = APSegment(A, L)
+    aids = [APSegment(D, G), APSegment(D, L), APSegment(A, D), APSegment(D, B), APSegment(A, B)]
+    traces = [compass_trace(B, G; angle=pi / 5), compass_trace(D, L; angle=pi / 6)]
+
+    lxm = @prepare_to_picture! width=500 height=320 margin=30 begin  
+        A
+        B
+        C
+        D
+        G
+        L
+        BC
+        AL
+        aids
+        traces
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(aids, action=:stroke)
+    setdash("solid")
+    path(traces, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(BC, action=:stroke)
+    sethue(julia_green)
+    sethue(julia_purple)
+    path(AL, action=:stroke)
+    sethue(julia_red)
+    label("A", :NW, A); label("B", :S, B); label("C", :E, C); label("D", :N, D); label("G", :S, G); label("L", :W, L)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([D, G], action=:fillpreserve); sethue(julia_green); strokepath()
+    sethue("white"); path([L], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ## I.3: cut off a segment equal to a shorter one
 
 From the longer segment `AB`, cut off a piece equal to `CD`. This is one step of
@@ -123,6 +188,72 @@ vertex. This function is reused in the rest of the page.
 <img src="../assets/img/euclid/i9.svg" alt="An angle at A with points D and E at the same distance, the equilateral triangle DEF and the bisector AF" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    circ(center, through) = APCircle2(center, distance(center, through))
+    far(points, from) = argmax(p -> distance(p, from), points)
+    equilateral(A, B; left=true) = (pts = intersection(circ(A, B), circ(B, A)); left ? first(pts) : last(pts))
+    function bisect(V, P, Q)
+        r = min(distance(V, P), distance(V, Q)) / 2
+        D = only(intersection(APCircle2(V, r), APSegment(V, P)))
+        E = only(intersection(APCircle2(V, r), APSegment(V, Q)))
+        F = far(intersection(circ(D, E), circ(E, D)), V)
+        return APLine(V, F)
+    end
+    A, B, C = APPoint(0.0, 0.0), APPoint(7.0, 1.0), APPoint(2.0, 6.0)
+    r = min(distance(A, B), distance(A, C)) / 2
+    D = only(intersection(APCircle2(A, r), APSegment(A, B)))
+    E = only(intersection(APCircle2(A, r), APSegment(A, C)))
+    F = far(intersection(circ(D, E), circ(E, D)), A)
+    rays = [APSegment(A, B), APSegment(A, C)]
+    bis = APSegment(A, F)
+    aids = [APSegment(D, E), APSegment(D, F), APSegment(E, F)]
+    traces = [APCircularArc2(circ(A, D), D, E), compass_trace(D, F; angle=pi / 6), compass_trace(E, F; angle=pi / 6)]
+
+    lxm = @prepare_to_picture! width=500 height=320 margin=30 begin  
+        A
+        B
+        C
+        D
+        E
+        F
+        rays
+        bis
+        aids
+        traces
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(aids, action=:stroke)
+    setdash("solid")
+    path(traces, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(rays, action=:stroke)
+    sethue(julia_green)
+    sethue(julia_purple)
+    path(bis, action=:stroke)
+    sethue(julia_red)
+    label("A", :SW, A); label("B", :E, B); label("C", :N, C); label("D", :S, D); label("E", :W, E); label("F", :N, F)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([D, E, F], action=:fillpreserve); sethue(julia_green); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 The package has this as [`angle_bisectors`](@ref), and as
 [`bisector_construction`](@ref) when you want the traces.
 
@@ -142,6 +273,69 @@ M ≈ midpoint(A, B)
 <img src="../assets/img/euclid/i10.svg" alt="A segment AB, the equilateral triangle ABC on it and the bisector CM meeting AB at its midpoint M" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    circ(center, through) = APCircle2(center, distance(center, through))
+    far(points, from) = argmax(p -> distance(p, from), points)
+    equilateral(A, B; left=true) = (pts = intersection(circ(A, B), circ(B, A)); left ? first(pts) : last(pts))
+    function bisect(V, P, Q)
+        r = min(distance(V, P), distance(V, Q)) / 2
+        D = only(intersection(APCircle2(V, r), APSegment(V, P)))
+        E = only(intersection(APCircle2(V, r), APSegment(V, Q)))
+        F = far(intersection(circ(D, E), circ(E, D)), V)
+        return APLine(V, F)
+    end
+    A, B = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
+    C = equilateral(A, B)
+    M = only(intersection(bisect(C, A, B), APSegment(A, B)))
+    AB = APSegment(A, B)
+    aids = [APSegment(A, C), APSegment(B, C)]
+    traces = [compass_trace(A, C; angle=pi / 6), compass_trace(B, C; angle=pi / 6)]
+    cm = APSegment(C, M)
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A
+        B
+        C
+        M
+        AB
+        aids
+        traces
+        cm
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(aids, action=:stroke)
+    setdash("solid")
+    path(traces, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(AB, action=:stroke)
+    sethue(julia_green)
+    sethue(julia_purple)
+    path(cm, action=:stroke)
+    sethue(julia_red)
+    label("A", :SW, A); label("B", :SE, B); label("C", :N, C); label("M", :S, M)
+    sethue("white"); path([A, B], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([C], action=:fillpreserve); sethue(julia_green); strokepath()
+    sethue("white"); path([M], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ## I.11: a perpendicular to a line at a point on it
 
 Mark `D` and `E` on the line on each side of `C` at the same distance (I.3).
@@ -159,6 +353,70 @@ is_perpendicular(APLine(C, F), APLine(A, B))
 ```@raw html
 <img src="../assets/img/euclid/i11.svg" alt="A line with a point C, the points D and E on either side, the equilateral triangle DEF and the perpendicular CF" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    circ(center, through) = APCircle2(center, distance(center, through))
+    far(points, from) = argmax(p -> distance(p, from), points)
+    equilateral(A, B; left=true) = (pts = intersection(circ(A, B), circ(B, A)); left ? first(pts) : last(pts))
+    function bisect(V, P, Q)
+        r = min(distance(V, P), distance(V, Q)) / 2
+        D = only(intersection(APCircle2(V, r), APSegment(V, P)))
+        E = only(intersection(APCircle2(V, r), APSegment(V, Q)))
+        F = far(intersection(circ(D, E), circ(E, D)), V)
+        return APLine(V, F)
+    end
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 0.0)
+    D, E = intersection(APCircle2(C, 2.0), APLine(A, B))
+    F = equilateral(D, E)
+    AB = APSegment(A, B)
+    aids = [APSegment(D, F), APSegment(E, F)]
+    traces = [compass_trace(C, D; angle=pi / 4), compass_trace(C, E; angle=pi / 4), compass_trace(D, F; angle=pi / 6), compass_trace(E, F; angle=pi / 6)]
+    cf = APSegment(C, F)
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+        A
+        B
+        C
+        D
+        E
+        F
+        AB
+        aids
+        traces
+        cf
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(aids, action=:stroke)
+    setdash("solid")
+    path(traces, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(AB, action=:stroke)
+    sethue(julia_green)
+    sethue(julia_purple)
+    path(cf, action=:stroke)
+    sethue(julia_red)
+    label("A", :SW, A); label("B", :SE, B); label("C", :S, C); label("D", :S, D); label("E", :S, E); label("F", :N, F)
+    sethue("white"); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([D, E, F], action=:fillpreserve); sethue(julia_green); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ## I.12: a perpendicular to a line from a point not on it
 
@@ -180,6 +438,74 @@ same foot directly.
 ```@raw html
 <img src="../assets/img/euclid/i12.svg" alt="A line, a point C above it, the circle around C that cuts the line at E and G, and the perpendicular CH" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    circ(center, through) = APCircle2(center, distance(center, through))
+    far(points, from) = argmax(p -> distance(p, from), points)
+    equilateral(A, B; left=true) = (pts = intersection(circ(A, B), circ(B, A)); left ? first(pts) : last(pts))
+    function bisect(V, P, Q)
+        r = min(distance(V, P), distance(V, Q)) / 2
+        D = only(intersection(APCircle2(V, r), APSegment(V, P)))
+        E = only(intersection(APCircle2(V, r), APSegment(V, Q)))
+        F = far(intersection(circ(D, E), circ(E, D)), V)
+        return APLine(V, F)
+    end
+    A, B, C, D = APPoint(-3.0, 0.0), APPoint(9.0, 0.0), APPoint(3.0, 4.0), APPoint(5.0, -2.0)
+    E, G = intersection(circ(C, D), APLine(A, B))
+    K = equilateral(E, G)
+    H = only(intersection(bisect(K, E, G), APSegment(E, G)))
+    AB = APSegment(A, B)
+    aids = [APSegment(E, K), APSegment(G, K)]
+    traces = [compass_trace(C, D; angle=pi / 3), compass_trace(C, E; angle=pi / 8), compass_trace(C, G; angle=pi / 8), compass_trace(E, K; angle=pi / 6), compass_trace(G, K; angle=pi / 6)]
+    ch = APSegment(C, H)
+
+    lxm = @prepare_to_picture! width=500 height=320 margin=30 begin  
+        A
+        B
+        C
+        D
+        E
+        G
+        K
+        H
+        AB
+        aids
+        traces
+        ch
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(aids, action=:stroke)
+    setdash("solid")
+    path(traces, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(AB, action=:stroke)
+    sethue(julia_green)
+    sethue(julia_purple)
+    path(ch, action=:stroke)
+    sethue(julia_red)
+    label("C", :N, C); label("D", :S, D); label("E", :SW, E); label("G", :SE, G); label("H", :SE, H); label("K", :S, K)
+    sethue("white"); path([A, B, C, D], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([E, G, K], action=:fillpreserve); sethue(julia_green); strokepath()
+    sethue("white"); path([H], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ## I.23: copy an angle onto a line at a point
 
@@ -204,6 +530,80 @@ of `AB`, so the copy has the same orientation.
 <img src="../assets/img/euclid/i23.svg" alt="An angle BAC and a ray DE, and the angle at D copied onto the ray with the compass" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    circ(center, through) = APCircle2(center, distance(center, through))
+    far(points, from) = argmax(p -> distance(p, from), points)
+    equilateral(A, B; left=true) = (pts = intersection(circ(A, B), circ(B, A)); left ? first(pts) : last(pts))
+    function bisect(V, P, Q)
+        r = min(distance(V, P), distance(V, Q)) / 2
+        D = only(intersection(APCircle2(V, r), APSegment(V, P)))
+        E = only(intersection(APCircle2(V, r), APSegment(V, Q)))
+        F = far(intersection(circ(D, E), circ(E, D)), V)
+        return APLine(V, F)
+    end
+    A, B, C = APPoint(0.0, 0.0), APPoint(6.0, 1.0), APPoint(2.0, 5.0)
+    D, E = APPoint(10.0, 0.0), APPoint(16.0, -1.0)
+    X, Y = A + 0.6 * (B - A), A + 0.6 * (C - A)
+    E2 = only(intersection(APCircle2(D, distance(A, X)), APRay(D, E)))
+    F = first(intersection(APCircle2(D, distance(A, Y)), APCircle2(E2, distance(X, Y))))
+    given = [APSegment(A, B), APSegment(A, C), APSegment(D, E)]
+    aids = [APSegment(X, Y), APSegment(E2, F)]
+    traces = [compass_trace(D, E2; angle=pi / 6), compass_trace(D, F; angle=pi / 6), compass_trace(E2, F; angle=pi / 6)]
+    dup = APSegment(D, F)
+    angs = [APAngle2(A, B, C), APAngle2(D, E2, F)]
+
+    lxm = @prepare_to_picture! width=560 height=300 margin=30 begin  
+        A
+        B
+        C
+        D
+        E
+        X
+        Y
+        E2
+        F
+        given
+        aids
+        traces
+        dup
+        angs
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(aids, action=:stroke)
+    setdash("solid")
+    path(traces, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(given, action=:stroke)
+    sethue(julia_green)
+    sethue(julia_purple)
+    path(dup, action=:stroke)
+    path(marks(angs[1]; size=40); action=:stroke)
+    path(marks(angs[2]; size=40); action=:stroke)
+    sethue(julia_red)
+    label("A", :SW, A); label("B", :E, B); label("C", :N, C); label("D", :SW, D); label("E", :E, E); label("F", :N, F)
+    sethue("white"); path([A, B, C, D, E], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([X, Y, E2], action=:fillpreserve); sethue(julia_green); strokepath()
+    sethue("white"); path([F], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ## I.47: the theorem of Pythagoras
 
 In a right triangle, the square on the side opposite the right angle equals the
@@ -220,6 +620,42 @@ area(sq(A, B)), area(sq(C, A)), area(sq(B, C)), area(sq(A, B)) + area(sq(C, A)) 
 ```@raw html
 <img src="../assets/img/euclid/i47.svg" alt="A right triangle with the three squares on its sides, with areas 16, 9 and 25" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    A, B, C = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 3.0)
+    t = APTriangle(A, B, C)
+    sqs = [square_on_segment(A, B; ccw=false), square_on_segment(B, C; ccw=false), square_on_segment(C, A; ccw=false)]
+    labs = [centroid(s) for s in sqs]
+
+    lxm = @prepare_to_picture! width=520 height=360 margin=30 begin  
+        t
+        sqs
+        labs
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple)
+    path(sqs, action=:stroke)
+    sethue(julia_red)
+    for (n, p) in zip(("16", "25", "9"), labs)
+        Luxor.text(n, Luxor.Point(p[1], p[2]); halign=:center, valign=:middle)
+    end
+
+    finish()
+    preview()
+    end
+    ```
 
 ## The shorter way
 

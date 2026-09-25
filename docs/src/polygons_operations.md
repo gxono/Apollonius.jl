@@ -59,6 +59,48 @@ homothety(pg, 2.0)
 <img src="../assets/img/polygons/pol_rothom.svg" alt="A quadrilateral with its images under a rotation and under a homothety, and the rotation angle marked" style="width:100%;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        pg = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 3.0), APPoint(1.0, 3.0)])
+        pr = rotate(pg, pi / 4, centroid(pg))
+        ph = homothety(pg, 2.0)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    gsave()
+    sethue(julia_green)
+    setdash(:dash)
+    setline(1)
+    path(APSegment(pg.vertices[1], ph.vertices[3]), action=:stroke)
+    path(APSegment(pg.vertices[2], centroid(pg)), action=:stroke)
+    path(APSegment(pr.vertices[2], centroid(pg)), action=:stroke)
+    path(APCircularSector2(only(marks(APAngle2(centroid(pg), pr.vertices[2], pg.vertices[2]); size=15))),
+        action=:fill)
+    grestore()
+    sethue(julia_purple)
+    path(ph, action=:stroke)
+    path(pr, action=:stroke)
+    sethue(julia_blue)
+    path(pg, action=:stroke)
+    path(centroid(pg))
+    path(vertices(ph))
+    sethue("white"); path(vertices(pg), action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path(vertices(pr), action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ## Distance to a polygon
 
 [`distance`](@ref)`(p, pg)` works the same way for every [`APPolygon`](@ref)

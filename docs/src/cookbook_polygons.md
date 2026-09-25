@@ -33,6 +33,40 @@ area(square_on_segment(A, B)), area(rectangle_on_segment(A, B, 2.0))
 <img src="../assets/img/cookbook/on_segment_shapes.svg" alt="A regular triangle, a square and a rectangle built on segments" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=220 margin=30 begin
+        eq = equilateral_triangle_on_segment(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
+        sq = square_on_segment(APPoint(6.0, 0.0), APPoint(10.0, 0.0))
+        rc = rectangle_on_segment(APPoint(12.0, 0.0), APPoint(16.0, 0.0), 2.0)
+        bases = [APSegment(APPoint(0.0, 0.0), APPoint(4.0, 0.0)), APSegment(APPoint(6.0, 0.0), APPoint(10.0, 0.0)), APSegment(APPoint(12.0, 0.0), APPoint(16.0, 0.0))]
+        labs = [APPoint(2.0, -1.0), APPoint(8.0, -1.0), APPoint(14.0, -1.0)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_purple)
+    path([eq, sq, rc], action=:stroke)
+    sethue(julia_blue)
+    path(bases, action=:stroke)
+    sethue(julia_red)
+    for (n, p) in zip(("equilateral triangle", "square", "rectangle"), labs)
+        label(n, :S, p)
+    end
+    sethue("white"); path(vcat([[b.p1, b.p2] for b in bases]...), action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ### The convex hull of some points
 
 ```@example geo

@@ -32,6 +32,44 @@ by_diameter.r, by_point.r
 <img src="../assets/img/circles/circle_diameter.svg" alt="A segment, the circle that has it as a diameter, and a point of the circle that sees the segment under a right angle" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=280 margin=30 begin  
+        d = APSegment(APPoint(0.0, 0.0), APPoint(6.0, 2.0))
+        c = circle_with_diameter(d)
+        p = point_on(c, 1.0)
+        legs = [APSegment(p, d.p1), APSegment(p, d.p2)]
+        ang = APAngle2(p, d.p1, d.p2)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(legs, action=:stroke)
+    grestore()
+    sethue(julia_blue)
+    path(d, action=:stroke)
+    sethue(julia_purple)
+    path(c, action=:stroke)
+    path(only(marks(APAngle2(p, d.p1, d.p2); style=:parallelogram, size=14)); action=:stroke)
+    sethue(julia_red)
+    label("center", :S, c.center); label("p", :N, p)
+    sethue("white"); path([d.p1, d.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([c.center, p], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ### Where a line or two circles meet
 
 ```@example geo
@@ -80,6 +118,48 @@ radical_axis(c1, c2)
 ```@raw html
 <img src="../assets/img/circles/circle_radical.svg" alt="Two circles and their radical axis" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
+        c2 = APCircle2(APPoint(8.0, 0.0), 2.0)
+        c3 = APCircle2(APPoint(3.0, 6.0), 4.0)
+        ra1 = radical_axis(c1, c2)
+        ra2 = radical_axis(c2, c3)
+        ra3 = radical_axis(c3, c1)
+        rc = radical_center(c1, c2, c3)
+        rcirc = radical_circle(c1, c2, c3)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue("gray80")
+    setdash(:dash)
+    path(APSegment(c1.center, c3.center), action=:stroke)
+    path(APSegment(c2.center, c3.center), action=:stroke)
+    path([ra2, ra3], action=:stroke)
+    sethue(julia_purple)
+    path(APSegment(c1.center, c2.center), action=:stroke)
+    setdash(:solid)
+    sethue(julia_blue)
+    path([c1,c2,c3], action=:stroke)
+    sethue(julia_purple)
+    path(rcirc, action=:stroke)
+    path(ra1, action=:stroke)
+    sethue("white"); path(rc, action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([c1.center, c2.center, c3.center], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 The line through the two points where the circles cross, when they do.
 

@@ -110,7 +110,7 @@ APRay(p0, -pi / 2), APSegment(p0, APVector(3.0, 0.0)), APSegment(p0, 5.0, pi / 3
     using Apollonius
     using Luxor
     import Apollonius: midpoint
-    import Luxor: julia_blue, julia_purple
+    import Luxor: julia_red, julia_blue, julia_purple
 
     lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
         p = APPoint(-1.0, -1.0)
@@ -133,7 +133,6 @@ APRay(p0, -pi / 2), APSegment(p0, APVector(3.0, 0.0)), APSegment(p0, 5.0, pi / 3
     begin
     Drawing(lxm.width, lxm.height, :svg)
     origin(); fontsize(15)
-    fontsize(15)
 
     arc_seg = only(marks(ang_seg; size=50))
     arc_ray = only(marks(ang_ray; size=50))
@@ -288,6 +287,64 @@ polar_point_deg(4.0, 40.0, APPoint(2.0, 1.0))   # the same, around another cente
 <img src="../assets/img/points_lines/polar.svg" alt="A point at distance 4 and angle 40 degrees from a center" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+        O = APPoint(0.0, 0.0)
+        B = polar_point_deg(4.0, 40.0)
+        radio = APSegment(O, B)
+        xaxis = APSegment(O, APPoint(5.0, 0.0))
+        ang = APAngle2(O, APPoint(4.0, 0.0), B)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    @layer begin
+        sethue(julia_green); setdash(:dash); setline(1)
+        path(radio, action=:stroke)
+    end
+
+    arc = only(marks(ang))
+    radioBrace = APDecorationBrace2(O, B)
+    @layer begin
+        sethue(julia_blue); setopacity(0.5)
+        path(APCircularSector2(arc), action=:fill)
+
+        setopacity(1)
+        path(arc, action=:stroke)
+        path(radioBrace, action=:stroke)
+    end
+
+    @layer begin
+        setline(1); setdash(:dash); sethue("gray80")
+        path(xaxis, action=:stroke)
+    end
+
+
+    sethue(julia_red)
+    label("40°", label_anchor(ang; dist=50)...)
+    text("r = 4", vertices(radioBrace)[2], direction=B-O, halign=:center)
+
+    sethue("white")
+    path(B, action=:fillpreserve)
+    sethue(julia_purple); strokepath()
+
+    sethue("white")
+    path(O, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 This is exactly the point/angle/modulus relationship [`slope_angle`](@ref)
 and [`distance`](@ref) give you the other way around:
 `polar_point(distance(O, p), slope_angle(APLine(O, p)), O)` recovers `p`
@@ -318,6 +375,46 @@ point_on(c, 0.0), point_on(c, pi / 2)
 ```@raw html
 <img src="../assets/img/points_lines/by_parameter.svg" alt="Points of a line at several parameters and points of a circle at several angles" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=300 margin=30 begin
+        p0 = APPoint(0.0, 0.0)
+        p1 = APPoint(4.0, 0.0)
+        l = APLine(p0, p1)
+        seg = APSegment(point_on(l, -0.5), point_on(l, 1.5))
+        tpts = [point_on(l, t) for t in (-0.5, 0.0, 0.5, 1.0, 1.5)]
+        c = APCircle2(APPoint(2.0, -4.0), 2.0)
+        apts = [point_on(c, a) for a in (0.0, pi / 4, pi / 2, pi)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+
+    sethue(julia_blue)
+    path([seg, c], action=:stroke)
+    sethue(julia_purple)
+    sethue(julia_red)
+    for (t, p) in zip((-0.5, 0.0, 0.5, 1.0, 1.5), tpts)
+        label("t = $t", :N, p)
+    end
+    for (a, al, p) in zip(("0", "π/4", "π/2", "π"), (:E, :NE, :N, :W), apts)
+        label(a, al, p)
+    end
+    sethue("white"); path([p0, p1], action=:fillpreserve); sethue(julia_blue); strokepath()
+    sethue("white"); path([tpts[1], tpts[3], tpts[5]], action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path(apts, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
 
 ## By distance, by ratio and evenly spaced
 

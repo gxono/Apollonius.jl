@@ -30,6 +30,47 @@ typeof(conic_with_focus(fc, dc, 0.5)), typeof(conic_with_focus(fc, dc, 1.0)), ty
 <img src="../assets/img/conics/focus_directrix.svg" alt="An ellipse, a parabola and a hyperbola with the same focus and directrix" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=560 height=240 margin=20 begin
+        F = APPoint(0.0, 0.0)
+        dl = APSegment(APPoint(4.0, -5.0), APPoint(4.0, 5.0))
+        d = APLine(dl.p1, dl.p2)
+        ell = conic_with_focus(F, d, 0.5)
+        par = conic_with_focus(F, d, 1.0)
+        hyp = conic_with_focus(F, d, 2.0)
+        parc = APParabolicArc2(par, point_on(par, -6.0), point_on(par, 6.0))
+        harc = APHyperbolicArc2(hyp, point_on(hyp, -1.1; branch=-1), point_on(hyp, 1.1; branch=-1))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    sethue(julia_blue)
+    path(dl, action=:stroke)
+    sethue(julia_purple)
+    path([ell, parc, harc], action=:stroke)
+    sethue(julia_red)
+    label("F", :W, F, offset=8)
+    label("e = 1", :N, parc.p1)
+    label("e = 2", :S, harc.p1)
+    text("directrix", dl.p2 + APVector(5.0,0.0), angle=pi/2)
+    label("e = 0.5", :W, point_on(ell, pi), offset=8)
+
+    sethue("white")
+    path(F, action=:fillpreserve)
+    sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 **An ellipse from a center, a vertex and a point.** [`ellipse_with_axis`](@ref)`(center,
 vertex, p)` has the segment from the center to the vertex as a semi-axis, and
 passes through `p`. The point must be off the axis and inside the strip of the

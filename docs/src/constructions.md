@@ -66,8 +66,9 @@ Three of the other builders side by side: `arc_with_measure` starts at the point
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=30 begin  
+    lxm = @prepare_to_picture! width=500 height=200 margin=45 begin  
         O1, P1 = APPoint(0.0, 0.0), APPoint(3.0, 0.0)
         aux = reflection(P1, O1)
         O2, P2 = APPoint(8.0, 0.0), APPoint(11.0, 0.0)
@@ -126,8 +127,9 @@ distance(A, C) ≈ r, distance(B, C) ≈ r
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=30 begin  
         A, B = APPoint(0.0, 0.0), APPoint(6.0, 0.0)
         C = argmax(p -> p[2], intersection(APCircle2(A, 6.0), APCircle2(B, 6.0)))
         cA, cB = APCircle2(A, 6.0), APCircle2(B, 6.0)
@@ -225,8 +227,9 @@ isapprox(m.result, perpendicular_bisector(a, b); atol=1e-9), length(m.arcs)
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=30 begin  
         a, b = APPoint(0.0, 0.0), APPoint(6.0, 2.0)
         extent = mediator_construction(a, b; sweep=pi / 4).arcs
     end
@@ -282,8 +285,9 @@ is_perpendicular(perp.result, l), is_parallel(par.result, l), is_on_line(q, par.
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=30 begin  
         A, B, p = APPoint(0.0, 0.0), APPoint(8.0, 1.0), APPoint(3.0, 4.0)
         extent = perpendicular_construction(APLine(A, B), p; sweep=pi / 4).arcs
     end
@@ -332,8 +336,9 @@ The parallel is a rhombus: `A`, `D`, `E` and the point, with the parallel throug
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=40 begin  
         A, B, p = APPoint(0.0, 0.0), APPoint(8.0, 1.0), APPoint(2.0, 4.0)
         extent = parallel_construction(APLine(A, B), p; sweep=pi / 4).arcs
     end
@@ -389,8 +394,9 @@ result is the same kind of line.
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=30 begin  
         A, B, p = APPoint(0.0, 0.0), APPoint(8.0, 2.0), APPoint(4.0, 1.0)
         extent = perpendicular_construction(APLine(A, B), p; sweep=pi / 4).arcs
     end
@@ -442,8 +448,9 @@ angle_measure_at(v, p1, y) ≈ angle_measure_at(v, y, p2)
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
-    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin  
+    lxm = @prepare_to_picture! width=500 height=280 margin=30 begin
         v, p1, p2 = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
         extent = bisector_construction(v, p1, p2; sweep=pi / 4).arcs
     end

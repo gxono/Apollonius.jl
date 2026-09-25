@@ -59,6 +59,7 @@ intersection(l, circumcircle(t))
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
     lxm = @prepare_to_picture! width=500 height=320 margin=30 begin
         a, b, c = APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(1.0, 4.0)
@@ -124,6 +125,7 @@ one radius dashed in:
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
 
     lxm, lxo = @prepare_to_picture width=500 height=320 margin=20 begin

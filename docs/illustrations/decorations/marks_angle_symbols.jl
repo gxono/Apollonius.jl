@@ -9,7 +9,6 @@ end
 sethue(julia_blue)
 path(rays, action=:stroke)
 sethue(julia_purple)
-# two arcs and a tick that crosses both
 path(marks(angs[1]; style=:tick, arcs=2, size=26, gap=6); action=:stroke)
 for (a, style) in zip(angs[2:end], styles)
     path(marks(a; count=2, style=style, size=36, mark_size=16, gap=13); action=:stroke)

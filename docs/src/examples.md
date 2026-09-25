@@ -29,6 +29,7 @@ for the friendliest possible case.
 ```julia
 using Apollonius, Luxor
 import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
 
 const COLORS = (julia_red, julia_blue, julia_green, julia_purple)
 
@@ -83,6 +84,7 @@ append!(all_circles, (cr, cp, cg))
     ```julia
     using Apollonius, Luxor
     import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
 
     const COLORS = (julia_red, julia_blue, julia_green, julia_purple)
 
