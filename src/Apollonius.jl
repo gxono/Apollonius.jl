@@ -29,12 +29,15 @@ include("ap_transform.jl")
 export APAffineMap
 include("ap_unbounded_polygon.jl")
 export APUnboundedPolygon2
+include("ap_conic_ray.jl")
+export APParabolicRay2, APHyperbolicRay2, APHyperbolaBranch2
 include("ap_predicates.jl")
 include("ap_intersections.jl")
 include("ap_intersections_composite.jl")
 include("ap_unbounded_intersections.jl")
 include("ap_conic_region_intersections.jl")
 include("ap_region_intersections.jl")
+include("ap_open_conic_region_intersections.jl")
 using Base.MathConstants: golden
 include("ap_constructions.jl")
 include("ap_marks.jl")

@@ -1,0 +1,20 @@
+include("../default_config.jl")
+lxm = @prepare_to_picture! width=500 height=280 margin=20 begin
+    h = APHyperbola2(APPoint(0.0, 0.0), 3.0, 4.0)
+    p1, p2 = APPoint(4.0, -20.0), APPoint(4.0, 20.0)
+    l = APLine(p1, p2)
+    hp = APHalfPlane2(l, APPoint(-10.0, 0.0))
+    corner1, corner2 = APPoint(-6.0, -8.0), APPoint(6.0, 8.0)
+end
+pieces = intersection(hp, h)
+@svg_doc(lxm, @__FILE__, begin
+gsave()
+sethue("gray80"); setdash("dash")
+path(l, action=:stroke, extend=10)
+grestore()
+sethue(julia_blue)
+path(h; branch=1, action=:stroke)
+path(h; branch=-1, action=:stroke)
+sethue(julia_purple); setline(3)
+foreach(pc -> path(pc, action=:stroke), pieces)
+end)

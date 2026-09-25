@@ -203,6 +203,80 @@ intersection(APCircle2(APPoint(5.0, 5.0), 5.0), carc)   # circle against a circu
 intersection(APCircle2(APPoint(5.0, 5.0), 5.0), earc)   # same idea, an elliptic arc this time
 ```
 
+### Clipping against a region
+
+[`intersection`](@ref)`(region, curve)` for `region` an [`APAngle2`](@ref)/
+[`APHalfPlane2`](@ref)/[`APStrip2`](@ref) and `curve` a full
+[`APParabola2`](@ref)/[`APHyperbola2`](@ref) or one of their arcs is the
+part of `curve` inside `region`, not boundary-crossing points (see
+[Unbounded Regions: Half-Planes, Strips & Angles](@ref), which covers the
+same idea for a circle/ellipse). It's always a `Vector` here, though,
+unlike the closed conics: `curve` is itself unbounded (open), so even a
+*single* half-plane can split it into two disjoint surviving pieces:
+
+```@example geo
+l = APLine(APPoint(-5.0, 4.0), APPoint(5.0, 4.0))
+hp = APHalfPlane2(l, APPoint(0.0, 10.0))
+intersection(hp, par)
+```
+
+```@raw html
+<img src="../assets/img/conics/parabola_clip_two_rays.svg" alt="A parabola crossed twice by a half-plane's boundary with the middle piece excluded, leaving two disjoint half-infinite rays inside the half-plane, drawn over it in purple" style="width:100%; max-width: 700px;">
+```
+
+Whichever pieces survive come back in the tightest fitting type: an
+[`APParabolicRay2`](@ref)/[`APHyperbolicRay2`](@ref) when one end is still
+unbounded (what the example above gives, twice), the existing
+[`APParabolicArc2`](@ref)/[`APHyperbolicArc2`](@ref) when both ends are
+finite, or `curve` itself unchanged when the whole thing survives.
+`APParabolicRay2`/`APHyperbolicRay2` are the [`APRay`](@ref) of these two
+open conics: a starting point plus a direction to extend toward, this time
+along the curve's own parameter rather than a straight line. They also
+build directly, without going through `intersection` first:
+
+```@example geo
+ray = APParabolicRay2(par, point_on(par, 2.0), 1)   # from s = 2, extending toward s -> +Inf
+point_on(ray, 3.0), point_on(ray, 0.0) ≈ point_on(par, 2.0)
+```
+
+```@example geo
+distance(APPoint(0.0, 0.0), ray)   # the parabola's own vertex isn't on this ray, so its endpoint is closer
+```
+
+A hyperbola's two branches are independent open curves, so clipping one
+against a region can leave a whole branch untouched while the other is cut
+down or excluded entirely; [`APHyperbolaBranch2`](@ref) is what represents
+"one whole branch" on its own, something `APHyperbola2` itself (both
+branches together) can't:
+
+```@example geo
+hp2 = APHalfPlane2(APLine(APPoint(4.0, -20.0), APPoint(4.0, 20.0)), APPoint(-10.0, 0.0))
+intersection(hp2, h)
+```
+
+```@raw html
+<img src="../assets/img/conics/hyperbola_clip_branch.svg" alt="A hyperbola with one branch clipped to a bounded arc by a half-plane and the other branch surviving whole, drawn over them in purple" style="width:100%; max-width: 700px;">
+```
+
+A half-plane that instead crosses *both* branches (a horizontal line meets
+each branch of this `h` exactly once, transversally, since `y` is monotonic
+along either branch) leaves an `APHyperbolicRay2` from each:
+
+```@example geo
+hp3 = APHalfPlane2(APLine(APPoint(-20.0, 2.0), APPoint(20.0, 2.0)), APPoint(0.0, 10.0))
+intersection(hp3, h)
+```
+
+`in`/`distance`/`rotate`/`homothety`/`translate`/`reflection`/
+[`APAffineMap`](@ref) all work on the three new types the same way they do
+on every other curve in the package; see
+[Drawing with Luxor.jl](@ref) for how they render (a sampled polyline, the
+same as the full conics and their arcs).
+
+An `APStrip2`/convex `APAngle2` chains two such half-plane clips together;
+a *reflex* `APAngle2` can still add more disjoint pieces, the same way it
+does for a line, segment, ray, circle or ellipse.
+
 ### Random points
 
 [`rand`](@ref) draws a random point on an `APEllipse2` or any of these

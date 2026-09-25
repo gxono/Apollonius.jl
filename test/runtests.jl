@@ -1381,6 +1381,121 @@ using Base.MathConstants: golden
             @test all((p in u) == (m(p) in um) for p in pts)
         end
     end
+    @testset "APParabolicRay2, APHyperbolicRay2, APHyperbolaBranch2" begin
+        P(x, y) = APPoint(x, y)
+        par = APParabola2(P(0.0, 1.0), APLine(P(-5.0, -1.0), P(5.0, -1.0)))   # vertex (0,0), y = x^2/4
+        ray = APParabolicRay2(par, point_on(par, 2.0), 1)   # from (-2,1), toward s -> +inf (x -> -inf)
+        @test point_on(par, 5.0) in ray
+        @test !(point_on(par, 0.0) in ray)
+        @test point_on(par, 2.0) in ray
+        @test distance(P(-2.0, 1.0), ray) == 0.0
+        @test distance(P(0.0, 0.0), ray) ≈ sqrt(5.0)   # vertex excluded: falls back to ray's own endpoint
+        @test APBoundingBox(ray) == APBoundingBox()
+
+        h = APHyperbola2(P(0.0, 0.0), 1.0, 1.0, 0.0)
+        hray = APHyperbolicRay2(h, point_on(h, 1.0; branch=1), 1, 1)
+        @test point_on(h, 3.0; branch=1) in hray
+        @test !(point_on(h, -1.0; branch=1) in hray)
+        @test !(point_on(h, 1.0; branch=-1) in hray)   # wrong branch
+
+        b = APHyperbolaBranch2(h, -1)
+        @test point_on(h, 2.0; branch=-1) in b
+        @test !(point_on(h, 2.0; branch=1) in b)
+        @test distance(P(0.0, 0.0), b) ≈ 1.0   # closest point is the branch's own vertex
+
+        pts = [P(x, y) for x in -6.0:0.7:6.0 for y in -6.0:0.7:6.0]
+        for obj in (ray, hray, b)
+            @test all((p in obj) == (rotate(p, pi / 5) in rotate(obj, pi / 5)) for p in pts)
+            @test all((p in obj) == (translate(p, APVector(1.0, 2.0)) in translate(obj, APVector(1.0, 2.0))) for p in pts)
+            @test all((p in obj) == (homothety(p, 1.3) in homothety(obj, 1.3)) for p in pts)
+            @test all((p in obj) == (reflection(p, P(1.0, 1.0)) in reflection(obj, P(1.0, 1.0))) for p in pts)
+            mirror = APLine(P(0.0, 0.0), P(1.0, 1.0))
+            @test all((p in obj) == (reflection(p, mirror) in reflection(obj, mirror)) for p in pts)
+            m = APAffineMap(2.0, 0.0, 0.0, 1.0, 5.0, -3.0)
+            @test all((p in obj) == (m(p) in m(obj)) for p in pts)
+        end
+    end
+    @testset "region intersected with a parabola or hyperbola: always a Vector" begin
+        P(x, y) = APPoint(x, y)
+        par = APParabola2(P(0.0, 1.0), APLine(P(-5.0, -1.0), P(5.0, -1.0)))   # y = x^2/4
+        h = APHyperbola2(P(0.0, 0.0), 1.0, 1.0, 0.0)
+
+        # a single halfplane crossing a parabola ONCE, transversally (not tangent):
+        # exactly one side survives, as the new ray type
+        hp_le2 = APHalfPlane2(APLine(P(2.0, -10.0), P(2.0, 10.0)), P(-10.0, 0.0))   # x <= 2
+        r1 = only(intersection(hp_le2, par))
+        @test r1 isa APParabolicRay2 && isapprox(r1.p, P(2.0, 1.0); atol=1e-9) && r1.dir == 1
+
+        # crossing TWICE with the middle excluded: two disjoint rays, from one halfplane alone
+        hp_ge4 = APHalfPlane2(APLine(P(-5.0, 4.0), P(5.0, 4.0)), P(0.0, 10.0))   # y >= 4
+        r2 = intersection(hp_ge4, par)
+        @test length(r2) == 2 && all(pc -> pc isa APParabolicRay2, r2)
+        @test all(pc -> isapprox(abs(pc.p[1]), 4.0; atol=1e-9) && isapprox(pc.p[2], 4.0; atol=1e-9), r2)
+
+        # crossing twice with the middle kept: a single bounded arc
+        hp_le4 = APHalfPlane2(APLine(P(-5.0, 4.0), P(5.0, 4.0)), P(0.0, -10.0))   # y <= 4
+        r3 = only(intersection(hp_le4, par))
+        @test r3 isa APParabolicArc2 && isapprox(r3, APParabolicArc2(par, P(4.0, 4.0), P(-4.0, 4.0)); atol=1e-9)
+
+        # entirely inside / entirely outside
+        @test only(intersection(APHalfPlane2(APLine(P(-5.0, -10.0), P(5.0, -10.0)), P(0.0, 10.0)), par)) == par
+        @test isempty(intersection(APHalfPlane2(APLine(P(-5.0, -10.0), P(5.0, -10.0)), P(0.0, -100.0)), par))
+
+        # tangent at the vertex: from outside, only the touch point; from inside, the whole thing
+        @test only(intersection(APHalfPlane2(APLine(P(-5.0, 0.0), P(5.0, 0.0)), P(0.0, -10.0)), par)) ≈ P(0.0, 0.0)
+        @test only(intersection(APHalfPlane2(APLine(P(-5.0, 0.0), P(5.0, 0.0)), P(0.0, 10.0)), par)) == par
+
+        # a hyperbola: one branch untouched (APHyperbolaBranch2), the other clipped to an arc
+        hp_le2h = APHalfPlane2(APLine(P(2.0, -10.0), P(2.0, 10.0)), P(-10.0, 0.0))   # x <= 2
+        r4 = intersection(hp_le2h, h)
+        @test length(r4) == 2
+        @test count(pc -> pc isa APHyperbolaBranch2 && pc.branch == -1, r4) == 1
+        arc4 = only(filter(pc -> pc isa APHyperbolicArc2, r4))
+        @test isapprox(abs(arc4.p1[1]), 2.0; atol=1e-9) && isapprox(abs(arc4.p2[1]), 2.0; atol=1e-9)
+
+        # a strip chains both boundaries: each branch clipped to its own arc
+        s = APStrip2(APLine(P(-1.5, -10.0), P(-1.5, 10.0)), APLine(P(1.5, -10.0), P(1.5, 10.0)))
+        r5 = intersection(s, h)
+        @test length(r5) == 2 && all(pc -> pc isa APHyperbolicArc2, r5)
+
+        # re-clipping an already-existing arc keeps it within its own range
+        arc = APHyperbolicArc2(h, point_on(h, -2.0; branch=1), point_on(h, 2.0; branch=1))
+        @test only(intersection(hp_le2h, arc)) ≈ arc4
+
+        # convex angle vs reflex angle: complementary results (an arc vs the two outer rays)
+        ang = APAngle2(P(0.0, 4.0), P(-10.0, 3.0), P(10.0, 3.0))
+        reflex = APAngle2(P(0.0, 4.0), P(10.0, 3.0), P(-10.0, 3.0))
+        @test only(intersection(ang, par)) isa APParabolicArc2
+        r6 = intersection(reflex, par)
+        @test length(r6) == 2 && all(pc -> pc isa APParabolicRay2, r6)
+
+        # numeric ground-truth check, sampled along the curve's own parameter,
+        # for every case above plus one more (angle vs hyperbola)
+        function check_parabola(region, curve; srange=-10.0:0.2:10.0)
+            pieces = intersection(region, curve)
+            all(srange) do s
+                p = point_on(curve, s)
+                expected = p in region
+                got = any(pc -> pc isa APPoint ? isapprox(pc, p; atol=1e-6) : (p in pc), pieces)
+                expected == got
+            end
+        end
+        function check_hyperbola(region, hh; trange=-4.0:0.1:4.0)
+            pieces = intersection(region, hh)
+            all(Iterators.product((1, -1), trange)) do (branch, t)
+                p = point_on(hh, t; branch=branch)
+                expected = p in region
+                got = any(pc -> pc isa APPoint ? isapprox(pc, p; atol=1e-6) : (p in pc), pieces)
+                expected == got
+            end
+        end
+        @test check_parabola(hp_ge4, par)
+        @test check_parabola(ang, par)
+        @test check_parabola(reflex, par)
+        @test check_hyperbola(s, h)
+        @test check_hyperbola(hp_le2h, h)
+        @test check_hyperbola(APAngle2(P(0.0, 0.0), P(3.0, 1.0), P(3.0, -1.0)), h)
+    end
     @testset "APAffineMap" begin
         src = (APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))
         dst = (APPoint(2.0, 3.0), APPoint(5.0, 3.0), APPoint(2.0, 7.0))

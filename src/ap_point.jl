@@ -28,9 +28,11 @@ abstract type APLocus{Dim,T} <: APObject{Dim,T} end
 A one-dimensional locus: [`APLine`](@ref), [`APRay`](@ref),
 [`APSegment`](@ref), the conics ([`APCircle2`](@ref), [`APEllipse2`](@ref),
 [`APParabola2`](@ref), [`APHyperbola2`](@ref), grouped under
-[`APConic2`](@ref)), and the conic arcs ([`APCircularArc2`](@ref) and
-friends, grouped under `APConicArc2`). Has no interior: it bounds a
-region rather than being one.
+[`APConic2`](@ref)), the conic arcs ([`APCircularArc2`](@ref) and friends,
+grouped under `APConicArc2`), and the half-infinite pieces a parabola or a
+hyperbola branch can clip down to ([`APParabolicRay2`](@ref),
+[`APHyperbolicRay2`](@ref), [`APHyperbolaBranch2`](@ref)). Has no
+interior: it bounds a region rather than being one.
 """
 abstract type APCurve{Dim,T} <: APLocus{Dim,T} end
 """

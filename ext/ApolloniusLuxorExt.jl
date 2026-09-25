@@ -336,6 +336,32 @@ function AP.path(h::AP.APHyperbola2; trange=(-2.0, 2.0), n=60, branch::Int=1, ac
     Luxor.poly(pts, action; close=false)
 end
 """
+    path(b::APHyperbolaBranch2; trange=(-2.0, 2.0), n=60, action=:path)
+
+Same sampling as `path(::APHyperbola2)`, fixed to `b`'s own branch.
+"""
+function AP.path(b::AP.APHyperbolaBranch2; trange=(-2.0, 2.0), n=60, action=:path, reverse::Bool=false)
+    AP.path(b.hyperbola; trange=trange, n=n, branch=b.branch, action=action, reverse=reverse)
+end
+"""
+    path(r::APParabolicRay2; extend=100.0, n=60, action=:path)
+    path(r::APHyperbolicRay2; extend=2.0, n=60, action=:path)
+
+Samples `n` points via [`point_on`](@ref)`(r, u)` for `u ∈ [0, extend]`
+(the ray's own one-sided parameter, starting at `r.p`) and adds them as an
+open polyline.
+"""
+function AP.path(r::AP.APParabolicRay2; extend=100.0, n=60, action=:path, reverse::Bool=false)
+    pts = [_lp(AP.point_on(r, u)) for u in range(0.0, extend; length=n)]
+    reverse && Base.reverse!(pts)
+    Luxor.poly(pts, action; close=false)
+end
+function AP.path(r::AP.APHyperbolicRay2; extend=2.0, n=60, action=:path, reverse::Bool=false)
+    pts = [_lp(AP.point_on(r, u)) for u in range(0.0, extend; length=n)]
+    reverse && Base.reverse!(pts)
+    Luxor.poly(pts, action; close=false)
+end
+"""
     path(ang::APAngle2; as=:arc, radius=nothing, action=:path)
 
 An `APAngle2` doesn't have a single canonical path: it's genuinely the

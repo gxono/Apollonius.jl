@@ -1,0 +1,21 @@
+include("../default_config.jl")
+lxm = @prepare_to_picture! width=500 height=280 margin=20 begin
+    focus = APPoint(0.0, 1.0)
+    directrix = APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0))
+    par = APParabola2(focus, directrix)
+    p1, p2 = APPoint(-5.0, 4.0), APPoint(5.0, 4.0)
+    l = APLine(p1, p2)
+    hp = APHalfPlane2(l, APPoint(0.0, 10.0))
+    corner1, corner2 = APPoint(-6.0, -1.0), APPoint(6.0, 9.0)
+end
+pieces = intersection(hp, par)
+@svg_doc(lxm, @__FILE__, begin
+gsave()
+sethue("gray80"); setdash("dash")
+path(l, action=:stroke, extend=10)
+grestore()
+sethue(julia_blue)
+path(par, action=:stroke)
+sethue(julia_purple); setline(3)
+foreach(pc -> path(pc, action=:stroke), pieces)
+end)

@@ -10,15 +10,19 @@ so the result is always safe to `filter`, `map` or `length`, and it is never
 `nothing`. The arguments can be given in either order.
 
 **Except** when one side is an [`APAngle2`](@ref), [`APHalfPlane2`](@ref) or
-[`APStrip2`](@ref) and the other a line, segment, ray, circle or ellipse (or
-an arc of one of the last two): those three are regions, not curves, so
-there `intersection` gives the *part of the other object that lies inside
-the region*, in that object's own type (a point, a segment, a ray, an arc,
-the whole object, `nothing`, or, for a reflex `APAngle2` or for a strip wide
-enough to be crossed on both sides, a `Vector` of two pieces), not the
-points where a boundary is crossed. See
-[Unbounded Regions: Half-Planes, Strips & Angles](@ref) and
-[Points, Lines & Rays: Angles](@ref).
+[`APStrip2`](@ref) and the other a line, segment, ray, or a conic (circle,
+ellipse, parabola, hyperbola) or an arc of one: those three are regions, not
+curves, so there `intersection` gives the *part of the other object that
+lies inside the region*, in that object's own type (a point, a segment, a
+ray, an arc, the whole object, `nothing`, or a `Vector` of pieces), not the
+points where a boundary is crossed. For a line/segment/ray/circle/ellipse
+this is a bare value unless one side is a reflex `APAngle2` or a strip wide
+enough to be crossed on both sides; for a parabola/hyperbola (open, unlike
+the other conics) it's *always* a `Vector`, since even a single half-plane
+can split one into two disjoint pieces. See
+[Unbounded Regions: Half-Planes, Strips & Angles](@ref),
+[Points, Lines & Rays: Angles](@ref) and
+[Conics: Tangents, Duality & Arcs](@ref).
 
 **Also except** when *both* sides are one of `APAngle2`/`APHalfPlane2`/
 `APStrip2`: there `intersection` gives the region common to both, whichever
@@ -45,8 +49,7 @@ using Apollonius
 | segment or ray with anything above | as above | only the points inside the segment or ray are kept |
 | arc of a conic with anything above | as above | only the points on the arc are kept |
 | polyline, polygon, chain, bounding box | as many as the sides cross | the points on the boundary, see below |
-| angle, half-plane or strip with a hyperbola or parabola | as many as the boundary crosses | the points on the boundary, same as above |
-| angle, half-plane or strip with a line, segment, ray, circle or ellipse | **not points** | the part of the other object inside the region, see above |
+| angle, half-plane or strip with a line, segment, ray, or any conic or arc | **not points** | the part of the other object inside the region, see above |
 | angle, half-plane or strip with another one of the three | **not points** | the region common to both, see above |
 | parametric curve with a line, conic or any of the above | found by sampling | see below |
 | point with anything above | 0 or 1 | the point itself, if it lies on the curve or boundary |
