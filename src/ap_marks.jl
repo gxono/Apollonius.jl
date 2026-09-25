@@ -154,16 +154,27 @@ concentric [`APCircularArc2`](@ref)s centered at the vertex and swept from
 `ang.a` to `ang.b`: the first of radius `size`, each further one `gap`
 larger (one, two or three arcs is the usual way to say two angles are
 equal). `size` defaults to `0.15` times the shorter of the two rays, the
-same radius [`path`](@ref)`(ang)` uses.
+same radius [`path`](@ref)`(ang)` uses. Wrap the (single, `count=1`) arc in
+[`APCircularSector2`](@ref) for a fillable pie-wedge marker instead of just
+the open arc.
+
+With `style = :parallelogram`, `count` nested open
+[`APPolyline2`](@ref)`(pa, pc, pb)` markers instead: `pa`/`pb` at distance
+`size`, `size + gap`, ... along each ray, and `pc = pa + pb - vertex`
+completing the parallelogram by the parallelogram law (a square corner at
+exactly 90°, a rhombus otherwise, the same right-angle-marker idea
+generalized to any angle). Wrap `poly.vertices` in
+[`APQuadrilateral`](@ref)`(ang.vertex, poly.vertices...)` for the closed,
+fillable form.
 
 | Keyword | Default | Meaning |
 |:--------|:--------|:--------|
-| `count` | `1` | number of arcs, or of symbols |
-| `style` | `:arcs` | `:arcs`, or any style of [`marks`](@ref) for symbols |
+| `count` | `1` | number of arcs, parallelograms, or symbols |
+| `style` | `:arcs` | `:arcs`, `:parallelogram`, or any style of [`marks`](@ref) for symbols |
 | `at` | `0.5` | where the symbols sit along the arc |
-| `size` | `0.15` times the shorter ray | radius of the first arc |
-| `gap` | `4.0` | radial gap between arcs, or gap between symbols |
-| `mark_size` | `6.0` | size of each symbol, when `style` is not `:arcs` |
+| `size` | `0.15` times the shorter ray | radius of the first arc, or ray-distance of the first parallelogram |
+| `gap` | `4.0` | radial gap between arcs/parallelograms, or gap between symbols |
+| `mark_size` | `6.0` | size of each symbol, when `style` is not `:arcs`/`:parallelogram` |
 | `slant` | `π/6` | tilt of a `:slash` |
 | `arcs` | `0` | with a symbol style, also draw this many arcs, see below |
 
@@ -186,6 +197,11 @@ function marks(ang::APAngle2; count::Integer=1, style::Symbol=:arcs, at::Real=0.
     r > 0 || throw(ArgumentError("marks: size must be positive"))
     arc_at(radius) = APCircularArc2(ang.vertex, radius, ang.vertex + va, ang.vertex + vb)
     style === :arcs && return [arc_at(r + (i - 1) * gap) for i in 1:count]
+    if style === :parallelogram
+        ua, ub = va / norm(va), vb / norm(vb)
+        poly_at(radius) = (pa = ang.vertex + radius * ua; pb = ang.vertex + radius * ub; APPolyline2(pa, pa + (pb - ang.vertex), pb))
+        return [poly_at(r + (i - 1) * gap) for i in 1:count]
+    end
     arcs == 0 && return _marks_at(tangent_at(arc_at(r), at), count, style, mark_size, gap, slant)
     span = (arcs - 1) * gap
     symbols = _marks_at(tangent_at(arc_at(r + span / 2), at), count, style, max(mark_size, span + gap), gap, slant)

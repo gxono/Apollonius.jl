@@ -92,8 +92,8 @@ G = centroid(pg)
 On the fitted vertices `A2`, `B2` and `C2` of the previous recipe:
 
 ```julia
-path(marks(APSegment(A2, B2); count=2); action=:stroke)             # two ticks
-path(APAngle2(A2, B2, C2); as=:rarc, radius=12, action=:stroke)     # the right-angle square
+path(marks(APSegment(A2, B2); count=2); action=:stroke)                                    # two ticks
+path(only(marks(APAngle2(A2, B2, C2); style=:parallelogram, size=12)); action=:stroke)     # the right-angle square
 ```
 
 ```@raw html

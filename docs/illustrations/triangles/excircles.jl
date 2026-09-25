@@ -23,10 +23,8 @@ grestore()
 sethue(julia_purple)
 path(exc, action=:stroke)
 sethue(julia_green)
-path(reverse.(rangles),
-    action=:fill,
-    radius=7,
-    as=:rsector)
+rquads = [APQuadrilateral(ang.vertex, only(marks(ang; style=:parallelogram, size=7)).vertices...) for ang in reverse.(rangles)]
+path(rquads, action=:fill)
 sethue(julia_blue)
 path(t, action=:stroke)
 sethue("white"); path(ex, action=:fillpreserve); sethue(julia_purple); strokepath()

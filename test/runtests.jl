@@ -5827,11 +5827,21 @@ using Base.MathConstants: golden
             path(APParabola2(APPoint(0.0, 20.0), APLine(APPoint(-50.0, -20.0), APPoint(50.0, -20.0))); action=:stroke)
             path(APHyperbola2(APPoint(0.0, 0.0), 20.0, 10.0); action=:stroke)
             path(ang; as=:rays, action=:stroke)
-            path(ang; as=:arc, action=:stroke)
-            path(ang; as=:sector, action=:fill)
-            path(ang; as=:rarc, action=:stroke)
-            path(ang; as=:rsector, action=:fill)
+            path(only(marks(ang)); action=:stroke)
+            path(APCircularSector2(only(marks(ang))); action=:fill)
+            path(only(marks(ang; style=:parallelogram)); action=:stroke)
+            path(APQuadrilateral(ang.vertex, only(marks(ang; style=:parallelogram)).vertices...); action=:fill)
+            path(ang; as=:region, action=:fill)
+            path(ang; as=:region, action=:fillstroke)
             @test_throws ArgumentError path(ang; as=:bogus)
+            hp0 = APHalfPlane2(APLine(APPoint(0.0, -5.0), APPoint(0.0, 5.0)), APPoint(1.0, 0.0))
+            path(hp0; action=:fill)
+            path(hp0; action=:fillstroke)
+            st0 = APStrip2(APLine(APPoint(-10.0, -1.0), APPoint(10.0, -1.0)), APLine(APPoint(-10.0, 1.0), APPoint(10.0, 1.0)))
+            path(st0; action=:fill)
+            u0 = APUnboundedPolygon2(APRay(APPoint(0.0, 3.0), APPoint(1.0, 3.0)), APPoint{2,Float64}[], APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
+            path(u0; action=:fill)
+            path(u0; action=:fillstroke)
             arc = APCircularArc2(Apollonius.APCircle2(APPoint(0.0, 0.0), 30.0), APPoint(30.0, 0.0), APPoint(0.0, 30.0))
             path(arc; action=:stroke)
             path(APPolyline2(APPoint(-50.0, -50.0), APPoint(-20.0, 20.0), APPoint(10.0, -30.0)); action=:stroke)
@@ -6060,10 +6070,11 @@ using Base.MathConstants: golden
             Luxor.finish()
             @test !painted(m2, 100, 130) && painted(m2, 10, 10)   # a point inside the triangle is protected
             @test !painted(m2, 100, 101)   # and so is the nested circle's interior (one clip per shape, no even-odd toggling)
-            Luxor.Drawing(200, 200, :image)   # angles (as=:sector / :rsector) and circular sectors are closed shapes too
+            Luxor.Drawing(200, 200, :image)   # an angle's marker (wrapped as APQuadrilateral) and circular sectors are closed shapes too
             Luxor.origin(); Luxor.background("white")
             wedge = APAngle2(APPoint(0.0, 0.0), APPoint(60.0, 0.0), APPoint(0.0, -60.0))   # canvas: right/up quadrant
-            clip_out(wedge; as=:rsector, radius=50.0)
+            wedge_poly = only(marks(wedge; style=:parallelogram, size=50.0))
+            clip_out(APQuadrilateral(wedge.vertex, wedge_poly.vertices...))
             clip_out(APCircularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 50.0), APPoint(50.0, 0.0), APPoint(0.0, 50.0))))
             Luxor.sethue("red"); Luxor.paint()
             m3 = Luxor.image_as_matrix()
@@ -6071,18 +6082,49 @@ using Base.MathConstants: golden
             @test !painted(m3, 125, 75) && !painted(m3, 125, 125)   # inside the wedge and inside the sector
             @test painted(m3, 75, 75) && painted(m3, 10, 10)        # elsewhere
         end
-        @testset "path(::APAngle2) as=:rarc/:rsector -- the parallelogram-law angle marker" begin
-            ang90 = APAngle2(APPoint(0.0, 0.0), APPoint(50.0, 0.0), APPoint(0.0, 50.0))
+        @testset "filling an unbounded region: half-plane, strip, angle, unbounded polygon" begin
             mktempdir() do dir
-                Luxor.Drawing(200, 200, joinpath(dir, "rarc.png"))
+                Luxor.Drawing(200, 200, joinpath(dir, "fill_bbox.png"))
                 Luxor.origin()
-                path(ang90; as=:rarc, radius=20.0, action=:path)
-                @test current_path_bbox() ≈ Apollonius.APBoundingBox(APPoint(0.0, 0.0), APPoint(20.0, 20.0))
-                Luxor.strokepath()
-                path(ang90; as=:rsector, radius=20.0, action=:path)
-                @test current_path_bbox() ≈ Apollonius.APBoundingBox(APPoint(0.0, 0.0), APPoint(20.0, 20.0))
+                hp = APHalfPlane2(APLine(APPoint(0.0, -5.0), APPoint(0.0, 5.0)), APPoint(1.0, 0.0))
+                path(hp; action=:fillpreserve, bound=50.0)
+                @test current_path_bbox() ≈ Apollonius.APBoundingBox(APPoint(0.0, -50.0), APPoint(50.0, 50.0))
+                Luxor.newpath()
+                s = APStrip2(APLine(APPoint(-10.0, -1.0), APPoint(10.0, -1.0)), APLine(APPoint(-10.0, 1.0), APPoint(10.0, 1.0)))
+                path(s; action=:fillpreserve, bound=50.0)
+                @test current_path_bbox() ≈ Apollonius.APBoundingBox(APPoint(-50.0, -1.0), APPoint(50.0, 1.0))
+                Luxor.newpath()
+                ang = APAngle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0))
+                path(ang; as=:region, action=:fillpreserve, bound=50.0)
+                @test current_path_bbox() ≈ Apollonius.APBoundingBox(APPoint(0.0, 0.0), APPoint(50.0, 50.0))
                 Luxor.finish()
             end
+            painted(m, x, y) = Luxor.Colors.red(m[y, x]) > 0.5 && Luxor.Colors.green(m[y, x]) < 0.5
+            Luxor.Drawing(200, 200, :image)
+            Luxor.origin()
+            Luxor.background("white")
+            reflex = APAngle2(APPoint(0.0, 0.0), APPoint(0.0, 4.0), APPoint(4.0, 0.0))   # excludes the first quadrant
+            Luxor.sethue("red")
+            path(reflex; as=:region, action=:fill, bound=90.0)
+            m = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test !painted(m, 130, 130) && painted(m, 70, 130) && painted(m, 70, 70) && painted(m, 130, 70)
+            Luxor.Drawing(200, 200, :image)
+            Luxor.origin()
+            Luxor.background("white")
+            u = APUnboundedPolygon2(APRay(APPoint(0.0, 30.0), APPoint(1.0, 30.0)), APPoint{2,Float64}[], APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
+            Luxor.sethue("red")
+            path(u; action=:fill, bound=90.0)
+            m2 = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test painted(m2, 150, 115) && !painted(m2, 50, 115) && !painted(m2, 150, 50)
+        end
+        @testset "marks(::APAngle2; style=:parallelogram) -- the parallelogram-law angle marker" begin
+            ang90 = APAngle2(APPoint(0.0, 0.0), APPoint(50.0, 0.0), APPoint(0.0, 50.0))
+            poly90 = only(marks(ang90; style=:parallelogram, size=20.0))
+            @test Apollonius.APBoundingBox(poly90.vertices) ≈ Apollonius.APBoundingBox(APPoint(0.0, 0.0), APPoint(20.0, 20.0))
+            q90 = APQuadrilateral(ang90.vertex, poly90.vertices...)
+            @test Apollonius.APBoundingBox(vertices(q90)) ≈ Apollonius.APBoundingBox(APPoint(0.0, 0.0), APPoint(20.0, 20.0))
             ang60 = APAngle2(APPoint(0.0, 0.0), APPoint(50.0, 0.0), Apollonius.rotate(APPoint(50.0, 0.0), pi / 3))
             vertex, a, b = ang60.vertex, ang60.a, ang60.b
             r = 15.0
@@ -6091,13 +6133,8 @@ using Base.MathConstants: golden
             pc = pa + (pb - vertex)
             @test Apollonius.distance(pa, pc) ≈ r && Apollonius.distance(pb, pc) ≈ r
             @test !is_perpendicular(APLine(vertex, pa), APLine(vertex, pb))
-            mktempdir() do dir
-                Luxor.Drawing(200, 200, joinpath(dir, "rarc60.png"))
-                Luxor.origin()
-                path(ang60; as=:rarc, radius=r, action=:path)
-                @test current_path_bbox() ≈ Apollonius.APBoundingBox([pa, pc, pb]) atol = 1e-2
-                Luxor.finish()
-            end
+            poly60 = only(marks(ang60; style=:parallelogram, size=r))
+            @test poly60.vertices ≈ [pa, pc, pb]
         end
         @testset "path(::APLine) with a 2-tuple extend" begin
             l = APLine(APPoint(0.0, 0.0), APPoint(10.0, 0.0))

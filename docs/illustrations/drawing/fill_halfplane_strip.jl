@@ -1,0 +1,20 @@
+include("../default_config.jl")
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+    p1, p2 = APPoint(-2.0, -5.0), APPoint(-2.0, 5.0)
+    l = APLine(p1, p2)
+    hp = APHalfPlane2(l, APPoint(-10.0, 0.0))
+    p3, p4 = APPoint(0.0, -6.0), APPoint(8.0, -6.0)
+    p5, p6 = APPoint(0.0, -3.0), APPoint(8.0, -3.0)
+    l1 = APLine(p3, p4)
+    l2 = APLine(p5, p6)
+    s = APStrip2(l1, l2)
+end
+@svg_doc(lxm, @__FILE__, begin
+sethue(julia_purple); setopacity(0.25)
+path(hp; action=:fill, bound=1000.0)
+path(s; action=:fill, bound=1000.0)
+setopacity(1.0)
+sethue(julia_blue)
+path(hp; action=:stroke, extend=1000.0)
+path(s; action=:stroke, extend=1000.0)
+end)

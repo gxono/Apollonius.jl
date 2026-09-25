@@ -80,7 +80,7 @@ intersection(l, circumcircle(t))
     
     #angle mark
     sethue(julia_green)
-    path(right; as=:rarc, radius=12, action=:stroke)
+    path(only(marks(right; style=:parallelogram, size=12)); action=:stroke)
     
     #triangle
     sethue(julia_blue)
@@ -150,7 +150,7 @@ one radius dashed in:
         sethue(julia_green); setdash(:dash)
         path(APSegment(circle1.center, el1.p1), action = :stroke)
         setopacity(0.5)
-        path(ang, action = :fill, as = :rsector, radius = 20)
+        path(APQuadrilateral(ang.vertex, only(marks(ang; style=:parallelogram, size=20)).vertices...), action = :fill)
     end
 
     #lines

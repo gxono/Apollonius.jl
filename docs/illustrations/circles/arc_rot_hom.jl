@@ -9,7 +9,7 @@ end
 (; c, p1, p2, arc, arc_rot, arc_hom) = lxo
 @svg_doc(lxm, @__FILE__, begin
 sethue(julia_purple)
-path(APAngle2(arc.circle.center, arc_rot.p1, arc.p1), action=:fill, as=:sector)
+path(APCircularSector2(only(marks(APAngle2(arc.circle.center, arc_rot.p1, arc.p1)))), action=:fill)
 setdash(:dash)
 path(APSegment(arc.circle.center, arc_rot.p1), action=:stroke)
 path(APSegment(arc.circle.center, arc_hom.p1), action=:stroke)

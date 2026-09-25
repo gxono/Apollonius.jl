@@ -21,7 +21,7 @@ end
     
     #angle mark
     sethue(julia_green)
-    path(right; as=:rarc, radius=12, action=:stroke)
+    path(only(marks(right; style=:parallelogram, size=12)); action=:stroke)
     
     #triangle
     sethue(julia_blue)

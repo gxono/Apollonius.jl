@@ -18,13 +18,15 @@ end
 @svg_doc(lxm, @__FILE__, begin
 fontsize(15)
 
+arc_seg = only(marks(ang_seg; size=50))
+arc_ray = only(marks(ang_ray; size=50))
 @layer begin
     sethue(julia_blue); setopacity(0.25)
-    path(ang_seg, action=:fill, as=:sector, radius=50)
-    path(ang_ray, action=:fill, as=:sector, radius=50)
+    path(APCircularSector2(arc_seg), action=:fill)
+    path(APCircularSector2(arc_ray), action=:fill)
     setopacity(1)
-    path(ang_seg, action=:stroke, radius=50)
-    path(ang_ray, action=:stroke, radius=50)
+    path(arc_seg, action=:stroke)
+    path(arc_ray, action=:stroke)
 end
 
 sethue(julia_purple)

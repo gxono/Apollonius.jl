@@ -37,7 +37,7 @@ path([circle1, circle2], action = :stroke)
     sethue(julia_green); setdash(:dash)
     path(APSegment(circle1.center, el1.p1), action = :stroke)
     setopacity(0.5)
-    path(ang, action = :fill, as = :rsector, radius = 20)
+    path(APQuadrilateral(ang.vertex, only(marks(ang; style=:parallelogram, size=20)).vertices...), action = :fill)
 end
 
 #lines

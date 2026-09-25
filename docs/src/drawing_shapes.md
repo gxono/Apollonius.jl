@@ -24,10 +24,11 @@ how finely to sample a curve Luxor has no native primitive for, and so on:
 | `APParametricCurve2` | likewise no native primitive for an arbitrary curve, sampled via [`point_on`](@ref) over `curve.trange`, added as an open polyline | `n=60` |
 | `APCircularArc2` | a true circular arc from `p1` to `p2`, via Luxor's own `arc2r` (Cairo's native arc primitive, not a polygonal approximation) | (none) |
 | `APEllipticArc2`, `APParabolicArc2`, `APHyperbolicArc2` | none of these has a native Cairo primitive either, so each is sampled at `n` points via [`point_on`](@ref) over its own parameter range `[0, 1]` (`arc.p1` to `arc.p2`), added as an open polyline | `n=60` |
-| `APAngle2` | see below; it has no single canonical path | `as=:arc` (default; also `:rays`/`:sector`/`:rarc`/`:rsector`), `radius` |
+| `APAngle2` | see below; it has no single canonical path | `as=:rays` (default; also `:region`), `radius`, `bound=1000.0` (for `:region` with a filling `action`) |
 | `APVector` | has no position of its own, so it's drawn as the segment `from -> from + v` | `from=APPoint(0.0, 0.0)`, `as=:plain`/`:arrow`/`:doublearrow` |
-| `APHalfPlane2` | unbounded, so this draws its boundary line only (see `APLine` above) | `extend=1000.0`, `add` |
-| `APStrip2` | likewise unbounded: both boundary lines, one call each | `extend=1000.0`, `add` |
+| `APHalfPlane2` | unbounded: for `action` in `:path`/`:stroke`/`:strokepreserve`, draws its boundary line only (see `APLine` above); for a filling `action`, fills the part inside a square of half-side `bound` instead | `extend=1000.0`, `add`, `bound=1000.0` |
+| `APStrip2` | likewise unbounded: both boundary lines, one call each, or the same box-filled region for a filling `action` | `extend=1000.0`, `add`, `bound=1000.0` |
+| `APUnboundedPolygon2` | likewise: its actual boundary (two rays and the segments between them), or the same box-filled region for a filling `action` | `extend=1000.0`, `bound=1000.0` |
 | `APEquipollentVector` | the segment from its point of application to its tip | `as=:plain`/`:arrow`/`:doublearrow` |
 | `APPolyline2` | an open chain of straight sides through its vertices, never closed | (none) |
 | `APCurvilinearPolyline2` | an open chain of straight and curved sides in the order given: a line for an `APSegment`, a true arc for an `APCircularArc2`, a sampled polyline for any other conic arc | `n=60` |
@@ -175,24 +176,35 @@ arrowhead in the middle of a line, or at the end of an arc, build it with
 [`arrow_head`](@ref) and draw it like any other shape; see
 [Marks, Labels & Decorations](@ref).
 
-### `APAngle2`: several draw styles
+### `APAngle2`: geometry, not decoration
 
-An `APAngle2` is genuinely just the space between two rays, but it's
-conventionally *drawn* as a small arc, a filled wedge, or (especially for
-a right angle) a small square in the corner. `as` picks which:
+An `APAngle2` is genuinely just the space between two rays: `as=:rays`
+draws the literal two half-lines (`a -> vertex -> b`, extended `radius`
+units from the vertex); `as=:region` draws or fills the actual infinite
+wedge (see [Drawing: Clipping, Dimensions & Reversing](@ref)'s "Filling an
+unbounded region"). Neither is a *decoration*: for the conventional small
+arc, filled pie-wedge, or right-angle corner marker, see
+[`marks`](@ref)`(ang::APAngle2)` in [Marks, Labels & Decorations](@ref)
+instead, which builds those the same way `marks` builds every other
+equality mark in a construction figure:
 
 ```julia
 ang = APAngle2(t[2], t[1], t[3])   # the angle at vertex t[2]
 
-path(ang; as=:rays, action=:stroke)      # the literal two half-lines, a-vertex-b
-path(ang; as=:arc, action=:stroke)       # the conventional small arc (default)
-path(ang; as=:sector, action=:fill)      # closed pie-wedge, for shading
-path(ang; as=:rarc, action=:stroke)      # the parallelogram-law corner marker (open)
-path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
+path(ang; as=:rays, action=:stroke)                      # the literal two half-lines, a-vertex-b
+path(ang; as=:region, action=:fill)                      # the actual infinite wedge
+
+arc = only(marks(ang))                                    # the conventional small arc
+path(arc; action=:stroke)
+path(APCircularSector2(arc); action=:fill)                # ...wrapped, for a filled pie-wedge
+
+poly = only(marks(ang; style=:parallelogram))             # the right-angle-style corner marker
+path(poly; action=:stroke)
+path(APQuadrilateral(ang.vertex, poly.vertices...); action=:fill)   # ...wrapped, for a filled version
 ```
 
 ```@raw html
-<img src="../assets/img/drawing/angles.svg" alt="Five copies of a triangle with the same angle drawn as its two rays, as a small arc, as a filled pie sector, as an open corner marker, and as a filled corner marker" style="width:100%; max-width: 700px;">
+<img src="../assets/img/drawing/angles.svg" alt="Five copies of a triangle with the same angle drawn as its two rays, filled as its true region, as a small arc, as a filled pie sector, and as an open corner marker" style="width:100%; max-width: 700px;">
 ```
 
 !!! details "See script"
@@ -219,34 +231,20 @@ path(ang; as=:rsector, action=:fill)     # ...and its closed, fillable version
 
     sethue(julia_purple)
     path(angv[1]; as=:rays, action=:stroke)
-    path(angv[2]; as=:arc, action=:stroke)
-    path(angv[3]; as=:sector, action=:fill)
-    path(angv[4]; as=:rarc, action=:stroke)
-    path(angv[5]; as=:rsector, action=:fill)
+    path(angv[2]; as=:region, action=:fill)
+    path(only(marks(angv[3])); action=:stroke)
+    path(APCircularSector2(only(marks(angv[4]))); action=:fill)
+    path(only(marks(angv[5]; style=:parallelogram)); action=:stroke)
 
     finish()
     preview()
     end
     ```
 
-`radius` defaults to `0.15` times the shorter of the distances from the
-vertex to `ang.a` and `ang.b`, so it looks reasonable at the figure's own
-scale without having to think about it; pass it explicitly to override.
-`as=:arc` and `as=:sector` are, in fact, nothing more than
-`path(APCircularArc2(...))` and `path(APCircularSector2(...))` under the
-hood (see below); `APAngle2` just works out the right circle and
-endpoints first.
-
-`as=:rarc`/`:rsector` generalize the little square textbooks use to mark
-a *right* angle to any angle, via the parallelogram law: `pa`/`pb` are the
-points at distance `radius` along each ray, and `pc = pa + pb - vertex`
-completes the parallelogram `vertex, pa, pc, pb`. At exactly 90° that
-parallelogram is the familiar square corner marker (`pa`/`pb` are
-perpendicular and equal in length); at any other angle it's still a
-rhombus (`pa`/`pb` are always exactly `radius` from the vertex), tracing
-the same idea. `:rarc` draws just the two "far" sides, `pa -> pc -> pb`
-(open, so it doesn't retrace the rays themselves); `:rsector` closes the
-whole parallelogram, for filling.
+`radius` (for `:rays`) and `marks`'s own `size` both default to `0.15`
+times the shorter of the distances from the vertex to `ang.a` and `ang.b`,
+so a marker looks reasonable at the figure's own scale without having to
+think about it; pass it explicitly to override.
 
 ## Arcs and curvilinear regions
 

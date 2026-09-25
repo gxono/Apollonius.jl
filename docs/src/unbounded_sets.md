@@ -193,8 +193,10 @@ strip_width(s_rotated) ≈ strip_width(s)   # rotation preserves the perpendicul
 ```
 
 See [Drawing with Luxor.jl](@ref) for how `APHalfPlane2`/`APStrip2` render
-(as their boundary line(s), since the region itself is unbounded) and
-[Affine Maps](@ref) for how a general [`APAffineMap`](@ref) applies to
+(as their boundary line(s), since the region itself is unbounded),
+[Drawing: Clipping, Dimensions & Reversing](@ref) for how to fill them up
+to the edge of the picture instead, and [Affine Maps](@ref) for how a
+general [`APAffineMap`](@ref) applies to
 both.
 
 ### From a line and a width
@@ -312,5 +314,7 @@ distance(APPoint(-3.0, 1.5), u), distance(APPoint(2.0, 10.0), u; mode=:boundary)
 Being unbounded, it has no `area`/`perimeter` and an empty
 [`APBoundingBox`](@ref), the same as the other three; see
 [Drawing with Luxor.jl](@ref) for how it renders (its actual boundary: the
-two rays and the segments between them) and [Affine Maps](@ref) for how a
+two rays and the segments between them), [Drawing: Clipping, Dimensions &
+Reversing](@ref) for how to fill it up to the edge of the picture instead,
+and [Affine Maps](@ref) for how a
 general [`APAffineMap`](@ref) applies to it.

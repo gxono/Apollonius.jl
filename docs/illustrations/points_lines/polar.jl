@@ -17,12 +17,13 @@ fontsize(15)
     path(radio, action=:stroke)
 end
 
+arc = only(marks(ang))
 @layer begin
     sethue(julia_blue); setopacity(0.5)
-    path(ang, action=:fill, as=:sector)
-    
+    path(APCircularSector2(arc), action=:fill)
+
     setopacity(1)
-    path(ang, action=:stroke)
+    path(arc, action=:stroke)
     path(brace(O, B), action=:stroke)
 end
 

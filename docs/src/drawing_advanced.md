@@ -85,7 +85,9 @@ of the elements.
 [`clip_out`](@ref)`(obj)` restricts it to the *outside*, which is what lunes,
 arbelos and "a circle minus two circles" figures need. It works on anything
 `path` draws as a closed shape (a circle, an ellipse, a polygon or curved
-region, a bounding box, or an angle drawn with `as=:sector` or `as=:rsector`), and without approximating any arc.
+region, a bounding box, or an angle's marker wrapped as `APCircularSector2`/
+`APQuadrilateral`, see [Marks, Labels & Decorations](@ref)), and without
+approximating any arc.
 
 ```julia
 @layer begin
@@ -113,6 +115,77 @@ origin far from the drawing.
 
 !!! warning "A clip stays until it is reset"
     Both `clip_out` and `path(obj; action=:clip)` last until `clipreset()` or the end of the enclosing `@layer`. Everything drawn after them is clipped, including the labels, so wrap the clip in a `@layer` and draw the rest outside it.
+
+## Filling an unbounded region
+
+[`APHalfPlane2`](@ref), [`APStrip2`](@ref) and [`APUnboundedPolygon2`](@ref)
+have no finite shape to fill: `path(obj; action=:fill)` used to draw
+nothing at all for them, since their ordinary path is just the boundary
+line(s), with zero area. It now fills the part of `obj` inside a square of
+half-side `bound` (default `1000.0`) centered on the current origin
+instead, the same big-box idea `clip_out` already uses, just filling the
+box's intersection with `obj` rather than clipping it out. `action=:fillstroke`
+also strokes the true boundary, not the square's edges:
+
+```julia
+hp = APHalfPlane2(APLine(APPoint(-2.0, -5.0), APPoint(-2.0, 5.0)), APPoint(-10.0, 0.0))
+s = APStrip2(APLine(APPoint(0.0, -6.0), APPoint(8.0, -6.0)), APLine(APPoint(0.0, -3.0), APPoint(8.0, -3.0)))
+sethue(julia_purple); setopacity(0.25)
+path(hp; action=:fill)
+path(s; action=:fill)
+```
+
+```@raw html
+<img src="../assets/img/drawing/fill_halfplane_strip.svg" alt="A half-plane and a strip, each shaded up to the edge of the picture" style="width:100%; max-width: 700px;">
+```
+
+An [`APUnboundedPolygon2`](@ref) (see [Unbounded Regions: Half-Planes,
+Strips & Angles](@ref)) fills the same way, its mix of rays and segments
+closing off a shape that's bounded on some sides and open on others:
+
+```julia
+u = APUnboundedPolygon2(APRay(APPoint(0.0, 3.0), APPoint(1.0, 3.0)), APPoint{2,Float64}[], APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
+sethue(julia_purple); setopacity(0.25)
+path(u; action=:fill)
+```
+
+```@raw html
+<img src="../assets/img/drawing/fill_unboundedpolygon.svg" alt="An unbounded polygon (bounded above and below, open on the right) shaded up to the edge of the picture" style="width:100%; max-width: 700px;">
+```
+
+[`APAngle2`](@ref) gets this as a new `as=:region` option (alongside its
+own `as=:rays`; the decorative vertex markers, a small arc/pie-wedge/corner
+marker regardless of `action`, live in [`marks`](@ref) instead, see
+[Marks, Labels & Decorations](@ref)): it fills the true infinite wedge, not a
+marker near the vertex:
+
+```julia
+ang = APAngle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0))
+sethue(julia_purple); setopacity(0.25)
+path(ang; as=:region, action=:fill)
+```
+
+```@raw html
+<img src="../assets/img/drawing/fill_angle_region.svg" alt="A convex angle's true wedge shaded up to the edge of the picture" style="width:100%; max-width: 700px;">
+```
+
+A *reflex* angle correctly fills as two pieces (everything except the
+small excluded wedge), the same way it can come back as two pieces from
+[`intersection`](@ref):
+
+```julia
+reflex = APAngle2(APPoint(0.0, 0.0), APPoint(0.0, 4.0), APPoint(4.0, 0.0))
+sethue(julia_purple); setopacity(0.25)
+path(reflex; as=:region, action=:fill)
+```
+
+```@raw html
+<img src="../assets/img/drawing/fill_reflex_region.svg" alt="A reflex angle shaded everywhere except the small excluded wedge, as two filled pieces" style="width:100%; max-width: 700px;">
+```
+
+`as=:region` with `action` in `:path`/`:stroke`/`:strokepreserve` draws the
+same two true rays as `as=:rays`, and raise `bound` the same way `clip_out`
+suggests if the origin has moved far from the drawing.
 
 ## Dimensions, tick lines and labels
 

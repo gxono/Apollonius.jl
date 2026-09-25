@@ -231,39 +231,123 @@ function AP.path(r::AP.APRay; extend=1000.0, add::Union{Nothing,Real,Tuple{Real,
     as in _ARROWS && return _arrow(_lp(a), _lp(b); as=as, kwargs...)
     return Luxor.line(_lp(a), _lp(b), action)
 end
+const _FILL_ACTIONS = (:fill, :fillpreserve, :fillstroke)
+
+function _line_cross(p1::AP.APPoint, p2::AP.APPoint, l::AP.APLine)
+    return only(AP.intersection(AP.APLine(p1, p2), l))
+end
+function _sh_clip(poly::Vector{<:AP.APPoint}, hp::AP.APHalfPlane2)
+    isempty(poly) && return poly
+    out = AP.APPoint{2,Float64}[]
+    n = length(poly)
+    for i in 1:n
+        cur = poly[i]
+        prev = poly[mod1(i - 1, n)]
+        cur_in = cur in hp
+        prev_in = prev in hp
+        if cur_in
+            prev_in || push!(out, _line_cross(prev, cur, hp.boundary))
+            push!(out, cur)
+        elseif prev_in
+            push!(out, _line_cross(prev, cur, hp.boundary))
+        end
+    end
+    return out
+end
+function _box_clip(hps, bound::Real)
+    poly = AP.APPoint{2,Float64}[AP.APPoint(-bound, -bound), AP.APPoint(bound, -bound), AP.APPoint(bound, bound), AP.APPoint(-bound, bound)]
+    for hp in hps
+        poly = _sh_clip(poly, hp)
+        isempty(poly) && return poly
+    end
+    return poly
+end
+_fill_groups(hp::AP.APHalfPlane2) = [[hp]]
+_fill_groups(s::AP.APStrip2) = [AP._halfplanes_of(s)]
+_fill_groups(ang::AP.APAngle2) = AP._angle_groups(ang)
+_fill_groups(u::AP.APUnboundedPolygon2) = [[AP.APHalfPlane2(AP.APLine(base, base + dir), 1) for (base, dir) in AP._orientation_edges(u)]]
+function _fill_unbounded(region; bound::Real=1000.0, action=:fill)
+    groups = _fill_groups(region)
+    if action === :fillpreserve
+        for g in groups
+            pts = _box_clip(g, bound)
+            length(pts) < 3 && continue
+            Luxor.newsubpath()
+            Luxor.poly(_lp(pts), :path; close=true)
+        end
+        Luxor.do_action(:fillpreserve)
+    else
+        for g in groups
+            pts = _box_clip(g, bound)
+            length(pts) < 3 && continue
+            Luxor.newsubpath()
+            Luxor.poly(_lp(pts), :fill; close=true)
+        end
+    end
+end
 """
-    path(hp::APHalfPlane2; extend=1000.0, add=nothing, action=:path)
+    path(hp::APHalfPlane2; extend=1000.0, bound=1000.0, add=nothing, action=:path)
 
 `APHalfPlane2` is an unbounded region, so there's no finite shape to add
-to the path: this draws its boundary line instead (see
-[`path(::APLine)`](@ref)), the same way an infinite `APLine` itself is
-drawn. `add` is forwarded to it.
+to the path: for `action` in `:path`/`:stroke`/`:strokepreserve` this draws
+its boundary line instead (see [`path(::APLine)`](@ref)), the same way an
+infinite `APLine` itself is drawn, and `add` is forwarded to it. For
+`action` in `:fill`/`:fillpreserve`/`:fillstroke`, there's no finite shape
+to fill either, so this fills the part of `hp` inside a square of half-side
+`bound` centered on the origin instead (`:fillstroke` also strokes the true
+boundary line, not the square's edges).
 """
-AP.path(hp::AP.APHalfPlane2; extend=1000.0, add=nothing, action=:path, reverse::Bool=false) =
+function AP.path(hp::AP.APHalfPlane2; extend=1000.0, bound=1000.0, add=nothing, action=:path, reverse::Bool=false)
+    if action in _FILL_ACTIONS
+        _fill_unbounded(hp; bound=bound, action=action)
+        action === :fillstroke && AP.path(hp.boundary; extend=extend, add=add, action=:stroke, reverse=reverse)
+        return
+    end
     AP.path(hp.boundary; extend=extend, add=add, action=action, reverse=reverse)
+end
 """
-    path(s::APStrip2; extend=1000.0, add=nothing, action=:path)
+    path(s::APStrip2; extend=1000.0, bound=1000.0, add=nothing, action=:path)
 
-`APStrip2` is likewise unbounded, so this draws both of its boundary
-lines (see [`path(::APLine)`](@ref)), one call each: there's no way to
-add two disjoint lines as a single Luxor path action, so `action` is
-applied to each independently rather than to the pair as a whole. `add` is
-forwarded to each line.
+`APStrip2` is likewise unbounded, so for `action` in
+`:path`/`:stroke`/`:strokepreserve` this draws both of its boundary lines
+(see [`path(::APLine)`](@ref)), one call each: there's no way to add two
+disjoint lines as a single Luxor path action, so `action` is applied to
+each independently rather than to the pair as a whole. `add` is forwarded
+to each line. For `action` in `:fill`/`:fillpreserve`/`:fillstroke`, this
+fills the part of `s` inside a square of half-side `bound` centered on the
+origin instead, the same convention as [`path(::APHalfPlane2)`](@ref).
 """
-function AP.path(s::AP.APStrip2; extend=1000.0, add=nothing, action=:path, reverse::Bool=false)
+function AP.path(s::AP.APStrip2; extend=1000.0, bound=1000.0, add=nothing, action=:path, reverse::Bool=false)
+    if action in _FILL_ACTIONS
+        _fill_unbounded(s; bound=bound, action=action)
+        if action === :fillstroke
+            AP.path(s.line1; extend=extend, add=add, action=:stroke, reverse=reverse)
+            AP.path(s.line2; extend=extend, add=add, action=:stroke, reverse=reverse)
+        end
+        return
+    end
     AP.path(s.line1; extend=extend, add=add, action=action, reverse=reverse)
     AP.path(s.line2; extend=extend, add=add, action=action, reverse=reverse)
 end
 """
-    path(u::APUnboundedPolygon2; extend=1000.0, action=:path)
+    path(u::APUnboundedPolygon2; extend=1000.0, bound=1000.0, action=:path)
 
-Draws `u`'s actual boundary: `ray1`, the segments through its interior
-vertices, then `ray2`, via [`path(::Vector)`](@ref) (a mix of ray and
-segment pieces, the same way a reflex [`APAngle2`](@ref)'s clipped pieces
-are drawn).
+For `action` in `:path`/`:stroke`/`:strokepreserve`, draws `u`'s actual
+boundary: `ray1`, the segments through its interior vertices, then `ray2`,
+via [`path(::Vector)`](@ref) (a mix of ray and segment pieces, the same way
+a reflex [`APAngle2`](@ref)'s clipped pieces are drawn). For `action` in
+`:fill`/`:fillpreserve`/`:fillstroke`, fills the part of `u` inside a
+square of half-side `bound` centered on the origin instead, the same
+convention as [`path(::APHalfPlane2)`](@ref).
 """
-AP.path(u::AP.APUnboundedPolygon2; extend=1000.0, action=:path, reverse::Bool=false) =
+function AP.path(u::AP.APUnboundedPolygon2; extend=1000.0, bound=1000.0, action=:path, reverse::Bool=false)
+    if action in _FILL_ACTIONS
+        _fill_unbounded(u; bound=bound, action=action)
+        action === :fillstroke && AP.path(collect(AP._boundary_edges(u)); extend=extend, action=:stroke, reverse=reverse)
+        return
+    end
     AP.path(collect(AP._boundary_edges(u)); extend=extend, action=action, reverse=reverse)
+end
 """
     path(c::APCircle2; action=:path, reverse=false)
 
@@ -362,61 +446,42 @@ function AP.path(r::AP.APHyperbolicRay2; extend=2.0, n=60, action=:path, reverse
     Luxor.poly(pts, action; close=false)
 end
 """
-    path(ang::APAngle2; as=:arc, radius=nothing, action=:path)
+    path(ang::APAngle2; as=:rays, radius=nothing, bound=1000.0, action=:path)
 
-An `APAngle2` doesn't have a single canonical path: it's genuinely the
-space between two rays, but is conventionally *drawn* as a small arc (or a
-filled wedge). `as` picks which:
+An `APAngle2`'s own geometry, not a decorative marker (see [`marks`](@ref)
+for concentric-arc or parallelogram equality/right-angle markers instead).
+`as` picks which:
 
-  - `:rays` (open polyline `a -> vertex -> b`, the literal two half-lines
-    that bound the angle, each extended `radius` units from the vertex)
-  - `:arc` (default; a circular arc of the given `radius`, centered at the
-    vertex, swept from `ang.a` to `ang.b`, the conventional angle marker)
-  - `:sector` (closed pie-wedge: vertex, out to the arc, around it, and
-    back, handy for `action=:fill` to shade the angle's interior)
-  - `:rarc` (open polyline `pa -> pc -> pb`, generalizing the little
-    square used to mark a *right* angle to any angle: `pa`/`pb` are the
-    points at distance `radius` along each ray, and `pc = pa + pb -
-    vertex` completes the parallelogram `vertex, pa, pc, pb` by the
-    parallelogram law. At exactly 90° this parallelogram is the familiar
-    square corner marker; at any other angle it's a rhombus (both `pa`/`pb`
-    are `radius` from the vertex), tracing the same idea)
-  - `:rsector` (closed version of `:rarc`: the whole parallelogram
-    `vertex, pa, pc, pb`: handy for `action=:fill`, the same relationship
-    `:sector` has to `:arc`)
+  - `:rays` (default; open polyline `a -> vertex -> b`, the literal two
+    half-lines that bound the angle, each extended `radius` units from the
+    vertex)
+  - `:region` (the actual infinite wedge: for `action` in
+    `:fill`/`:fillpreserve`/`:fillstroke`, fills the part of `ang` inside a
+    square of half-side `bound` centered on the origin (`:fillstroke` also
+    strokes the true rays, not the square's edges, same as `:rays`); for
+    `action` in `:path`/`:stroke`/`:strokepreserve`, same as `:rays`)
 
 `radius` defaults to `0.15` times the shorter of `distance(vertex, a)` and
 `distance(vertex, b)`, so it looks reasonable at the triangle/figure's own
 scale without having to think about it.
 """
-function AP.path(ang::AP.APAngle2; as::Symbol=:arc, radius=nothing, action=:path, reverse::Bool=false)
+function AP.path(ang::AP.APAngle2; as::Symbol=:rays, radius=nothing, bound=1000.0, action=:path, reverse::Bool=false)
     vertex, a, b = ang.vertex, ang.a, ang.b
+    if as == :region
+        rayradius = radius === nothing ? bound : radius
+        if action in _FILL_ACTIONS
+            _fill_unbounded(ang; bound=bound, action=action)
+            action === :fillstroke && AP.path(ang; as=:rays, radius=rayradius, action=:stroke, reverse=reverse)
+            return
+        end
+        return AP.path(ang; as=:rays, radius=rayradius, action=action, reverse=reverse)
+    end
+    as == :rays || throw(ArgumentError("path(::APAngle2): as must be :rays or :region, got $(repr(as))"))
     r = radius === nothing ? 0.15 * min(AP.distance(vertex, a), AP.distance(vertex, b)) : radius
-    if as == :rays
-        ua = (a - vertex) / AP.norm(a - vertex)
-        ub = (b - vertex) / AP.norm(b - vertex)
-        pts = [vertex + r * ua, vertex, vertex + r * ub]
-        return Luxor.poly(_lp(reverse ? Base.reverse(pts) : pts), action; close=false)
-    end
-    pa = vertex + r * (a - vertex) / AP.norm(a - vertex)
-    pb = vertex + r * (b - vertex) / AP.norm(b - vertex)
-    if as == :rarc
-        pc = pa + (pb - vertex)
-        pts = [pa, pc, pb]
-        return Luxor.poly(_lp(reverse ? Base.reverse(pts) : pts), action; close=false)
-    elseif as == :rsector
-        pc = pa + (pb - vertex)
-        pts = [vertex, pa, pc, pb]
-        return Luxor.poly(_lp(reverse ? Base.reverse(pts) : pts), action; close=true)
-    end
-    arc = AP.APCircularArc2(AP.APCircle2(vertex, r), pa, pb)
-    if as == :arc
-        return AP.path(arc; action=action, reverse=reverse)
-    elseif as == :sector
-        return AP.path(AP.APCircularSector2(arc); action=action, reverse=reverse)
-    else
-        throw(ArgumentError("path(::APAngle2): as must be :rays, :arc, :sector, :rarc or :rsector, got $(repr(as))"))
-    end
+    ua = (a - vertex) / AP.norm(a - vertex)
+    ub = (b - vertex) / AP.norm(b - vertex)
+    pts = [vertex + r * ua, vertex, vertex + r * ub]
+    return Luxor.poly(_lp(reverse ? Base.reverse(pts) : pts), action; close=false)
 end
 """
     path(arc::APCircularArc2; action=:path)

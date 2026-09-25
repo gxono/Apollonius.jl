@@ -13,8 +13,8 @@ setline(1)
 path(APSegment(pg.vertices[1], ph.vertices[3]), action=:stroke)
 path(APSegment(pg.vertices[2], centroid(pg)), action=:stroke)
 path(APSegment(pr.vertices[2], centroid(pg)), action=:stroke)
-path(APAngle2(centroid(pg), pr.vertices[2], pg.vertices[2]),
-    action=:fill, as=:sector, radius = 15)
+path(APCircularSector2(only(marks(APAngle2(centroid(pg), pr.vertices[2], pg.vertices[2]); size=15))),
+    action=:fill)
 grestore()
 sethue(julia_purple)
 path(ph, action=:stroke)

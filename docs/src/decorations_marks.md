@@ -336,3 +336,31 @@ In the first panel `arcs=2` puts a tick across two arcs. The other five panels s
 
 !!! warning "The order of the rays matters"
     An [`APAngle2`](@ref) is the wedge swept counterclockwise from `a` to `b`, and the marks go on that wedge. Swapping `a` and `b` marks the other one. If you give the points in drawn coordinates (`y` downward), the counterclockwise wedge looks reversed on the screen.
+
+### The right-angle-style corner marker
+
+`style = :parallelogram` builds `count` nested open
+[`APPolyline2`](@ref)`(pa, pc, pb)` markers instead of arcs: `pa`/`pb` sit
+`size`, `size + gap`, ... along each ray, and `pc = pa + pb - vertex`
+completes the parallelogram `vertex, pa, pc, pb` by the parallelogram law.
+At exactly 90° that parallelogram is the familiar square corner marker
+(`pa`/`pb` are perpendicular and equal in length); at any other angle it's
+still a rhombus (`pa`/`pb` are always exactly `size` from the vertex),
+tracing the same idea:
+
+```@example geo
+right = APAngle2(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(0.0, 6.0))
+poly = only(marks(right; style=:parallelogram, size=3.0))
+distance(poly.vertices[1], poly.vertices[2]), distance(poly.vertices[2], poly.vertices[3])   # a true square: both sides equal
+```
+
+Wrap `poly.vertices` in [`APQuadrilateral`](@ref)`(ang.vertex, poly.vertices...)`
+for the closed, fillable form:
+
+```@example geo
+APQuadrilateral(right.vertex, poly.vertices...)
+```
+
+```@raw html
+<img src="../assets/img/decorations/marks_parallelogram.svg" alt="A right angle marked with a square corner marker, and a non-right angle marked with a rhombus, both open and one wrapped as a filled quadrilateral" style="width:100%; max-width: 700px;">
+```
