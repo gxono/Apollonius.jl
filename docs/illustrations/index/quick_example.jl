@@ -14,28 +14,23 @@ end
 
 @svg_doc(lxm, @__FILE__, begin
     Luxor.fontsize(15)
-    
-    #circle and height
+
     sethue(julia_purple)
     path([circ, height], action=:stroke)
-    
-    #angle mark
+
     sethue(julia_green)
     path(only(marks(right; style=:parallelogram, size=12)); action=:stroke)
-    
-    #triangle
+
     sethue(julia_blue)
     path(t, action=:stroke)
-    
-    #points
+
     sethue("white")
     path([a, b, c], action=:fillpreserve)
     sethue(julia_blue); strokepath()
     sethue("white")
     path([G, I, foot], action=:fillpreserve)
     sethue(julia_purple); strokepath()
-    
-    #labels 
+
     sethue(julia_red)
     label("A", :SW, a, offset=8)
     label("B", :SE, b, offset=8)

@@ -267,10 +267,12 @@ end
 to the path: for `action` in `:path`/`:stroke`/`:strokepreserve` this draws
 its boundary line instead (see [`path(::APLine)`](@ref)), the same way an
 infinite `APLine` itself is drawn, and `add` is forwarded to it. For
-`action` in `:fill`/`:fillpreserve`/`:fillstroke`, there's no finite shape
-to fill either, so this fills the part of `hp` inside a square of half-side
-`bound` centered on the origin instead (`:fillstroke` also strokes the true
-boundary line, not the square's edges).
+`action` in `:fill`/`:fillpreserve`/`:fillstroke`/`:clip`, there's no finite
+shape to fill or clip to either, so this fills, or restricts later drawing
+to, the part of `hp` inside a square of half-side `bound` centered on the
+origin instead (`:fillstroke` also strokes the true boundary line, not the
+square's edges; see [`clip_out`](@ref) for the complementary clip, the
+*outside* of `hp`).
 """
 function AP.path(hp::AP.APHalfPlane2; extend=1000.0, bound=1000.0, add=nothing, action=:path, reverse::Bool=false)
     if action in _FILL_ACTIONS
@@ -288,9 +290,10 @@ end
 (see [`path(::APLine)`](@ref)), one call each: there's no way to add two
 disjoint lines as a single Luxor path action, so `action` is applied to
 each independently rather than to the pair as a whole. `add` is forwarded
-to each line. For `action` in `:fill`/`:fillpreserve`/`:fillstroke`, this
-fills the part of `s` inside a square of half-side `bound` centered on the
-origin instead, the same convention as [`path(::APHalfPlane2)`](@ref).
+to each line. For `action` in `:fill`/`:fillpreserve`/`:fillstroke`/`:clip`,
+this fills, or restricts later drawing to, the part of `s` inside a square
+of half-side `bound` centered on the origin instead, the same convention
+as [`path(::APHalfPlane2)`](@ref).
 """
 function AP.path(s::AP.APStrip2; extend=1000.0, bound=1000.0, add=nothing, action=:path, reverse::Bool=false)
     if action in _FILL_ACTIONS
@@ -311,9 +314,10 @@ For `action` in `:path`/`:stroke`/`:strokepreserve`, draws `u`'s actual
 boundary: `ray1`, the segments through its interior vertices, then `ray2`,
 via [`path(::Vector)`](@ref) (a mix of ray and segment pieces, the same way
 a reflex [`APAngle2`](@ref)'s clipped pieces are drawn). For `action` in
-`:fill`/`:fillpreserve`/`:fillstroke`, fills the part of `u` inside a
-square of half-side `bound` centered on the origin instead, the same
-convention as [`path(::APHalfPlane2)`](@ref).
+`:fill`/`:fillpreserve`/`:fillstroke`/`:clip`, fills, or restricts later
+drawing to, the part of `u` inside a square of half-side `bound` centered
+on the origin instead, the same convention as
+[`path(::APHalfPlane2)`](@ref).
 """
 function AP.path(u::AP.APUnboundedPolygon2; extend=1000.0, bound=1000.0, action=:path, reverse::Bool=false)
     if action in _FILL_ACTIONS
@@ -431,10 +435,11 @@ for concentric-arc or parallelogram equality/right-angle markers instead).
     half-lines that bound the angle, each extended `radius` units from the
     vertex)
   - `:region` (the actual infinite wedge: for `action` in
-    `:fill`/`:fillpreserve`/`:fillstroke`, fills the part of `ang` inside a
-    square of half-side `bound` centered on the origin (`:fillstroke` also
-    strokes the true rays, not the square's edges, same as `:rays`); for
-    `action` in `:path`/`:stroke`/`:strokepreserve`, same as `:rays`)
+    `:fill`/`:fillpreserve`/`:fillstroke`/`:clip`, fills, or restricts later
+    drawing to, the part of `ang` inside a square of half-side `bound`
+    centered on the origin (`:fillstroke` also strokes the true rays, not
+    the square's edges, same as `:rays`); for `action` in
+    `:path`/`:stroke`/`:strokepreserve`, same as `:rays`)
 
 `radius` defaults to `0.15` times the shorter of `distance(vertex, a)` and
 `distance(vertex, b)`, so it looks reasonable at the triangle/figure's own
@@ -612,7 +617,7 @@ is preserved. (Any action but `:path` starts a new path for the shape it is
 given, so a single call per element would keep only the last one.)
 """
 function AP.path(v::Union{AbstractArray{<:AP.APObject},NTuple{N,<:AP.APObject} where N}; action=:path, kwargs...)
-    if action === :fillpreserve || action === :strokepreserve   # one path for the whole vector, preserved once
+    if action === :fillpreserve || action === :strokepreserve
         for x in v
             Luxor.newsubpath()
             AP.path(x; action=:path, kwargs...)
@@ -629,7 +634,7 @@ function AP.current_path_bbox()
     return AP.APBoundingBox(AP.APPoint(x1, y1), AP.APPoint(x2, y2))
 end
 function AP.clip_out(v::Union{AbstractArray{<:AP.APObject},NTuple{N,<:AP.APObject} where N}; kwargs...)
-    for x in v   # one clip per shape: even-odd on a single path would toggle wherever shapes overlap or nest
+    for x in v
         AP.clip_out(x; kwargs...)
     end
     return nothing
@@ -652,7 +657,7 @@ end
 [`path`](@ref)), which the generic `clip_out` can't use as a closed shape
 to subtract. This excludes the part of `region` inside a square of
 half-side `bound` instead, the same box [`path`](@ref)`(region;
-action=:fill)` fills.
+action=:fill)` fills and [`path`](@ref)`(region; action=:clip)` keeps.
 """
 function AP.clip_out(region::Union{AP.APHalfPlane2,AP.APStrip2,AP.APAngle2,AP.APUnboundedPolygon2}; bound::Real=1e5)
     previous = Luxor.getfillrule()

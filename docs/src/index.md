@@ -196,15 +196,19 @@ APObject{Dim,T}
 │   │   │   ├── APEllipse2{T}
 │   │   │   ├── APParabola2{T}
 │   │   │   └── APHyperbola2{T}
-│   │   └── APConicArc2{T}
-│   │       ├── APCircularArc2{T}
-│   │       ├── APEllipticArc2{T}
-│   │       ├── APParabolicArc2{T}
-│   │       └── APHyperbolicArc2{T}
+│   │   ├── APConicArc2{T}
+│   │   │   ├── APCircularArc2{T}
+│   │   │   ├── APEllipticArc2{T}
+│   │   │   ├── APParabolicArc2{T}
+│   │   │   └── APHyperbolicArc2{T}
+│   │   ├── APParabolicRay2{T}
+│   │   ├── APHyperbolicRay2{T}
+│   │   └── APHyperbolaBranch2{T}
 │   └── APSet{Dim,T}
 │       ├── APHalfPlane2{T}
 │       ├── APAngle2{T}
 │       ├── APStrip2{T}
+│       ├── APUnboundedPolygon2{T}
 │       └── APRegion{Dim,T}
 │           └── APPolygon{Dim,T}
 │               ├── APTriangle{Dim,T}

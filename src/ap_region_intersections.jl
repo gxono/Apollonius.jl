@@ -1,6 +1,3 @@
-# Phase 3: intersection between two of APAngle2/APHalfPlane2/APStrip2. Full
-# design rationale in scratch/TODO.md.
-
 _halfplanes_of(hp::APHalfPlane2) = [hp]
 _halfplanes_of(s::APStrip2) = [
     APHalfPlane2(s.line1, side_of_line(s.line2.p1, s.line1)),
@@ -16,7 +13,6 @@ function _same_line(l1::APLine, l2::APLine; atol=1e-9)
     return abs(cross2(d1, diff)) <= atol * norm(d1) * max(norm(diff), 1.0)
 end
 
-# Walks segments nose-to-tail from `start`, until none connect.
 function _stitch_chain(segs::AbstractVector; start::Union{APPoint,Nothing}=nothing, atol=1e-9)
     remaining = collect(segs)
     current = start === nothing ? remaining[1].p1 : start
@@ -31,7 +27,6 @@ function _stitch_chain(segs::AbstractVector; start::Union{APPoint,Nothing}=nothi
 end
 
 _edges_equal(a::APPoint, b::APPoint; atol) = isapprox(a, b; atol=atol)
-# same origin and direction, not just the same line
 function _edges_equal(a::APRay, b::APRay; atol)
     isapprox(a.origin, b.origin; atol=atol) || return false
     d1, d2 = direction(a), direction(b)
@@ -42,7 +37,6 @@ _edges_equal(a::APSegment, b::APSegment; atol) =
     (isapprox(a.p1, b.p2; atol=atol) && isapprox(a.p2, b.p1; atol=atol))
 _edges_equal(::Any, ::Any; atol) = false
 
-# Same boundary line (either order) AND same side, not just the same line.
 function _same_halfplane(hp1::APHalfPlane2, hp2::APHalfPlane2; atol=1e-9)
     _same_line(hp1.boundary, hp2.boundary; atol=atol) || return false
     d = direction(hp1.boundary)
@@ -50,8 +44,6 @@ function _same_halfplane(hp1::APHalfPlane2, hp2::APHalfPlane2; atol=1e-9)
     return (test_pt in hp1) == (test_pt in hp2)
 end
 
-# Full-line edges only dedupe within the same halfplane (opposite sides
-# sharing a line must stay distinct, see the APLine case below).
 function _dedup_owned(owned::Vector{<:Tuple{APHalfPlane2,Any}}; atol=1e-9)
     kept = Tuple{APHalfPlane2,Any}[]
     for (hp, e) in owned
@@ -85,7 +77,7 @@ function _classify_halfplane_intersection(survivors::Vector{<:Tuple{APHalfPlane2
         return normalized_measure(ang) <= pi + atol ? ang : reverse(ang)
     end
 
-    rest = filter(e -> !(e isa APPoint), edges)   # a lone point is redundant with a neighbor's endpoint
+    rest = filter(e -> !(e isa APPoint), edges)
     segs = filter(e -> e isa APSegment, rest)
     rays2 = filter(e -> e isa APRay, rest)
     if length(rays2) == 0
@@ -153,7 +145,6 @@ intersection(hp::APHalfPlane2, s::APStrip2; atol=1e-9) = _intersect_halfplanes(v
 intersection(s::APStrip2, hp::APHalfPlane2; atol=1e-9) = intersection(hp, s; atol=atol)
 intersection(s1::APStrip2, s2::APStrip2; atol=1e-9) = _intersect_halfplanes(vcat(_halfplanes_of(s1), _halfplanes_of(s2)); atol=atol)
 
-# convex: 1 group of its 2 halfplanes (AND); reflex: 2 groups of 1 (OR)
 _angle_groups(ang::APAngle2; atol=1e-9) =
     normalized_measure(ang) <= pi + atol ? [_halfplanes_of(ang)] : [[h] for h in map(_flip, _halfplanes_of(ang))]
 

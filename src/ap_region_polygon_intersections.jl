@@ -1,7 +1,3 @@
-# Phase 5: region vs a bounded straight-sided polygon. Full design in
-# scratch/TODO.md. Straight sides only (Sutherland-Hodgman); curved-sided
-# polygons (APCircularSector2 and friends) are deferred.
-
 function _sh_clip_polygon(poly::Vector{<:APPoint}, hp::APHalfPlane2; atol=1e-9)
     isempty(poly) && return poly
     out = APPoint{2,Float64}[]

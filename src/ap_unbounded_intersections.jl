@@ -1,6 +1,3 @@
-# Phase 1: region (APAngle2/APHalfPlane2/APStrip2) vs APLine/APRay/APSegment,
-# the part of the object INSIDE the region rather than boundary crossings.
-
 _param_base_dir(l::APLine) = (l.p1, direction(l))
 _param_base_dir(r::APRay) = (r.origin, direction(r))
 _param_base_dir(s::APSegment) = (s.p1, direction(s))
@@ -8,8 +5,6 @@ _param_domain(::APLine) = (-Inf, Inf)
 _param_domain(::APRay) = (0.0, Inf)
 _param_domain(::APSegment) = (0.0, 1.0)
 
-# Clips the parameter range [lo, hi] of point(t) = base + t*dir to the side of
-# hp.boundary that hp keeps. Returns `nothing` for an empty result, else (lo, hi).
 function _clip_to_halfplane(base::APPoint, dir::APVector, lo::Real, hi::Real, hp::APHalfPlane2; atol=1e-9)
     d = direction(hp.boundary)
     A = cross2(d, base - hp.boundary.p1)
@@ -28,8 +23,6 @@ function _clip_to_halfplane(base::APPoint, dir::APVector, lo::Real, hi::Real, hp
     return newlo <= newhi ? (newlo, newhi) : nothing
 end
 
-# Converts a clipped parameter range back to the natural type: a point when the
-# range is a single value, a segment/ray/line depending on which ends are finite.
 function _object_from_range(base::APPoint, dir::APVector, lo::Real, hi::Real)
     lo == hi && return base + lo * dir
     isfinite(lo) && isfinite(hi) && return APSegment(base + lo * dir, base + hi * dir)

@@ -28,11 +28,9 @@ pts = [el1.p1, el1.p2, el2.p1, el2.p2, il1.p1, il1.p2, il2.p1, il2.p2]
 Drawing(lxm.width, lxm.height, :svg)
 origin()
 
-#circles
 sethue(julia_blue)
 path([circle1, circle2], action = :stroke)
 
-#radius and angle
 @layer begin
     sethue(julia_green); setdash(:dash)
     path(APSegment(circle1.center, el1.p1), action = :stroke)
@@ -40,7 +38,6 @@ path([circle1, circle2], action = :stroke)
     path(APQuadrilateral(ang.vertex, only(marks(ang; style=:parallelogram, size=20)).vertices...), action = :fill)
 end
 
-#lines
 sethue(julia_purple)
 path([il1, il2, el1, el2], action = :stroke)
 

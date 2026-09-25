@@ -1,5 +1,3 @@
-# Phase 2b: half-infinite pieces of an open conic. Full design in scratch/TODO.md.
-
 """
     APParabolicRay2(parabola::APParabola2, p::APPoint, dir::Int)
 

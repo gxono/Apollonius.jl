@@ -1,7 +1,3 @@
-# Phase 2b: region vs APParabola2/APHyperbola2/APParabolicArc2/APHyperbolicArc2.
-# Full design in scratch/TODO.md. Always returns a Vector: even a single
-# halfplane can split an open curve into two disjoint surviving pieces.
-
 _open_point(par::APParabola2, ::Int, s::Real) = point_on(par, s)
 _open_point(h::APHyperbola2, branch::Int, t::Real) = point_on(h, t; branch=branch)
 _open_param(par::APParabola2, ::Int, p::APPoint) = _parabola_param(par, p)
@@ -9,8 +5,6 @@ _open_param(h::APHyperbola2, ::Int, p::APPoint) = _hyperbola_param(h, p)[1]
 _open_crossings(par::APParabola2, ::Int, l::APLine) = intersection(l, par)
 _open_crossings(h::APHyperbola2, branch::Int, l::APLine) = filter(p -> _hyperbola_param(h, p)[2] == branch, intersection(l, h))
 
-# (base curve, branch, lo, hi) for one branch of `curve`; `branch` is ignored
-# for parabola-family curves (always 0).
 _open_range_for_branch(par::APParabola2, ::Int) = (par, 0, -Inf, Inf)
 _open_range_for_branch(h::APHyperbola2, branch::Int) = (h, branch, -Inf, Inf)
 function _open_range_for_branch(arc::APParabolicArc2, ::Int)
@@ -37,8 +31,6 @@ function _open_object_from_range(h::APHyperbola2, branch::Int, lo::Real, hi::Rea
     return APHyperbolaBranch2(h, branch)
 end
 
-# Clips (lo,hi) of curve's own open (non-periodic) parameter to hp's side.
-# Returns a Vector of surviving (lo',hi') ranges (possibly empty).
 function _clip_open_range_to_halfplane(curve, branch::Int, lo::Real, hi::Real, hp::APHalfPlane2; atol=1e-9)
     sample_in(s) = _open_point(curve, branch, s) in hp
     ref = isfinite(lo) ? lo : (isfinite(hi) ? hi : 0.0)
@@ -69,7 +61,6 @@ function _clip_open_range_to_halfplane(curve, branch::Int, lo::Real, hi::Real, h
         right_in && hi - s0 > scale && push!(pieces, (s0, hi))
         return pieces
     end
-    # 2 crossings: at most one line can meet an open conic branch twice
     s0, s1 = cuts[1], cuts[2]
     pieces = Tuple{Float64,Float64}[]
     sample_in(s0 - step(s0)) && s0 - lo > scale && push!(pieces, (lo, s0))
@@ -78,8 +69,6 @@ function _clip_open_range_to_halfplane(curve, branch::Int, lo::Real, hi::Real, h
     return pieces
 end
 
-# Merge overlapping/touching ranges (needed only when OR-ing a reflex angle's
-# two flipped halfplane results; no wraparound to worry about, unlike Phase 2).
 function _merge_open_ranges(ranges::Vector{Tuple{Float64,Float64}}; atol=1e-9)
     isempty(ranges) && return ranges
     sorted = sort(ranges; by=first)

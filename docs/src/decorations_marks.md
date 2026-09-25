@@ -228,18 +228,21 @@ is_on_line(circ.center, APLine(tick.p1, tick.p2))
 
 ### Marks on an angle
 
-For an [`APAngle2`](@ref), `marks` has two modes. The default `style = :arcs`
-gives `count` concentric arcs centered at the vertex, the classic way to
-say two angles are equal. Any other style puts `count` symbols on the arc
-instead, with the size of each symbol in `mark_size`.
+For an [`APAngle2`](@ref), `marks` has three modes. The default
+`style = :arcs` gives `count` concentric arcs centered at the vertex, the
+classic way to say two angles are equal. `style = :parallelogram` gives
+`count` nested right-angle-style corner markers instead, see
+[The right-angle-style corner marker](@ref) below. Any other style puts
+`count` symbols on the arc instead, with the size of each symbol in
+`mark_size`.
 
 | Keyword | Default | Meaning |
 |:--------|:--------|:--------|
-| `count` | `1` | arcs, or symbols |
-| `style` | `:arcs` | `:arcs`, or any style from the table above |
-| `size` | `0.15 ×` the shorter ray | radius of the first arc |
-| `gap` | `4.0` | radial gap between arcs, or gap between symbols |
-| `mark_size` | `6.0` | size of each symbol, when `style` is not `:arcs` |
+| `count` | `1` | arcs, parallelograms, or symbols |
+| `style` | `:arcs` | `:arcs`, `:parallelogram`, or any style from the table above |
+| `size` | `0.15 ×` the shorter ray | radius of the first arc, or ray-distance of the first parallelogram |
+| `gap` | `4.0` | radial gap between arcs/parallelograms, or gap between symbols |
+| `mark_size` | `6.0` | size of each symbol, when `style` is not `:arcs`/`:parallelogram` |
 | `at` | `0.5` | where the symbols sit along the arc |
 | `arcs` | `0` | with a symbol style, also draw this many arcs and center the symbols across them |
 
@@ -364,3 +367,32 @@ APQuadrilateral(right.vertex, poly.vertices...)
 ```@raw html
 <img src="../assets/img/decorations/marks_parallelogram.svg" alt="A right angle marked with a square corner marker, and a non-right angle marked with a rhombus, both open and one wrapped as a filled quadrilateral" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+
+    lxm = @prepare_to_picture! width=500 height=200 margin=20 begin
+        right = APAngle2(APPoint(0.0, 0.0), APPoint(6.0, 0.0), APPoint(0.0, 6.0))
+        other = APAngle2(APPoint(12.0, 0.0), APPoint(18.0, 0.0), rotate(APPoint(18.0, 0.0), pi / 3, APPoint(12.0, 0.0)))
+        rays = [APSegment(a.vertex, x) for a in (right, other) for x in (a.a, a.b)]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+
+    sethue(julia_blue)
+    path(rays, action=:stroke)
+
+    sethue(julia_purple)
+    path(only(marks(right; style=:parallelogram, size=3.0)); action=:stroke)
+    poly = only(marks(other; style=:parallelogram, size=3.0))
+    path(APQuadrilateral(other.vertex, poly.vertices...); action=:fill)
+
+    finish()
+    preview()
+    end
+    ```

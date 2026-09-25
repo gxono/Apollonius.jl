@@ -89,6 +89,12 @@ region, a bounding box, or an angle's marker wrapped as `APCircularSector2`/
 `APQuadrilateral`, see [Marks, Labels & Decorations](@ref)), and without
 approximating any arc.
 
+[`APHalfPlane2`](@ref), [`APStrip2`](@ref), [`APAngle2`](@ref) (`as=:region`)
+and [`APUnboundedPolygon2`](@ref) have no closed path to give either way (see
+"Filling an unbounded region" below): both `path(region; action=:clip)` and
+`clip_out(region)` work on them too, restricting drawing to the inside or
+the outside of the same `bound`-sized box the fill uses.
+
 ```julia
 @layer begin
     clip_out(APCircle2(APPoint(-50.0, 0.0), 30.0))
@@ -186,6 +192,19 @@ path(reflex; as=:region, action=:fill)
 `as=:region` with `action` in `:path`/`:stroke`/`:strokepreserve` draws the
 same two true rays as `as=:rays`, and raise `bound` the same way `clip_out`
 suggests if the origin has moved far from the drawing.
+
+`action=:clip` works the same way as `:fill`, restricting later drawing to
+the region's part of the box instead of painting it, and `clip_out` does the
+opposite, restricting to everything outside it (see "Clipping the outside"
+above):
+
+```julia
+@layer begin
+    path(hp; action=:clip)
+    sethue(julia_purple); setopacity(0.25)
+    paint()   # only the part of hp inside the box gets painted
+end
+```
 
 ## Dimensions, tick lines and labels
 

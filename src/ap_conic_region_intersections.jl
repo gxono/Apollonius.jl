@@ -1,6 +1,3 @@
-# Phase 2: region vs APCircle2/APEllipse2/arcs, described as a base curve
-# plus an angular range (start, sweep in (0, 2π]) in its own parameter.
-
 _closed_param_point(c::APCircle2, θ::Real) = c.center + c.r * APVector(cos(θ), sin(θ))
 _closed_param_point(e::APEllipse2, θ::Real) = point_on(e, θ)
 _closed_param_of(c::APCircle2, p::APPoint) = atan(p[2] - c.center[2], p[1] - c.center[1])
@@ -35,16 +32,15 @@ function _clip_range_to_halfplane(curve, θ::Real, sweep::Real, hp::APHalfPlane2
     elseif length(pts) == 1
         p = only(pts)
         φ = mod(_closed_param_of(curve, p) - θ, 2π)
-        φ > sweep + scale && return nothing   # the tangency isn't even within this range
+        φ > sweep + scale && return nothing
         sample = _closed_param_point(curve, θ + mod(φ + 0.1 * sweep, sweep))
-        sample in hp && return (θ, sweep)   # tangent from the inside: nothing lost
-        return (θ + φ, 0.0)   # tangent from the outside: only that single point survives
+        sample in hp && return (θ, sweep)
+        return (θ + φ, 0.0)
     else
         pa, pb = pts
         φa = mod(_closed_param_of(curve, pa) - θ, 2π)
         φb = mod(_closed_param_of(curve, pb) - θ, 2π)
         φa > φb && ((φa, φb) = (φb, φa))
-        # 3 candidate pieces of [0, sweep] cut by φa, φb (whichever fall inside it)
         cuts = sort(filter(x -> 0 <= x <= sweep, [0.0, φa, φb, sweep]))
         pieces = Tuple{Float64,Float64}[]
         for i in 1:length(cuts)-1
@@ -54,7 +50,6 @@ function _clip_range_to_halfplane(curve, θ::Real, sweep::Real, hp::APHalfPlane2
             (_closed_param_point(curve, θ + mid) in hp) && push!(pieces, (lo, hi))
         end
         isempty(pieces) && return nothing
-        # a full period wraps: start and end are the same point
         if sweep >= 2π - scale && length(pieces) > 1 && pieces[1][1] <= scale && pieces[end][2] >= sweep - scale
             hi1 = pieces[1][2]
             lo2 = pieces[end][1]
@@ -76,8 +71,6 @@ function _clip_range_to_halfplane(curve, θ::Real, sweep::Real, hp::APHalfPlane2
     end
 end
 
-# union of two (θ, sweep) ranges (or nothing): 1 piece if they touch/overlap
-# (possibly wrapping into a full circle), else both
 function _or_ranges(a, b)
     a === nothing && return b === nothing ? Tuple{Float64,Float64}[] : [b]
     b === nothing && return [a]
