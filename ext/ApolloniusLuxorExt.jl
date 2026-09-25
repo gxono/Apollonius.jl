@@ -536,6 +536,28 @@ function AP.path(pg::AP.APCurvilinearPolyline2; n=60, action=:path, reverse::Boo
     end
     Luxor.do_action(action)
 end
+"""
+    path(dec::APDecorationBrace2; action=:path)
+
+A curly brace, drawn as one continuous curve: [`vertices`](@ref)`(dec)` gives
+its `(p1, tip, p2)`, [`direction`](@ref)/[`distance`](@ref) the direction and
+length of `[p1, p2]` it decorates.
+"""
+function AP.path(dec::AP.APDecorationBrace2; action=:path, reverse::Bool=false)
+    action != :path && Luxor.newpath()
+    order = AP._brace_walk(dec)
+    reverse && (order = [(side, !flag) for (side, flag) in Base.reverse(order)])
+    first_side, first_reversed = order[1]
+    Luxor.move(_lp(first_reversed ? AP._side_p2(first_side) : AP._side_p1(first_side)))
+    for (side, reversed) in order
+        if side isa AP.APSegment
+            Luxor.line(_lp(reversed ? side.p1 : side.p2))
+        else
+            _add_arc!(side, reversed)
+        end
+    end
+    Luxor.do_action(action)
+end
 function _add_arc!(arc::AP.APCircularArc2, reversed::Bool; n=60)
     c = _lp(arc.circle.center)
     reversed ? Luxor.carc2r(c, _lp(arc.p2), _lp(arc.p1)) : Luxor.arc2r(c, _lp(arc.p1), _lp(arc.p2))

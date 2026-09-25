@@ -24,7 +24,7 @@ growing downward.
 | The point and direction at some position of a curve | [`tangent_at`](@ref) |
 | Ticks or symbols on a segment, arc or angle | [`marks`](@ref) |
 | An arrowhead in the middle or at the end | [`arrow_head`](@ref) |
-| A curly brace and its label position | [`brace`](@ref), [`brace_anchor`](@ref) |
+| A curly brace and its label point | [`APDecorationBrace2`](@ref) |
 | Where to put a text label | [`label_anchor`](@ref) |
 | Dotted lines from a point to the axes | [`coordinate_guides`](@ref) |
 | A grid and the coordinate axes | [`grid_lines`](@ref), [`axes_lines`](@ref) |

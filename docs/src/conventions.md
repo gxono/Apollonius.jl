@@ -108,9 +108,10 @@ e1 == e2, e1 ≈ e2
 | Kind of function | Returns |
 |:-----------------|:--------|
 | A geometric operation that can have several answers ([`intersection`](@ref), [`tangent_points`](@ref)) | A `Vector` with 0, 1 or 2 elements (more for `tangent_circles`), never `nothing`. |
-| A decoration ([`marks`](@ref), [`brace`](@ref), [`grid_lines`](@ref), [`coordinate_guides`](@ref)) | A `Vector` of geometric objects, ready for `path`. |
+| A decoration ([`marks`](@ref), [`grid_lines`](@ref), [`coordinate_guides`](@ref)) | A `Vector` of geometric objects, ready for `path`. |
 | A shown construction ([`mediator_construction`](@ref) and its family) | A `NamedTuple` `(result, arcs, points)`. |
-| A label position ([`label_anchor`](@ref), [`brace_anchor`](@ref)) | A `NamedTuple` `(alignment, point)`, in the argument order of Luxor's `label`. |
+| A label position ([`label_anchor`](@ref)) | A `NamedTuple` `(alignment, point)`, in the argument order of Luxor's `label`. |
+| A decoration recipe ([`APDecorationBrace2`](@ref)) | An object of its own, ready for `path`; its notable points come from [`vertices`](@ref). |
 
 The order of the elements of a `Vector` result is not part of the
 contract, with two exceptions: [`intersection`](@ref) of a line and a
@@ -175,7 +176,7 @@ figure.
 
 **"Left", "above" and compass directions are read on screen.** Luxor draws
 with `y` growing downward, so the functions that pick a side
-([`label_anchor`](@ref), [`brace`](@ref), [`brace_anchor`](@ref)) assume the
+([`label_anchor`](@ref), [`APDecorationBrace2`](@ref)) assume the
 coordinates they receive are the ones about to be drawn. A `:left` label
 on a segment going from left to right on screen is above it, and `:N` is
 up. Call them on the transformed objects and it all lines up.

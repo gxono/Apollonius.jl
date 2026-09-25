@@ -257,52 +257,6 @@ function arrow_head(obj::Union{APSegment,APLine,APRay,APCircularArc2,APEllipticA
     style === :stealth && return APStraightNgon(tip, base + w * N, tip - 0.65h * T, base - w * N)
     return APPolyline2(base + w * N, tip, base - w * N)
 end
-function _brace_frame(p1::APPoint, p2::APPoint, height, side::Symbol)
-    side in (:left, :right) || throw(ArgumentError("brace: side must be :left or :right, got $(repr(side))"))
-    L = distance(p1, p2)
-    L > 0 || throw(ArgumentError("brace: p1 and p2 must differ"))
-    h = height === nothing ? min(10.0, L / 2) : height
-    h > 0 || throw(ArgumentError("brace: height must be positive"))
-    r = h / 2
-    4r <= L * (1 + 1e-12) || throw(ArgumentError("brace: height must be at most half the distance between p1 and p2"))
-    ex = (p2 - p1) / L
-    n = orthogonal(ex)
-    return L, r, ex, side === :left ? -n : n
-end
-"""
-    brace(p1::APPoint, p2::APPoint; height=nothing, side=:left)
-
-A curly brace along `[p1, p2]`, the mark that says "this whole length is
-so much", as a `Vector` of quarter [`APCircularArc2`](@ref)s and straight
-[`APSegment`](@ref)s to draw with `path(brace(...); action=:stroke)`. The
-brace is `height` deep (default `10` or half the length if that is smaller),
-its two ends touching `p1` and `p2` and its point in the middle, on `side`
-(`:left` or `:right` of `p1 -> p2` as seen on screen: call it on the
-objects as they will be drawn, like [`label_anchor`](@ref)). `height` must be
-at most half of `distance(p1, p2)`. Every piece keeps its own natural
-orientation, so they are separate pieces rather than one chained curve.
-
-| Keyword | Default | Meaning |
-|:--------|:--------|:--------|
-| `height` | `min(10.0, L/2)` | depth of the brace, at most half of `L = distance(p1, p2)` |
-| `side` | `:left` | `:left` or `:right` of `p1 -> p2` as drawn |
-"""
-function brace(p1::APPoint, p2::APPoint; height::Union{Nothing,Real}=nothing, side::Symbol=:left)
-    L, r, ex, ey = _brace_frame(p1, p2, height, side)
-    G(x, y) = p1 + x * ex + y * ey
-    function quarter(cx, cy, xa, ya, xb, yb)
-        c, pa, pb = G(cx, cy), G(xa, ya), G(xb, yb)
-        return APCircularArc2(c, r, pa, pb; ccw=cross2(pa - c, pb - c) > 0)
-    end
-    m = L / 2
-    out = APObject[quarter(r, 0, 0, 0, r, r)]
-    m - 2r > 1e-12 * L && push!(out, APSegment(G(r, r), G(m - r, r)))
-    push!(out, quarter(m - r, 2r, m - r, r, m, 2r))
-    push!(out, quarter(m + r, 2r, m, 2r, m + r, r))
-    m - 2r > 1e-12 * L && push!(out, APSegment(G(m + r, r), G(L - r, r)))
-    push!(out, quarter(L - r, 0, L - r, r, L, 0))
-    return identity.(out)
-end
 """
     coordinate_guides(p::APPoint; origin=APPoint(0.0, 0.0))
 

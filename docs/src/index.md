@@ -227,6 +227,9 @@ APObject{Dim,T}
 
 APTransform{T}
 └── APAffineMap{T}
+
+APDecoration{Dim,T}
+└── APDecorationBrace2{T}
 ```
 
 `APTriangle`, `APQuadrilateral`, `APCircularSector2` and every other
@@ -249,6 +252,9 @@ ang isa APSet, ang isa APRegion   # (true, false): unbounded, so an APSet but no
 
 m = APAffineMap(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 m isa APTransform, m isa APObject   # (true, false): APTransform is its own separate hierarchy
+
+dec = APDecorationBrace2(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
+dec isa APDecoration, dec isa APObject   # (true, false): APDecoration is its own separate hierarchy too
 ```
 
 ## Where to go next

@@ -769,27 +769,48 @@ using Base.MathConstants: golden
             @test op isa APPolyline2 && length(op) == 3 && op[2] ≈ hd[1]
             @test distance(op[1], op[2]) ≈ 10.0 && distance(op[3], op[2]) ≈ 10.0
         end
-        @testset "brace" begin
-            b = brace(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0)
+        @testset "APDecorationBrace2" begin
+            p1, p2 = APPoint(0.0, 0.0), APPoint(100.0, 0.0)
+            dec = APDecorationBrace2(p1, p2; height=10.0)
+            b = Apollonius._brace_pieces(dec)
             @test length(b) == 6 && count(x -> x isa APCircularArc2, b) == 4 && count(x -> x isa APSegment, b) == 2
             @test sum(x isa APCircularArc2 ? arc_length(x) : distance(x.p1, x.p2) for x in b) ≈ 2pi * 5 + 80
-            tips = [q for x in b for q in (x isa APCircularArc2 ? (x.p1, x.p2) : (x.p1, x.p2))]
-            has(q) = any(t -> isapprox(t, q; atol=1e-9), tips)
-            @test has(APPoint(0.0, 0.0)) && has(APPoint(100.0, 0.0)) && has(APPoint(50.0, -10.0))   # ends on the segment, point up on screen (left)
-            @test has(APPoint(50.0, 10.0)) == false
-            @test any(t -> isapprox(t, APPoint(50.0, 10.0); atol=1e-9), [q for x in brace(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0, side=:right) for q in (x.p1, x.p2)])
             @test all(x -> x isa APCircularArc2 ? measure(x) ≈ pi / 2 : true, b)   # quarter arcs
-            @test length(brace(APPoint(0.0, 0.0), APPoint(20.0, 0.0); height=10.0)) == 4   # the two straight pieces vanish at the maximum height
-            @test length(brace(APPoint(0.0, 0.0), APPoint(50.0, 0.0))) == 6   # default height 10
-            @test_throws ArgumentError brace(APPoint(0.0, 0.0), APPoint(10.0, 0.0); height=6.0)
-            @test_throws ArgumentError brace(APPoint(0.0, 0.0), APPoint(0.0, 0.0))
-            @test_throws ArgumentError brace(APPoint(0.0, 0.0), APPoint(10.0, 0.0); side=:up)
-            ba = brace_anchor(APPoint(0.0, 0.0), APPoint(100.0, 0.0))
-            @test ba == (alignment=:N, point=APPoint(50.0, -10.0))   # the point of the brace, label beyond it (screen coordinates)
-            @test brace_anchor(APPoint(0.0, 0.0), APPoint(100.0, 0.0); side=:right, height=6.0) == (alignment=:S, point=APPoint(50.0, 6.0))
-            @test brace_anchor(APPoint(0.0, 0.0), APPoint(0.0, 100.0)).alignment == :E
-            @test any(q -> isapprox(q, ba.point; atol=1e-9), [q for x in b for q in (x.p1, x.p2)])   # it is a point of the brace itself
-            @test_throws ArgumentError brace_anchor(APPoint(0.0, 0.0), APPoint(10.0, 0.0); height=6.0)
+
+            @test vertices(dec) == (p1, APPoint(50.0, -10.0), p2)   # tip up on screen (left), the point of the brace
+            @test direction(dec) == APVector(100.0, 0.0) && distance(dec) == 100.0 && slope_angle(dec) == 0.0
+
+            decR = APDecorationBrace2(p1, p2; height=10.0, side=:right)
+            @test vertices(decR)[2] == APPoint(50.0, 10.0)
+
+            dec0 = APDecorationBrace2(p1, p2; height=10.0, pos=0.0)
+            dec1 = APDecorationBrace2(p1, p2; height=10.0, pos=1.0)
+            @test vertices(dec0)[2] == APPoint(5.0, -10.0)    # arc_radius past p1, not on it
+            @test vertices(dec1)[2] == APPoint(95.0, -10.0)
+
+            @test length(Apollonius._brace_pieces(APDecorationBrace2(APPoint(0.0, 0.0), APPoint(20.0, 0.0); height=10.0))) == 4   # straight pieces vanish at max height
+            @test length(Apollonius._brace_pieces(APDecorationBrace2(APPoint(0.0, 0.0), APPoint(50.0, 0.0)))) == 6   # default height 10
+
+            @test_throws ArgumentError APDecorationBrace2(APPoint(0.0, 0.0), APPoint(10.0, 0.0); height=6.0)
+            @test_throws ArgumentError APDecorationBrace2(APPoint(0.0, 0.0), APPoint(0.0, 0.0))
+            @test_throws ArgumentError APDecorationBrace2(APPoint(0.0, 0.0), APPoint(10.0, 0.0); side=:up)
+            @test_throws ArgumentError APDecorationBrace2(APPoint(0.0, 0.0), APPoint(10.0, 0.0); pos=1.5)
+            @test_throws ArgumentError APDecorationBrace2(APPoint(0.0, 0.0), APPoint(10.0, 0.0); pos=-0.1)
+
+            @test APBoundingBox(dec) == reduce(bbox_union, APBoundingBox.(b); init=APBoundingBox())
+
+            v = APVector(3.0, 4.0)
+            @test translate(dec, v) == APDecorationBrace2(p1 + v, p2 + v, dec.arc_radius, dec.pos, dec.side)
+            rot = rotate(dec, pi / 2, APPoint(0.0, 0.0))
+            @test rot.arc_radius == dec.arc_radius && rot.pos == dec.pos && rot.side == dec.side
+            @test isapprox(rot.p1, APPoint(0.0, 0.0); atol=1e-9) && isapprox(rot.p2, APPoint(0.0, 100.0); atol=1e-9)
+
+            hom = homothety(dec, -2.0, APPoint(0.0, 0.0))
+            @test hom.arc_radius ≈ 10.0 && hom.side == dec.side && hom.pos == dec.pos   # negative k: orientation-preserving, side unchanged
+            @test hom.p1 ≈ APPoint(0.0, 0.0) && hom.p2 ≈ APPoint(-200.0, 0.0)
+
+            @test reflection(dec, APPoint(1.0, 1.0)).side == dec.side   # point reflection: orientation-preserving
+            @test reflection(dec, APLine(APPoint(0.0, -1.0), APPoint(1.0, -1.0))).side != dec.side   # line reflection: flips
         end
         @testset "coordinate_guides" begin
             g = coordinate_guides(APPoint(3.0, 4.0))
@@ -5909,12 +5930,13 @@ using Base.MathConstants: golden
             path(shown.arcs; action=:stroke)
             path(shown.result; action=:stroke)
             Luxor.label("a", label_anchor(APSegment(APPoint(-50.0, -40.0), APPoint(50.0, -40.0)))...)   # splats into Luxor's label(txt, alignment, pos)
-            path(brace(APPoint(-40.0, 60.0), APPoint(40.0, 60.0)); action=:stroke)
+            decBrace = APDecorationBrace2(APPoint(-40.0, 60.0), APPoint(40.0, 60.0))
+            path(decBrace; action=:stroke)
             path(arrow_head(APSegment(APPoint(-40.0, 30.0), APPoint(40.0, 30.0))); action=:fill)
             path(arrow_head(arc; at=1.0, place=:tip); action=:fill)
             path(arrow_head(arc; at=0.5, style=:stealth); action=:fill)
             path(arrow_head(arc; at=0.2, style=:open); action=:stroke)
-            Luxor.label("80", brace_anchor(APPoint(-40.0, 60.0), APPoint(40.0, 60.0))...)
+            Luxor.label("80", :N, vertices(decBrace)[2])
             path(coordinate_guides(APPoint(30.0, -20.0)); action=:stroke)
             @testset "arrows at one end or both" begin
                 sa = APSegment(APPoint(-40.0, 50.0), APPoint(40.0, 50.0))

@@ -25,10 +25,11 @@ the point and the alignment for you, so the text sits on the outside:
 | `label_anchor(ang; dist=nothing)` | on an angle's bisector, `dist` from the vertex (default `0.25 ×` the shorter ray), pointing away from the vertex |
 | `label_anchor(circle, θ)` | on the circle at polar angle `θ`, outward |
 | `label_anchor(p, from)` | at the point `p`, pointing away from the point `from`; use the centroid as `from` to keep vertex labels outside a figure |
-| [`brace_anchor`](@ref)`(p1, p2; height, side)` | at the point of a brace |
 
 The result is a `NamedTuple` `(alignment, point)` in the argument order of
-Luxor's `label`.
+Luxor's `label`. A brace's own label point is [`vertices`](@ref)`(dec)[2]`
+instead: see [`APDecorationBrace2`](@ref) in
+[Decorations: Arrowheads & Braces](@ref).
 
 ```@example geo
 label_anchor(s), label_anchor(s; side=:right)
@@ -87,7 +88,7 @@ t = APTriangle(APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0))
     ```
 
 !!! warning "Compass directions and sides are read as drawn"
-    `:N` is above the point and `:left` is the left of the direction of travel as seen on the screen, with `y` growing downward. Call [`label_anchor`](@ref) and [`brace_anchor`](@ref) on the fitted objects. On coordinates with `y` upward the same call gives the mirrored answer.
+    `:N` is above the point and `:left` is the left of the direction of travel as seen on the screen, with `y` growing downward. Call [`label_anchor`](@ref) and [`APDecorationBrace2`](@ref) on the fitted objects. On coordinates with `y` upward the same call gives the mirrored answer.
 
 ## Guides and grids
 
@@ -199,8 +200,9 @@ end
     path(marks(seg; count=2); action=:stroke)          # two ticks in the middle
     path(marks(ang; count=2); action=:stroke)          # two arcs on the angle
     path(arrow_head(seg; at=0.3); action=:fill)        # an arrow a third of the way
-    path(brace(seg.p1, seg.p2); action=:stroke)
-    label("10", brace_anchor(seg.p1, seg.p2)...)       # splat: (alignment, point)
+    dec = APDecorationBrace2(seg.p1, seg.p2)
+    path(dec; action=:stroke)
+    label("10", :N, vertices(dec)[2])
 end lxm.width lxm.height
 ```
 
@@ -239,10 +241,11 @@ Put together, the pieces make a figure like this one: an isosceles triangle with
     path(marks(angA; count=2, size=34, gap=6); action=:stroke)
     path(marks(angB; count=2, size=34, gap=6); action=:stroke)
     path(arrow_head(base; at=0.2, size=12); action=:fill)
-    path(brace(base.p1, base.p2; height=12, side=:right); action=:stroke)
+    baseBrace = APDecorationBrace2(base.p1, base.p2; height=12, side=:right)
+    path(baseBrace; action=:stroke)
 
     sethue(julia_red)
-    label("b", brace_anchor(base.p1, base.p2; height=12, side=:right)...)
+    label("b", :S, vertices(baseBrace)[2])
     for (v, n) in zip(vertices(t), ("A", "B", "C"))
         label(n, label_anchor(v, G)...)
     end

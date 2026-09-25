@@ -85,18 +85,17 @@ isapprox(head[1], arc.p2; atol=1e-9)
     ```
 
 
-## Braces: `brace` and `brace_anchor`
+## Braces: `APDecorationBrace2`
 
-[`brace`](@ref)`(p1, p2)` is a curly brace along the segment, `height`
-deep (default `10`, or half the length if that is smaller) on the `side`
-(`:left` or `:right`) of `p1 → p2`. It comes back as its six pieces, four
-quarter arcs and two straight segments, so `path` draws it in one call.
-`height` cannot exceed half the length, and at that limit the two straight
-pieces disappear.
+[`APDecorationBrace2`](@ref)`(p1, p2)` is a curly brace along the segment,
+`height` deep (default `10`, or half the length if that is smaller) on the
+`side` (`:left` or `:right`) of `p1 → p2`. [`path`](@ref) draws it as one
+continuous curve, and [`vertices`](@ref) gives `(p1, tip, p2)`: the tip is
+where a label goes, no separate function needed for it.
 
 ```@example geo
-b = brace(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0)
-count(x -> x isa APCircularArc2, b), count(x -> x isa APSegment, b)
+dec = APDecorationBrace2(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0)
+vertices(dec)
 ```
 
 ```@raw html
@@ -112,6 +111,9 @@ count(x -> x isa APCircularArc2, b), count(x -> x isa APSegment, b)
         s1 = APSegment(APPoint(0.0, 4.0), APPoint(7.0, 4.0))
         s2 = APSegment(APPoint(0.0, 0.0), APPoint(7.0, 0.0))
         s3 = APSegment(APPoint(10.0, 0.0), APPoint(13.0, 5.0))
+        b1 = APDecorationBrace2(s1.p1, s1.p2; height=14, side=:left)
+        b2 = APDecorationBrace2(s2.p1, s2.p2; height=14, side=:right)
+        b3 = APDecorationBrace2(s3.p1, s3.p2; height=14, side=:right)
     end
 
 
@@ -123,22 +125,43 @@ count(x -> x isa APCircularArc2, b), count(x -> x isa APSegment, b)
     path([s1, s2, s3], action=:stroke)
 
     sethue(julia_purple)
-    path(brace(s1.p1, s1.p2; height=14, side=:left); action=:stroke)
-    path(brace(s2.p1, s2.p2; height=14, side=:right); action=:stroke)
-    path(brace(s3.p1, s3.p2; height=14, side=:right); action=:stroke)
+    path(b1; action=:stroke)
+    path(b2; action=:stroke)
+    path(b3; action=:stroke)
 
     sethue(julia_red)
-    label("a", brace_anchor(s1.p1, s1.p2; height=14, side=:left)...)
-    label("b", brace_anchor(s2.p1, s2.p2; height=14, side=:right)...)
-    label("c", brace_anchor(s3.p1, s3.p2; height=14, side=:right)...)
+    label("a", :N, vertices(b1)[2])
+    label("b", :S, vertices(b2)[2])
+    label("c", :S, vertices(b3)[2])
 
     finish()
     preview()
     end
     ```
 
-[`brace_anchor`](@ref) with the same arguments gives the point of the brace
-and the alignment that puts a label beyond it; see the next section.
+[`direction`](@ref)/[`slope_angle`](@ref)/[`distance`](@ref) all work on a
+brace directly, the same as on the segment `[p1, p2]` it decorates:
+
+```@example geo
+direction(dec), distance(dec)
+```
+
+`pos` (default `0.5`, the middle) moves the tip along `[p1, p2]`: at
+`pos = 0` it sits `height / 2` past `p1` (not on `p1` itself, there is no
+room for its corner arc any closer), at `pos = 1` symmetrically near `p2`:
+
+```@example geo
+off_center = APDecorationBrace2(APPoint(0.0, 0.0), APPoint(100.0, 0.0); height=10.0, pos=0.2)
+vertices(off_center)[2]
+```
+
+`APDecorationBrace2` is transformable like any other object:
+`rotate`/`translate`/`homothety`/`reflection` all work on it, moving `p1`
+and `p2` the way they would on the plain segment; `homothety` also scales
+its arc radius (never negative, same as any radius in this package), and
+`side` only flips under a reflection about a line, not about a point or
+under a homothety with a negative factor (both of those preserve
+orientation in the plane).
 
 !!! warning "A brace cannot be deeper than half its length"
     A `height` greater than half of `distance(p1, p2)` throws an `ArgumentError`. Only the default is reduced by itself, to half the length when that is smaller than `10`.

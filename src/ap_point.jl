@@ -5,8 +5,10 @@ The root of every type this package defines: anything that lives in
 `Dim`-dimensional space with coordinates of element type `T`. Every
 concrete AP-prefixed type, points, vectors, curves, regions, bounding
 boxes, is an `APObject`. [`APTransform`](@ref) (affine maps and friends)
-is deliberately *not* part of this tree: a transform isn't itself a
-geometric object, it's a function between them.
+and [`APDecoration`](@ref) (figure annotations like
+[`APDecorationBrace2`](@ref)) are deliberately *not* part of this tree: a
+transform isn't itself a geometric object, it's a function between them,
+and a decoration isn't a locus of points, it's a recipe for what to draw.
 """
 abstract type APObject{Dim,T<:Real} end
 """

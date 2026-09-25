@@ -18,13 +18,14 @@ fontsize(15)
 end
 
 arc = only(marks(ang))
+radioBrace = APDecorationBrace2(O, B)
 @layer begin
     sethue(julia_blue); setopacity(0.5)
     path(APCircularSector2(arc), action=:fill)
 
     setopacity(1)
     path(arc, action=:stroke)
-    path(brace(O, B), action=:stroke)
+    path(radioBrace, action=:stroke)
 end
 
 @layer begin
@@ -35,7 +36,7 @@ end
 
 sethue(julia_red)
 label("40°", label_anchor(ang; dist=50)...)
-text("r = 4", brace_anchor(O, B).point, direction=B-O, halign=:center)
+text("r = 4", vertices(radioBrace)[2], direction=B-O, halign=:center)
 
 sethue("white")
 path(B, action=:fillpreserve)
