@@ -3,22 +3,370 @@
 
 A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
 t = APTriangle(A, B, C)</code></pre><h2 id="Further-named-centers"><a class="docs-heading-anchor" href="#Further-named-centers">Further named centers</a><a id="Further-named-centers-1"></a><a class="docs-heading-anchor-permalink" href="#Further-named-centers" title="Permalink"></a></h2><p>Beyond the classical four, this package implements a large catalogue of triangle centers and associated circles from classical triangle geometry. Two, as a sample:</p><pre><code class="language-julia hljs">Na = nagel_point(t)     # point where the excircle-tangency cevians meet
-Ge = gergonne_point(t)  # point where the incircle-tangency cevians meet</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.280260799020241, 2.254676044407567]</code></pre><img src="../assets/img/triangles/nagel_gergonne.svg" alt="The Gergonne and Nagel points, where the cevians to the incircle and excircle touch points meet" style="width:100%; max-width: 700px;"><p>The rest, grouped by what they&#39;re built from:</p><table><tr><th style="text-align: left">Group</th><th style="text-align: left">Functions</th></tr><tr><td style="text-align: left">Cevian-intersection points</td><td style="text-align: left"><a href="../api/#Apollonius.nagel_point-Tuple{APTriangle}"><code>nagel_point</code></a>, <a href="../api/#Apollonius.gergonne_point-Tuple{APTriangle}"><code>gergonne_point</code></a>, <a href="../api/#Apollonius.symmedian_point-Tuple{APTriangle}"><code>symmedian_point</code></a>, <a href="../api/#Apollonius.fermat_point-Tuple{APTriangle}"><code>fermat_point</code></a>, <a href="../api/#Apollonius.second_fermat_point-Tuple{APTriangle}"><code>second_fermat_point</code></a></td></tr><tr><td style="text-align: left">Conjugates of a point</td><td style="text-align: left"><a href="../api/#Apollonius.isogonal_conjugate-Tuple{APTriangle, APPoint}"><code>isogonal_conjugate</code></a>, <a href="../api/#Apollonius.isotomic_conjugate-Tuple{APTriangle, APPoint}"><code>isotomic_conjugate</code></a></td></tr><tr><td style="text-align: left">Complement/anticomplement of a point</td><td style="text-align: left"><a href="../api/#Apollonius.complement-Tuple{APTriangle, APPoint}"><code>complement</code></a>, <a href="../api/#Apollonius.anticomplement-Tuple{APTriangle, APPoint}"><code>anticomplement</code></a></td></tr><tr><td style="text-align: left">Built from the incenter/excenters</td><td style="text-align: left"><a href="../api/#Apollonius.mittenpunkt-Tuple{APTriangle}"><code>mittenpunkt</code></a>, <a href="../api/#Apollonius.spieker_center-Tuple{APTriangle}"><code>spieker_center</code></a>, <a href="../api/#Apollonius.spieker_circle-Tuple{APTriangle}"><code>spieker_circle</code></a>, <a href="../api/#Apollonius.bevan_point-Tuple{APTriangle}"><code>bevan_point</code></a>, <a href="../api/#Apollonius.de_longchamps_point-Tuple{APTriangle}"><code>de_longchamps_point</code></a></td></tr><tr><td style="text-align: left">Trilinear/barycentric formula, no simpler description</td><td style="text-align: left"><a href="../api/#Apollonius.clawson_point-Tuple{APTriangle}"><code>clawson_point</code></a></td></tr><tr><td style="text-align: left">On the circumcircle or Euler line</td><td style="text-align: left"><a href="../api/#Apollonius.feuerbach_point-Tuple{APTriangle}"><code>feuerbach_point</code></a>, <a href="../api/#Apollonius.feuerbach_points-Tuple{APTriangle}"><code>feuerbach_points</code></a>, <a href="../api/#Apollonius.isodynamic_points-Tuple{APTriangle}"><code>isodynamic_points</code></a></td></tr><tr><td style="text-align: left">Brocard configuration</td><td style="text-align: left"><a href="../api/#Apollonius.first_brocard_point-Tuple{APTriangle}"><code>first_brocard_point</code></a>, <a href="../api/#Apollonius.second_brocard_point-Tuple{APTriangle}"><code>second_brocard_point</code></a>, <a href="../api/#Apollonius.angle_measure_brocard-Tuple{APTriangle}"><code>angle_measure_brocard</code></a>, <a href="../api/#Apollonius.brocard_circle-Tuple{APTriangle}"><code>brocard_circle</code></a>, <a href="../api/#Apollonius.brocard_midpoint-Tuple{APTriangle}"><code>brocard_midpoint</code></a></td></tr><tr><td style="text-align: left">Congruent-squares / conjugate-of-classical-center points</td><td style="text-align: left"><a href="../api/#Apollonius.kenmotu_point-Tuple{APTriangle}"><code>kenmotu_point</code></a>/<a href="../api/#Apollonius.kenmotu_circle-Tuple{APTriangle}"><code>kenmotu_circle</code></a>, <a href="../api/#Apollonius.macbeath_point-Tuple{APTriangle}"><code>macbeath_point</code></a></td></tr><tr><td style="text-align: left">A 4th point&#39;s common nine-point-circle point</td><td style="text-align: left"><a href="../api/#Apollonius.poncelet_point-Tuple{APTriangle, APPoint}"><code>poncelet_point</code></a></td></tr><tr><td style="text-align: left">Pedal-type constructions</td><td style="text-align: left"><a href="../api/#Apollonius.simson_line-Tuple{APTriangle, APPoint}"><code>simson_line</code></a>, <a href="../api/#Apollonius.steiner_line-Tuple{APTriangle, APPoint}"><code>steiner_line</code></a>, <a href="../api/#Apollonius.orthopole-Tuple{APLine, APTriangle}"><code>orthopole</code></a>, <a href="../api/#Apollonius.pedal_triangle-Tuple{APTriangle, APPoint}"><code>pedal_triangle</code></a>/<a href="../api/#Apollonius.pedal_circle-Tuple{APTriangle, APPoint}"><code>pedal_circle</code></a></td></tr><tr><td style="text-align: left">Named auxiliary circles</td><td style="text-align: left"><a href="../api/#Apollonius.conway_points-Tuple{APTriangle}"><code>conway_points</code></a>/<a href="../api/#Apollonius.conway_circle-Tuple{APTriangle}"><code>conway_circle</code></a>, <a href="../api/#Apollonius.taylor_points-Tuple{APTriangle}"><code>taylor_points</code></a>/<a href="../api/#Apollonius.taylor_circle-Tuple{APTriangle}"><code>taylor_circle</code></a>, <a href="../api/#Apollonius.first_lemoine_points-Tuple{APTriangle}"><code>first_lemoine_points</code></a>/<a href="../api/#Apollonius.first_lemoine_circle-Tuple{APTriangle}"><code>first_lemoine_circle</code></a>/<a href="../api/#Apollonius.second_lemoine_circle-Tuple{APTriangle}"><code>second_lemoine_circle</code></a>/<a href="../api/#Apollonius.symmedial_circle-Tuple{APTriangle}"><code>symmedial_circle</code></a>, <a href="../api/#Apollonius.van_lamoen_points-Tuple{APTriangle}"><code>van_lamoen_points</code></a>/<a href="../api/#Apollonius.van_lamoen_circle-Tuple{APTriangle}"><code>van_lamoen_circle</code></a>, <a href="../api/#Apollonius.adams_points-Tuple{APTriangle}"><code>adams_points</code></a>/<a href="../api/#Apollonius.adams_circle-Tuple{APTriangle}"><code>adams_circle</code></a></td></tr><tr><td style="text-align: left">Mutually tangent circle systems</td><td style="text-align: left"><a href="../api/#Apollonius.mixtilinear_incircle-Tuple{APTriangle, Integer}"><code>mixtilinear_incircle</code></a>, <a href="../api/#Apollonius.three_tangent_circles-Tuple{APTriangle}"><code>three_tangent_circles</code></a>/<a href="../api/#Apollonius.soddy_circles-Tuple{APTriangle}"><code>soddy_circles</code></a>/<a href="../api/#Apollonius.soddy_line-Tuple{APTriangle}"><code>soddy_line</code></a>/<a href="../api/#Apollonius.soddy_center-Tuple{APTriangle}"><code>soddy_center</code></a>/<a href="../api/#Apollonius.soddy_points-Tuple{APTriangle}"><code>soddy_points</code></a>, <a href="../api/#Apollonius.thebault_circles-Tuple{APTriangle, APPoint}"><code>thebault_circles</code></a></td></tr><tr><td style="text-align: left">Apollonius circles of a triangle</td><td style="text-align: left"><a href="../api/#Apollonius.three_apollonius_circles-Tuple{APTriangle}"><code>three_apollonius_circles</code></a> (one per vertex; their common points are the <a href="../api/#Apollonius.isodynamic_points-Tuple{APTriangle}"><code>isodynamic_points</code></a>); <a href="../api/#Apollonius.apollonius_circle_of_triangle-Tuple{APTriangle}"><code>apollonius_circle_of_triangle</code></a>/<a href="../api/#Apollonius.apollonius_point_of_triangle-Tuple{APTriangle}"><code>apollonius_point_of_triangle</code></a> (one circle, tangent to the three excircles instead)</td></tr><tr><td style="text-align: left">Axis-like lines</td><td style="text-align: left"><a href="../api/#Apollonius.fermat_axis-Tuple{APTriangle}"><code>fermat_axis</code></a> (through <a href="../api/#Apollonius.fermat_point-Tuple{APTriangle}"><code>fermat_point</code></a> and <a href="../api/#Apollonius.second_fermat_point-Tuple{APTriangle}"><code>second_fermat_point</code></a>); see also <a href="../api/#Apollonius.orthic_axis-Tuple{APTriangle}"><code>orthic_axis</code></a>/<a href="../api/#Apollonius.brocard_axis-Tuple{APTriangle}"><code>brocard_axis</code></a>/<a href="../api/#Apollonius.lemoine_axis-Tuple{APTriangle}"><code>lemoine_axis</code></a> above and <a href="../api/#Apollonius.soddy_line-Tuple{APTriangle}"><code>soddy_line</code></a></td></tr></table><p>All of these take the <code>APTriangle</code> as their (only, or first) argument and return an <code>APPoint</code>, an <code>APCircle2</code>, an <code>APLine</code>, or (where there&#39;s naturally more than one, like <code>soddy_circles</code> or <code>three_apollonius_circles</code>) a tuple or named tuple. See the <a href="../api/#API-Reference">API Reference</a> for exact signatures.</p><h3 id="Simson-and-Steiner-lines"><a class="docs-heading-anchor" href="#Simson-and-Steiner-lines">Simson and Steiner lines</a><a id="Simson-and-Steiner-lines-1"></a><a class="docs-heading-anchor-permalink" href="#Simson-and-Steiner-lines" title="Permalink"></a></h3><p><a href="../api/#Apollonius.steiner_line-Tuple{APTriangle, APPoint}"><code>steiner_line</code></a><code>(t, p)</code> is closely related to <a href="../api/#Apollonius.simson_line-Tuple{APTriangle, APPoint}"><code>simson_line</code></a><code>(t, p)</code>: reflecting (rather than projecting) <code>p</code> across the three side-lines gives three points that are collinear exactly when <code>p</code> is on the circumcircle, and that Steiner line always passes through the orthocenter, parallel to the Simson line of the same point.</p><pre><code class="language-julia hljs">p_on_circ = polar_point(circumradius(t), 0.7, circumcenter(t))   # any point on t&#39;s circumcircle
+Ge = gergonne_point(t)  # point where the incircle-tangency cevians meet</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.280260799020241, 2.254676044407567]</code></pre><img src="../assets/img/triangles/nagel_gergonne.svg" alt="The Gergonne and Nagel points, where the cevians to the incircle and excircle touch points meet" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-c9604f9e32b15bc2"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-c9604f9e32b15bc2" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    ct = contact_triangle(t)
+    et = extouch_triangle(t)
+    Na = nagel_point(t)
+    Ge = gergonne_point(t)
+    gcev = [APSegment(v, p) for (v, p) in zip((A, B, C), vertices(ct))]
+    ncev = [APSegment(v, p) for (v, p) in zip((A, B, C), vertices(et))]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(julia_green)
+path(gcev, action=:stroke)
+grestore()
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(&quot;gray80&quot;)
+path(ncev, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+sethue(julia_red)
+label(&quot;Ge&quot;, :N, Ge); label(&quot;Na&quot;, :S, Na)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([Ge, Na], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p>The rest, grouped by what they&#39;re built from:</p><table><tr><th style="text-align: left">Group</th><th style="text-align: left">Functions</th></tr><tr><td style="text-align: left">Cevian-intersection points</td><td style="text-align: left"><a href="../api/#Apollonius.nagel_point-Tuple{APTriangle}"><code>nagel_point</code></a>, <a href="../api/#Apollonius.gergonne_point-Tuple{APTriangle}"><code>gergonne_point</code></a>, <a href="../api/#Apollonius.symmedian_point-Tuple{APTriangle}"><code>symmedian_point</code></a>, <a href="../api/#Apollonius.fermat_point-Tuple{APTriangle}"><code>fermat_point</code></a>, <a href="../api/#Apollonius.second_fermat_point-Tuple{APTriangle}"><code>second_fermat_point</code></a></td></tr><tr><td style="text-align: left">Conjugates of a point</td><td style="text-align: left"><a href="../api/#Apollonius.isogonal_conjugate-Tuple{APTriangle, APPoint}"><code>isogonal_conjugate</code></a>, <a href="../api/#Apollonius.isotomic_conjugate-Tuple{APTriangle, APPoint}"><code>isotomic_conjugate</code></a></td></tr><tr><td style="text-align: left">Complement/anticomplement of a point</td><td style="text-align: left"><a href="../api/#Apollonius.complement-Tuple{APTriangle, APPoint}"><code>complement</code></a>, <a href="../api/#Apollonius.anticomplement-Tuple{APTriangle, APPoint}"><code>anticomplement</code></a></td></tr><tr><td style="text-align: left">Built from the incenter/excenters</td><td style="text-align: left"><a href="../api/#Apollonius.mittenpunkt-Tuple{APTriangle}"><code>mittenpunkt</code></a>, <a href="../api/#Apollonius.spieker_center-Tuple{APTriangle}"><code>spieker_center</code></a>, <a href="../api/#Apollonius.spieker_circle-Tuple{APTriangle}"><code>spieker_circle</code></a>, <a href="../api/#Apollonius.bevan_point-Tuple{APTriangle}"><code>bevan_point</code></a>, <a href="../api/#Apollonius.de_longchamps_point-Tuple{APTriangle}"><code>de_longchamps_point</code></a></td></tr><tr><td style="text-align: left">Trilinear/barycentric formula, no simpler description</td><td style="text-align: left"><a href="../api/#Apollonius.clawson_point-Tuple{APTriangle}"><code>clawson_point</code></a></td></tr><tr><td style="text-align: left">On the circumcircle or Euler line</td><td style="text-align: left"><a href="../api/#Apollonius.feuerbach_point-Tuple{APTriangle}"><code>feuerbach_point</code></a>, <a href="../api/#Apollonius.feuerbach_points-Tuple{APTriangle}"><code>feuerbach_points</code></a>, <a href="../api/#Apollonius.isodynamic_points-Tuple{APTriangle}"><code>isodynamic_points</code></a></td></tr><tr><td style="text-align: left">Brocard configuration</td><td style="text-align: left"><a href="../api/#Apollonius.first_brocard_point-Tuple{APTriangle}"><code>first_brocard_point</code></a>, <a href="../api/#Apollonius.second_brocard_point-Tuple{APTriangle}"><code>second_brocard_point</code></a>, <a href="../api/#Apollonius.angle_measure_brocard-Tuple{APTriangle}"><code>angle_measure_brocard</code></a>, <a href="../api/#Apollonius.brocard_circle-Tuple{APTriangle}"><code>brocard_circle</code></a>, <a href="../api/#Apollonius.brocard_midpoint-Tuple{APTriangle}"><code>brocard_midpoint</code></a></td></tr><tr><td style="text-align: left">Congruent-squares / conjugate-of-classical-center points</td><td style="text-align: left"><a href="../api/#Apollonius.kenmotu_point-Tuple{APTriangle}"><code>kenmotu_point</code></a>/<a href="../api/#Apollonius.kenmotu_circle-Tuple{APTriangle}"><code>kenmotu_circle</code></a>, <a href="../api/#Apollonius.macbeath_point-Tuple{APTriangle}"><code>macbeath_point</code></a></td></tr><tr><td style="text-align: left">A 4th point&#39;s common nine-point-circle point</td><td style="text-align: left"><a href="../api/#Apollonius.poncelet_point-Tuple{APTriangle, APPoint}"><code>poncelet_point</code></a></td></tr><tr><td style="text-align: left">Pedal-type constructions</td><td style="text-align: left"><a href="../api/#Apollonius.simson_line-Tuple{APTriangle, APPoint}"><code>simson_line</code></a>, <a href="../api/#Apollonius.steiner_line-Tuple{APTriangle, APPoint}"><code>steiner_line</code></a>, <a href="../api/#Apollonius.orthopole-Tuple{APLine, APTriangle}"><code>orthopole</code></a>, <a href="../api/#Apollonius.pedal_triangle-Tuple{APTriangle, APPoint}"><code>pedal_triangle</code></a>/<a href="../api/#Apollonius.pedal_circle-Tuple{APTriangle, APPoint}"><code>pedal_circle</code></a></td></tr><tr><td style="text-align: left">Named auxiliary circles</td><td style="text-align: left"><a href="../api/#Apollonius.conway_points-Tuple{APTriangle}"><code>conway_points</code></a>/<a href="../api/#Apollonius.conway_circle-Tuple{APTriangle}"><code>conway_circle</code></a>, <a href="../api/#Apollonius.taylor_points-Tuple{APTriangle}"><code>taylor_points</code></a>/<a href="../api/#Apollonius.taylor_circle-Tuple{APTriangle}"><code>taylor_circle</code></a>, <a href="../api/#Apollonius.first_lemoine_points-Tuple{APTriangle}"><code>first_lemoine_points</code></a>/<a href="../api/#Apollonius.first_lemoine_circle-Tuple{APTriangle}"><code>first_lemoine_circle</code></a>/<a href="../api/#Apollonius.second_lemoine_circle-Tuple{APTriangle}"><code>second_lemoine_circle</code></a>/<a href="../api/#Apollonius.symmedial_circle-Tuple{APTriangle}"><code>symmedial_circle</code></a>, <a href="../api/#Apollonius.van_lamoen_points-Tuple{APTriangle}"><code>van_lamoen_points</code></a>/<a href="../api/#Apollonius.van_lamoen_circle-Tuple{APTriangle}"><code>van_lamoen_circle</code></a>, <a href="../api/#Apollonius.adams_points-Tuple{APTriangle}"><code>adams_points</code></a>/<a href="../api/#Apollonius.adams_circle-Tuple{APTriangle}"><code>adams_circle</code></a></td></tr><tr><td style="text-align: left">Mutually tangent circle systems</td><td style="text-align: left"><a href="../api/#Apollonius.mixtilinear_incircle-Tuple{APTriangle, Integer}"><code>mixtilinear_incircle</code></a>, <a href="../api/#Apollonius.three_tangent_circles-Tuple{APTriangle}"><code>three_tangent_circles</code></a>/<a href="../api/#Apollonius.soddy_circles-Tuple{APTriangle}"><code>soddy_circles</code></a>/<a href="../api/#Apollonius.soddy_line-Tuple{APTriangle}"><code>soddy_line</code></a>/<a href="../api/#Apollonius.soddy_center-Tuple{APTriangle}"><code>soddy_center</code></a>/<a href="../api/#Apollonius.soddy_points-Tuple{APTriangle}"><code>soddy_points</code></a>, <a href="../api/#Apollonius.thebault_circles-Tuple{APTriangle, APPoint}"><code>thebault_circles</code></a></td></tr><tr><td style="text-align: left">Apollonius circles of a triangle</td><td style="text-align: left"><a href="../api/#Apollonius.three_apollonius_circles-Tuple{APTriangle}"><code>three_apollonius_circles</code></a> (one per vertex; their common points are the <a href="../api/#Apollonius.isodynamic_points-Tuple{APTriangle}"><code>isodynamic_points</code></a>); <a href="../api/#Apollonius.apollonius_circle_of_triangle-Tuple{APTriangle}"><code>apollonius_circle_of_triangle</code></a>/<a href="../api/#Apollonius.apollonius_point_of_triangle-Tuple{APTriangle}"><code>apollonius_point_of_triangle</code></a> (one circle, tangent to the three excircles instead)</td></tr><tr><td style="text-align: left">Axis-like lines</td><td style="text-align: left"><a href="../api/#Apollonius.fermat_axis-Tuple{APTriangle}"><code>fermat_axis</code></a> (through <a href="../api/#Apollonius.fermat_point-Tuple{APTriangle}"><code>fermat_point</code></a> and <a href="../api/#Apollonius.second_fermat_point-Tuple{APTriangle}"><code>second_fermat_point</code></a>); see also <a href="../api/#Apollonius.orthic_axis-Tuple{APTriangle}"><code>orthic_axis</code></a>/<a href="../api/#Apollonius.brocard_axis-Tuple{APTriangle}"><code>brocard_axis</code></a>/<a href="../api/#Apollonius.lemoine_axis-Tuple{APTriangle}"><code>lemoine_axis</code></a> above and <a href="../api/#Apollonius.soddy_line-Tuple{APTriangle}"><code>soddy_line</code></a></td></tr></table><p>All of these take the <code>APTriangle</code> as their (only, or first) argument and return an <code>APPoint</code>, an <code>APCircle2</code>, an <code>APLine</code>, or (where there&#39;s naturally more than one, like <code>soddy_circles</code> or <code>three_apollonius_circles</code>) a tuple or named tuple. See the <a href="../api/#API-Reference">API Reference</a> for exact signatures.</p><h3 id="Simson-and-Steiner-lines"><a class="docs-heading-anchor" href="#Simson-and-Steiner-lines">Simson and Steiner lines</a><a id="Simson-and-Steiner-lines-1"></a><a class="docs-heading-anchor-permalink" href="#Simson-and-Steiner-lines" title="Permalink"></a></h3><p><a href="../api/#Apollonius.steiner_line-Tuple{APTriangle, APPoint}"><code>steiner_line</code></a><code>(t, p)</code> is closely related to <a href="../api/#Apollonius.simson_line-Tuple{APTriangle, APPoint}"><code>simson_line</code></a><code>(t, p)</code>: reflecting (rather than projecting) <code>p</code> across the three side-lines gives three points that are collinear exactly when <code>p</code> is on the circumcircle, and that Steiner line always passes through the orthocenter, parallel to the Simson line of the same point.</p><pre><code class="language-julia hljs">p_on_circ = polar_point(circumradius(t), 0.7, circumcenter(t))   # any point on t&#39;s circumcircle
 sl = simson_line(t, p_on_circ)
 stl = steiner_line(t, p_on_circ)
-is_on_line(orthocenter(t), stl), is_parallel(sl, stl)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><img src="../assets/img/triangles/simson_steiner.svg" alt="The Simson and Steiner lines of a point on the circumcircle" style="width:100%; max-width: 700px;"><p><a href="../api/#Apollonius.orthopole-Tuple{APLine, APTriangle}"><code>orthopole</code></a><code>(l, t)</code> is the point where the three perpendiculars (one per vertex, dropped from that vertex&#39;s projection onto <code>l</code>, to the <em>opposite</em> side) always concur. <a href="../api/#Apollonius.pedal_triangle-Tuple{APTriangle, APPoint}"><code>pedal_triangle</code></a><code>(t, p)</code> (the feet of the perpendiculars from <code>p</code> to the three side-lines) generalizes <a href="../api/#Apollonius.orthic_triangle-Tuple{APTriangle}"><code>orthic_triangle</code></a>/<a href="../api/#Apollonius.contact_triangle-Tuple{APTriangle}"><code>contact_triangle</code></a>, which are just the pedal triangles of the orthocenter/incenter:</p><pre><code class="language-julia hljs">orthopole(APLine(t[2], t[3]), t) isa APPoint
-pedal_triangle(t, incenter(t)) ≈ contact_triangle(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/orthopole.svg" alt="The orthopole of a line with respect to a triangle: each vertex is projected onto the line, and the perpendicular from that projection to the opposite side; the three perpendiculars concur at the orthopole" style="width:100%; max-width: 700px;"><p><a href="../api/#Apollonius.pedal_circle-Tuple{APTriangle, APPoint}"><code>pedal_circle</code></a><code>(t, p)</code> is just the circumcircle of that pedal triangle:</p><pre><code class="language-julia hljs">pedal_circle(t, incenter(t)) ≈ incircle(t)   # the incircle is the pedal circle of the incenter</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/pedal.svg" alt="The pedal triangle and pedal circle of a point" style="width:100%; max-width: 700px;"><h3 id="Brocard,-Kenmotu-and-MacBeath"><a class="docs-heading-anchor" href="#Brocard,-Kenmotu-and-MacBeath">Brocard, Kenmotu and MacBeath</a><a id="Brocard,-Kenmotu-and-MacBeath-1"></a><a class="docs-heading-anchor-permalink" href="#Brocard,-Kenmotu-and-MacBeath" title="Permalink"></a></h3><pre><code class="language-julia hljs">brocard_midpoint(t)   # midpoint of the two Brocard points (Kimberling X(39))
+is_on_line(orthocenter(t), stl), is_parallel(sl, stl)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><img src="../assets/img/triangles/simson_steiner.svg" alt="The Simson and Steiner lines of a point on the circumcircle" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-d73ea72ff00a31cd"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-d73ea72ff00a31cd" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=320 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    cc = circumcircle(t)
+    P = polar_point(circumradius(t), 0.7, circumcenter(t))
+    feet = [projection(P, APLine(s.p1, s.p2)) for s in sides(t)]
+    sl = simson_line(t, P)
+    stl = steiner_line(t, P)
+    H = orthocenter(t)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+gsave()
+sethue(&quot;gray80&quot;)
+path(cc, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path(sl, action=:stroke, extend=30)
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+path(stl, action=:stroke, extend=30)
+grestore()
+sethue(julia_red)
+label(&quot;P&quot;, :NE, P); label(&quot;H&quot;, :E, H)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path(feet, action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path([P, H], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p><a href="../api/#Apollonius.orthopole-Tuple{APLine, APTriangle}"><code>orthopole</code></a><code>(l, t)</code> is the point where the three perpendiculars (one per vertex, dropped from that vertex&#39;s projection onto <code>l</code>, to the <em>opposite</em> side) always concur. <a href="../api/#Apollonius.pedal_triangle-Tuple{APTriangle, APPoint}"><code>pedal_triangle</code></a><code>(t, p)</code> (the feet of the perpendiculars from <code>p</code> to the three side-lines) generalizes <a href="../api/#Apollonius.orthic_triangle-Tuple{APTriangle}"><code>orthic_triangle</code></a>/<a href="../api/#Apollonius.contact_triangle-Tuple{APTriangle}"><code>contact_triangle</code></a>, which are just the pedal triangles of the orthocenter/incenter:</p><pre><code class="language-julia hljs">orthopole(APLine(t[2], t[3]), t) isa APPoint
+pedal_triangle(t, incenter(t)) ≈ contact_triangle(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/orthopole.svg" alt="The orthopole of a line with respect to a triangle: each vertex is projected onto the line, and the perpendicular from that projection to the opposite side; the three perpendiculars concur at the orthopole" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-4dce42614def78ce"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-4dce42614def78ce" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    l = APLine(APPoint(-2.0, -1.0), APPoint(10.0, 6.0))
+
+    projA = projection(A, l)
+    projB = projection(B, l)
+    projC = projection(C, l)
+
+    lA = perpendicular_through(APLine(B, C), projA)
+    lB = perpendicular_through(APLine(C, A), projB)
+    lC = perpendicular_through(APLine(A, B), projC)
+
+    op = orthopole(l, t)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(julia_green)
+path([APSegment(A, projA), APSegment(B, projB), APSegment(C, projC)], action=:stroke)
+path([lA, lB, lC], action=:stroke)
+grestore()
+
+sethue(julia_blue)
+path(t, action=:stroke)
+path(l, action=:stroke)
+
+sethue(julia_red)
+label(&quot;l&quot;, :N, l.p2)
+label(&quot;orthopole&quot;, :SE, op)
+
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([projA, projB, projC], action=:fillpreserve); sethue(julia_green); strokepath()
+sethue(&quot;white&quot;); path([op], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p><a href="../api/#Apollonius.pedal_circle-Tuple{APTriangle, APPoint}"><code>pedal_circle</code></a><code>(t, p)</code> is just the circumcircle of that pedal triangle:</p><pre><code class="language-julia hljs">pedal_circle(t, incenter(t)) ≈ incircle(t)   # the incircle is the pedal circle of the incenter</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/pedal.svg" alt="The pedal triangle and pedal circle of a point" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-f2e687e7e780b8c"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-f2e687e7e780b8c" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    P = APPoint(4.0, 2.0)
+    pt = pedal_triangle(t, P)
+    pc = pedal_circle(t, P)
+    feet = collect(vertices(pt))
+    legs = [APSegment(P, f) for f in feet]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(julia_green)
+path(legs, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path([pt, pc], action=:stroke)
+sethue(julia_red)
+label(&quot;P&quot;, :NE, P)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path(feet, action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path([P], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="Brocard,-Kenmotu-and-MacBeath"><a class="docs-heading-anchor" href="#Brocard,-Kenmotu-and-MacBeath">Brocard, Kenmotu and MacBeath</a><a id="Brocard,-Kenmotu-and-MacBeath-1"></a><a class="docs-heading-anchor-permalink" href="#Brocard,-Kenmotu-and-MacBeath" title="Permalink"></a></h3><pre><code class="language-julia hljs">brocard_midpoint(t)   # midpoint of the two Brocard points (Kimberling X(39))
 kenmotu_point(t)       # X(371): common vertex of 3 congruent inscribed squares
 macbeath_point(t)      # X(264): isotomic conjugate of the circumcenter</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.367484209662866, 2.251661061438766]</code></pre><img src="../assets/img/triangles/macbeath.svg" alt="A triangle, its circumcenter, and the MacBeath point (the isotomic conjugate of the circumcenter)" style="width:100%; max-width: 700px;"><h3 id="The-symmedian-point"><a class="docs-heading-anchor" href="#The-symmedian-point">The symmedian point</a><a id="The-symmedian-point-1"></a><a class="docs-heading-anchor-permalink" href="#The-symmedian-point" title="Permalink"></a></h3><p><a href="../api/#Apollonius.symmedian_point-Tuple{APTriangle}"><code>symmedian_point</code></a> is the fourth cevian-intersection point, built from barycentric coordinates <code>a² : b² : c²</code> the same way <code>nagel_point</code>/ <code>gergonne_point</code> are built from their own:</p><pre><code class="language-julia hljs">symmedian_point(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.2470588235294118, 2.2588235294117647]</code></pre><h3 id="Conjugates-of-a-point"><a class="docs-heading-anchor" href="#Conjugates-of-a-point">Conjugates of a point</a><a id="Conjugates-of-a-point-1"></a><a class="docs-heading-anchor-permalink" href="#Conjugates-of-a-point" title="Permalink"></a></h3><p><a href="../api/#Apollonius.isogonal_conjugate-Tuple{APTriangle, APPoint}"><code>isogonal_conjugate</code></a><code>(t, p)</code> reflects each cevian <code>vertex -&gt; p</code> across the internal bisector at that vertex; <a href="../api/#Apollonius.isotomic_conjugate-Tuple{APTriangle, APPoint}"><code>isotomic_conjugate</code></a><code>(t, p)</code> instead reflects the cevian&#39;s foot across the opposite side&#39;s midpoint. Both are involutions (applying either twice returns <code>p</code>), and <code>isogonal_conjugate</code> swaps orthocenter↔circumcenter and centroid↔symmedian point while fixing the incenter:</p><pre><code class="language-julia hljs">isogonal_conjugate(t, isogonal_conjugate(t, incenter(t))) ≈ incenter(t)   # incenter is a fixed point
 isogonal_conjugate(t, orthocenter(t)) ≈ circumcenter(t)
-isogonal_conjugate(t, centroid(t)) ≈ symmedian_point(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/isogonal.svg" alt="A point and its isogonal conjugate" style="width:100%; max-width: 700px;"><pre><code class="language-julia hljs">isotomic_conjugate(t, isotomic_conjugate(t, incenter(t))) ≈ incenter(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/isotomic.svg" alt="A point and its isotomic conjugate" style="width:100%; max-width: 700px;"><h3 id="Complement-and-anticomplement"><a class="docs-heading-anchor" href="#Complement-and-anticomplement">Complement and anticomplement</a><a id="Complement-and-anticomplement-1"></a><a class="docs-heading-anchor-permalink" href="#Complement-and-anticomplement" title="Permalink"></a></h3><p><a href="../api/#Apollonius.anticomplement-Tuple{APTriangle, APPoint}"><code>anticomplement</code></a><code>(t, p)</code> is the inverse of <a href="../api/#Apollonius.complement-Tuple{APTriangle, APPoint}"><code>complement</code></a><code>(t, p)</code>: homothety by <code>-2</code> instead of <code>-1/2</code> about the centroid:</p><pre><code class="language-julia hljs">anticomplement(t, complement(t, incenter(t))) ≈ incenter(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><h3 id="Incenter-and-excenters"><a class="docs-heading-anchor" href="#Incenter-and-excenters">Incenter and excenters</a><a id="Incenter-and-excenters-1"></a><a class="docs-heading-anchor-permalink" href="#Incenter-and-excenters" title="Permalink"></a></h3><p>Built from the incenter/excenters: <a href="../api/#Apollonius.spieker_center-Tuple{APTriangle}"><code>spieker_center</code></a> (the incenter of the medial triangle) and <a href="../api/#Apollonius.spieker_circle-Tuple{APTriangle}"><code>spieker_circle</code></a> (its incircle); <a href="../api/#Apollonius.bevan_point-Tuple{APTriangle}"><code>bevan_point</code></a> (circumcenter of the excentral triangle); and <a href="../api/#Apollonius.de_longchamps_point-Tuple{APTriangle}"><code>de_longchamps_point</code></a> (the orthocenter reflected across the circumcenter, so it always lies on the Euler line):</p><pre><code class="language-julia hljs">spieker_center(t) ≈ incenter(medial_triangle(t))
+isogonal_conjugate(t, centroid(t)) ≈ symmedian_point(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/isogonal.svg" alt="A point and its isogonal conjugate" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-50bfa78dbdd470df"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-50bfa78dbdd470df" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    P = APPoint(4.0, 2.0)
+    Q = isogonal_conjugate(t, P)
+    toP = [APSegment(v, P) for v in (A, B, C)]
+    toQ = [APSegment(v, Q) for v in (A, B, C)]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+gsave()
+setline(1)
+sethue(&quot;gray80&quot;)
+path(toP, action=:stroke)
+sethue(julia_purple)
+path(toQ, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_red)
+label(&quot;P&quot;, :NE, P); label(&quot;P*&quot;, :N, Q)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([P], action=:fillpreserve); sethue(&quot;gray80&quot;); strokepath()
+sethue(&quot;white&quot;); path([Q], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><pre><code class="language-julia hljs">isotomic_conjugate(t, isotomic_conjugate(t, incenter(t))) ≈ incenter(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/isotomic.svg" alt="A point and its isotomic conjugate" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-6c74420bbc015ea4"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-6c74420bbc015ea4" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    P = APPoint(4.0, 2.0)
+    Q = isotomic_conjugate(t, P)
+    toP = [APSegment(v, P) for v in (A, B, C)]
+    toQ = [APSegment(v, Q) for v in (A, B, C)]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+gsave()
+setline(1)
+sethue(&quot;gray80&quot;)
+path(toP, action=:stroke)
+sethue(julia_purple)
+path(toQ, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_red)
+label(&quot;P&quot;, :NE, P); label(&quot;P&#39;&quot;, :N, Q)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([P], action=:fillpreserve); sethue(&quot;gray80&quot;); strokepath()
+sethue(&quot;white&quot;); path([Q], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="Complement-and-anticomplement"><a class="docs-heading-anchor" href="#Complement-and-anticomplement">Complement and anticomplement</a><a id="Complement-and-anticomplement-1"></a><a class="docs-heading-anchor-permalink" href="#Complement-and-anticomplement" title="Permalink"></a></h3><p><a href="../api/#Apollonius.anticomplement-Tuple{APTriangle, APPoint}"><code>anticomplement</code></a><code>(t, p)</code> is the inverse of <a href="../api/#Apollonius.complement-Tuple{APTriangle, APPoint}"><code>complement</code></a><code>(t, p)</code>: homothety by <code>-2</code> instead of <code>-1/2</code> about the centroid:</p><pre><code class="language-julia hljs">anticomplement(t, complement(t, incenter(t))) ≈ incenter(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><h3 id="Incenter-and-excenters"><a class="docs-heading-anchor" href="#Incenter-and-excenters">Incenter and excenters</a><a id="Incenter-and-excenters-1"></a><a class="docs-heading-anchor-permalink" href="#Incenter-and-excenters" title="Permalink"></a></h3><p>Built from the incenter/excenters: <a href="../api/#Apollonius.spieker_center-Tuple{APTriangle}"><code>spieker_center</code></a> (the incenter of the medial triangle) and <a href="../api/#Apollonius.spieker_circle-Tuple{APTriangle}"><code>spieker_circle</code></a> (its incircle); <a href="../api/#Apollonius.bevan_point-Tuple{APTriangle}"><code>bevan_point</code></a> (circumcenter of the excentral triangle); and <a href="../api/#Apollonius.de_longchamps_point-Tuple{APTriangle}"><code>de_longchamps_point</code></a> (the orthocenter reflected across the circumcenter, so it always lies on the Euler line):</p><pre><code class="language-julia hljs">spieker_center(t) ≈ incenter(medial_triangle(t))
 spieker_circle(t) ≈ incircle(medial_triangle(t))
 bevan_point(t) ≈ circumcenter(excentral_triangle(t))
-is_on_line(de_longchamps_point(t), euler_line(t))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/spieker.svg" alt="The medial triangle with its incircle, the Spieker circle" style="width:100%; max-width: 700px;"><img src="../assets/img/triangles/bevan.svg" alt="The excentral triangle with its circumcircle, centered at the Bevan point" style="width:100%; max-width: 700px;"><img src="../assets/img/triangles/de_longchamps.svg" alt="The orthocenter, circumcenter and de Longchamps point on the Euler line" style="width:100%; max-width: 700px;"><h3 id="Apollonius-circles-and-isodynamic-points"><a class="docs-heading-anchor" href="#Apollonius-circles-and-isodynamic-points">Apollonius circles and isodynamic points</a><a id="Apollonius-circles-and-isodynamic-points-1"></a><a class="docs-heading-anchor-permalink" href="#Apollonius-circles-and-isodynamic-points" title="Permalink"></a></h3><p>The two <a href="../api/#Apollonius.isodynamic_points-Tuple{APTriangle}"><code>isodynamic_points</code></a> are where the three <a href="../api/#Apollonius.three_apollonius_circles-Tuple{APTriangle}"><code>three_apollonius_circles</code></a> (one per vertex, for points whose distances to the other two vertices are in the same ratio as the two sides meeting at that vertex) all meet:</p><pre><code class="language-julia hljs">apo = three_apollonius_circles(t)
+is_on_line(de_longchamps_point(t), euler_line(t))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/spieker.svg" alt="The medial triangle with its incircle, the Spieker circle" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-46f235e5c6d765c1"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-46f235e5c6d765c1" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    mt = medial_triangle(t)
+    sc = spieker_circle(t)
+    S = spieker_center(t)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(&quot;gray80&quot;)
+path(mt, action=:stroke)
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path(sc, action=:stroke)
+sethue(julia_red)
+label(&quot;S&quot;, :N, S)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([S], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><img src="../assets/img/triangles/bevan.svg" alt="The excentral triangle with its circumcircle, centered at the Bevan point" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-bf85253b75372d22"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-bf85253b75372d22" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=320 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    ext = excentral_triangle(t)
+    bc = circumcircle(ext)
+    Be = bevan_point(t)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(&quot;gray80&quot;)
+path(ext, action=:stroke)
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path(bc, action=:stroke)
+sethue(julia_red)
+label(&quot;Be&quot;, :N, Be)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([Be], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><img src="../assets/img/triangles/de_longchamps.svg" alt="The orthocenter, circumcenter and de Longchamps point on the Euler line" style="width:100%; max-width: 700px;"><h3 id="Apollonius-circles-and-isodynamic-points"><a class="docs-heading-anchor" href="#Apollonius-circles-and-isodynamic-points">Apollonius circles and isodynamic points</a><a id="Apollonius-circles-and-isodynamic-points-1"></a><a class="docs-heading-anchor-permalink" href="#Apollonius-circles-and-isodynamic-points" title="Permalink"></a></h3><p>The two <a href="../api/#Apollonius.isodynamic_points-Tuple{APTriangle}"><code>isodynamic_points</code></a> are where the three <a href="../api/#Apollonius.three_apollonius_circles-Tuple{APTriangle}"><code>three_apollonius_circles</code></a> (one per vertex, for points whose distances to the other two vertices are in the same ratio as the two sides meeting at that vertex) all meet:</p><pre><code class="language-julia hljs">apo = three_apollonius_circles(t)
 iso1, iso2 = isodynamic_points(t)
-all(c -&gt; distance(c.center, iso1) ≈ c.r, apo), all(c -&gt; distance(c.center, iso2) ≈ c.r, apo)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><img src="../assets/img/triangles/isodynamic.svg" alt="The three Apollonius circles of a triangle and the two isodynamic points" style="width:100%; max-width: 700px;"><h3 id="The-Apollonius-circle-and-point"><a class="docs-heading-anchor" href="#The-Apollonius-circle-and-point">The Apollonius circle and point</a><a id="The-Apollonius-circle-and-point-1"></a><a class="docs-heading-anchor-permalink" href="#The-Apollonius-circle-and-point" title="Permalink"></a></h3><p>Despite the shared name, <a href="../api/#Apollonius.apollonius_circle_of_triangle-Tuple{APTriangle}"><code>apollonius_circle_of_triangle</code></a> is a different construction: the circle tangent to and enclosing all three excircles of <code>t</code>. Take that circle&#39;s point of tangency with each excircle, draw the line from the excircle&#39;s own vertex (the one it sits opposite) through that tangency point, and the three lines meet at <a href="../api/#Apollonius.apollonius_point_of_triangle-Tuple{APTriangle}"><code>apollonius_point_of_triangle</code></a> (Kimberling X(181)):</p><pre><code class="language-julia hljs">ap_circle = apollonius_circle_of_triangle(t)
+all(c -&gt; distance(c.center, iso1) ≈ c.r, apo), all(c -&gt; distance(c.center, iso2) ≈ c.r, apo)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><img src="../assets/img/triangles/isodynamic.svg" alt="The three Apollonius circles of a triangle and the two isodynamic points" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-7ca2bd80997026bb"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-7ca2bd80997026bb" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    apo = collect(three_apollonius_circles(t))
+    iso1, iso2 = isodynamic_points(t)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(julia_purple)
+path(apo, action=:stroke)
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_red)
+label(&quot;1&quot;, :N, iso1); label(&quot;2&quot;, :N, iso2)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([iso1, iso2], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="The-Apollonius-circle-and-point"><a class="docs-heading-anchor" href="#The-Apollonius-circle-and-point">The Apollonius circle and point</a><a id="The-Apollonius-circle-and-point-1"></a><a class="docs-heading-anchor-permalink" href="#The-Apollonius-circle-and-point" title="Permalink"></a></h3><p>Despite the shared name, <a href="../api/#Apollonius.apollonius_circle_of_triangle-Tuple{APTriangle}"><code>apollonius_circle_of_triangle</code></a> is a different construction: the circle tangent to and enclosing all three excircles of <code>t</code>. Take that circle&#39;s point of tangency with each excircle, draw the line from the excircle&#39;s own vertex (the one it sits opposite) through that tangency point, and the three lines meet at <a href="../api/#Apollonius.apollonius_point_of_triangle-Tuple{APTriangle}"><code>apollonius_point_of_triangle</code></a> (Kimberling X(181)):</p><pre><code class="language-julia hljs">ap_circle = apollonius_circle_of_triangle(t)
 ex = excircles(t)
-distance(ap_circle.center, ex.A.center) ≈ ap_circle.r - ex.A.r  # internally tangent</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/apollonius_triangle.svg" alt="The three excircles and the circle tangent to all of them" style="width:100%; max-width: 700px;"><pre><code class="language-julia hljs">apollonius_point_of_triangle(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.084289204820767, 2.379514510953634]</code></pre><h3 id="The-Brocard-configuration"><a class="docs-heading-anchor" href="#The-Brocard-configuration">The Brocard configuration</a><a id="The-Brocard-configuration-1"></a><a class="docs-heading-anchor-permalink" href="#The-Brocard-configuration" title="Permalink"></a></h3><p>The Brocard configuration: <a href="../api/#Apollonius.first_brocard_point-Tuple{APTriangle}"><code>first_brocard_point</code></a>/ <a href="../api/#Apollonius.second_brocard_point-Tuple{APTriangle}"><code>second_brocard_point</code></a> are the two points seeing all three sides at the same angle, whose measure is <a href="../api/#Apollonius.angle_measure_brocard-Tuple{APTriangle}"><code>angle_measure_brocard</code></a>; <a href="../api/#Apollonius.brocard_circle-Tuple{APTriangle}"><code>brocard_circle</code></a> passes through both (and through the symmedian point):</p><pre><code class="language-julia hljs">Om1, Om2 = first_brocard_point(t), second_brocard_point(t)
+distance(ap_circle.center, ex.A.center) ≈ ap_circle.r - ex.A.r  # internally tangent</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/apollonius_triangle.svg" alt="The three excircles and the circle tangent to all of them" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-2ef6f4e8bc99e220"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-2ef6f4e8bc99e220" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    ex = excircles(t)
+    exc = [ex.A, ex.B, ex.C]
+    apc = apollonius_circle_of_triangle(t)
+    ap = apollonius_point_of_triangle(t)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(&quot;gray80&quot;)
+path(exc, action=:stroke)
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path(apc, action=:stroke)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([ap], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><pre><code class="language-julia hljs">apollonius_point_of_triangle(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.084289204820767, 2.379514510953634]</code></pre><h3 id="The-Brocard-configuration"><a class="docs-heading-anchor" href="#The-Brocard-configuration">The Brocard configuration</a><a id="The-Brocard-configuration-1"></a><a class="docs-heading-anchor-permalink" href="#The-Brocard-configuration" title="Permalink"></a></h3><p>The Brocard configuration: <a href="../api/#Apollonius.first_brocard_point-Tuple{APTriangle}"><code>first_brocard_point</code></a>/ <a href="../api/#Apollonius.second_brocard_point-Tuple{APTriangle}"><code>second_brocard_point</code></a> are the two points seeing all three sides at the same angle, whose measure is <a href="../api/#Apollonius.angle_measure_brocard-Tuple{APTriangle}"><code>angle_measure_brocard</code></a>; <a href="../api/#Apollonius.brocard_circle-Tuple{APTriangle}"><code>brocard_circle</code></a> passes through both (and through the symmedian point):</p><pre><code class="language-julia hljs">Om1, Om2 = first_brocard_point(t), second_brocard_point(t)
 bc = brocard_circle(t)
 rad2deg(angle_measure_brocard(t)), distance(bc.center, Om1) ≈ bc.r, distance(bc.center, Om2) ≈ bc.r</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(29.45367272692091, true, true)</code></pre><img src="../assets/img/triangles/brocard.svg" alt="The Brocard points, the symmedian point and the Brocard circle" style="width:100%; max-width: 700px;"><h3 id="Named-auxiliary-circles"><a class="docs-heading-anchor" href="#Named-auxiliary-circles">Named auxiliary circles</a><a id="Named-auxiliary-circles-1"></a><a class="docs-heading-anchor-permalink" href="#Named-auxiliary-circles" title="Permalink"></a></h3><p>Named auxiliary circles: <a href="../api/#Apollonius.conway_points-Tuple{APTriangle}"><code>conway_points</code></a>/<a href="../api/#Apollonius.conway_circle-Tuple{APTriangle}"><code>conway_circle</code></a> (extend the two sides at each vertex outward by the length of the opposite side; all 6 endpoints lie on a circle centered at the incenter), <a href="../api/#Apollonius.taylor_circle-Tuple{APTriangle}"><code>taylor_circle</code></a> (through the 6 <a href="../api/#Apollonius.taylor_points-Tuple{APTriangle}"><code>taylor_points</code></a>), <a href="../api/#Apollonius.first_lemoine_points-Tuple{APTriangle}"><code>first_lemoine_points</code></a>/<a href="../api/#Apollonius.first_lemoine_circle-Tuple{APTriangle}"><code>first_lemoine_circle</code></a> and <a href="../api/#Apollonius.second_lemoine_circle-Tuple{APTriangle}"><code>second_lemoine_circle</code></a> (both centered differently, both built from the symmedian point), <a href="../api/#Apollonius.symmedial_circle-Tuple{APTriangle}"><code>symmedial_circle</code></a> (circumcircle of the cevian triangle of the symmedian point, a third circle built from the same point), <a href="../api/#Apollonius.van_lamoen_circle-Tuple{APTriangle}"><code>van_lamoen_circle</code></a> (through the 6 <a href="../api/#Apollonius.van_lamoen_points-Tuple{APTriangle}"><code>van_lamoen_points</code></a>), and <a href="../api/#Apollonius.adams_circle-Tuple{APTriangle}"><code>adams_circle</code></a> (through the 6 <a href="../api/#Apollonius.adams_points-Tuple{APTriangle}"><code>adams_points</code></a>, centered at the incenter):</p><pre><code class="language-julia hljs">on_circ(p, c) = distance(p, c.center) ≈ c.r   # &quot;p is exactly on c&quot;, not just inside the disk
 
@@ -28,11 +376,237 @@ all(p -&gt; on_circ(p, conway_circle(t)), conway_points(t)),
     symmedian_point(t) ≈ second_lemoine_circle(t).center,
     all(v -&gt; on_circ(v, symmedial_circle(t)), cevian_triangle(t, symmedian_point(t))),
     all(p -&gt; on_circ(p, van_lamoen_circle(t)), van_lamoen_points(t)),
-    all(p -&gt; on_circ(p, adams_circle(t)), adams_points(t))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true, true, true, true, true, true)</code></pre><img src="../assets/img/triangles/conway_adams.svg" alt="The Conway and Adams circles, both centered at the incenter" style="width:100%; max-width: 700px;"><img src="../assets/img/triangles/lemoine_circles.svg" alt="The first Lemoine, second Lemoine and symmedial circles" style="width:100%; max-width: 700px;"><h3 id="Mixtilinear-incircles-and-Soddy-circles"><a class="docs-heading-anchor" href="#Mixtilinear-incircles-and-Soddy-circles">Mixtilinear incircles and Soddy circles</a><a id="Mixtilinear-incircles-and-Soddy-circles-1"></a><a class="docs-heading-anchor-permalink" href="#Mixtilinear-incircles-and-Soddy-circles" title="Permalink"></a></h3><p><a href="../api/#Apollonius.mixtilinear_incircle-Tuple{APTriangle, Integer}"><code>mixtilinear_incircle</code></a><code>(t, i)</code> is tangent to the two sides through <code>t[i]</code> and internally tangent to the circumcircle; <a href="../api/#Apollonius.soddy_circles-Tuple{APTriangle}"><code>soddy_circles</code></a> (<code>inner</code>/<code>outer</code>) and <a href="../api/#Apollonius.soddy_line-Tuple{APTriangle}"><code>soddy_line</code></a> extend <a href="../api/#Apollonius.three_tangent_circles-Tuple{APTriangle}"><code>three_tangent_circles</code></a> (see <a href="../tangency_basics/#Tangency-and-Apollonius-Problems">Tangency &amp; Apollonius Problems</a>):</p><pre><code class="language-julia hljs">mixt = mixtilinear_incircle(t, 1)
+    all(p -&gt; on_circ(p, adams_circle(t)), adams_points(t))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true, true, true, true, true, true)</code></pre><img src="../assets/img/triangles/conway_adams.svg" alt="The Conway and Adams circles, both centered at the incenter" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-bb7ed31e1a6c0f7d"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-bb7ed31e1a6c0f7d" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    inc = incircle(t)
+    cwc = conway_circle(t)
+    cwp = collect(conway_points(t))
+    adc = adams_circle(t)
+    adp = collect(adams_points(t))
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+
+sethue(&quot;gray80&quot;)
+path(inc, action=:stroke)
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path([cwc, adc], action=:stroke)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path(cwp, action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path(adp, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><img src="../assets/img/triangles/lemoine_circles.svg" alt="The first Lemoine, second Lemoine and symmedial circles" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-6a2d595037909f50"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-6a2d595037909f50" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    K = symmedian_point(t)
+    c1 = first_lemoine_circle(t)
+    c2 = second_lemoine_circle(t)
+    c3 = symmedial_circle(t)
+    p1 = collect(first_lemoine_points(t))
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path([c1, c2, c3], action=:stroke)
+sethue(julia_red)
+label(&quot;K&quot;, :N, K)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path(p1, action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path([K], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="Mixtilinear-incircles-and-Soddy-circles"><a class="docs-heading-anchor" href="#Mixtilinear-incircles-and-Soddy-circles">Mixtilinear incircles and Soddy circles</a><a id="Mixtilinear-incircles-and-Soddy-circles-1"></a><a class="docs-heading-anchor-permalink" href="#Mixtilinear-incircles-and-Soddy-circles" title="Permalink"></a></h3><p><a href="../api/#Apollonius.mixtilinear_incircle-Tuple{APTriangle, Integer}"><code>mixtilinear_incircle</code></a><code>(t, i)</code> is tangent to the two sides through <code>t[i]</code> and internally tangent to the circumcircle; <a href="../api/#Apollonius.soddy_circles-Tuple{APTriangle}"><code>soddy_circles</code></a> (<code>inner</code>/<code>outer</code>) and <a href="../api/#Apollonius.soddy_line-Tuple{APTriangle}"><code>soddy_line</code></a> extend <a href="../api/#Apollonius.three_tangent_circles-Tuple{APTriangle}"><code>three_tangent_circles</code></a> (see <a href="../tangency_basics/#Tangency-and-Apollonius-Problems">Tangency &amp; Apollonius Problems</a>):</p><pre><code class="language-julia hljs">mixt = mixtilinear_incircle(t, 1)
 sc = soddy_circles(t)
-is_on_line(sc.inner.center, soddy_line(t)), is_on_line(sc.outer.center, soddy_line(t))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><img src="../assets/img/triangles/mixtilinear.svg" alt="The vertex A mixtilinear incircle" style="width:100%; max-width: 700px;"><img src="../assets/img/triangles/soddy.svg" alt="The three tangent circles, the inner Soddy circle and the Soddy line" style="width:100%; max-width: 700px;"><p><a href="../api/#Apollonius.soddy_center-Tuple{APTriangle}"><code>soddy_center</code></a><code>(t; outer=false)</code> is just the center of one of those two circles, as a point on its own (Kimberling X(176) for the inner one, the default, and X(175) for <code>outer=true</code>); <a href="../api/#Apollonius.soddy_points-Tuple{APTriangle}"><code>soddy_points</code></a> gives both at once, as <code>(inner=..., outer=...)</code>:</p><pre><code class="language-julia hljs">soddy_center(t) == sc.inner.center
-soddy_points(t) == (inner=sc.inner.center, outer=sc.outer.center)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><h3 id="The-second-Fermat-point"><a class="docs-heading-anchor" href="#The-second-Fermat-point">The second Fermat point</a><a id="The-second-Fermat-point-1"></a><a class="docs-heading-anchor-permalink" href="#The-second-Fermat-point" title="Permalink"></a></h3><p><a href="../api/#Apollonius.second_fermat_point-Tuple{APTriangle}"><code>second_fermat_point</code></a> is built exactly like <a href="../api/#Apollonius.fermat_point-Tuple{APTriangle}"><code>fermat_point</code></a> but with the three equilateral triangles erected <em>inward</em> instead of outward; <a href="../api/#Apollonius.fermat_axis-Tuple{APTriangle}"><code>fermat_axis</code></a> is the line through both:</p><pre><code class="language-julia hljs">fermat_axis(t)   # APLine(fermat_point(t), second_fermat_point(t))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APLine([3.2897184800774584, 2.2544606099920776] -&gt; [-0.6060124097899183, 2.652887632819417])</code></pre><img src="../assets/img/triangles/fermat.svg" alt="The two Fermat points and the line through them" style="width:100%; max-width: 700px;"><h3 id="The-Poncelet-point"><a class="docs-heading-anchor" href="#The-Poncelet-point">The Poncelet point</a><a id="The-Poncelet-point-1"></a><a class="docs-heading-anchor-permalink" href="#The-Poncelet-point" title="Permalink"></a></h3><p><a href="../api/#Apollonius.poncelet_point-Tuple{APTriangle, APPoint}"><code>poncelet_point</code></a><code>(t, p)</code> uses a striking fact about <em>any</em> 4 points in general position (here, <code>t</code>&#39;s 3 vertices plus a 4th, <code>p</code>): the nine-point circles of the 4 triangles obtained by leaving out one point each time always share a single common point.</p><pre><code class="language-julia hljs">poncelet_point(t, APPoint(5.0, -2.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.947058823529412, -0.011764705882352455]</code></pre><img src="../assets/img/triangles/poncelet.svg" alt="The nine-point circles of four triangles meeting at the Poncelet point" style="width:100%; max-width: 700px;"><h3 id="The-Thébault-circles"><a class="docs-heading-anchor" href="#The-Thébault-circles">The Thébault circles</a><a id="The-Thébault-circles-1"></a><a class="docs-heading-anchor-permalink" href="#The-Thébault-circles" title="Permalink"></a></h3><p><a href="../api/#Apollonius.thebault_circles-Tuple{APTriangle, APPoint}"><code>thebault_circles</code></a> builds the two circles of the classical <strong>Sawayama–Thébault configuration</strong>: given a point <code>p</code> on side <code>[t[2], t[3]]</code>, each is tangent to the cevian <code>t[1] -&gt; p</code>, to that side, and internally tangent to the circumcircle: one nestled against <code>t[2]</code>, the other against <code>t[3]</code>.</p><pre><code class="language-julia hljs">D = B + 0.4 * (C - B)   # a point on side [B, C]
-th = thebault_circles(t, D)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(near_b = APCircle2([5.371112263108153, -0.0859769259815697], 2.0746085878974125), near_c = APCircle2([2.4345060682541315, 3.3019775631070742], 2.1616563458939564))</code></pre><p>No matter where <code>p</code> sits on the side, the incenter always lies exactly on the segment joining the two circles&#39; centers (the theorem the construction is named for):</p><pre><code class="language-julia hljs">is_on_line(incenter(t), APLine(th.near_b.center, th.near_c.center))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/thebault.svg" alt="The two Thébault circles and the line through their centers, which passes through the incenter" style="width:100%; max-width: 700px;"><h3 id="Three-tangent-circles"><a class="docs-heading-anchor" href="#Three-tangent-circles">Three tangent circles</a><a id="Three-tangent-circles-1"></a><a class="docs-heading-anchor-permalink" href="#Three-tangent-circles" title="Permalink"></a></h3><p><a href="../api/#Apollonius.three_tangent_circles-Tuple{APTriangle}"><code>three_tangent_circles</code></a> is the simpler configuration <a href="../api/#Apollonius.soddy_circles-Tuple{APTriangle}"><code>soddy_circles</code></a> is itself built from: one circle per vertex, radius equal to the tangent length from that vertex to the incircle, each pair meeting exactly where the incircle touches the side between them.</p><pre><code class="language-julia hljs">base = three_tangent_circles(t)
-distance(base[1].center, base[2].center) ≈ base[1].r + base[2].r   # pairwise externally tangent</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/three_tangent.svg" alt="Three pairwise tangent circles centered at the vertices" style="width:100%; max-width: 700px;"><h3 id="The-Taylor-points"><a class="docs-heading-anchor" href="#The-Taylor-points">The Taylor points</a><a id="The-Taylor-points-1"></a><a class="docs-heading-anchor-permalink" href="#The-Taylor-points" title="Permalink"></a></h3><p><a href="../api/#Apollonius.taylor_points-Tuple{APTriangle}"><code>taylor_points</code></a> is the full 6-point construction behind <a href="../api/#Apollonius.taylor_circle-Tuple{APTriangle}"><code>taylor_circle</code></a>: project each vertex of the <a href="../api/#Apollonius.orthic_triangle-Tuple{APTriangle}"><code>orthic_triangle</code></a> onto each of the two sides <em>not</em> used to define it; all 6 results are concyclic.</p><pre><code class="language-julia hljs">length(taylor_points(t))   # 6</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6</code></pre><img src="../assets/img/triangles/taylor.svg" alt="The orthic triangle and the Taylor circle through six projections" style="width:100%; max-width: 700px;"><h3 id="The-Van-Lamoen-points"><a class="docs-heading-anchor" href="#The-Van-Lamoen-points">The Van Lamoen points</a><a id="The-Van-Lamoen-points-1"></a><a class="docs-heading-anchor-permalink" href="#The-Van-Lamoen-points" title="Permalink"></a></h3><p><a href="../api/#Apollonius.van_lamoen_points-Tuple{APTriangle}"><code>van_lamoen_points</code></a> is another 6-concyclic-points theorem: the circumcenters of the 6 small triangles the 3 medians cut <code>t</code> into (each formed by one vertex, one non-adjacent side midpoint, and the centroid) always lie on a common circle, <a href="../api/#Apollonius.van_lamoen_circle-Tuple{APTriangle}"><code>van_lamoen_circle</code></a>.</p><pre><code class="language-julia hljs">length(van_lamoen_points(t))   # 6</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6</code></pre><img src="../assets/img/triangles/van_lamoen.svg" alt="The three medians and the Van Lamoen circle" style="width:100%; max-width: 700px;"><h3 id="The-medial-triangle"><a class="docs-heading-anchor" href="#The-medial-triangle">The medial triangle</a><a id="The-medial-triangle-1"></a><a class="docs-heading-anchor-permalink" href="#The-medial-triangle" title="Permalink"></a></h3><p><a href="../api/#Apollonius.complement-Tuple{APTriangle, APPoint}"><code>complement</code></a><code>(t, p)</code> and <a href="../api/#Apollonius.anticomplement-Tuple{APTriangle, APPoint}"><code>anticomplement</code></a><code>(t, p)</code> are the homotheties of ratio <code>-1/2</code> and <code>-2</code> about the centroid, inverses of each other. Applied to <code>t</code>&#39;s own vertices they give the <a href="../api/#Apollonius.medial_triangle-Tuple{APTriangle}"><code>medial_triangle</code></a> and the anticomplementary triangle (see <a href="../triangles_derived/#Derived-triangles">Derived triangles</a>) respectively:</p><pre><code class="language-julia hljs">complement(t, A) ≈ midpoint(B, C)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><h3 id="The-Kenmotu-circle"><a class="docs-heading-anchor" href="#The-Kenmotu-circle">The Kenmotu circle</a><a id="The-Kenmotu-circle-1"></a><a class="docs-heading-anchor-permalink" href="#The-Kenmotu-circle" title="Permalink"></a></h3><p><a href="../api/#Apollonius.kenmotu_circle-Tuple{APTriangle}"><code>kenmotu_circle</code></a> is centered at the <a href="../api/#Apollonius.kenmotu_point-Tuple{APTriangle}"><code>kenmotu_point</code></a>, with radius <code>√2·a·b·c / (4·Area + a²+b²+c²)</code>; it passes through the 6 points where the three congruent inscribed squares of the Kenmotu configuration meet the sides.</p><pre><code class="language-julia hljs">kenmotu_circle(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APCircle2([3.5187969924812026, 2.0751879699248117], 2.2284070439510018)</code></pre><img src="../assets/img/triangles/kenmotu.svg" alt="The Kenmotu point and the Kenmotu circle" style="width:100%; max-width: 700px;"><h3 id="The-Feuerbach-point"><a class="docs-heading-anchor" href="#The-Feuerbach-point">The Feuerbach point</a><a id="The-Feuerbach-point-1"></a><a class="docs-heading-anchor-permalink" href="#The-Feuerbach-point" title="Permalink"></a></h3><p><a href="../api/#Apollonius.feuerbach_point-Tuple{APTriangle}"><code>feuerbach_point</code></a> is where the incircle and the nine-point circle touch, internally:</p><pre><code class="language-julia hljs">fp = feuerbach_point(t)
-distance(fp, incenter(t)) ≈ inradius(t), distance(fp, nine_point_center(t)) ≈ nine_point_circle(t).r</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><p><a href="../api/#Apollonius.feuerbach_points-Tuple{APTriangle}"><code>feuerbach_points</code></a> is its excircle analogue: besides that internal tangency with the incircle, the nine-point circle is <em>externally</em> tangent to each of the three excircles too, at these three points.</p><pre><code class="language-julia hljs">feuerbach_points(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(A = [5.352914605817791, 3.2792670676871545], B = [1.5211275575918342, 3.0467856891260245], C = [3.740334969430836, -0.04476130080446383])</code></pre><img src="../assets/img/triangles/feuerbach.svg" alt="The nine-point circle tangent to the incircle and the three excircles" style="width:100%; max-width: 700px;"><h3 id="The-Kiepert-hyperbola-and-parabola"><a class="docs-heading-anchor" href="#The-Kiepert-hyperbola-and-parabola">The Kiepert hyperbola and parabola</a><a id="The-Kiepert-hyperbola-and-parabola-1"></a><a class="docs-heading-anchor-permalink" href="#The-Kiepert-hyperbola-and-parabola" title="Permalink"></a></h3><p><a href="../api/#Apollonius.kiepert_hyperbola-Tuple{APTriangle}"><code>kiepert_hyperbola</code></a> is the unique rectangular hyperbola through <code>t</code>&#39;s 3 vertices, its centroid and its orthocenter (built directly via <a href="../api/#Apollonius.conic_through_points-NTuple{5, APPoint}"><code>conic_through_points</code></a> on those 5 points); <a href="../api/#Apollonius.kiepert_parabola-Tuple{APTriangle}"><code>kiepert_parabola</code></a> has focus Kimberling center X(110) and directrix the <a href="../api/#Apollonius.euler_line-Tuple{APTriangle}"><code>euler_line</code></a> (undefined for an isosceles triangle, where X(110) doesn&#39;t exist):</p><pre><code class="language-julia hljs">kiepert_hyperbola(t) isa APHyperbola2
-kiepert_parabola(t) isa APParabola2</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/kiepert.svg" alt="The Kiepert hyperbola through the vertices, the centroid and the orthocenter" style="width:100%; max-width: 700px;"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../triangles_vertex_lines/">« Vertex-Indexed Lines</a><a class="docs-footer-nextpage" href="../triangles_inellipses/">Steiner &amp; Other Inellipses »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 20:14">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+is_on_line(sc.inner.center, soddy_line(t)), is_on_line(sc.outer.center, soddy_line(t))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><img src="../assets/img/triangles/mixtilinear.svg" alt="The vertex A mixtilinear incircle" style="width:100%; max-width: 700px;"><img src="../assets/img/triangles/soddy.svg" alt="The three tangent circles, the inner Soddy circle and the Soddy line" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-39c1ef9f467ec992"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-39c1ef9f467ec992" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    base = collect(three_tangent_circles(t))
+    sc = soddy_circles(t)
+    sdl = soddy_line(t)
+    soddy_pts = [sc.inner.center, sc.outer.center]
+    inner = sc.inner
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+
+sethue(&quot;gray80&quot;)
+path(base, action=:stroke)
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path(inner, action=:stroke)
+path(sdl, action=:stroke, extend=30)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path(soddy_pts, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p><a href="../api/#Apollonius.soddy_center-Tuple{APTriangle}"><code>soddy_center</code></a><code>(t; outer=false)</code> is just the center of one of those two circles, as a point on its own (Kimberling X(176) for the inner one, the default, and X(175) for <code>outer=true</code>); <a href="../api/#Apollonius.soddy_points-Tuple{APTriangle}"><code>soddy_points</code></a> gives both at once, as <code>(inner=..., outer=...)</code>:</p><pre><code class="language-julia hljs">soddy_center(t) == sc.inner.center
+soddy_points(t) == (inner=sc.inner.center, outer=sc.outer.center)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><h3 id="The-second-Fermat-point"><a class="docs-heading-anchor" href="#The-second-Fermat-point">The second Fermat point</a><a id="The-second-Fermat-point-1"></a><a class="docs-heading-anchor-permalink" href="#The-second-Fermat-point" title="Permalink"></a></h3><p><a href="../api/#Apollonius.second_fermat_point-Tuple{APTriangle}"><code>second_fermat_point</code></a> is built exactly like <a href="../api/#Apollonius.fermat_point-Tuple{APTriangle}"><code>fermat_point</code></a> but with the three equilateral triangles erected <em>inward</em> instead of outward; <a href="../api/#Apollonius.fermat_axis-Tuple{APTriangle}"><code>fermat_axis</code></a> is the line through both:</p><pre><code class="language-julia hljs">fermat_axis(t)   # APLine(fermat_point(t), second_fermat_point(t))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APLine([3.2897184800774584, 2.2544606099920776] -&gt; [-0.6060124097899183, 2.652887632819417])</code></pre><img src="../assets/img/triangles/fermat.svg" alt="The two Fermat points and the line through them" style="width:100%; max-width: 700px;"><h3 id="The-Poncelet-point"><a class="docs-heading-anchor" href="#The-Poncelet-point">The Poncelet point</a><a id="The-Poncelet-point-1"></a><a class="docs-heading-anchor-permalink" href="#The-Poncelet-point" title="Permalink"></a></h3><p><a href="../api/#Apollonius.poncelet_point-Tuple{APTriangle, APPoint}"><code>poncelet_point</code></a><code>(t, p)</code> uses a striking fact about <em>any</em> 4 points in general position (here, <code>t</code>&#39;s 3 vertices plus a 4th, <code>p</code>): the nine-point circles of the 4 triangles obtained by leaving out one point each time always share a single common point.</p><pre><code class="language-julia hljs">poncelet_point(t, APPoint(5.0, -2.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.947058823529412, -0.011764705882352455]</code></pre><img src="../assets/img/triangles/poncelet.svg" alt="The nine-point circles of four triangles meeting at the Poncelet point" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-43298d8bde2b90b3"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-43298d8bde2b90b3" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=320 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    D = APPoint(5.0, -2.0)
+    tris = [APTriangle(A, B, C), APTriangle(A, B, D), APTriangle(B, C, D), APTriangle(C, A, D)]
+    npc = [nine_point_circle(x) for x in tris]
+    pp = poncelet_point(t, D)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path(npc, action=:stroke)
+sethue(julia_red)
+label(&quot;D&quot;, :S, D)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([pp], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path([D], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="The-Thébault-circles"><a class="docs-heading-anchor" href="#The-Thébault-circles">The Thébault circles</a><a id="The-Thébault-circles-1"></a><a class="docs-heading-anchor-permalink" href="#The-Thébault-circles" title="Permalink"></a></h3><p><a href="../api/#Apollonius.thebault_circles-Tuple{APTriangle, APPoint}"><code>thebault_circles</code></a> builds the two circles of the classical <strong>Sawayama–Thébault configuration</strong>: given a point <code>p</code> on side <code>[t[2], t[3]]</code>, each is tangent to the cevian <code>t[1] -&gt; p</code>, to that side, and internally tangent to the circumcircle: one nestled against <code>t[2]</code>, the other against <code>t[3]</code>.</p><pre><code class="language-julia hljs">D = B + 0.4 * (C - B)   # a point on side [B, C]
+th = thebault_circles(t, D)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(near_b = APCircle2([5.371112263108153, -0.0859769259815697], 2.0746085878974125), near_c = APCircle2([2.4345060682541315, 3.3019775631070742], 2.1616563458939564))</code></pre><p>No matter where <code>p</code> sits on the side, the incenter always lies exactly on the segment joining the two circles&#39; centers (the theorem the construction is named for):</p><pre><code class="language-julia hljs">is_on_line(incenter(t), APLine(th.near_b.center, th.near_c.center))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/thebault.svg" alt="The two Thébault circles and the line through their centers, which passes through the incenter" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-3b925961d63ee1a3"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-3b925961d63ee1a3" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=340 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    cc = circumcircle(t)
+    D = B + 0.4 * (C - B)
+    th = thebault_circles(t, D)
+    nb, nc = th.near_b, th.near_c
+    I = incenter(t)
+    lk = APLine(nb.center, nc.center)
+    cev = APSegment(A, D)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(&quot;gray80&quot;)
+path(cc, action=:stroke)
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(julia_green)
+path(cev, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path([nb, nc], action=:stroke)
+path(lk, action=:stroke, extend=30)
+sethue(julia_red)
+label(&quot;D&quot;, :S, D)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([I], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path([D], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="Three-tangent-circles"><a class="docs-heading-anchor" href="#Three-tangent-circles">Three tangent circles</a><a id="Three-tangent-circles-1"></a><a class="docs-heading-anchor-permalink" href="#Three-tangent-circles" title="Permalink"></a></h3><p><a href="../api/#Apollonius.three_tangent_circles-Tuple{APTriangle}"><code>three_tangent_circles</code></a> is the simpler configuration <a href="../api/#Apollonius.soddy_circles-Tuple{APTriangle}"><code>soddy_circles</code></a> is itself built from: one circle per vertex, radius equal to the tangent length from that vertex to the incircle, each pair meeting exactly where the incircle touches the side between them.</p><pre><code class="language-julia hljs">base = three_tangent_circles(t)
+distance(base[1].center, base[2].center) ≈ base[1].r + base[2].r   # pairwise externally tangent</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/three_tangent.svg" alt="Three pairwise tangent circles centered at the vertices" style="width:100%; max-width: 700px;"><h3 id="The-Taylor-points"><a class="docs-heading-anchor" href="#The-Taylor-points">The Taylor points</a><a id="The-Taylor-points-1"></a><a class="docs-heading-anchor-permalink" href="#The-Taylor-points" title="Permalink"></a></h3><p><a href="../api/#Apollonius.taylor_points-Tuple{APTriangle}"><code>taylor_points</code></a> is the full 6-point construction behind <a href="../api/#Apollonius.taylor_circle-Tuple{APTriangle}"><code>taylor_circle</code></a>: project each vertex of the <a href="../api/#Apollonius.orthic_triangle-Tuple{APTriangle}"><code>orthic_triangle</code></a> onto each of the two sides <em>not</em> used to define it; all 6 results are concyclic.</p><pre><code class="language-julia hljs">length(taylor_points(t))   # 6</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6</code></pre><img src="../assets/img/triangles/taylor.svg" alt="The orthic triangle and the Taylor circle through six projections" style="width:100%; max-width: 700px;"><h3 id="The-Van-Lamoen-points"><a class="docs-heading-anchor" href="#The-Van-Lamoen-points">The Van Lamoen points</a><a id="The-Van-Lamoen-points-1"></a><a class="docs-heading-anchor-permalink" href="#The-Van-Lamoen-points" title="Permalink"></a></h3><p><a href="../api/#Apollonius.van_lamoen_points-Tuple{APTriangle}"><code>van_lamoen_points</code></a> is another 6-concyclic-points theorem: the circumcenters of the 6 small triangles the 3 medians cut <code>t</code> into (each formed by one vertex, one non-adjacent side midpoint, and the centroid) always lie on a common circle, <a href="../api/#Apollonius.van_lamoen_circle-Tuple{APTriangle}"><code>van_lamoen_circle</code></a>.</p><pre><code class="language-julia hljs">length(van_lamoen_points(t))   # 6</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6</code></pre><img src="../assets/img/triangles/van_lamoen.svg" alt="The three medians and the Van Lamoen circle" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-dd111ea20c5f3c1c"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-dd111ea20c5f3c1c" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    vc = van_lamoen_circle(t)
+    vp = collect(van_lamoen_points(t))
+    meds = [APSegment(v, midpoint(w1, w2)) for (v, w1, w2) in ((A, B, C), (B, C, A), (C, A, B))]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(&quot;gray80&quot;)
+path(meds, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path(vc, action=:stroke)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path(vp, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="The-medial-triangle"><a class="docs-heading-anchor" href="#The-medial-triangle">The medial triangle</a><a id="The-medial-triangle-1"></a><a class="docs-heading-anchor-permalink" href="#The-medial-triangle" title="Permalink"></a></h3><p><a href="../api/#Apollonius.complement-Tuple{APTriangle, APPoint}"><code>complement</code></a><code>(t, p)</code> and <a href="../api/#Apollonius.anticomplement-Tuple{APTriangle, APPoint}"><code>anticomplement</code></a><code>(t, p)</code> are the homotheties of ratio <code>-1/2</code> and <code>-2</code> about the centroid, inverses of each other. Applied to <code>t</code>&#39;s own vertices they give the <a href="../api/#Apollonius.medial_triangle-Tuple{APTriangle}"><code>medial_triangle</code></a> and the anticomplementary triangle (see <a href="../triangles_derived/#Derived-triangles">Derived triangles</a>) respectively:</p><pre><code class="language-julia hljs">complement(t, A) ≈ midpoint(B, C)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><h3 id="The-Kenmotu-circle"><a class="docs-heading-anchor" href="#The-Kenmotu-circle">The Kenmotu circle</a><a id="The-Kenmotu-circle-1"></a><a class="docs-heading-anchor-permalink" href="#The-Kenmotu-circle" title="Permalink"></a></h3><p><a href="../api/#Apollonius.kenmotu_circle-Tuple{APTriangle}"><code>kenmotu_circle</code></a> is centered at the <a href="../api/#Apollonius.kenmotu_point-Tuple{APTriangle}"><code>kenmotu_point</code></a>, with radius <code>√2·a·b·c / (4·Area + a²+b²+c²)</code>; it passes through the 6 points where the three congruent inscribed squares of the Kenmotu configuration meet the sides.</p><pre><code class="language-julia hljs">kenmotu_circle(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APCircle2([3.5187969924812026, 2.0751879699248117], 2.2284070439510018)</code></pre><img src="../assets/img/triangles/kenmotu.svg" alt="The Kenmotu point and the Kenmotu circle" style="width:100%; max-width: 700px;"><h3 id="The-Feuerbach-point"><a class="docs-heading-anchor" href="#The-Feuerbach-point">The Feuerbach point</a><a id="The-Feuerbach-point-1"></a><a class="docs-heading-anchor-permalink" href="#The-Feuerbach-point" title="Permalink"></a></h3><p><a href="../api/#Apollonius.feuerbach_point-Tuple{APTriangle}"><code>feuerbach_point</code></a> is where the incircle and the nine-point circle touch, internally:</p><pre><code class="language-julia hljs">fp = feuerbach_point(t)
+distance(fp, incenter(t)) ≈ inradius(t), distance(fp, nine_point_center(t)) ≈ nine_point_circle(t).r</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><p><a href="../api/#Apollonius.feuerbach_points-Tuple{APTriangle}"><code>feuerbach_points</code></a> is its excircle analogue: besides that internal tangency with the incircle, the nine-point circle is <em>externally</em> tangent to each of the three excircles too, at these three points.</p><pre><code class="language-julia hljs">feuerbach_points(t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(A = [5.352914605817791, 3.2792670676871545], B = [1.5211275575918342, 3.0467856891260245], C = [3.740334969430836, -0.04476130080446383])</code></pre><img src="../assets/img/triangles/feuerbach.svg" alt="The nine-point circle tangent to the incircle and the three excircles" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-96cf82b9955c42f0"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-96cf82b9955c42f0" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=360 margin=30 begin  
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    np = nine_point_circle(t)
+    inc = incircle(t)
+    ex = excircles(t)
+    exc = [ex.A, ex.B, ex.C]
+    fp = feuerbach_point(t)
+    fps = collect(feuerbach_points(t))
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+
+sethue(&quot;gray80&quot;)
+path([inc; exc], action=:stroke)
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path(np, action=:stroke)
+sethue(&quot;white&quot;); path([A, B, C], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([fp; fps], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="The-Kiepert-hyperbola-and-parabola"><a class="docs-heading-anchor" href="#The-Kiepert-hyperbola-and-parabola">The Kiepert hyperbola and parabola</a><a id="The-Kiepert-hyperbola-and-parabola-1"></a><a class="docs-heading-anchor-permalink" href="#The-Kiepert-hyperbola-and-parabola" title="Permalink"></a></h3><p><a href="../api/#Apollonius.kiepert_hyperbola-Tuple{APTriangle}"><code>kiepert_hyperbola</code></a> is the unique rectangular hyperbola through <code>t</code>&#39;s 3 vertices, its centroid and its orthocenter (built directly via <a href="../api/#Apollonius.conic_through_points-NTuple{5, APPoint}"><code>conic_through_points</code></a> on those 5 points); <a href="../api/#Apollonius.kiepert_parabola-Tuple{APTriangle}"><code>kiepert_parabola</code></a> has focus Kimberling center X(110) and directrix the <a href="../api/#Apollonius.euler_line-Tuple{APTriangle}"><code>euler_line</code></a> (undefined for an isosceles triangle, where X(110) doesn&#39;t exist):</p><pre><code class="language-julia hljs">kiepert_hyperbola(t) isa APHyperbola2
+kiepert_parabola(t) isa APParabola2</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/kiepert.svg" alt="The Kiepert hyperbola through the vertices, the centroid and the orthocenter" style="width:100%; max-width: 700px;"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../triangles_vertex_lines/">« Vertex-Indexed Lines</a><a class="docs-footer-nextpage" href="../triangles_inellipses/">Steiner &amp; Other Inellipses »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

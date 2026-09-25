@@ -11,6 +11,91 @@ distance(ext[1].p1, c1.center), distance(ext[1].p2, c2.center)   # (c1.r, c2.r)<
 l = APLine(APPoint(-5.0, 0.0), APPoint(0.0, 3.0))          # goes through (-5, 0), a point of c
 other_intersection(l, c, APPoint(-5.0, 0.0))                # the second point where l meets c</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[2.3529411764705883, 4.411764705882353]</code></pre><pre><code class="language-julia hljs">pts = intersection(c, APCircle2(APPoint(6.0, 0.0), 5.0))   # two points, above and below the x-axis
 nearest_point(pts, APPoint(3.0, 10.0))                      # the upper one</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.0, 4.0]</code></pre><p><a href="../api/#Apollonius.angle_measure_intersection-Tuple{APCircle2, APCircle2}"><code>angle_measure_intersection</code></a><code>(c1, c2)</code> is the measure of the angle at which two circles cross, between <code>0</code> (they touch) and <code>π/2</code> (they are orthogonal), or <code>nothing</code> when they do not meet.</p><pre><code class="language-julia hljs">c1 = APCircle2(APPoint(0.0, 0.0), 5.0)
-angle_measure_intersection(c1, orthogonal_circle(c1, APPoint(13.0, 0.0))) ≈ pi / 2</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/circles/intersection_choice.svg" alt="Choosing the second point where a line meets a circle, and the nearest point of two circles' intersection" style="width:100%; max-width: 700px;"><div class="admonition is-warning" id="The-order-of-the-intersections-is-fixed-for-two-cases-only-a4a0bce616e8f9ed"><header class="admonition-header">The order of the intersections is fixed for two cases only<a class="admonition-anchor" href="#The-order-of-the-intersections-is-fixed-for-two-cases-only-a4a0bce616e8f9ed" title="Permalink"></a></header><div class="admonition-body"><p>A line and a circle give their points along the line, and two circles give the point on the left first. For any other pair the order is not specified: choose with <a href="../api/#Apollonius.nearest_point-Tuple{AbstractVector{&lt;:APPoint}, APPoint}"><code>nearest_point</code></a> or <a href="../api/#Apollonius.other_intersection-Tuple{Any, Any, APPoint}"><code>other_intersection</code></a>.</p></div></div><h2 id="How-two-circles-(or-a-line-and-a-circle)-relate"><a class="docs-heading-anchor" href="#How-two-circles-(or-a-line-and-a-circle)-relate">How two circles (or a line and a circle) relate</a><a id="How-two-circles-(or-a-line-and-a-circle)-relate-1"></a><a class="docs-heading-anchor-permalink" href="#How-two-circles-(or-a-line-and-a-circle)-relate" title="Permalink"></a></h2><p><a href="../api/#Apollonius.circles_position-Tuple{APCircle2, APCircle2}"><code>circles_position</code></a> and <a href="../api/#Apollonius.line_circle_position-Tuple{APLine, APCircle2}"><code>line_circle_position</code></a> classify the relationship between two circles, or a line and a circle, as a <code>Symbol</code> rather than a single boolean, useful when you need to distinguish, say, &quot;tangent&quot; from &quot;disjoint&quot; from &quot;one contains the other&quot; in one call instead of chaining several predicates:</p><pre><code class="language-julia hljs">circles_position(APCircle2(APPoint(0.0, 0.0), 5.0), APCircle2(APPoint(2.0, 0.0), 3.0))   # :tangent_int
-line_circle_position(APLine(APPoint(0.0, 5.0), APPoint(1.0, 5.0)), APCircle2(APPoint(0.0, 0.0), 5.0))   # :tangent</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">:tangent</code></pre><img src="../assets/img/circles/circle_positions.svg" alt="The six relative positions of two circles, with the symbol circles_position returns for each" style="width:100%; max-width: 700px;"><p><code>circles_position</code> returns one of <code>:identical</code>, <code>:concentric</code>, <code>:disjoint_ext</code>, <code>:tangent_ext</code>, <code>:secant</code>, <code>:tangent_int</code> or <code>:disjoint_int</code>; <code>line_circle_position</code> returns one of <code>:disjoint</code>, <code>:tangent</code> or <code>:secant</code>.</p><img src="../assets/img/circles/line_circle_positions.svg" alt="A line and a circle, disjoint, tangent and secant" style="width:100%; max-width: 700px;"><h2 id="Chords,-diameters-and-offset-circles"><a class="docs-heading-anchor" href="#Chords,-diameters-and-offset-circles">Chords, diameters and offset circles</a><a id="Chords,-diameters-and-offset-circles-1"></a><a class="docs-heading-anchor-permalink" href="#Chords,-diameters-and-offset-circles" title="Permalink"></a></h2><p><a href="../api/#Apollonius.chord-Tuple{APCircle2, Real, Real}"><code>chord</code></a><code>(c, θ1, θ2)</code> is the segment between the points of a circle at two polar angles, and <a href="../api/#Apollonius.diameter"><code>diameter</code></a><code>(c, angle)</code> the one through the point at <code>angle</code> and its <a href="../api/#Apollonius.antipode-Tuple{APPoint, APCircle2}"><code>antipode</code></a>. <a href="../api/#Apollonius.offset_circle-Tuple{APCircle2, Real}"><code>offset_circle</code></a><code>(c, d)</code> is the concentric circle whose radius is <code>c.r + d</code>, the counterpart of <a href="../api/#Apollonius.offset_line-Tuple{APLine, Real}"><code>offset_line</code></a> (a negative <code>d</code> shrinks it, and it must stay positive):</p><pre><code class="language-julia hljs">c_o = APCircle2(APPoint(0.0, 0.0), 3.0)
-chord(c_o, 0.5, 2.4), diameter(c_o, 5.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APSegment([2.6327476856711183, 1.438276615812609] -&gt; [-2.2121811466237364, 2.0263895416534528]), APSegment([0.8509865563896788, -2.8767728239894153] -&gt; [-0.8509865563896784, 2.8767728239894153]))</code></pre><pre><code class="language-julia hljs">offset_circle(c_o, 1.0), offset_circle(c_o, -1.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APCircle2([0.0, 0.0], 4.0), APCircle2([0.0, 0.0], 2.0))</code></pre><img src="../assets/img/circles/chord_diameter.svg" alt="A circle with a chord, a diameter and the two circles offset by plus and minus one" style="width:100%; max-width: 700px;"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../circles_inversion/">« Inversion</a><a class="docs-footer-nextpage" href="../circles_arcs/">Arcs »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 20:14">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+angle_measure_intersection(c1, orthogonal_circle(c1, APPoint(13.0, 0.0))) ≈ pi / 2</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/circles/intersection_choice.svg" alt="Choosing the second point where a line meets a circle, and the nearest point of two circles' intersection" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-c6da3824cbd0c65b"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-c6da3824cbd0c65b" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    c = APCircle2(APPoint(0.0, 0.0), 5.0)
+    l = APLine(APPoint(-5.0, 0.0), APPoint(0.0, 3.0))
+    known = APPoint(-5.0, 0.0)
+    other = other_intersection(l, c, known)
+    c2 = APCircle2(APPoint(6.0, 0.0), 5.0)
+    pts = intersection(c, c2)
+    ref = APPoint(3.0, 8.0)
+    chosen = nearest_point(pts, ref)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+sethue(julia_blue)
+path([c, c2], action=:stroke)
+path(l, action=:stroke, extend=40)
+sethue(julia_purple)
+sethue(&quot;gray80&quot;)
+sethue(julia_red)
+label(&quot;known&quot;, :NW, known); label(&quot;other&quot;, :N, other); label(&quot;p&quot;, :N, ref)
+sethue(&quot;white&quot;); path([known, ref], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([other, chosen], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path([p for p in pts if p != chosen], action=:fillpreserve); sethue(&quot;gray80&quot;); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><div class="admonition is-warning" id="The-order-of-the-intersections-is-fixed-for-two-cases-only-a4a0bce616e8f9ed"><header class="admonition-header">The order of the intersections is fixed for two cases only<a class="admonition-anchor" href="#The-order-of-the-intersections-is-fixed-for-two-cases-only-a4a0bce616e8f9ed" title="Permalink"></a></header><div class="admonition-body"><p>A line and a circle give their points along the line, and two circles give the point on the left first. For any other pair the order is not specified: choose with <a href="../api/#Apollonius.nearest_point-Tuple{AbstractVector{&lt;:APPoint}, APPoint}"><code>nearest_point</code></a> or <a href="../api/#Apollonius.other_intersection-Tuple{Any, Any, APPoint}"><code>other_intersection</code></a>.</p></div></div><h2 id="How-two-circles-(or-a-line-and-a-circle)-relate"><a class="docs-heading-anchor" href="#How-two-circles-(or-a-line-and-a-circle)-relate">How two circles (or a line and a circle) relate</a><a id="How-two-circles-(or-a-line-and-a-circle)-relate-1"></a><a class="docs-heading-anchor-permalink" href="#How-two-circles-(or-a-line-and-a-circle)-relate" title="Permalink"></a></h2><p><a href="../api/#Apollonius.circles_position-Tuple{APCircle2, APCircle2}"><code>circles_position</code></a> and <a href="../api/#Apollonius.line_circle_position-Tuple{APLine, APCircle2}"><code>line_circle_position</code></a> classify the relationship between two circles, or a line and a circle, as a <code>Symbol</code> rather than a single boolean, useful when you need to distinguish, say, &quot;tangent&quot; from &quot;disjoint&quot; from &quot;one contains the other&quot; in one call instead of chaining several predicates:</p><pre><code class="language-julia hljs">circles_position(APCircle2(APPoint(0.0, 0.0), 5.0), APCircle2(APPoint(2.0, 0.0), 3.0))   # :tangent_int
+line_circle_position(APLine(APPoint(0.0, 5.0), APPoint(1.0, 5.0)), APCircle2(APPoint(0.0, 0.0), 5.0))   # :tangent</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">:tangent</code></pre><img src="../assets/img/circles/circle_positions.svg" alt="The six relative positions of two circles, with the symbol circles_position returns for each" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-66a40c3e11c67b0d"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-66a40c3e11c67b0d" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=560 height=300 margin=30 begin  
+    cs = [c for (i, (r1, r2, d)) in enumerate([(1.5, 1.0, 4.0), (1.5, 1.0, 2.5), (1.5, 1.0, 1.8), (1.5, 0.75, 0.75), (1.5, 0.5, 0.4), (1.5, 1.0, 0.0)]) for c in (APCircle2(APPoint(8.0 * mod(i - 1, 3), -6.0 * fld(i - 1, 3)), r1), APCircle2(APPoint(8.0 * mod(i - 1, 3) + d, -6.0 * fld(i - 1, 3)), r2))]
+    labpts = [APPoint(8.0 * mod(i - 1, 3) + 1.5, -6.0 * fld(i - 1, 3) - 2.4) for i in 1:6]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(13)
+sethue(julia_blue)
+path(cs, action=:stroke)
+sethue(julia_red)
+for (n, p) in zip((&quot;:disjoint_ext&quot;, &quot;:tangent_ext&quot;, &quot;:secant&quot;, &quot;:tangent_int&quot;, &quot;:disjoint_int&quot;, &quot;:concentric&quot;), labpts)
+    label(n, :S, p)
+end
+
+finish()
+preview()
+end</code></pre></div></details><p><code>circles_position</code> returns one of <code>:identical</code>, <code>:concentric</code>, <code>:disjoint_ext</code>, <code>:tangent_ext</code>, <code>:secant</code>, <code>:tangent_int</code> or <code>:disjoint_int</code>; <code>line_circle_position</code> returns one of <code>:disjoint</code>, <code>:tangent</code> or <code>:secant</code>.</p><img src="../assets/img/circles/line_circle_positions.svg" alt="A line and a circle, disjoint, tangent and secant" style="width:100%; max-width: 700px;"><h2 id="Chords,-diameters-and-offset-circles"><a class="docs-heading-anchor" href="#Chords,-diameters-and-offset-circles">Chords, diameters and offset circles</a><a id="Chords,-diameters-and-offset-circles-1"></a><a class="docs-heading-anchor-permalink" href="#Chords,-diameters-and-offset-circles" title="Permalink"></a></h2><p><a href="../api/#Apollonius.chord-Tuple{APCircle2, Real, Real}"><code>chord</code></a><code>(c, θ1, θ2)</code> is the segment between the points of a circle at two polar angles, and <a href="../api/#Apollonius.diameter"><code>diameter</code></a><code>(c, angle)</code> the one through the point at <code>angle</code> and its <a href="../api/#Apollonius.antipode-Tuple{APPoint, APCircle2}"><code>antipode</code></a>. <a href="../api/#Apollonius.offset_circle-Tuple{APCircle2, Real}"><code>offset_circle</code></a><code>(c, d)</code> is the concentric circle whose radius is <code>c.r + d</code>, the counterpart of <a href="../api/#Apollonius.offset_line-Tuple{APLine, Real}"><code>offset_line</code></a> (a negative <code>d</code> shrinks it, and it must stay positive):</p><pre><code class="language-julia hljs">c_o = APCircle2(APPoint(0.0, 0.0), 3.0)
+chord(c_o, 0.5, 2.4), diameter(c_o, 5.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APSegment([2.6327476856711183, 1.438276615812609] -&gt; [-2.2121811466237364, 2.0263895416534528]), APSegment([0.8509865563896788, -2.8767728239894153] -&gt; [-0.8509865563896784, 2.8767728239894153]))</code></pre><pre><code class="language-julia hljs">offset_circle(c_o, 1.0), offset_circle(c_o, -1.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APCircle2([0.0, 0.0], 4.0), APCircle2([0.0, 0.0], 2.0))</code></pre><img src="../assets/img/circles/chord_diameter.svg" alt="A circle with a chord, a diameter and the two circles offset by plus and minus one" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-110c6186221d5d23"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-110c6186221d5d23" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin  
+    c = APCircle2(APPoint(0.0, 0.0), 3.0)
+    out = offset_circle(c, 1.0)
+    inn = offset_circle(c, -1.0)
+    ch = chord(c, 0.5, 2.4)
+    di = diameter(c, 5.0)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(&quot;gray80&quot;)
+path([out, inn], action=:stroke)
+grestore()
+sethue(julia_blue)
+path(c, action=:stroke)
+sethue(julia_purple)
+path([ch, di], action=:stroke)
+sethue(julia_red)
+label(&quot;chord&quot;, :NW, ch.p1); label(&quot;diameter&quot;, :SE, di.p1); label(&quot;offset_circle(c, 1)&quot;, :S, APPoint(0.0, -4.0))
+sethue(&quot;white&quot;); path([ch.p1, ch.p2, di.p1, di.p2], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../circles_inversion/">« Inversion</a><a class="docs-footer-nextpage" href="../circles_arcs/">Arcs »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

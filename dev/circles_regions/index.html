@@ -8,9 +8,111 @@ area(sec)        # r² * measure(arc) / 2
 perimeter(sec)    # the two radii (2r) plus the arc length</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">17.853981633974485</code></pre><pre><code class="language-julia hljs">seg = APCircularSegment2(arc)
 area(seg)        # r² * (measure(arc) - sin(measure(arc))) / 2
 perimeter(seg)    # the arc length plus the chord [p1, p2]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">14.925049445839958</code></pre><pre><code class="language-julia hljs">asec = APAnnularSector2(arc, 2.0)   # inner radius 2.0
-area(asec)        # outer sector area minus inner sector area</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">16.493361431346415</code></pre><img src="../assets/img/circles/sec_ann.svg" alt="Three circles, showing a filled circular sector, a filled circular segment, and a filled annular sector" style="width:100%; max-width: 700px;"><p>None of these three formulas is hand-derived per type. Every one comes for free from the generic, sides-based <code>area</code>/<code>perimeter</code> every <a href="../api/#Apollonius.APPolygon"><code>APPolygon</code></a> shares (see <a href="../api/#Apollonius.APPolygon"><code>APPolygon</code></a>&#39;s own docstring), and none needs to special-case whether <code>arc</code> sweeps less or more than half the circle (a &quot;minor&quot; vs &quot;major&quot; arc), since <code>measure(arc)</code> is already the specific directed angle for <em>this</em> arc.</p><p>Both <code>APCircularSector2</code> and <code>APCircularSegment2</code> have a <code>Base.in</code> matching their shape: inside the circle <em>and</em> on the correct side (angularly, for a sector; of the chord, for a segment):</p><pre><code class="language-julia hljs">c.center in sec, c.center in seg   # the center is in the sector, but not this segment</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, false)</code></pre><h2 id="Transforming-arcs,-sectors-and-segments"><a class="docs-heading-anchor" href="#Transforming-arcs,-sectors-and-segments">Transforming arcs, sectors and segments</a><a id="Transforming-arcs,-sectors-and-segments-1"></a><a class="docs-heading-anchor-permalink" href="#Transforming-arcs,-sectors-and-segments" title="Permalink"></a></h2><p><code>rotate</code>, <code>reflection</code> and <code>homothety</code> all work on an <a href="../api/#Apollonius.APCircularArc2"><code>APCircularArc2</code></a> (and, by delegating to it, on an <a href="../api/#Apollonius.APCircularSector2"><code>APCircularSector2</code></a>/<a href="../api/#Apollonius.APCircularSegment2"><code>APCircularSegment2</code></a>/<a href="../api/#Apollonius.APAnnularSector2"><code>APAnnularSector2</code></a> too). <code>rotate</code> and <code>homothety</code> never reverse orientation (even <code>homothety</code> with a negative ratio, a point reflection through the center, is really just a 180° rotation), so <code>p1</code>/<code>p2</code> transform pointwise with no surprises:</p><pre><code class="language-julia hljs">rotate(arc, 2pi / 3)
-homothety(arc, -2.0)   # negative k: still no swap needed</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APCircularArc2(APCircle2([0.0, 0.0], 10.0), [-10.0, 0.0] -&gt; [0.0, -10.0])</code></pre><img src="../assets/img/circles/arc_rot_hom.svg" alt="An arc with its images under a rotation and under a homothety of negative ratio, and the rotation angle marked as a filled sector" style="width:100%; max-width: 700px;"><p>Reflecting about an <code>APPoint</code> is likewise a point reflection: no swap. Reflecting about an <code>APLine</code>, however, is a true mirror: it <em>does</em> reverse orientation, so <code>reflection(::APCircularArc2, ::APLine)</code> also swaps <code>p1</code> and <code>p2</code> internally, keeping the result&#39;s own <code>p1 -&gt; p2</code> sweep counterclockwise like every other <code>APCircularArc2</code>:</p><pre><code class="language-julia hljs">reflection(arc, APPoint(1.0, 1.0))                     # point reflection: p1/p2 not swapped
-reflection(arc, APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))  # line reflection: p1/p2 swapped</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APCircularArc2(APCircle2([0.0, 0.0], 5.0), [5.0, 0.0] -&gt; [0.0, 5.0])</code></pre><img src="../assets/img/circles/arc_cen_axi.svg" alt="An arc with its point reflection and its reflection across a mirror line, dashed segments linking corresponding endpoints" style="width:100%; max-width: 700px;"><p>Without that swap, the reflected endpoints alone would trace out the arc&#39;s <em>complementary</em> 3/4-of-the-circle instead of its true mirror image.</p><h2 id="The-gap-between-three-mutually-tangent-circles"><a class="docs-heading-anchor" href="#The-gap-between-three-mutually-tangent-circles">The gap between three mutually tangent circles</a><a id="The-gap-between-three-mutually-tangent-circles-1"></a><a class="docs-heading-anchor-permalink" href="#The-gap-between-three-mutually-tangent-circles" title="Permalink"></a></h2><p>Three circles that are pairwise tangent (each coin-touching-coin, or one containing the other two) leave a curvilinear-triangle gap between them. <a href="../api/#Apollonius.interstices-Tuple{APCircle2, APCircle2, APCircle2}"><code>interstices</code></a> finds it (or, when one circle encloses the other two, <em>both</em> gaps, one on each side):</p><pre><code class="language-julia hljs">u1 = APCircle2(APPoint(0.0, 0.0), 1.0)
+area(asec)        # outer sector area minus inner sector area</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">16.493361431346415</code></pre><img src="../assets/img/circles/sec_ann.svg" alt="Three circles, showing a filled circular sector, a filled circular segment, and a filled annular sector" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-f27c4c0461ca3f68"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-f27c4c0461ca3f68" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    vt1 = APVector(12.5,0)
+    o1 = APPoint(0.0, 0.0)
+    o2 = o1 |&gt; translate(vt1)
+    o3 = o2 |&gt; translate(vt1)
+    c1,c2,c3 = APCircle2.([o1,o2,o3], 5.0)
+    s1, e1 = APPoint(5.0, 0.0), APPoint(0.0, 5.0)
+    s2, e2 = translate.([s1, e1], vt1)
+    s3, e3 = translate.([s2, e2], vt1)
+    arc1 = APCircularArc2(c1, s1, e1)
+    arc2 = APCircularArc2(c2, s2, e2)
+    arc3 = APCircularArc2(c3, s3, e3)
+    sec3 = APAnnularSector2(arc3, 2.0)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+sethue(julia_purple)
+path(APCircularSector2(arc1), action=:fill)
+path(APCircularSegment2(arc2), action=:fill)
+path(sec3, action=:fill)
+sethue(julia_blue)
+path([c1,c2,c3], action=:stroke)
+sethue(&quot;white&quot;); path([s1,e1,s2,e2,s3,e3], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p>None of these three formulas is hand-derived per type. Every one comes for free from the generic, sides-based <code>area</code>/<code>perimeter</code> every <a href="../api/#Apollonius.APPolygon"><code>APPolygon</code></a> shares (see <a href="../api/#Apollonius.APPolygon"><code>APPolygon</code></a>&#39;s own docstring), and none needs to special-case whether <code>arc</code> sweeps less or more than half the circle (a &quot;minor&quot; vs &quot;major&quot; arc), since <code>measure(arc)</code> is already the specific directed angle for <em>this</em> arc.</p><p>Both <code>APCircularSector2</code> and <code>APCircularSegment2</code> have a <code>Base.in</code> matching their shape: inside the circle <em>and</em> on the correct side (angularly, for a sector; of the chord, for a segment):</p><pre><code class="language-julia hljs">c.center in sec, c.center in seg   # the center is in the sector, but not this segment</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, false)</code></pre><h2 id="Transforming-arcs,-sectors-and-segments"><a class="docs-heading-anchor" href="#Transforming-arcs,-sectors-and-segments">Transforming arcs, sectors and segments</a><a id="Transforming-arcs,-sectors-and-segments-1"></a><a class="docs-heading-anchor-permalink" href="#Transforming-arcs,-sectors-and-segments" title="Permalink"></a></h2><p><code>rotate</code>, <code>reflection</code> and <code>homothety</code> all work on an <a href="../api/#Apollonius.APCircularArc2"><code>APCircularArc2</code></a> (and, by delegating to it, on an <a href="../api/#Apollonius.APCircularSector2"><code>APCircularSector2</code></a>/<a href="../api/#Apollonius.APCircularSegment2"><code>APCircularSegment2</code></a>/<a href="../api/#Apollonius.APAnnularSector2"><code>APAnnularSector2</code></a> too). <code>rotate</code> and <code>homothety</code> never reverse orientation (even <code>homothety</code> with a negative ratio, a point reflection through the center, is really just a 180° rotation), so <code>p1</code>/<code>p2</code> transform pointwise with no surprises:</p><pre><code class="language-julia hljs">rotate(arc, 2pi / 3)
+homothety(arc, -2.0)   # negative k: still no swap needed</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APCircularArc2(APCircle2([0.0, 0.0], 10.0), [-10.0, 0.0] -&gt; [0.0, -10.0])</code></pre><img src="../assets/img/circles/arc_rot_hom.svg" alt="An arc with its images under a rotation and under a homothety of negative ratio, and the rotation angle marked as a filled sector" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-980b66b2e1cf58f7"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-980b66b2e1cf58f7" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    c = APCircle2(APPoint(0.0, 0.0), 5.0)
+    p1, p2 = APPoint(0.0, 1.0), APPoint(-2.0, 0.0)
+    arc = APCircularArc2(c, p1, p2)
+    arc_rot = rotate(arc, 2pi/3)
+    arc_hom = homothety(arc, -2.0)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+sethue(julia_purple)
+path(APCircularSector2(only(marks(APAngle2(arc.circle.center, arc_rot.p1, arc.p1)))), action=:fill)
+setdash(:dash)
+path(APSegment(arc.circle.center, arc_rot.p1), action=:stroke)
+path(APSegment(arc.circle.center, arc_hom.p1), action=:stroke)
+sethue(julia_green)
+path(APSegment(arc.circle.center, arc.p1), action=:stroke)
+setdash(:solid)
+sethue(julia_blue)
+path(arc, action=:stroke)
+sethue(julia_purple)
+path([arc_rot, arc_hom], action=:stroke)
+sethue(&quot;white&quot;); path([arc_rot.p1, arc_hom.p1], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path([arc.circle.center, arc.p1], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p>Reflecting about an <code>APPoint</code> is likewise a point reflection: no swap. Reflecting about an <code>APLine</code>, however, is a true mirror: it <em>does</em> reverse orientation, so <code>reflection(::APCircularArc2, ::APLine)</code> also swaps <code>p1</code> and <code>p2</code> internally, keeping the result&#39;s own <code>p1 -&gt; p2</code> sweep counterclockwise like every other <code>APCircularArc2</code>:</p><pre><code class="language-julia hljs">reflection(arc, APPoint(1.0, 1.0))                     # point reflection: p1/p2 not swapped
+reflection(arc, APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))  # line reflection: p1/p2 swapped</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APCircularArc2(APCircle2([0.0, 0.0], 5.0), [5.0, 0.0] -&gt; [0.0, 5.0])</code></pre><img src="../assets/img/circles/arc_cen_axi.svg" alt="An arc with its point reflection and its reflection across a mirror line, dashed segments linking corresponding endpoints" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-a96dcb5bf17f3bac"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-a96dcb5bf17f3bac" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    c = APCircle2(APPoint(0.0, 0.0), 5.0)
+    p1, p2 = APPoint(0.0, 1.0), APPoint(-2.0, 0.0)
+    arc = APCircularArc2(c, p1, p2)
+    p = APPoint(1.0, 1.0)
+    l = APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))
+    arc_ref_p = reflection(arc, p)
+    arc_ref_l = reflection(arc, l)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+sethue(julia_blue)
+path(arc, action=:stroke)
+sethue(julia_purple)
+path([arc_ref_p, arc_ref_l], action=:stroke)
+setdash(:dash)
+path(APSegment(arc.p1, arc_ref_l.p2), action=:stroke)
+path(APSegment(arc.p2, arc_ref_l.p1), action=:stroke)
+path(APSegment(arc.p2, arc_ref_p.p2), action=:stroke)
+path(APSegment(arc.p1, arc_ref_p.p1), action=:stroke)
+setdash(:solid)
+sethue(julia_green)
+path(l, action=:stroke)
+sethue(&quot;white&quot;); path(p, action=:fillpreserve); sethue(julia_green); strokepath()
+sethue(&quot;white&quot;); path([arc.p1, arc.p2], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([arc_ref_l.p1, arc_ref_l.p2, arc_ref_p.p1, arc_ref_p.p2], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p>Without that swap, the reflected endpoints alone would trace out the arc&#39;s <em>complementary</em> 3/4-of-the-circle instead of its true mirror image.</p><h2 id="The-gap-between-three-mutually-tangent-circles"><a class="docs-heading-anchor" href="#The-gap-between-three-mutually-tangent-circles">The gap between three mutually tangent circles</a><a id="The-gap-between-three-mutually-tangent-circles-1"></a><a class="docs-heading-anchor-permalink" href="#The-gap-between-three-mutually-tangent-circles" title="Permalink"></a></h2><p>Three circles that are pairwise tangent (each coin-touching-coin, or one containing the other two) leave a curvilinear-triangle gap between them. <a href="../api/#Apollonius.interstices-Tuple{APCircle2, APCircle2, APCircle2}"><code>interstices</code></a> finds it (or, when one circle encloses the other two, <em>both</em> gaps, one on each side):</p><pre><code class="language-julia hljs">u1 = APCircle2(APPoint(0.0, 0.0), 1.0)
 u2 = APCircle2(APPoint(2.0, 0.0), 1.0)
 u3 = APCircle2(APPoint(1.0, sqrt(3)), 1.0)
 
@@ -35,4 +137,4 @@ fr = 1.0
 ff = fillet(fa, fv, fb, fr)
 distance(ff.center, APLine(fv, fa)) ≈ fr ≈ distance(ff.center, APLine(fv, fb))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p><a href="../api/#Apollonius.round_corners-Tuple{APPolygon{2}, Real}"><code>round_corners</code></a><code>(shape, r)</code> rounds every corner of a convex polygon, giving an <a href="../api/#Apollonius.APCurvilinearNgon2"><code>APCurvilinearNgon2</code></a>, or every interior corner of a polyline, giving an <a href="../api/#Apollonius.APCurvilinearPolyline2"><code>APCurvilinearPolyline2</code></a>. All the interior corners of a polyline must turn the same way. When they turn right, the chain is traversed from the end, so that they turn left, which is the direction an arc runs.</p><pre><code class="language-julia hljs">sq_rc = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0), APPoint(0.0, 4.0)])
 rc_sq = round_corners(sq_rc, 1.0)
-length(sides(rc_sq)), area(rc_sq)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(8, 15.141592653589793)</code></pre><img src="../assets/img/circles/round_corners.svg" alt="A pentagon and a polyline with their corners rounded, the originals dashed" style="width:100%; max-width: 700px;"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../circles_arcs/">« Arcs</a><a class="docs-footer-nextpage" href="../conics_basics/">Ellipse, Parabola &amp; Hyperbola »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 20:14">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+length(sides(rc_sq)), area(rc_sq)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(8, 15.141592653589793)</code></pre><img src="../assets/img/circles/round_corners.svg" alt="A pentagon and a polyline with their corners rounded, the originals dashed" style="width:100%; max-width: 700px;"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../circles_arcs/">« Arcs</a><a class="docs-footer-nextpage" href="../conics_basics/">Ellipse, Parabola &amp; Hyperbola »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

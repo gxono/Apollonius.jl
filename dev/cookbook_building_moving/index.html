@@ -2,7 +2,61 @@
 <html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Building &amp; Moving Shapes · Apollonius.jl</title><meta name="title" content="Building &amp; Moving Shapes · Apollonius.jl"/><meta property="og:title" content="Building &amp; Moving Shapes · Apollonius.jl"/><meta property="twitter:title" content="Building &amp; Moving Shapes · Apollonius.jl"/><meta name="description" content="Documentation for Apollonius.jl."/><meta property="og:description" content="Documentation for Apollonius.jl."/><meta property="twitter:description" content="Documentation for Apollonius.jl."/><meta property="og:url" content="https://gxono.github.io/Apollonius.jl/cookbook_building_moving/"/><meta property="twitter:url" content="https://gxono.github.io/Apollonius.jl/cookbook_building_moving/"/><link rel="canonical" href="https://gxono.github.io/Apollonius.jl/cookbook_building_moving/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="Apollonius.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Apollonius.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../getting_started/">Getting Started</a></li><li><a class="tocitem" href="../workflow/">Workflow: From Construction to Figure</a></li><li><a class="tocitem" href="../euclid/">Euclid, Book I</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Core Concepts</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../conventions/">Conventions &amp; FAQ</a></li><li><a class="tocitem" href="../numbers/">Numbers &amp; Tolerances</a></li><li><a class="tocitem" href="../types/">Types &amp; Operations</a></li><li><a class="tocitem" href="../predicates/">Predicates</a></li><li><a class="tocitem" href="../measurements/">Measurements &amp; Queries</a></li><li><a class="tocitem" href="../intersections/">Intersections</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Points, Lines &amp; Rays</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../points_lines_creating/">Creating Them</a></li><li><a class="tocitem" href="../points_lines_transforms/">Direction &amp; Transforms</a></li><li><a class="tocitem" href="../points_lines_angles/">Angles</a></li><li><a class="tocitem" href="../points_lines_special/">Special Points &amp; Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Circles</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../circles_basics/">Basics</a></li><li><a class="tocitem" href="../circles_inversion/">Inversion</a></li><li><a class="tocitem" href="../circles_relations/">How They Relate</a></li><li><a class="tocitem" href="../circles_arcs/">Arcs</a></li><li><a class="tocitem" href="../circles_regions/">Sectors, Segments &amp; Curvilinear Chains</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Conics: Ellipse, Parabola &amp; Hyperbola</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../conics_basics/">Ellipse, Parabola &amp; Hyperbola</a></li><li><a class="tocitem" href="../conics_constructors/">Building From Other Data</a></li><li><a class="tocitem" href="../conics_tangents_arcs/">Tangents, Duality &amp; Arcs</a></li><li><a class="tocitem" href="../conics_transform_fit/">Transforming &amp; Fitting</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Triangles &amp; Triangle Centers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../triangles_classical_centers/">The Classical Centers</a></li><li><a class="tocitem" href="../triangles_coordinates/">Barycentric &amp; Trilinear Coordinates</a></li><li><a class="tocitem" href="../triangles_vertex_lines/">Vertex-Indexed Lines</a></li><li><a class="tocitem" href="../triangles_named_centers/">Further Named Centers</a></li><li><a class="tocitem" href="../triangles_inellipses/">Steiner &amp; Other Inellipses</a></li><li><a class="tocitem" href="../triangles_derived/">Derived Triangles</a></li><li><a class="tocitem" href="../triangles_on_segment/">Inscribed Squares &amp; Triangles on a Segment</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polygons &amp; Bounding Boxes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../polygons_operations/">Measurements &amp; Operations</a></li><li><a class="tocitem" href="../polygons_bounding_boxes/">Bounding Boxes</a></li><li><a class="tocitem" href="../polygons_constructors/">Named Constructors &amp; Quadrilaterals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Tangency &amp; Apollonius Problems</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../tangency_basics/">The Ten Apollonius Problems</a></li><li><a class="tocitem" href="../tangency_interstices/">Interstices</a></li><li><a class="tocitem" href="../tangency_fixed/">Fixing a Point, Radius or Center</a></li></ul></li><li><a class="tocitem" href="../unbounded_sets/">Unbounded Regions</a></li><li><a class="tocitem" href="../affine_maps/">Affine Maps</a></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Drawing &amp; Illustration</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../drawing_basics/">Drawing with Luxor.jl</a></li><li><a class="tocitem" href="../drawing_shapes/">What Each Type Builds</a></li><li><a class="tocitem" href="../drawing_advanced/">Clipping, Dimensions &amp; Reversing</a></li><li><a class="tocitem" href="../drawing_appendix/">The Package Logo &amp; Name Collisions</a></li><li><a class="tocitem" href="../decorations_marks/">Marks: <code>tangent_at</code> &amp; <code>marks</code></a></li><li><a class="tocitem" href="../decorations_arrows_braces/">Arrowheads &amp; Braces</a></li><li><a class="tocitem" href="../decorations_labels_guides/">Labels, Guides &amp; Grids</a></li><li><a class="tocitem" href="../constructions/">Compass &amp; Ruler Constructions</a></li><li><a class="tocitem" href="../macros_picture/">Macros: Sizing a Picture</a></li><li><a class="tocitem" href="../macros_transforms/">Macros: Transforming Shapes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox" checked/><label class="tocitem" for="menuitem-13"><span class="docs-label">Cookbook</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../cookbook_points_segments/">Points &amp; Segments</a></li><li><a class="tocitem" href="../cookbook_lines/">Lines</a></li><li><a class="tocitem" href="../cookbook_circles/">Circles</a></li><li><a class="tocitem" href="../cookbook_tangent_circles/">Tangent Circles</a></li><li><a class="tocitem" href="../cookbook_triangles/">Triangles</a></li><li><a class="tocitem" href="../cookbook_polygons/">Polygons</a></li><li><a class="tocitem" href="../cookbook_conics/">Conics</a></li><li class="is-active"><a class="tocitem" href>Building &amp; Moving Shapes</a><ul class="internal"><li><a class="tocitem" href="#Building-shapes-from-what-you-have"><span>Building shapes from what you have</span></a></li><li><a class="tocitem" href="#Moving-things"><span>Moving things</span></a></li></ul></li><li><a class="tocitem" href="../cookbook_utility/">Checking &amp; Drawing Recipes</a></li></ul></li><li><a class="tocitem" href="../examples/">Examples</a></li><li><a class="tocitem" href="../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Cookbook</a></li><li class="is-active"><a href>Building &amp; Moving Shapes</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Building &amp; Moving Shapes</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/gxono/Apollonius.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/gxono/Apollonius.jl/blob/master/docs/src/cookbook_building_moving.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Cookbook:-Building-and-Moving-Shapes"><a class="docs-heading-anchor" href="#Cookbook:-Building-and-Moving-Shapes">Cookbook: Building &amp; Moving Shapes</a><a id="Cookbook:-Building-and-Moving-Shapes-1"></a><a class="docs-heading-anchor-permalink" href="#Cookbook:-Building-and-Moving-Shapes" title="Permalink"></a></h1><h2 id="Building-shapes-from-what-you-have"><a class="docs-heading-anchor" href="#Building-shapes-from-what-you-have">Building shapes from what you have</a><a id="Building-shapes-from-what-you-have-1"></a><a class="docs-heading-anchor-permalink" href="#Building-shapes-from-what-you-have" title="Permalink"></a></h2><h3 id="A-line,-a-ray-or-a-segment-from-a-point-and-a-direction"><a class="docs-heading-anchor" href="#A-line,-a-ray-or-a-segment-from-a-point-and-a-direction">A line, a ray or a segment from a point and a direction</a><a id="A-line,-a-ray-or-a-segment-from-a-point-and-a-direction-1"></a><a class="docs-heading-anchor-permalink" href="#A-line,-a-ray-or-a-segment-from-a-point-and-a-direction" title="Permalink"></a></h3><pre><code class="language-julia hljs">using Apollonius
 
 p = APPoint(1.0, 1.0)
-APLine(p, APVector(2.0, 1.0)), APRay(p, pi / 2), APSegment(p, 5.0, pi / 3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APLine([1.0, 1.0] -&gt; [3.0, 2.0]), APRay([1.0, 1.0] -&gt; [1.0, 2.0]), APSegment([1.0, 1.0] -&gt; [3.5000000000000004, 5.330127018922193]))</code></pre><img src="../assets/img/points_lines/from_direction.svg" alt="A line from a point and a vector, a ray from a point and an angle and a segment from a point, a length and an angle" style="width:100%; max-width: 700px;"><h3 id="Cut-a-segment-in-equal-parts,-or-in-a-ratio"><a class="docs-heading-anchor" href="#Cut-a-segment-in-equal-parts,-or-in-a-ratio">Cut a segment in equal parts, or in a ratio</a><a id="Cut-a-segment-in-equal-parts,-or-in-a-ratio-1"></a><a class="docs-heading-anchor-permalink" href="#Cut-a-segment-in-equal-parts,-or-in-a-ratio" title="Permalink"></a></h3><pre><code class="language-julia hljs">s = APSegment(APPoint(0.0, 0.0), APPoint(8.0, 0.0))
+APLine(p, APVector(2.0, 1.0)), APRay(p, pi / 2), APSegment(p, 5.0, pi / 3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APLine([1.0, 1.0] -&gt; [3.0, 2.0]), APRay([1.0, 1.0] -&gt; [1.0, 2.0]), APSegment([1.0, 1.0] -&gt; [3.5000000000000004, 5.330127018922193]))</code></pre><img src="../assets/img/points_lines/from_direction.svg" alt="A line from a point and a vector, a ray from a point and an angle and a segment from a point, a length and an angle" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-a4b4a959a6297388"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-a4b4a959a6297388" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    p = APPoint(-1.0, -1.0)
+    v = APVector(2.0, 1.0)
+    vec = APEquipollentVector(v, p)
+    l = APLine(p, v)
+
+    q = APPoint(5.0, -1.0)
+    seg = APSegment(q, 3.0, 2pi / 3)
+    ang_seg = APAngle2(q, q + APVector(1.0, 0), seg.p2)
+
+    r0 = APPoint(-3.0, 3.0)
+    ray = APRay(r0, -pi / 4)
+    ang_ray = reverse(APAngle2(r0, r0 + APVector(1.0, 0), ray.through))
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+arc_seg = only(marks(ang_seg; size=50))
+arc_ray = only(marks(ang_ray; size=50))
+@layer begin
+    sethue(julia_blue); setopacity(0.25)
+    path(APCircularSector2(arc_seg), action=:fill)
+    path(APCircularSector2(arc_ray), action=:fill)
+    setopacity(1)
+    path(arc_seg, action=:stroke)
+    path(arc_ray, action=:stroke)
+end
+
+sethue(julia_purple)
+path(l, action=:stroke)
+path(ray, action=:stroke)
+path(seg, action=:stroke)
+
+sethue(julia_blue)
+path(vec; as=:arrow, action=:stroke)
+
+sethue(julia_red)
+text(&quot;line&quot;, p + APVector(-5.0, -5.0), halign=:right, direction=l, valign=:bottom)
+text(&quot;segment&quot;, midpoint(seg) + APVector(3,0), direction=-direction(seg), halign=:right, valign=:bottom)
+text(&quot;ray&quot;, r0 + APVector(-8.0,5.0), direction=ray, valign=:top)
+
+sethue(&quot;white&quot;)
+path([p, q, r0], action=:fillpreserve)
+sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="Cut-a-segment-in-equal-parts,-or-in-a-ratio"><a class="docs-heading-anchor" href="#Cut-a-segment-in-equal-parts,-or-in-a-ratio">Cut a segment in equal parts, or in a ratio</a><a id="Cut-a-segment-in-equal-parts,-or-in-a-ratio-1"></a><a class="docs-heading-anchor-permalink" href="#Cut-a-segment-in-equal-parts,-or-in-a-ratio" title="Permalink"></a></h3><pre><code class="language-julia hljs">s = APSegment(APPoint(0.0, 0.0), APPoint(8.0, 0.0))
 divide_segment(s, 4), divide_segment(s, 1, 2), point_at_distance(s, 6.5)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APPoint{2, Float64}[[2.0, 0.0], [4.0, 0.0], [6.0, 0.0]], [2.6666666666666665, 0.0], [6.5, 0.0])</code></pre><img src="../assets/img/points_lines/divide_points.svg" alt="A segment with its three quarter points, the point that divides it 1 to 2 and the point at distance 6.5" style="width:100%; max-width: 700px;"><h3 id="Points-spread-evenly-on-a-circle,-an-arc-or-a-segment"><a class="docs-heading-anchor" href="#Points-spread-evenly-on-a-circle,-an-arc-or-a-segment">Points spread evenly on a circle, an arc or a segment</a><a id="Points-spread-evenly-on-a-circle,-an-arc-or-a-segment-1"></a><a class="docs-heading-anchor-permalink" href="#Points-spread-evenly-on-a-circle,-an-arc-or-a-segment" title="Permalink"></a></h3><pre><code class="language-julia hljs">equally_spaced_points(APCircle2(APPoint(0.0, 0.0), 2.0), 6)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6-element Vector{APPoint{2, Float64}}:
  [2.0, 0.0]
  [1.0000000000000002, 1.7320508075688772]
@@ -10,11 +64,89 @@ divide_segment(s, 4), divide_segment(s, 1, 2), point_at_distance(s, 6.5)</code><
  [-2.0, 2.4492935982947064e-16]
  [-1.0000000000000009, -1.732050807568877]
  [1.0000000000000002, -1.7320508075688772]</code></pre><img src="../assets/img/points_lines/equally_spaced.svg" alt="Points spread evenly along a segment (both ends included) and around a circle" style="width:100%; max-width: 700px;"><h3 id="An-angle-of-a-given-measure,-or-between-two-lines"><a class="docs-heading-anchor" href="#An-angle-of-a-given-measure,-or-between-two-lines">An angle of a given measure, or between two lines</a><a id="An-angle-of-a-given-measure,-or-between-two-lines-1"></a><a class="docs-heading-anchor-permalink" href="#An-angle-of-a-given-measure,-or-between-two-lines" title="Permalink"></a></h3><pre><code class="language-julia hljs">a60 = angle_with_measure(APPoint(0.0, 0.0), APPoint(4.0, 0.0), pi / 3)
-rad2deg(measure(a60)), rad2deg(measure(APAngle2(APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(59.99999999999999, 45.0)</code></pre><img src="../assets/img/points_lines/angle_from_measure.svg" alt="An angle of 60 degrees built from a ray and a measure, and the angle between two crossing lines" style="width:100%; max-width: 700px;"><h3 id="The-tangent-and-the-normal-at-a-point-of-a-curve"><a class="docs-heading-anchor" href="#The-tangent-and-the-normal-at-a-point-of-a-curve">The tangent and the normal at a point of a curve</a><a id="The-tangent-and-the-normal-at-a-point-of-a-curve-1"></a><a class="docs-heading-anchor-permalink" href="#The-tangent-and-the-normal-at-a-point-of-a-curve" title="Permalink"></a></h3><pre><code class="language-julia hljs">e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
+rad2deg(measure(a60)), rad2deg(measure(APAngle2(APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(59.99999999999999, 45.0)</code></pre><img src="../assets/img/points_lines/angle_from_measure.svg" alt="An angle of 60 degrees built from a ray and a measure, and the angle between two crossing lines" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-63936145046ab05"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-63936145046ab05" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=560 height=260 margin=30 begin
+    O1, P1 = APPoint(0.0, 0.0), APPoint(4.0, 0.0)
+    ang1 = angle_with_measure(O1, P1, pi / 3)
+    r1 = [APSegment(O1, P1), APSegment(O1, ang1.b)]
+    l1 = APLine(APPoint(7.0, 0.0), APPoint(11.0, 1.0))
+    l2 = APLine(APPoint(7.0, 3.0), APPoint(11.0, 0.0))
+    ends = [APPoint(7.0, 0.0), APPoint(11.0, 1.0), APPoint(7.0, 3.0), APPoint(11.0, 0.0)]
+    ang2 = APAngle2(APLine(ends[3], ends[4]), APLine(ends[1], ends[2]))
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(julia_blue)
+path(r1, action=:stroke)
+path([l1, l2], action=:stroke, extend=300)
+sethue(julia_purple)
+path(marks(ang1; size=40); action=:stroke)
+path(marks(ang2; size=40); action=:stroke)
+sethue(julia_red)
+label(&quot;60°&quot;, label_anchor(ang1; dist=64)...); label(&quot;θ&quot;, label_anchor(ang2; dist=64)...)
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="The-tangent-and-the-normal-at-a-point-of-a-curve"><a class="docs-heading-anchor" href="#The-tangent-and-the-normal-at-a-point-of-a-curve">The tangent and the normal at a point of a curve</a><a id="The-tangent-and-the-normal-at-a-point-of-a-curve-1"></a><a class="docs-heading-anchor-permalink" href="#The-tangent-and-the-normal-at-a-point-of-a-curve" title="Permalink"></a></h3><pre><code class="language-julia hljs">e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)
 pt = point_on(e, 1.0)
 is_on_line(pt, tangent_line(e, pt)), is_perpendicular(tangent_line(e, pt), normal_line(e, pt))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><img src="../assets/img/points_lines/tangent_normal.svg" alt="An ellipse with the tangent and the normal line at one of its points" style="width:100%; max-width: 700px;"><h3 id="A-regular-polygon-on-a-side,-and-a-star"><a class="docs-heading-anchor" href="#A-regular-polygon-on-a-side,-and-a-star">A regular polygon on a side, and a star</a><a id="A-regular-polygon-on-a-side,-and-a-star-1"></a><a class="docs-heading-anchor-permalink" href="#A-regular-polygon-on-a-side,-and-a-star" title="Permalink"></a></h3><pre><code class="language-julia hljs">a, b = APPoint(0.0, 0.0), APPoint(3.0, 0.0)
-area(regular_polygon_on_segment(a, b, 5)), length(vertices(star_polygon(APPoint(0.0, 0.0), APPoint(3.0, 0.0), 5, 2)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(15.484296605300703, 5)</code></pre><img src="../assets/img/polygons/on_segment_family.svg" alt="A regular pentagon, hexagon and triangle built on segments, and a pentagram" style="width:100%; max-width: 700px;"><h3 id="A-rhombus,-a-rectangle,-a-trapezoid-or-a-kite"><a class="docs-heading-anchor" href="#A-rhombus,-a-rectangle,-a-trapezoid-or-a-kite">A rhombus, a rectangle, a trapezoid or a kite</a><a id="A-rhombus,-a-rectangle,-a-trapezoid-or-a-kite-1"></a><a class="docs-heading-anchor-permalink" href="#A-rhombus,-a-rectangle,-a-trapezoid-or-a-kite" title="Permalink"></a></h3><pre><code class="language-julia hljs">a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0)
-area(rhombus_on_segment(a, b, pi / 3)), area(rectangle_from_diagonal(a, APPoint(4.0, 3.0), 0.5)), area(isosceles_trapezoid_on_segment(a, b, 2.0, 2.5)), area(kite_on_diagonal(a, APPoint(0.0, 4.0), 0.6, 1.5))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(13.856406460551018, 10.518387310098706, 7.5, 6.0)</code></pre><img src="../assets/img/polygons/quad_family.svg" alt="A rhombus, a square, a rectangle, an isosceles trapezoid, a right trapezoid, a kite and a turned rectangle" style="width:100%; max-width: 700px;"><h3 id="A-circle-inside-or-around-a-quadrilateral"><a class="docs-heading-anchor" href="#A-circle-inside-or-around-a-quadrilateral">A circle inside or around a quadrilateral</a><a id="A-circle-inside-or-around-a-quadrilateral-1"></a><a class="docs-heading-anchor-permalink" href="#A-circle-inside-or-around-a-quadrilateral" title="Permalink"></a></h3><pre><code class="language-julia hljs">trap = isosceles_trapezoid_on_segment(APPoint(0.0, 0.0), APPoint(6.0, 0.0), 2.0, 3.0)
+area(regular_polygon_on_segment(a, b, 5)), length(vertices(star_polygon(APPoint(0.0, 0.0), APPoint(3.0, 0.0), 5, 2)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(15.484296605300703, 5)</code></pre><img src="../assets/img/polygons/on_segment_family.svg" alt="A regular pentagon, hexagon and triangle built on segments, and a pentagram" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-a2c4dc61caa81e"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-a2c4dc61caa81e" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=560 height=220 margin=30 begin
+    pent = regular_polygon_on_segment(APPoint(0.0, 0.0), APPoint(3.0, 0.0), 5)
+    hexa = regular_polygon_on_segment(APPoint(7.0, 0.0), APPoint(10.0, 0.0), 6)
+    tri = regular_polygon_on_segment(APPoint(13.0, 0.0), APPoint(16.0, 0.0), 3; ccw=false)
+    star = star_polygon(APPoint(20.0, 2.0), APPoint(20.0, 4.0), 5, 2)
+    bases = [APSegment(APPoint(0.0, 0.0), APPoint(3.0, 0.0)), APSegment(APPoint(7.0, 0.0), APPoint(10.0, 0.0)), APSegment(APPoint(13.0, 0.0), APPoint(16.0, 0.0))]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+
+sethue(julia_blue)
+path(bases, action=:stroke)
+sethue(julia_purple)
+path([pent, hexa, tri, star], action=:stroke)
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="A-rhombus,-a-rectangle,-a-trapezoid-or-a-kite"><a class="docs-heading-anchor" href="#A-rhombus,-a-rectangle,-a-trapezoid-or-a-kite">A rhombus, a rectangle, a trapezoid or a kite</a><a id="A-rhombus,-a-rectangle,-a-trapezoid-or-a-kite-1"></a><a class="docs-heading-anchor-permalink" href="#A-rhombus,-a-rectangle,-a-trapezoid-or-a-kite" title="Permalink"></a></h3><pre><code class="language-julia hljs">a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0)
+area(rhombus_on_segment(a, b, pi / 3)), area(rectangle_from_diagonal(a, APPoint(4.0, 3.0), 0.5)), area(isosceles_trapezoid_on_segment(a, b, 2.0, 2.5)), area(kite_on_diagonal(a, APPoint(0.0, 4.0), 0.6, 1.5))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(13.856406460551018, 10.518387310098706, 7.5, 6.0)</code></pre><img src="../assets/img/polygons/quad_family.svg" alt="A rhombus, a square, a rectangle, an isosceles trapezoid, a right trapezoid, a kite and a turned rectangle" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-dc4a3bb1db902042"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-dc4a3bb1db902042" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=560 height=320 margin=30 begin
+    rh = rhombus_on_segment(APPoint(0.0, 0.0), APPoint(3.0, 0.0), pi / 3)
+    sq = square_from_diagonal(APPoint(5.0, 0.0), APPoint(8.0, 3.0))
+    re = rectangle_from_diagonal(APPoint(10.0, 0.0), APPoint(15.0, 3.0), 0.5)
+    it = isosceles_trapezoid_on_segment(APPoint(0.0, -5.0), APPoint(4.0, -5.0), 2.0, 2.5)
+    rt = right_trapezoid_on_segment(APPoint(6.0, -5.0), APPoint(10.0, -5.0), 2.0, 2.5)
+    kt = kite_on_diagonal(APPoint(13.0, -5.0), APPoint(13.0, -1.0), 0.6, 1.5)
+    rc = rectangle_with_center(APPoint(16.5, -3.0), 3.0, 1.5; angle=0.6)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+
+sethue(julia_purple)
+path([rh, sq, re, it, rt, kt, rc], action=:stroke)
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="A-circle-inside-or-around-a-quadrilateral"><a class="docs-heading-anchor" href="#A-circle-inside-or-around-a-quadrilateral">A circle inside or around a quadrilateral</a><a id="A-circle-inside-or-around-a-quadrilateral-1"></a><a class="docs-heading-anchor-permalink" href="#A-circle-inside-or-around-a-quadrilateral" title="Permalink"></a></h3><pre><code class="language-julia hljs">trap = isosceles_trapezoid_on_segment(APPoint(0.0, 0.0), APPoint(6.0, 0.0), 2.0, 3.0)
 kite = kite_on_diagonal(APPoint(0.0, 0.0), APPoint(0.0, 7.0), 0.35, 2.0)
 circumcircle(trap).r, incircle(kite).r</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(3.0046260628866577, 1.721417183823353)</code></pre><img src="../assets/img/polygons/quad_circles.svg" alt="An isosceles trapezoid with its circumcircle and a kite with its incircle" style="width:100%; max-width: 700px;"><h3 id="Round-the-corners-of-a-polygon-or-a-polyline"><a class="docs-heading-anchor" href="#Round-the-corners-of-a-polygon-or-a-polyline">Round the corners of a polygon or a polyline</a><a id="Round-the-corners-of-a-polygon-or-a-polyline-1"></a><a class="docs-heading-anchor-permalink" href="#Round-the-corners-of-a-polygon-or-a-polyline" title="Permalink"></a></h3><pre><code class="language-julia hljs">sq = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 4.0), APPoint(0.0, 4.0)])
 rounded = round_corners(sq, 1.0)
@@ -22,21 +154,131 @@ length(sides(rounded)), area(rounded)</code></pre><pre class="documenter-example
 tangent_circle_at_point(l, APPoint(2.0, 0.0), APPoint(0.0, 2.0)), length(tangent_circles_at_point(l, APPoint(2.0, 0.0), 1.2))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APCircle2([2.0, 2.0], 2.0), 2)</code></pre><img src="../assets/img/tangency/tangent_at_point.svg" alt="A line, a point on it and a point off it, the circle tangent at the first through the second, and the two circles of radius 1.2 tangent at the first" style="width:100%; max-width: 700px;"><h3 id="A-triangle-around-a-circle"><a class="docs-heading-anchor" href="#A-triangle-around-a-circle">A triangle around a circle</a><a id="A-triangle-around-a-circle-1"></a><a class="docs-heading-anchor-permalink" href="#A-triangle-around-a-circle" title="Permalink"></a></h3><pre><code class="language-julia hljs">c = APCircle2(APPoint(0.0, 0.0), 1.0)
 t = circumscribed_triangle(c, point_on(c, 0.5), point_on(c, 2.5), point_on(c, 4.5))
 isapprox(incircle(t), c; atol=1e-9)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/triangles/circumscribed.svg" alt="A circle with three points on it and the triangle whose sides touch the circle at them" style="width:100%; max-width: 700px;"><h3 id="A-conic-from-a-focus-and-a-directrix"><a class="docs-heading-anchor" href="#A-conic-from-a-focus-and-a-directrix">A conic from a focus and a directrix</a><a id="A-conic-from-a-focus-and-a-directrix-1"></a><a class="docs-heading-anchor-permalink" href="#A-conic-from-a-focus-and-a-directrix" title="Permalink"></a></h3><pre><code class="language-julia hljs">F, d = APPoint(0.0, 0.0), APLine(APPoint(4.0, -1.0), APPoint(4.0, 1.0))
-typeof(conic_with_focus(F, d, 0.5)), typeof(conic_with_focus(F, d, 1.0)), typeof(conic_with_focus(F, d, 2.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APEllipse2{Float64}, APParabola2{Float64}, APHyperbola2{Float64})</code></pre><img src="../assets/img/conics/focus_directrix.svg" alt="An ellipse, a parabola and a hyperbola with the same focus and directrix" style="width:100%; max-width: 700px;"><h3 id="An-ellipse-from-a-center,-a-vertex-and-a-point"><a class="docs-heading-anchor" href="#An-ellipse-from-a-center,-a-vertex-and-a-point">An ellipse from a center, a vertex and a point</a><a id="An-ellipse-from-a-center,-a-vertex-and-a-point-1"></a><a class="docs-heading-anchor-permalink" href="#An-ellipse-from-a-center,-a-vertex-and-a-point" title="Permalink"></a></h3><pre><code class="language-julia hljs">el = ellipse_with_axis(APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(3.0, 2.4))
+typeof(conic_with_focus(F, d, 0.5)), typeof(conic_with_focus(F, d, 1.0)), typeof(conic_with_focus(F, d, 2.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APEllipse2{Float64}, APParabola2{Float64}, APHyperbola2{Float64})</code></pre><img src="../assets/img/conics/focus_directrix.svg" alt="An ellipse, a parabola and a hyperbola with the same focus and directrix" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-b5d103ac99a6214"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-b5d103ac99a6214" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=560 height=240 margin=20 begin
+    F = APPoint(0.0, 0.0)
+    dl = APSegment(APPoint(4.0, -5.0), APPoint(4.0, 5.0))
+    d = APLine(dl.p1, dl.p2)
+    ell = conic_with_focus(F, d, 0.5)
+    par = conic_with_focus(F, d, 1.0)
+    hyp = conic_with_focus(F, d, 2.0)
+    parc = APParabolicArc2(par, point_on(par, -6.0), point_on(par, 6.0))
+    harc = APHyperbolicArc2(hyp, point_on(hyp, -1.1; branch=-1), point_on(hyp, 1.1; branch=-1))
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(julia_blue)
+path(dl, action=:stroke)
+sethue(julia_purple)
+path([ell, parc, harc], action=:stroke)
+sethue(julia_red)
+label(&quot;F&quot;, :W, F, offset=8)
+label(&quot;e = 1&quot;, :N, parc.p1)
+label(&quot;e = 2&quot;, :S, harc.p1)
+text(&quot;directrix&quot;, dl.p2 + APVector(5.0,0.0), angle=pi/2)
+label(&quot;e = 0.5&quot;, :W, point_on(ell, pi), offset=8)
+
+sethue(&quot;white&quot;)
+path(F, action=:fillpreserve)
+sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="An-ellipse-from-a-center,-a-vertex-and-a-point"><a class="docs-heading-anchor" href="#An-ellipse-from-a-center,-a-vertex-and-a-point">An ellipse from a center, a vertex and a point</a><a id="An-ellipse-from-a-center,-a-vertex-and-a-point-1"></a><a class="docs-heading-anchor-permalink" href="#An-ellipse-from-a-center,-a-vertex-and-a-point" title="Permalink"></a></h3><pre><code class="language-julia hljs">el = ellipse_with_axis(APPoint(0.0, 0.0), APPoint(5.0, 0.0), APPoint(3.0, 2.4))
 el.a, el.b</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(5.0, 2.9999999999999996)</code></pre><img src="../assets/img/conics/ellipse_axis.svg" alt="An ellipse built from its center, one vertex and a point on it" style="width:100%; max-width: 700px;"><h3 id="A-hyperbola-from-its-asymptotes"><a class="docs-heading-anchor" href="#A-hyperbola-from-its-asymptotes">A hyperbola from its asymptotes</a><a id="A-hyperbola-from-its-asymptotes-1"></a><a class="docs-heading-anchor-permalink" href="#A-hyperbola-from-its-asymptotes" title="Permalink"></a></h3><pre><code class="language-julia hljs">hy = hyperbola_with_asymptotes(APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)), APLine(APPoint(0.0, 0.0), APPoint(1.0, -1.0)), APPoint(2.0, 0.0))
 hy.a, hy.b</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(2.0, 2.0000000000000004)</code></pre><img src="../assets/img/conics/asymptotes_ctor.svg" alt="A hyperbola built from its two asymptotes and a point on it" style="width:100%; max-width: 700px;"><h3 id="A-parabola-through-three-points"><a class="docs-heading-anchor" href="#A-parabola-through-three-points">A parabola through three points</a><a id="A-parabola-through-three-points-1"></a><a class="docs-heading-anchor-permalink" href="#A-parabola-through-three-points" title="Permalink"></a></h3><pre><code class="language-julia hljs">pa = parabola_through_points(APPoint(-2.0, 4.0), APPoint(0.0, 0.0), APPoint(1.0, 1.0), APVector(0.0, 1.0))
 pa.focus</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[0.0, 0.25]</code></pre><img src="../assets/img/conics/parabola_ctor.svg" alt="A parabola through three points with a vertical axis" style="width:100%; max-width: 700px;"><h3 id="A-similarity-from-two-points-and-their-images"><a class="docs-heading-anchor" href="#A-similarity-from-two-points-and-their-images">A similarity from two points and their images</a><a id="A-similarity-from-two-points-and-their-images-1"></a><a class="docs-heading-anchor-permalink" href="#A-similarity-from-two-points-and-their-images" title="Permalink"></a></h3><pre><code class="language-julia hljs">m = similarity_map(APPoint(0.0, 0.0) =&gt; APPoint(1.0, 1.0), APPoint(1.0, 0.0) =&gt; APPoint(1.0, 2.0))
-m(APPoint(0.0, 1.0)), scaling_map(2.0, 0.5)(APPoint(1.0, 1.0)), shear_map(1.0)(APPoint(0.0, 2.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([0.0, 1.0], [2.0, 0.5], [2.0, 2.0])</code></pre><img src="../assets/img/affine/similarity_shear.svg" alt="A square and its images under a similarity, a scaling and a shear" style="width:100%; max-width: 700px;"><h2 id="Moving-things"><a class="docs-heading-anchor" href="#Moving-things">Moving things</a><a id="Moving-things-1"></a><a class="docs-heading-anchor-permalink" href="#Moving-things" title="Permalink"></a></h2><h3 id="Rotate,-scale-or-reflect-a-whole-shape"><a class="docs-heading-anchor" href="#Rotate,-scale-or-reflect-a-whole-shape">Rotate, scale or reflect a whole shape</a><a id="Rotate,-scale-or-reflect-a-whole-shape-1"></a><a class="docs-heading-anchor-permalink" href="#Rotate,-scale-or-reflect-a-whole-shape" title="Permalink"></a></h3><pre><code class="language-julia hljs">t = APTriangle(APPoint(0.0, 0.0), APPoint(3.0, 0.0), APPoint(0.0, 4.0))
+m(APPoint(0.0, 1.0)), scaling_map(2.0, 0.5)(APPoint(1.0, 1.0)), shear_map(1.0)(APPoint(0.0, 2.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([0.0, 1.0], [2.0, 0.5], [2.0, 2.0])</code></pre><img src="../assets/img/affine/similarity_shear.svg" alt="A square and its images under a similarity, a scaling and a shear" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-979d8653dd542393"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-979d8653dd542393" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=560 height=240 margin=30 begin
+    s1 = square_with_center(APPoint(0.0, 0.0), 2.0)
+    s2 = square_with_center(APPoint(5.0, 0.0), 2.0)
+    s3 = square_with_center(APPoint(10.0, 0.0), 2.0)
+    @unbounded m1 = similarity_map(1.4, 0.4, APPoint(0.0, 0.0))
+    @unbounded m2 = scaling_map(1.8, 0.6, APPoint(5.0, 0.0))
+    @unbounded m3 = shear_map(0.6, 0.0, APPoint(10.0, 0.0))
+    i1, i2, i3 = m1(s1), m2(s2), m3(s3)
+    labs = [APPoint(0.0, -3.2), APPoint(5.0, -3.2), APPoint(10.0, -3.2)]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(14)
+
+sethue(julia_blue)
+path([s1, s2, s3], action=:stroke)
+sethue(julia_purple)
+path([i1, i2, i3], action=:stroke)
+sethue(julia_red)
+for (n, p) in zip((&quot;similarity_map&quot;, &quot;scaling_map&quot;, &quot;shear_map&quot;), labs)
+    label(n, :S, p)
+end
+
+finish()
+preview()
+end</code></pre></div></details><h2 id="Moving-things"><a class="docs-heading-anchor" href="#Moving-things">Moving things</a><a id="Moving-things-1"></a><a class="docs-heading-anchor-permalink" href="#Moving-things" title="Permalink"></a></h2><h3 id="Rotate,-scale-or-reflect-a-whole-shape"><a class="docs-heading-anchor" href="#Rotate,-scale-or-reflect-a-whole-shape">Rotate, scale or reflect a whole shape</a><a id="Rotate,-scale-or-reflect-a-whole-shape-1"></a><a class="docs-heading-anchor-permalink" href="#Rotate,-scale-or-reflect-a-whole-shape" title="Permalink"></a></h3><pre><code class="language-julia hljs">t = APTriangle(APPoint(0.0, 0.0), APPoint(3.0, 0.0), APPoint(0.0, 4.0))
 O = APPoint(0.0, 0.0)
 isapprox(rotate(t, pi / 2), APTriangle(O, APPoint(0.0, 3.0), APPoint(-4.0, 0.0)); atol=1e-9), area(homothety(t, 2.0)) ≈ 4 * area(t), reflection(t, APLine(O, APPoint(0.0, 1.0))) ≈ APTriangle(O, APPoint(-3.0, 0.0), APPoint(0.0, 4.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true, true)</code></pre><img src="../assets/img/macros/rotate.svg" alt="A triangle and a circle rotated a quarter turn about a point" style="width:100%; max-width: 700px;"><p>Every type accepts these. <code>rotate</code> and <code>homothety</code> turn and scale about the origin unless you give a center as the last argument, as in <code>rotate(t, pi / 2, c)</code>. See <a href="../affine_maps/#Affine-Maps">Affine Maps</a>.</p><h3 id="Repeat-a-shape-in-a-circular-pattern"><a class="docs-heading-anchor" href="#Repeat-a-shape-in-a-circular-pattern">Repeat a shape in a circular pattern</a><a id="Repeat-a-shape-in-a-circular-pattern-1"></a><a class="docs-heading-anchor-permalink" href="#Repeat-a-shape-in-a-circular-pattern" title="Permalink"></a></h3><p>Broadcast <a href="../api/#Apollonius.rotate"><code>rotate</code></a> over a vector of angles to place several copies of the same shape evenly around a center, the same idea behind <a href="../examples/#Building-the-package-logo">Building the package logo</a>:</p><pre><code class="language-julia hljs">center = APPoint(0.0, 0.0)
 petal = APCircle2(APPoint(3.0, 0.0), 1.2)
 copies = rotate.(petal, (1:5) .* (2pi / 6), center)   # 5 more, 6 in total
 length(copies)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">5</code></pre><img src="../assets/img/cookbook/rosette.svg" alt="A circle repeated six times in a ring around a center" style="width:100%; max-width: 700px;"><h3 id="Apply-several-steps-as-one"><a class="docs-heading-anchor" href="#Apply-several-steps-as-one">Apply several steps as one</a><a id="Apply-several-steps-as-one-1"></a><a class="docs-heading-anchor-permalink" href="#Apply-several-steps-as-one" title="Permalink"></a></h3><pre><code class="language-julia hljs">m = rotation_map(pi / 2, APPoint(0.0, 0.0)) ∘ translation_map(APVector(3.0, 0.0))
 isapprox(m(APPoint(0.0, 0.0)), APPoint(0.0, 3.0); atol=1e-9)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><img src="../assets/img/affine/composed.svg" alt="A triangle, its translation and the composition of the translation and a rotation" style="width:100%; max-width: 700px;"><h3 id="A-map-from-three-points-and-their-images"><a class="docs-heading-anchor" href="#A-map-from-three-points-and-their-images">A map from three points and their images</a><a id="A-map-from-three-points-and-their-images-1"></a><a class="docs-heading-anchor-permalink" href="#A-map-from-three-points-and-their-images" title="Permalink"></a></h3><pre><code class="language-julia hljs">m = affine_map(APPoint(0.0, 0.0) =&gt; APPoint(1.0, 1.0), APPoint(1.0, 0.0) =&gt; APPoint(3.0, 1.0), APPoint(0.0, 1.0) =&gt; APPoint(1.0, 4.0))
-m(APPoint(1.0, 1.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.0, 4.0]</code></pre><img src="../assets/img/affine/create.svg" alt="A triangle and its image under the affine map defined by three point pairs" style="width:100%; max-width: 700px;"><h3 id="Transform-several-objects-with-one-macro"><a class="docs-heading-anchor" href="#Transform-several-objects-with-one-macro">Transform several objects with one macro</a><a id="Transform-several-objects-with-one-macro-1"></a><a class="docs-heading-anchor-permalink" href="#Transform-several-objects-with-one-macro" title="Permalink"></a></h3><pre><code class="language-julia hljs">c = APCircle2(APPoint(1.0, 2.0), 3.0)
+m(APPoint(1.0, 1.0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[3.0, 4.0]</code></pre><img src="../assets/img/affine/create.svg" alt="A triangle and its image under the affine map defined by three point pairs" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-33aac5623ab173d4"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-33aac5623ab173d4" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin
+    a = APPoint(0.0, 0.0)
+    b = APPoint(1.0, 0.0)
+    c = APPoint(0.0, 1.0)
+    a2 = APPoint(2.0, 3.0)
+    b2 = APPoint(5.0, 3.0)
+    c2 = APPoint(2.0, 7.0)
+    @unbounded m = affine_map(a =&gt; a2, b =&gt; b2, c =&gt; c2)
+    t = APTriangle(a, b, c)
+    timg = m(t)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(julia_green)
+path([APSegment(a, a2), APSegment(b, b2), APSegment(c, c2)], action=:stroke)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple)
+path(timg, action=:stroke)
+sethue(julia_red)
+label(&quot;a&quot;, :S, a, offset=8);
+label(&quot;b&quot;, :S, b, offset=8);
+label(&quot;c&quot;, :W, c, offset=8)
+label(&quot;a&#39;&quot;, :S, a2, offset=8);
+label(&quot;b&#39;&quot;, :S, b2, offset=8);
+label(&quot;c&#39;&quot;, :W, c2, offset=8)
+sethue(&quot;white&quot;); path([a, b, c], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([a2, b2, c2], action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="Transform-several-objects-with-one-macro"><a class="docs-heading-anchor" href="#Transform-several-objects-with-one-macro">Transform several objects with one macro</a><a id="Transform-several-objects-with-one-macro-1"></a><a class="docs-heading-anchor-permalink" href="#Transform-several-objects-with-one-macro" title="Permalink"></a></h3><pre><code class="language-julia hljs">c = APCircle2(APPoint(1.0, 2.0), 3.0)
 s = APSegment(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
 C2, S2 = @rotate (pi / 2) begin
     c
     s
 end
-C2.r, C2.center ≈ APPoint(-2.0, 1.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(3.0, true)</code></pre><img src="../assets/img/cookbook/macro_rotate.svg" alt="A circle and a segment with their images rotated a quarter turn about the origin" style="width:100%; max-width: 700px;"><p>See <a href="../macros_transforms/#Macros:-Transforming-Shapes">Macros: Transforming Shapes</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../cookbook_conics/">« Conics</a><a class="docs-footer-nextpage" href="../cookbook_utility/">Checking &amp; Drawing Recipes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 20:14">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+C2.r, C2.center ≈ APPoint(-2.0, 1.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(3.0, true)</code></pre><img src="../assets/img/cookbook/macro_rotate.svg" alt="A circle and a segment with their images rotated a quarter turn about the origin" style="width:100%; max-width: 700px;"><p>See <a href="../macros_transforms/#Macros:-Transforming-Shapes">Macros: Transforming Shapes</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../cookbook_conics/">« Conics</a><a class="docs-footer-nextpage" href="../cookbook_utility/">Checking &amp; Drawing Recipes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

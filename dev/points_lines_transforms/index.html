@@ -17,7 +17,43 @@ side_of_line(APPoint(2.0, 1.0), l_horiz)   #  1 : &quot;above&quot;
 side_of_line(APPoint(2.0, -1.0), l_horiz)  # -1 : &quot;below&quot;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-1</code></pre><pre><code class="language-julia hljs">l_vert = APLine(APPoint(0.0, 0.0), APPoint(0.0, 4.0))
 is_parallel(l, APLine(APPoint(1.0, 0.0), APPoint(4.0, 4.0))), is_perpendicular(l_horiz, l_vert)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><pre><code class="language-julia hljs">r = APRay(APPoint(0.0, 0.0), APPoint(4.0, 0.0))
 is_on_ray(APPoint(10.0, 0.0), r)    # true: ahead of the origin, same direction
-is_on_ray(APPoint(-1.0, 0.0), r)    # false: on the line, but behind the origin</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">false</code></pre><p><code>is_on_line</code>/<code>is_on_segment</code>/<code>is_on_ray</code> are also exactly what <code>Base.in</code> uses under the hood, so the more natural <code>p in l</code> reads just as well:</p><pre><code class="language-julia hljs">APPoint(6.0, 8.0) in l, APPoint(10.0, 0.0) in r</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><img src="../assets/img/points_lines/direction_slope.svg" alt="A line with its direction vector, its slope angle and a point on it" style="width:100%; max-width: 700px;"><h2 id="Lengthening-a-line-or-segment"><a class="docs-heading-anchor" href="#Lengthening-a-line-or-segment">Lengthening a line or segment</a><a id="Lengthening-a-line-or-segment-1"></a><a class="docs-heading-anchor-permalink" href="#Lengthening-a-line-or-segment" title="Permalink"></a></h2><p><a href="../api/#Apollonius.extend_line"><code>extend_line</code></a><code>(l, before, after)</code> lengthens the line through <code>l.p1</code> and <code>l.p2</code> by fractions of <code>distance(l.p1, l.p2)</code> past each point and returns the resulting <a href="../api/#Apollonius.APSegment"><code>APSegment</code></a>. The fractions are relative to the two defining points, so the same value adds more length to a longer line. A negative fraction shortens that end, and an <a href="../api/#Apollonius.APSegment"><code>APSegment</code></a> is accepted too.</p><pre><code class="language-julia hljs">base = APLine(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
+is_on_ray(APPoint(-1.0, 0.0), r)    # false: on the line, but behind the origin</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">false</code></pre><p><code>is_on_line</code>/<code>is_on_segment</code>/<code>is_on_ray</code> are also exactly what <code>Base.in</code> uses under the hood, so the more natural <code>p in l</code> reads just as well:</p><pre><code class="language-julia hljs">APPoint(6.0, 8.0) in l, APPoint(10.0, 0.0) in r</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true)</code></pre><img src="../assets/img/points_lines/direction_slope.svg" alt="A line with its direction vector, its slope angle and a point on it" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-9d267c73f20f047f"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-9d267c73f20f047f" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin
+    O = APPoint(0.0, 0.0)
+    A = APPoint(3.0, 4.0)
+    l = APLine(O, A)
+    d = APEquipollentVector(direction(l), O)
+    onl = APPoint(6.0, 8.0)
+    h = APSegment(O, APPoint(4.0, 0.0))
+    ang = APAngle2(O, APPoint(3.0, 0.0), A)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+gsave()
+setline(1)
+sethue(&quot;gray80&quot;)
+path(h, action=:stroke)
+grestore()
+sethue(julia_blue)
+path(l, action=:stroke, extend=40)
+sethue(julia_purple)
+path(d; as=:arrow, action=:stroke)
+path(marks(ang; size=40); action=:stroke)
+sethue(julia_red)
+label(&quot;53.13°&quot;, label_anchor(ang; dist=70)...)
+label(&quot;direction(l)&quot;, :E, midpoint(O, A))
+sethue(&quot;white&quot;); path([O, A, onl], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h2 id="Lengthening-a-line-or-segment"><a class="docs-heading-anchor" href="#Lengthening-a-line-or-segment">Lengthening a line or segment</a><a id="Lengthening-a-line-or-segment-1"></a><a class="docs-heading-anchor-permalink" href="#Lengthening-a-line-or-segment" title="Permalink"></a></h2><p><a href="../api/#Apollonius.extend_line"><code>extend_line</code></a><code>(l, before, after)</code> lengthens the line through <code>l.p1</code> and <code>l.p2</code> by fractions of <code>distance(l.p1, l.p2)</code> past each point and returns the resulting <a href="../api/#Apollonius.APSegment"><code>APSegment</code></a>. The fractions are relative to the two defining points, so the same value adds more length to a longer line. A negative fraction shortens that end, and an <a href="../api/#Apollonius.APSegment"><code>APSegment</code></a> is accepted too.</p><pre><code class="language-julia hljs">base = APLine(APPoint(0.0, 0.0), APPoint(10.0, 0.0))
 ext = extend_line(base, 0.5)         # half of 10.0 more, at each end
 ext.p1, ext.p2, distance(ext.p1, ext.p2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([-5.0, 0.0], [15.0, 0.0], 20.0)</code></pre><img src="../assets/img/decorations/extend_line.svg" alt="A segment lengthened at both ends" style="width:100%; max-width: 700px;"><p>The same lengthening is available when drawing, as the <code>add</code> keyword of <code>path</code>; see <a href="../drawing_basics/#Drawing-with-Luxor.jl">Drawing with Luxor.jl</a>. More on this function is in <a href="../decorations_marks/#Marks,-Labels-and-Decorations">Marks, Labels &amp; Decorations</a>.</p><h2 id="Distance-to-a-line,-segment-or-ray"><a class="docs-heading-anchor" href="#Distance-to-a-line,-segment-or-ray">Distance to a line, segment or ray</a><a id="Distance-to-a-line,-segment-or-ray-1"></a><a class="docs-heading-anchor-permalink" href="#Distance-to-a-line,-segment-or-ray" title="Permalink"></a></h2><p><a href="../api/#Apollonius.distance"><code>distance</code></a> also works between a point and any of <code>APLine</code>, <code>APSegment</code> or <code>APRay</code>: the perpendicular distance to the <em>infinite</em> line in the first case, but clamped to the finite extent for the other two (so a point &quot;past the end&quot; measures to the nearest endpoint, not along the infinite extension):</p><pre><code class="language-julia hljs">far_point = APPoint(10.0, 10.0)
 distance(far_point, l), distance(far_point, s), distance(far_point, r)
@@ -39,7 +75,55 @@ end</code></pre><pre class="documenter-example-output"><code class="nohighlight 
  [6.0, 3.0]</code></pre><h2 id="Rotation,-homothety-and-translation"><a class="docs-heading-anchor" href="#Rotation,-homothety-and-translation">Rotation, homothety and translation</a><a id="Rotation,-homothety-and-translation-1"></a><a class="docs-heading-anchor-permalink" href="#Rotation,-homothety-and-translation" title="Permalink"></a></h2><p><a href="../api/#Apollonius.rotate"><code>rotate</code></a> turns a point about a center by an angle (radians, counter-clockwise); <a href="../api/#Apollonius.homothety"><code>homothety</code></a> scales it by a factor <code>k</code> about a center (<code>k = -1</code> is a point reflection, <code>0 &lt; k &lt; 1</code> shrinks towards the center); <a href="../api/#Apollonius.translate"><code>translate</code></a> shifts it by an <a href="../api/#Apollonius.APVector"><code>APVector</code></a> (the fourth member of this quartet, and the only one with no <code>center</code>: a translation has none). <code>rotate</code>/<code>homothety</code> default to the origin when no center is given.</p><pre><code class="language-julia hljs">rotate(C, pi / 2, P)     # C rotated 90° about P
 homothety(C, 2.0, P)     # C scaled by 2 about P
 translate(C, APVector(1.0, -1.0))   # C shifted by (1,-1)
-barycenter([P, Q, C], [1.0, 1.0, 2.0])   # weighted average of the three</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[2.75, 4.0]</code></pre><img src="../assets/img/points_lines/rotation_homothety_translation.svg" alt="A triangle P, Q, C with its side midpoints, and the images of vertex C under a rotation, a homothety and a translation, labeled R, H and T, with the barycenter B and the rotation angle marked" style="width:100%; max-width: 700px;"><h2 id="Parallels,-perpendiculars-and-bisectors"><a class="docs-heading-anchor" href="#Parallels,-perpendiculars-and-bisectors">Parallels, perpendiculars and bisectors</a><a id="Parallels,-perpendiculars-and-bisectors-1"></a><a class="docs-heading-anchor-permalink" href="#Parallels,-perpendiculars-and-bisectors" title="Permalink"></a></h2><pre><code class="language-julia hljs">midpoint(P, Q)                      # [3.5, 2.0]: the plain average of the two
+barycenter([P, Q, C], [1.0, 1.0, 2.0])   # weighted average of the three</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[2.75, 4.0]</code></pre><img src="../assets/img/points_lines/rotation_homothety_translation.svg" alt="A triangle P, Q, C with its side midpoints, and the images of vertex C under a rotation, a homothety and a translation, labeled R, H and T, with the barycenter B and the rotation angle marked" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-80dd7a02fedfa99e"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-80dd7a02fedfa99e" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+using Apollonius: rotate, translate, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    P, Q, C = APPoint(1.0, 1.0), APPoint(6.0, 3.0), APPoint(2.0, 6.0)
+    R = rotate(C, pi / 2, P)
+    angTR = APAngle2(P, C, R)
+    H = homothety(C, 2.0, P)
+    vecCT = APVector(1.0, -1.0)
+    T = translate(C, vecCT)
+    trian = APTriangle(P,Q,C)
+    B = barycenter(vertices(trian), [1.0, 1.0, 2.0])
+    m1, m2, m3 = midpoint.(sides(trian))
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+
+sethue(&quot;gray80&quot;)
+path([APSegment(p,m) for (p,m) in zip([C,P,Q], [m1,m2,m3])], action = :stroke)
+path(APTriangle(P, Q, C), action=:stroke)
+sethue(julia_purple)
+path(APLine(C,P), action=:stroke)
+sethue(julia_blue)
+path(APSegment(P,C), action=:stroke)
+sethue(julia_purple)
+path(APQuadrilateral(angTR.vertex, only(marks(angTR; style=:parallelogram)).vertices...), action=:fill)
+path(APSegment(P,R), action=:stroke)
+path(APEquipollentVector(vecCT, C), action=:stroke, as=:arrow)
+sethue(julia_red)
+label(&quot;Q&quot;, :E ,Q)
+label(&quot;P&quot;, :SE ,P)
+label(&quot;C&quot;, :NW ,C)
+label(&quot;R&quot;, :W ,R)
+label(&quot;H&quot;, :SE ,H)
+label(&quot;T&quot;, :SE ,T)
+label(&quot;B&quot;, :W ,B)
+sethue(&quot;white&quot;); path(P, action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([C,Q], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([R,H,T,B], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path([m1,m2,m3], action=:fillpreserve); sethue(&quot;gray80&quot;); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h2 id="Parallels,-perpendiculars-and-bisectors"><a class="docs-heading-anchor" href="#Parallels,-perpendiculars-and-bisectors">Parallels, perpendiculars and bisectors</a><a id="Parallels,-perpendiculars-and-bisectors-1"></a><a class="docs-heading-anchor-permalink" href="#Parallels,-perpendiculars-and-bisectors" title="Permalink"></a></h2><pre><code class="language-julia hljs">midpoint(P, Q)                      # [3.5, 2.0]: the plain average of the two
 parallel_through(l, C)             # line through C, parallel to l
 perpendicular_through(l, C)        # line through C, perpendicular to l
 pb = perpendicular_bisector(P, Q)  # perpendicular to [P,Q] through its midpoint</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APLine([3.5, 2.0] -&gt; [1.5, 7.0])</code></pre><p><a href="../api/#Apollonius.vertical_line-Tuple{Real}"><code>vertical_line</code></a> and <a href="../api/#Apollonius.horizontal_line-Tuple{Real}"><code>horizontal_line</code></a> build the line <code>x = x0</code> or <code>y = y0</code> directly, from the number or from a point to pass through:</p><pre><code class="language-julia hljs">vertical_line(3.0) ≈ vertical_line(APPoint(3.0, -8.0))
@@ -47,4 +131,4 @@ horizontal_line(APPoint(3.0, -8.0))</code></pre><pre class="documenter-example-o
 yaxis = APLine(APPoint(0.0, 0.0), APPoint(0.0, 4.0))
 angle_bisectors(xaxis, yaxis)   # the two diagonals y = x and y = -x</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{APLine{2, Float64}}:
  APLine([0.0, 0.0] -&gt; [1.0, 1.0])
- APLine([0.0, 0.0] -&gt; [1.0, -1.0])</code></pre><img src="../assets/img/points_lines/ang_bis.svg" alt="Two intersecting lines through three labeled points and their two mutually perpendicular angle bisectors" style="width:100%; max-width: 700px;"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../points_lines_creating/">« Creating Them</a><a class="docs-footer-nextpage" href="../points_lines_angles/">Angles »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 20:14">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ APLine([0.0, 0.0] -&gt; [1.0, -1.0])</code></pre><img src="../assets/img/points_lines/ang_bis.svg" alt="Two intersecting lines through three labeled points and their two mutually perpendicular angle bisectors" style="width:100%; max-width: 700px;"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../points_lines_creating/">« Creating Them</a><a class="docs-footer-nextpage" href="../points_lines_angles/">Angles »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

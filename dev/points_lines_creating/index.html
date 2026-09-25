@@ -17,10 +17,10 @@ l = APLine(O, A)        # the infinite line through O and A
 r = APRay(O, A)         # the half-line starting at O, through A
 
 distance(O, A)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">5.0</code></pre><p><code>distance(O, A)</code> is <code>5.0</code>: with <code>A = APPoint(3.0, 4.0)</code>, this is just the classic 3-4-5 triangle. <code>APSegment</code>, <code>APLine</code> and <code>APRay</code> all wrap the <em>same</em> two points here. What differs is only how far they extend and what other functions are willing to do with them (e.g. <a href="../api/#Apollonius.is_on_segment-Tuple{APPoint, APSegment}"><code>is_on_segment</code></a> only makes sense for an <code>APSegment</code>, <a href="../api/#Apollonius.slope_angle-Tuple{Any}"><code>slope_angle</code></a> treats <code>APLine</code> and <code>APRay</code> as pointing one way and an <code>APSegment</code> as pointing from its first point to its second).</p><h2 id="From-a-direction"><a class="docs-heading-anchor" href="#From-a-direction">From a direction</a><a id="From-a-direction-1"></a><a class="docs-heading-anchor-permalink" href="#From-a-direction" title="Permalink"></a></h2><p>A line or a ray can also be built from a point and a direction, given as a vector or as an angle (radians, counterclockwise from the positive x-axis). A segment can be built from a point and a vector, or from a length and an angle:</p><pre><code class="language-julia hljs">p0 = APPoint(1.0, 1.0)
-APLine(p0, APVector(2.0, 1.0)), APLine(p0, pi / 6)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APLine([1.0, 1.0] -&gt; [3.0, 2.0]), APLine([1.0, 1.0] -&gt; [1.8660254037844388, 1.5]))</code></pre><pre><code class="language-julia hljs">APRay(p0, -pi / 2), APSegment(p0, APVector(3.0, 0.0)), APSegment(p0, 5.0, pi / 3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APRay([1.0, 1.0] -&gt; [1.0, 0.0]), APSegment([1.0, 1.0] -&gt; [4.0, 1.0]), APSegment([1.0, 1.0] -&gt; [3.5000000000000004, 5.330127018922193]))</code></pre><img src="../assets/img/points_lines/from_direction.svg" alt="A line from a point and a vector, a ray from a point and an angle and a segment from a point, a length and an angle" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-a088bcf59c22e2e1"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-a088bcf59c22e2e1" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius
+APLine(p0, APVector(2.0, 1.0)), APLine(p0, pi / 6)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APLine([1.0, 1.0] -&gt; [3.0, 2.0]), APLine([1.0, 1.0] -&gt; [1.8660254037844388, 1.5]))</code></pre><pre><code class="language-julia hljs">APRay(p0, -pi / 2), APSegment(p0, APVector(3.0, 0.0)), APSegment(p0, 5.0, pi / 3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APRay([1.0, 1.0] -&gt; [1.0, 0.0]), APSegment([1.0, 1.0] -&gt; [4.0, 1.0]), APSegment([1.0, 1.0] -&gt; [3.5000000000000004, 5.330127018922193]))</code></pre><img src="../assets/img/points_lines/from_direction.svg" alt="A line from a point and a vector, a ray from a point and an angle and a segment from a point, a length and an angle" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-31a2e46b42807f90"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-31a2e46b42807f90" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius
 using Luxor
 import Apollonius: midpoint
-import Luxor: julia_blue, julia_purple
+import Luxor: julia_red, julia_blue, julia_purple
 
 lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
     p = APPoint(-1.0, -1.0)
@@ -43,7 +43,6 @@ end
 begin
 Drawing(lxm.width, lxm.height, :svg)
 origin(); fontsize(15)
-fontsize(15)
 
 arc_seg = only(marks(ang_seg; size=50))
 arc_ray = only(marks(ang_ray; size=50))
@@ -80,8 +79,96 @@ dot(d, APVector(1.0, 0.0))   # 3.0</code></pre><pre class="documenter-example-ou
 APBoundingBox(ev)                 # a real box now, unlike APBoundingBox(d)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APBoundingBox([0.0, 0.0] .. [3.0, 4.0])</code></pre><p><code>tip(ev)</code> is <code>ev.point + ev.vector</code>, computed on demand. <code>norm</code>/ <code>normalize</code>/<code>dot</code> all work the same way as on a bare <code>APVector</code> (acting on <code>ev.vector</code>; <code>normalize</code> keeps <code>ev.point</code> fixed), and the usual <code>rotate</code>/<code>translate</code>/<code>homothety</code>/<code>reflection</code> quartet works too. <code>translate</code> in particular moves <code>ev.point</code>, something a bare <code>APVector</code> (having no position to begin with) can never do:</p><pre><code class="language-julia hljs">translate(ev, APVector(1.0, 1.0))   # ev.point moves; ev.vector itself doesn&#39;t</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APEquipollentVector(⟨3.0, 4.0⟩, [1.0, 1.0])</code></pre><p><code>homothety</code> scales <code>ev.point</code> about a center <em>and</em> <code>ev.vector</code>&#39;s own length together, matching how the whole configuration grows or shrinks as one piece:</p><pre><code class="language-julia hljs">homothety(ev, 2.0, O)   # both O and the vector scale together</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APEquipollentVector(⟨6.0, 8.0⟩, [0.0, 0.0])</code></pre><p><a href="../api/#Apollonius.APVector"><code>APVector</code></a><code>(ev)</code> unwraps back to the bare, positionless vector (mirroring <code>APVector(::APPoint)</code>), and, more usefully, every <a href="../api/#Apollonius.translate"><code>translate</code></a> method that already accepts a bare <code>APVector</code> accepts an <code>APEquipollentVector</code> in its place too, driven by <code>ev.vector</code> and ignoring wherever <code>ev</code> itself happens to be anchored; <code>p + ev</code> (point arithmetic, not a call to <code>translate</code>) is the same shorthand for a plain <code>APPoint</code>:</p><pre><code class="language-julia hljs">APVector(ev)         # unwraps back to the bare vector, same as d
 translate(A, ev)     # same as translate(A, d): ev&#39;s own point is ignored</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[6.0, 8.0]</code></pre><p>Putting one inside a <a href="../api/#Apollonius.@prepare_to_picture!-Tuple"><code>@prepare_to_picture!</code></a> block and drawing it with <a href="../api/#Apollonius.path"><code>path</code></a><code>(ev; as=:arrow)</code> (see <a href="../drawing_basics/#Drawing-with-Luxor.jl">Drawing with Luxor.jl</a>) is what correctly scales/places it:</p><img src="../assets/img/points_lines/direction_vector.svg" alt="A line, its direction vector d drawn as a green arrow, and the unit vector v = normalize(d) drawn as a purple arrow, both correctly anchored and scaled" style="width:100%; max-width: 700px;"><h2 id="Polar-coordinates"><a class="docs-heading-anchor" href="#Polar-coordinates">Polar coordinates</a><a id="Polar-coordinates-1"></a><a class="docs-heading-anchor-permalink" href="#Polar-coordinates" title="Permalink"></a></h2><p><a href="../api/#Apollonius.polar_point-Tuple{Real, Real, APPoint{2}}"><code>polar_point</code></a> builds a point from a distance and an angle (radians, counterclockwise from the positive x-axis) instead of <code>x</code>/<code>y</code>, and <a href="../api/#Apollonius.polar_point_deg-Tuple{Real, Real, APPoint{2}}"><code>polar_point_deg</code></a> is the same with the angle in degrees. Both take the <code>center</code> as an optional third argument, and measure from the origin without it:</p><pre><code class="language-julia hljs">Bpolar = polar_point_deg(4.0, 40.0)      # 4 units out from the origin, at 40°
 distance(O, Bpolar)                       # 4.0, regardless of the angle
-polar_point_deg(4.0, 40.0, APPoint(2.0, 1.0))   # the same, around another center</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[5.064177772475912, 3.571150438746157]</code></pre><img src="../assets/img/points_lines/polar.svg" alt="A point at distance 4 and angle 40 degrees from a center" style="width:100%; max-width: 700px;"><p>This is exactly the point/angle/modulus relationship <a href="../api/#Apollonius.slope_angle-Tuple{Any}"><code>slope_angle</code></a> and <a href="../api/#Apollonius.distance"><code>distance</code></a> give you the other way around: <code>polar_point(distance(O, p), slope_angle(APLine(O, p)), O)</code> recovers <code>p</code> (for <code>p != O</code>). <a href="../api/#Apollonius.polar_angle"><code>polar_angle</code></a><code>(p, center)</code> is the angle alone, in <code>(-π, π]</code>, and the center is the origin when omitted:</p><pre><code class="language-julia hljs">rad2deg(polar_angle(APPoint(0.0, 3.0))), rad2deg(polar_angle(APPoint(3.0, 4.0), APPoint(3.0, 1.0)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(90.0, 90.0)</code></pre><h2 id="Points-by-parameter-and-by-angle"><a class="docs-heading-anchor" href="#Points-by-parameter-and-by-angle">Points by parameter and by angle</a><a id="Points-by-parameter-and-by-angle-1"></a><a class="docs-heading-anchor-permalink" href="#Points-by-parameter-and-by-angle" title="Permalink"></a></h2><p><a href="../api/#Apollonius.point_on"><code>point_on</code></a><code>(obj, t)</code> is the point <code>p1 + t * (p2 - p1)</code> of a line, segment or ray: <code>t = 0</code> is the first defining point, <code>t = 1</code> the second, and the parameter is not restricted to <code>[0, 1]</code>. <a href="../api/#Apollonius.point_on"><code>point_on</code></a><code>(c, angle)</code> is the point of a circle at an angle (radians, counterclockwise from the positive x-axis) as seen from its center.</p><pre><code class="language-julia hljs">point_on(s, 0.5) ≈ midpoint(s), point_on(l, 2.0), point_on(r, -1.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, [6.0, 8.0], [-3.0, -4.0])</code></pre><pre><code class="language-julia hljs">c = APCircle2(APPoint(1.0, 2.0), 5.0)
-point_on(c, 0.0), point_on(c, pi / 2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([6.0, 2.0], [1.0000000000000002, 7.0])</code></pre><img src="../assets/img/points_lines/by_parameter.svg" alt="Points of a line at several parameters and points of a circle at several angles" style="width:100%; max-width: 700px;"><h2 id="By-distance,-by-ratio-and-evenly-spaced"><a class="docs-heading-anchor" href="#By-distance,-by-ratio-and-evenly-spaced">By distance, by ratio and evenly spaced</a><a id="By-distance,-by-ratio-and-evenly-spaced-1"></a><a class="docs-heading-anchor-permalink" href="#By-distance,-by-ratio-and-evenly-spaced" title="Permalink"></a></h2><p><a href="../api/#Apollonius.point_on"><code>point_on</code></a> takes a <em>fraction</em> of the way from the first point to the second. When you know a <em>length</em> instead, use <a href="../api/#Apollonius.point_at_distance-Tuple{Union{APLine, APSegment}, Real}"><code>point_at_distance</code></a>, which works on a line, a ray or a segment and goes the other way for a negative length. <a href="../api/#Apollonius.divide_segment-Tuple{APSegment, Integer}"><code>divide_segment</code></a> cuts a segment in <code>n</code> equal parts, or finds the point that divides it in a ratio <code>m : n</code>, from outside when <code>n</code> is negative:</p><pre><code class="language-julia hljs">sg = APSegment(APPoint(0.0, 0.0), APPoint(8.0, 0.0))
+polar_point_deg(4.0, 40.0, APPoint(2.0, 1.0))   # the same, around another center</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[5.064177772475912, 3.571150438746157]</code></pre><img src="../assets/img/points_lines/polar.svg" alt="A point at distance 4 and angle 40 degrees from a center" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-1ffa024e5b279cc4"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-1ffa024e5b279cc4" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+    O = APPoint(0.0, 0.0)
+    B = polar_point_deg(4.0, 40.0)
+    radio = APSegment(O, B)
+    xaxis = APSegment(O, APPoint(5.0, 0.0))
+    ang = APAngle2(O, APPoint(4.0, 0.0), B)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+@layer begin
+    sethue(julia_green); setdash(:dash); setline(1)
+    path(radio, action=:stroke)
+end
+
+arc = only(marks(ang))
+radioBrace = APDecorationBrace2(O, B)
+@layer begin
+    sethue(julia_blue); setopacity(0.5)
+    path(APCircularSector2(arc), action=:fill)
+
+    setopacity(1)
+    path(arc, action=:stroke)
+    path(radioBrace, action=:stroke)
+end
+
+@layer begin
+    setline(1); setdash(:dash); sethue(&quot;gray80&quot;)
+    path(xaxis, action=:stroke)
+end
+
+
+sethue(julia_red)
+label(&quot;40°&quot;, label_anchor(ang; dist=50)...)
+text(&quot;r = 4&quot;, vertices(radioBrace)[2], direction=B-O, halign=:center)
+
+sethue(&quot;white&quot;)
+path(B, action=:fillpreserve)
+sethue(julia_purple); strokepath()
+
+sethue(&quot;white&quot;)
+path(O, action=:fillpreserve)
+sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p>This is exactly the point/angle/modulus relationship <a href="../api/#Apollonius.slope_angle-Tuple{Any}"><code>slope_angle</code></a> and <a href="../api/#Apollonius.distance"><code>distance</code></a> give you the other way around: <code>polar_point(distance(O, p), slope_angle(APLine(O, p)), O)</code> recovers <code>p</code> (for <code>p != O</code>). <a href="../api/#Apollonius.polar_angle"><code>polar_angle</code></a><code>(p, center)</code> is the angle alone, in <code>(-π, π]</code>, and the center is the origin when omitted:</p><pre><code class="language-julia hljs">rad2deg(polar_angle(APPoint(0.0, 3.0))), rad2deg(polar_angle(APPoint(3.0, 4.0), APPoint(3.0, 1.0)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(90.0, 90.0)</code></pre><h2 id="Points-by-parameter-and-by-angle"><a class="docs-heading-anchor" href="#Points-by-parameter-and-by-angle">Points by parameter and by angle</a><a id="Points-by-parameter-and-by-angle-1"></a><a class="docs-heading-anchor-permalink" href="#Points-by-parameter-and-by-angle" title="Permalink"></a></h2><p><a href="../api/#Apollonius.point_on"><code>point_on</code></a><code>(obj, t)</code> is the point <code>p1 + t * (p2 - p1)</code> of a line, segment or ray: <code>t = 0</code> is the first defining point, <code>t = 1</code> the second, and the parameter is not restricted to <code>[0, 1]</code>. <a href="../api/#Apollonius.point_on"><code>point_on</code></a><code>(c, angle)</code> is the point of a circle at an angle (radians, counterclockwise from the positive x-axis) as seen from its center.</p><pre><code class="language-julia hljs">point_on(s, 0.5) ≈ midpoint(s), point_on(l, 2.0), point_on(r, -1.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, [6.0, 8.0], [-3.0, -4.0])</code></pre><pre><code class="language-julia hljs">c = APCircle2(APPoint(1.0, 2.0), 5.0)
+point_on(c, 0.0), point_on(c, pi / 2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([6.0, 2.0], [1.0000000000000002, 7.0])</code></pre><img src="../assets/img/points_lines/by_parameter.svg" alt="Points of a line at several parameters and points of a circle at several angles" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-d57fdcf219b52ad8"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-d57fdcf219b52ad8" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=300 margin=30 begin
+    p0 = APPoint(0.0, 0.0)
+    p1 = APPoint(4.0, 0.0)
+    l = APLine(p0, p1)
+    seg = APSegment(point_on(l, -0.5), point_on(l, 1.5))
+    tpts = [point_on(l, t) for t in (-0.5, 0.0, 0.5, 1.0, 1.5)]
+    c = APCircle2(APPoint(2.0, -4.0), 2.0)
+    apts = [point_on(c, a) for a in (0.0, pi / 4, pi / 2, pi)]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+
+sethue(julia_blue)
+path([seg, c], action=:stroke)
+sethue(julia_purple)
+sethue(julia_red)
+for (t, p) in zip((-0.5, 0.0, 0.5, 1.0, 1.5), tpts)
+    label(&quot;t = $t&quot;, :N, p)
+end
+for (a, al, p) in zip((&quot;0&quot;, &quot;π/4&quot;, &quot;π/2&quot;, &quot;π&quot;), (:E, :NE, :N, :W), apts)
+    label(a, al, p)
+end
+sethue(&quot;white&quot;); path([p0, p1], action=:fillpreserve); sethue(julia_blue); strokepath()
+sethue(&quot;white&quot;); path([tpts[1], tpts[3], tpts[5]], action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path(apts, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h2 id="By-distance,-by-ratio-and-evenly-spaced"><a class="docs-heading-anchor" href="#By-distance,-by-ratio-and-evenly-spaced">By distance, by ratio and evenly spaced</a><a id="By-distance,-by-ratio-and-evenly-spaced-1"></a><a class="docs-heading-anchor-permalink" href="#By-distance,-by-ratio-and-evenly-spaced" title="Permalink"></a></h2><p><a href="../api/#Apollonius.point_on"><code>point_on</code></a> takes a <em>fraction</em> of the way from the first point to the second. When you know a <em>length</em> instead, use <a href="../api/#Apollonius.point_at_distance-Tuple{Union{APLine, APSegment}, Real}"><code>point_at_distance</code></a>, which works on a line, a ray or a segment and goes the other way for a negative length. <a href="../api/#Apollonius.divide_segment-Tuple{APSegment, Integer}"><code>divide_segment</code></a> cuts a segment in <code>n</code> equal parts, or finds the point that divides it in a ratio <code>m : n</code>, from outside when <code>n</code> is negative:</p><pre><code class="language-julia hljs">sg = APSegment(APPoint(0.0, 0.0), APPoint(8.0, 0.0))
 point_at_distance(sg, 6.5), divide_segment(sg, 4)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([6.5, 0.0], APPoint{2, Float64}[[2.0, 0.0], [4.0, 0.0], [6.0, 0.0]])</code></pre><pre><code class="language-julia hljs">divide_segment(sg, 1, 2), divide_segment(sg, 3, -1)   # 1 : 2 inside, 3 : -1 outside</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([2.6666666666666665, 0.0], [12.0, 0.0])</code></pre><img src="../assets/img/points_lines/divide_points.svg" alt="A segment with its three quarter points, the point at distance 6.5, the point that divides it 1 to 2 and the external point 3 to -1" style="width:100%; max-width: 700px;"><p><a href="../api/#Apollonius.equally_spaced_points-Tuple{APSegment, Integer}"><code>equally_spaced_points</code></a><code>(obj, n)</code> spreads <code>n</code> points along a curve:</p><table><tr><th style="text-align: left">Object</th><th style="text-align: left">Points</th><th style="text-align: left">Spacing</th></tr><tr><td style="text-align: left"><a href="../api/#Apollonius.APSegment"><code>APSegment</code></a></td><td style="text-align: left">both ends and the ones between, <code>n &gt;= 2</code></td><td style="text-align: left">equal lengths</td></tr><tr><td style="text-align: left"><a href="../api/#Apollonius.APCircularArc2"><code>APCircularArc2</code></a></td><td style="text-align: left">both ends and the ones between, <code>n &gt;= 2</code></td><td style="text-align: left">equal arc lengths</td></tr><tr><td style="text-align: left"><a href="../api/#Apollonius.APCircle2"><code>APCircle2</code></a></td><td style="text-align: left"><code>n</code> points, from the angle <code>start</code></td><td style="text-align: left">equal arc lengths</td></tr><tr><td style="text-align: left"><a href="../api/#Apollonius.APEllipse2"><code>APEllipse2</code></a></td><td style="text-align: left"><code>n</code> points, from the parameter <code>start</code></td><td style="text-align: left">equal parameter, not equal arc length</td></tr></table><pre><code class="language-julia hljs">equally_spaced_points(APCircle2(APPoint(0.0, 0.0), 1.0), 4)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">4-element Vector{APPoint{2, Float64}}:
  [1.0, 0.0]
  [6.123233995736766e-17, 1.0]
@@ -90,4 +177,4 @@ point_at_distance(sg, 6.5), divide_segment(sg, 4)</code></pre><pre class="docume
 equally_spaced_points(arc_eq, 3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3-element Vector{APPoint{2, Float64}}:
  [1.0, 0.0]
  [0.7071067811865476, 0.7071067811865475]
- [6.123233995736766e-17, 1.0]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intersections/">« Intersections</a><a class="docs-footer-nextpage" href="../points_lines_transforms/">Direction &amp; Transforms »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 20:14">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ [6.123233995736766e-17, 1.0]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intersections/">« Intersections</a><a class="docs-footer-nextpage" href="../points_lines_transforms/">Direction &amp; Transforms »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
