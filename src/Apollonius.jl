@@ -62,6 +62,7 @@ export regular_polygon_on_segment, rhombus_on_segment, square_from_diagonal, rec
 export isosceles_trapezoid_on_segment, right_trapezoid_on_segment, kite_on_diagonal, star_polygon, offset_polygon, circumscribed_triangle
 export offset_circle, chord, diameter, arc_through_points, arc_with_radius, tangent_circle_at_point, tangent_circles_at_point
 export similarity_map, scaling_map, shear_map, conic_with_focus, ellipse_with_axis, hyperbola_with_asymptotes, parabola_through_points, inflate
+include("ap_region_polygon_intersections.jl")
 include("utils.jl")
 include("ap_rand.jl")
 include("ap_generic_docs.jl")

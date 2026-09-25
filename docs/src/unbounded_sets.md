@@ -318,3 +318,29 @@ two rays and the segments between them), [Drawing: Clipping, Dimensions &
 Reversing](@ref) for how to fill it up to the edge of the picture instead,
 and [Affine Maps](@ref) for how a
 general [`APAffineMap`](@ref) applies to it.
+
+## Clipping a bounded polygon
+
+[`intersection`](@ref) also works between any of `APHalfPlane2`/`APStrip2`/
+`APAngle2` and a straight-sided [`APPolygon`](@ref) (an [`APTriangle`](@ref),
+[`APQuadrilateral`](@ref) or [`APStraightNgon`](@ref)): the part of the
+polygon inside the region, in the tightest fitting type, not the points
+where the region's boundary crosses the polygon's perimeter. Unlike a
+line/segment/ray, the result is always *bounded* already, since the
+polygon was:
+
+```@example geo
+t = APTriangle(APPoint(-2.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 4.0))
+intersection(hp1, t)
+```
+
+```@raw html
+<img src="../assets/img/unbounded/halfplane_clip_polygon.svg" alt="A triangle crossed by a half-plane's boundary, with the quadrilateral piece inside the half-plane drawn over it in purple" style="width:100%; max-width: 700px;">
+```
+
+An `APAngle2` works the same way but always comes back as a `Vector` (see
+[Points, Lines & Rays: Angles](@ref) for why): 0 or 1 pieces for a convex
+angle, or up to 2 for a *reflex* one, which can still split the polygon
+into two disjoint pieces, the same way it can a line, segment, ray, circle,
+ellipse or another region. Curved-sided polygons
+([`APCircularSector2`](@ref) and similar) aren't supported yet.

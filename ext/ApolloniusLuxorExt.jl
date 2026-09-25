@@ -231,36 +231,11 @@ function AP.path(r::AP.APRay; extend=1000.0, add::Union{Nothing,Real,Tuple{Real,
     as in _ARROWS && return _arrow(_lp(a), _lp(b); as=as, kwargs...)
     return Luxor.line(_lp(a), _lp(b), action)
 end
-const _FILL_ACTIONS = (:fill, :fillpreserve, :fillstroke)
+const _FILL_ACTIONS = (:fill, :fillpreserve, :fillstroke, :clip)
 
-function _line_cross(p1::AP.APPoint, p2::AP.APPoint, l::AP.APLine)
-    return only(AP.intersection(AP.APLine(p1, p2), l))
-end
-function _sh_clip(poly::Vector{<:AP.APPoint}, hp::AP.APHalfPlane2)
-    isempty(poly) && return poly
-    out = AP.APPoint{2,Float64}[]
-    n = length(poly)
-    for i in 1:n
-        cur = poly[i]
-        prev = poly[mod1(i - 1, n)]
-        cur_in = cur in hp
-        prev_in = prev in hp
-        if cur_in
-            prev_in || push!(out, _line_cross(prev, cur, hp.boundary))
-            push!(out, cur)
-        elseif prev_in
-            push!(out, _line_cross(prev, cur, hp.boundary))
-        end
-    end
-    return out
-end
 function _box_clip(hps, bound::Real)
     poly = AP.APPoint{2,Float64}[AP.APPoint(-bound, -bound), AP.APPoint(bound, -bound), AP.APPoint(bound, bound), AP.APPoint(-bound, bound)]
-    for hp in hps
-        poly = _sh_clip(poly, hp)
-        isempty(poly) && return poly
-    end
-    return poly
+    return AP._clip_polygon_to_halfplanes(poly, hps)
 end
 _fill_groups(hp::AP.APHalfPlane2) = [[hp]]
 _fill_groups(s::AP.APStrip2) = [AP._halfplanes_of(s)]
@@ -268,14 +243,14 @@ _fill_groups(ang::AP.APAngle2) = AP._angle_groups(ang)
 _fill_groups(u::AP.APUnboundedPolygon2) = [[AP.APHalfPlane2(AP.APLine(base, base + dir), 1) for (base, dir) in AP._orientation_edges(u)]]
 function _fill_unbounded(region; bound::Real=1000.0, action=:fill)
     groups = _fill_groups(region)
-    if action === :fillpreserve
+    if action === :fillpreserve || action === :clip
         for g in groups
             pts = _box_clip(g, bound)
             length(pts) < 3 && continue
             Luxor.newsubpath()
             Luxor.poly(_lp(pts), :path; close=true)
         end
-        Luxor.do_action(:fillpreserve)
+        action === :clip ? Luxor.clip() : Luxor.do_action(:fillpreserve)
     else
         for g in groups
             pts = _box_clip(g, bound)
@@ -665,6 +640,30 @@ function AP.clip_out(obj; bound::Real=1e5, kwargs...)
     Luxor.box(Luxor.O, 2bound, 2bound, :path)
     Luxor.newsubpath()
     AP.path(obj; action=:path, kwargs...)
+    Luxor.setfillrule(:even_odd)
+    Luxor.clip()
+    Luxor.setfillrule(previous)
+    return nothing
+end
+"""
+    clip_out(region::Union{APHalfPlane2,APStrip2,APAngle2,APUnboundedPolygon2}; bound=1e5)
+
+`region`'s ordinary path is just its boundary line(s) (see
+[`path`](@ref)), which the generic `clip_out` can't use as a closed shape
+to subtract. This excludes the part of `region` inside a square of
+half-side `bound` instead, the same box [`path`](@ref)`(region;
+action=:fill)` fills.
+"""
+function AP.clip_out(region::Union{AP.APHalfPlane2,AP.APStrip2,AP.APAngle2,AP.APUnboundedPolygon2}; bound::Real=1e5)
+    previous = Luxor.getfillrule()
+    Luxor.newpath()
+    Luxor.box(Luxor.O, 2bound, 2bound, :path)
+    for g in _fill_groups(region)
+        pts = _box_clip(g, bound)
+        length(pts) < 3 && continue
+        Luxor.newsubpath()
+        Luxor.poly(_lp(pts), :path; close=true)
+    end
     Luxor.setfillrule(:even_odd)
     Luxor.clip()
     Luxor.setfillrule(previous)

@@ -1350,6 +1350,63 @@ using Base.MathConstants: golden
             @test count(p -> p isa APLine, both) == 2
             @test count(p -> p isa APAngle2, both) == 2
         end
+        @testset "region intersected with a bounded straight-sided polygon" begin
+            P(x, y) = APPoint(x, y)
+            t = APTriangle(P(0.0, 0.0), P(4.0, 0.0), P(2.0, 4.0))
+
+            # a halfplane crossing exactly at a vertex: no spurious duplicate vertex
+            hp = APHalfPlane2(APLine(P(2.0, -5.0), P(2.0, 5.0)), P(0.0, 0.0))   # x <= 2
+            @test intersection(hp, t) == APTriangle(P(0.0, 0.0), P(2.0, 0.0), P(2.0, 4.0))
+            @test intersection(t, hp) == intersection(hp, t)   # reverse order
+
+            # fully inside / fully outside
+            @test intersection(APHalfPlane2(APLine(P(-5.0, -1.0), P(5.0, -1.0)), P(0.0, 10.0)), t) == t
+            @test intersection(APHalfPlane2(APLine(P(-5.0, 10.0), P(5.0, 10.0)), P(0.0, 20.0)), t) === nothing
+
+            # a strip cuts both ends off, leaving a quadrilateral
+            s = APStrip2(APLine(P(-5.0, 1.0), P(5.0, 1.0)), APLine(P(-5.0, 3.0), P(5.0, 3.0)))
+            r = intersection(s, t)
+            @test r isa APQuadrilateral
+            @test Set(vertices(r)) == Set([P(0.5, 1.0), P(3.5, 1.0), P(2.5, 3.0), P(1.5, 3.0)])
+
+            # a convex angle already containing the whole triangle leaves it unchanged;
+            # any pair involving APAngle2 always comes back as a Vector
+            ang = APAngle2(P(0.0, 0.0), P(4.0, 0.0), P(0.0, 4.0))
+            @test only(intersection(ang, t)) == t
+
+            # a reflex angle can split it into two disjoint pieces
+            reflex = APAngle2(P(2.0, 2.0), P(6.0, 2.0), P(2.0, -2.0))
+            @test rad2deg(normalized_measure(reflex)) ≈ 270.0
+            pieces = intersection(reflex, t)
+            @test length(pieces) == 2 && all(pc -> pc isa APTriangle, pieces)
+
+            # a pentagon (APStraightNgon) clipped to 5 vertices, and a square clipped to 4
+            pent = APStraightNgon([P(0.0, 0.0), P(4.0, 0.0), P(5.0, 3.0), P(2.0, 5.0), P(-1.0, 3.0)])
+            rp = intersection(APHalfPlane2(APLine(P(0.0, 2.0), P(4.0, 2.0)), P(0.0, 10.0)), pent)
+            @test rp isa APStraightNgon && length(rp.vertices) == 5
+            q = APQuadrilateral(P(0.0, 0.0), P(6.0, 0.0), P(6.0, 6.0), P(0.0, 6.0))
+            rq = intersection(s, q)
+            @test rq isa APQuadrilateral && Set(vertices(rq)) == Set([P(0.0, 1.0), P(6.0, 1.0), P(6.0, 3.0), P(0.0, 3.0)])
+
+            # numeric ground-truth check, sampled off any exact-boundary point
+            # (Base.in for APPolygon may return either value exactly on an edge)
+            function check(region, pg; grid=-1.13:0.197:6.07)
+                r = intersection(region, pg)
+                pieces = r isa Vector ? r : [r]
+                contains(obj, p) = obj isa APPoint ? isapprox(obj, p; atol=1e-6) : (obj isa APSegment ? is_on_segment(p, obj; atol=1e-6) : p in obj)
+                all(Iterators.product(grid, grid)) do (x, y)
+                    p = P(x, y)
+                    expected = (p in region) && (p in pg)
+                    got = any(pc -> pc !== nothing && contains(pc, p), pieces)
+                    expected == got
+                end
+            end
+            @test check(hp, t)
+            @test check(s, t)
+            @test check(ang, t)
+            @test check(reflex, t)
+            @test check(s, q; grid=-1.13:0.197:7.07)
+        end
         @testset "APUnboundedPolygon2" begin
             P(x, y) = APPoint(x, y)
             u = APUnboundedPolygon2(APRay(P(0.0, 3.0), P(1.0, 3.0)), APPoint{2,Float64}[], APRay(P(0.0, 0.0), P(1.0, 0.0)))
@@ -6118,6 +6175,47 @@ using Base.MathConstants: golden
             m2 = Luxor.image_as_matrix()
             Luxor.finish()
             @test painted(m2, 150, 115) && !painted(m2, 50, 115) && !painted(m2, 150, 50)
+        end
+        @testset "clipping to/out of an unbounded region: half-plane, angle, unbounded polygon (pixel check)" begin
+            painted(m, x, y) = Luxor.Colors.red(m[y, x]) > 0.5 && Luxor.Colors.green(m[y, x]) < 0.5
+            hp = APHalfPlane2(APLine(APPoint(0.0, -5.0), APPoint(0.0, 5.0)), APPoint(1.0, 0.0))   # x >= 0
+            Luxor.Drawing(200, 200, :image)
+            Luxor.origin(); Luxor.background("white")
+            path(hp; action=:clip)
+            Luxor.sethue("red"); Luxor.paint()
+            m = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test painted(m, 150, 100) && !painted(m, 50, 100)
+            ang = APAngle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0))
+            Luxor.Drawing(200, 200, :image)
+            Luxor.origin(); Luxor.background("white")
+            path(ang; as=:region, action=:clip)
+            Luxor.sethue("red"); Luxor.paint()
+            m2 = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test painted(m2, 150, 150) && !painted(m2, 50, 50)
+            u = APUnboundedPolygon2(APRay(APPoint(0.0, 30.0), APPoint(1.0, 30.0)), APPoint{2,Float64}[], APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
+            Luxor.Drawing(200, 200, :image)
+            Luxor.origin(); Luxor.background("white")
+            path(u; action=:clip)
+            Luxor.sethue("red"); Luxor.paint()
+            m3 = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test painted(m3, 150, 115) && !painted(m3, 50, 115)
+            Luxor.Drawing(200, 200, :image)
+            Luxor.origin(); Luxor.background("white")
+            clip_out(hp)
+            Luxor.sethue("red"); Luxor.paint()
+            m4 = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test painted(m4, 50, 100) && !painted(m4, 150, 100)
+            Luxor.Drawing(200, 200, :image)
+            Luxor.origin(); Luxor.background("white")
+            clip_out(ang)
+            Luxor.sethue("red"); Luxor.paint()
+            m5 = Luxor.image_as_matrix()
+            Luxor.finish()
+            @test painted(m5, 50, 50) && !painted(m5, 150, 150)
         end
         @testset "marks(::APAngle2; style=:parallelogram) -- the parallelogram-law angle marker" begin
             ang90 = APAngle2(APPoint(0.0, 0.0), APPoint(50.0, 0.0), APPoint(0.0, 50.0))

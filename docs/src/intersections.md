@@ -33,6 +33,13 @@ reflex `APAngle2`, when it's a `Vector` of up to 2 pieces (up to 4 if both
 sides are reflex, possibly with some overlap between pieces in that last
 case). See [Unbounded Regions: Half-Planes, Strips & Angles](@ref).
 
+**Also except** when one side is an `APAngle2`/`APHalfPlane2`/`APStrip2` and
+the other a straight-sided [`APTriangle`](@ref)/[`APQuadrilateral`](@ref)/
+[`APStraightNgon`](@ref): the part of the polygon inside the region, in the
+tightest fitting bounded type, a bare value unless one side is a reflex
+`APAngle2` (curved-sided polygons aren't supported yet). See [Unbounded
+Regions: Half-Planes, Strips & Angles](@ref).
+
 ```@example geo
 using Apollonius
 ```
@@ -51,6 +58,7 @@ using Apollonius
 | polyline, polygon, chain, bounding box | as many as the sides cross | the points on the boundary, see below |
 | angle, half-plane or strip with a line, segment, ray, or any conic or arc | **not points** | the part of the other object inside the region, see above |
 | angle, half-plane or strip with another one of the three | **not points** | the region common to both, see above |
+| angle, half-plane or strip with a straight-sided triangle, quadrilateral or n-gon | **not points** | the part of the polygon inside the region, see above |
 | parametric curve with a line, conic or any of the above | found by sampling | see below |
 | point with anything above | 0 or 1 | the point itself, if it lies on the curve or boundary |
 

@@ -216,6 +216,10 @@ only(intersection(ang, hp))
 Crossing only one ray gives an unbounded [`APUnboundedPolygon2`](@ref)
 instead (see [Unbounded Regions: Half-Planes, Strips & Angles](@ref) for
 that type, and for the same idea against `APHalfPlane2`/`APStrip2`
-themselves).
+themselves). The same clipping also works against a straight-sided
+[`APTriangle`](@ref)/[`APQuadrilateral`](@ref)/[`APStraightNgon`](@ref),
+giving the part of the polygon inside `ang`; see
+[Unbounded Regions: Half-Planes, Strips & Angles](@ref)'s "Clipping a
+bounded polygon".
 
 
