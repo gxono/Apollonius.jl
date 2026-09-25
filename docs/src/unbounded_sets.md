@@ -5,22 +5,23 @@ CurrentModule = Apollonius
 # Unbounded Regions: Half-Planes, Strips & Angles
 
 Not every region in the package is bounded. [`APHalfPlane2`](@ref),
-[`APStrip2`](@ref) and [`APAngle2`](@ref) are the three unbounded members
-of the [`APSet`](@ref) family, genuine regions of the plane (they support
-`in`, `distance`, and the usual transforms), but with infinite area, so
-none of them is an [`APRegion`](@ref)/[`APPolygon`](@ref) and none has an
-`area`/`perimeter`. `APAngle2` already has its own worked-example section;
-see [Points, Lines & Rays: Angles](@ref). This page
-covers the other two.
+[`APStrip2`](@ref), [`APAngle2`](@ref) and [`APUnboundedPolygon2`](@ref) are
+the four unbounded members of the [`APSet`](@ref) family, genuine regions of
+the plane (they support `in`, `distance`, and the usual transforms), but
+with infinite area, so none of them is an [`APRegion`](@ref)/[`APPolygon`](@ref)
+and none has an `area`/`perimeter`. `APAngle2` already has its own
+worked-example section; see [Points, Lines & Rays: Angles](@ref). This page
+covers the other three.
 
 | Type | Represents | Bounded by |
 |:-----|:-----------|:-----------|
 | [`APHalfPlane2`](@ref) | everything on one side of a line (that line included) | one [`APLine`](@ref) |
 | [`APStrip2`](@ref) | the band between two parallel lines (both included) | two parallel [`APLine`](@ref)s |
 | [`APAngle2`](@ref) | the infinite wedge between two rays from a shared vertex | two [`APRay`](@ref)s; see [Angles](@ref) |
+| [`APUnboundedPolygon2`](@ref) | an unbounded region with a mix of straight and infinite sides | two [`APRay`](@ref)s and 0 or more [`APSegment`](@ref)s between them |
 
-Being unbounded, none of the three has a finite extent to report:
-[`APBoundingBox`](@ref) returns the empty box for all three (see
+Being unbounded, none of the four has a finite extent to report:
+[`APBoundingBox`](@ref) returns the empty box for all four (see
 [Polygons: Bounding Boxes](@ref) for what that means and why), they still get
 `translate`/`rotate`/`homothety`/`reflection`ed normally, they just don't
 contribute anything if mixed into a [`@boundingbox`](@ref)/
@@ -240,3 +241,76 @@ length(pieces), round.(rad2deg.(measure.(pieces)); digits=1)
 ```@raw html
 <img src="../assets/img/unbounded/strip_clip_circle.svg" alt="A strip and a circle wider than the band, split into two disjoint arcs where the circle pokes out on each side, drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
+
+## Intersecting two regions
+
+[`intersection`](@ref) also works between two of `APAngle2`/`APHalfPlane2`/
+`APStrip2` themselves: the region common to both, as whichever type it
+collapses to, not necessarily one of these three. Two crossing half-planes
+give an [`APAngle2`](@ref) (the wedge between their boundaries, on the side
+each keeps):
+
+```@example geo
+hp_y0 = APHalfPlane2(APLine(APPoint(-5.0, 0.0), APPoint(5.0, 0.0)), APPoint(0.0, 1.0))   # y >= 0
+wedge = intersection(hp1, hp_y0)
+rad2deg(normalized_measure(wedge))
+```
+
+Two crossing strips give a bounded [`APQuadrilateral`](@ref) instead, since
+all four boundaries end up finite on both ends:
+
+```@example geo
+s2 = APStrip2(APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0)), APLine(APPoint(4.0, 0.0), APPoint(4.0, 1.0)))
+intersection(s, s2)
+```
+
+```@raw html
+<img src="../assets/img/unbounded/region_intersect_strip_strip.svg" alt="Two crossing strips, with the parallelogram common to both drawn over them in purple" style="width:100%; max-width: 700px;">
+```
+
+A half-plane crossing a strip on only *one* side, though, is neither
+bounded nor one of the three named types: it needs a fourth,
+[`APUnboundedPolygon2`](@ref) (below).
+
+```@example geo
+intersection(hp1, s)
+```
+
+```@raw html
+<img src="../assets/img/unbounded/region_intersect_halfplane_strip.svg" alt="A half-plane crossing a strip on one side: the result is bounded by both of the strip's rays and a segment of the half-plane's own boundary, drawn over them in purple" style="width:100%; max-width: 700px;">
+```
+
+See [Points, Lines & Rays: Angles](@ref) for the same idea against an
+`APAngle2`, including the reflex case that can give up to two pieces
+instead of one.
+
+## `APUnboundedPolygon2`
+
+The general shape an intersection of half-planes can produce when it's
+unbounded but doesn't collapse to `APHalfPlane2`/`APStrip2`/`APAngle2`
+either: two rays capping a chain of straight segments in between (zero or
+more of them). It's rare to build one directly, since it's mostly what
+[`intersection`](@ref) hands back above, but the constructor takes the two
+rays and the interior vertices between them, in order:
+
+```@example geo
+u = APUnboundedPolygon2(APRay(APPoint(0.0, 3.0), APPoint(1.0, 3.0)), APPoint{2,Float64}[], APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
+vertices(u)   # ray1.origin, then the interior vertices, then ray2.origin
+```
+
+`in`/`distance`/the transforms all follow the same conventions as
+`APHalfPlane2`/`APStrip2`/`APAngle2`:
+
+```@example geo
+APPoint(2.0, 1.5) in u, APPoint(-1.0, 1.5) in u, APPoint(2.0, 5.0) in u
+```
+
+```@example geo
+distance(APPoint(-3.0, 1.5), u), distance(APPoint(2.0, 10.0), u; mode=:boundary)
+```
+
+Being unbounded, it has no `area`/`perimeter` and an empty
+[`APBoundingBox`](@ref), the same as the other three; see
+[Drawing with Luxor.jl](@ref) for how it renders (its actual boundary: the
+two rays and the segments between them) and [Affine Maps](@ref) for how a
+general [`APAffineMap`](@ref) applies to it.

@@ -66,9 +66,10 @@ abstract type APSet{Dim,T} <: APLocus{Dim,T} end
     APRegion{Dim,T} <: APSet{Dim,T}
 
 An `APSet` with finite extent: as opposed to
-[`APHalfPlane2`](@ref)/[`APAngle2`](@ref)/[`APStrip2`](@ref), which stretch
-to infinity. In practice, every concrete `APRegion` is also an
-[`APPolygon`](@ref) (a closed boundary made of straight or curved sides).
+[`APHalfPlane2`](@ref)/[`APAngle2`](@ref)/[`APStrip2`](@ref)/
+[`APUnboundedPolygon2`](@ref), which stretch to infinity. In practice, every
+concrete `APRegion` is also an [`APPolygon`](@ref) (a closed boundary made of
+straight or curved sides).
 """
 abstract type APRegion{Dim,T} <: APSet{Dim,T} end
 """

@@ -196,4 +196,26 @@ rad2deg(measure(quarter))
 <img src="../assets/img/points_lines/angle_clip_circle.svg" alt="A wedge and a circle at its vertex, with the quarter of the circle inside the wedge drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
 
+### Intersecting with another region
+
+[`intersection`](@ref)`(ang, other)` also works when `other` is itself an
+[`APHalfPlane2`](@ref)/[`APStrip2`](@ref)/`APAngle2`: the region common to
+both, always as a `Vector` (0, 1, or, only when one side is reflex, up to 2
+pieces). A half-plane crossing both of `ang`'s rays closes it off into a
+bounded triangle:
+
+```@example geo
+hp = APHalfPlane2(APLine(APPoint(6.0, 0.0), APPoint(0.0, 6.0)), O)
+only(intersection(ang, hp))
+```
+
+```@raw html
+<img src="../assets/img/points_lines/angle_intersect_halfplane.svg" alt="A wedge and a half-plane whose boundary crosses both of its rays, with the triangle common to both drawn over them in purple" style="width:100%; max-width: 700px;">
+```
+
+Crossing only one ray gives an unbounded [`APUnboundedPolygon2`](@ref)
+instead (see [Unbounded Regions: Half-Planes, Strips & Angles](@ref) for
+that type, and for the same idea against `APHalfPlane2`/`APStrip2`
+themselves).
+
 

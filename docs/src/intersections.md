@@ -20,6 +20,15 @@ points where a boundary is crossed. See
 [Unbounded Regions: Half-Planes, Strips & Angles](@ref) and
 [Points, Lines & Rays: Angles](@ref).
 
+**Also except** when *both* sides are one of `APAngle2`/`APHalfPlane2`/
+`APStrip2`: there `intersection` gives the region common to both, whichever
+type it collapses to (`nothing`, an [`APLine`](@ref), one of the same three
+types unchanged, a bounded [`APTriangle`](@ref)/[`APQuadrilateral`](@ref), or
+an [`APUnboundedPolygon2`](@ref)), as a bare value unless one side is a
+reflex `APAngle2`, when it's a `Vector` of up to 2 pieces (up to 4 if both
+sides are reflex, possibly with some overlap between pieces in that last
+case). See [Unbounded Regions: Half-Planes, Strips & Angles](@ref).
+
 ```@example geo
 using Apollonius
 ```
@@ -38,6 +47,7 @@ using Apollonius
 | polyline, polygon, chain, bounding box | as many as the sides cross | the points on the boundary, see below |
 | angle, half-plane or strip with a hyperbola or parabola | as many as the boundary crosses | the points on the boundary, same as above |
 | angle, half-plane or strip with a line, segment, ray, circle or ellipse | **not points** | the part of the other object inside the region, see above |
+| angle, half-plane or strip with another one of the three | **not points** | the region common to both, see above |
 | parametric curve with a line, conic or any of the above | found by sampling | see below |
 | point with anything above | 0 or 1 | the point itself, if it lies on the curve or boundary |
 

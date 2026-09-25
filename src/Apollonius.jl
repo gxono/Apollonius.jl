@@ -27,11 +27,14 @@ include("ap_unbounded.jl")
 export APAngle2, APHalfPlane2, APStrip2, strip_width
 include("ap_transform.jl")
 export APAffineMap
+include("ap_unbounded_polygon.jl")
+export APUnboundedPolygon2
 include("ap_predicates.jl")
 include("ap_intersections.jl")
 include("ap_intersections_composite.jl")
 include("ap_unbounded_intersections.jl")
 include("ap_conic_region_intersections.jl")
+include("ap_region_intersections.jl")
 using Base.MathConstants: golden
 include("ap_constructions.jl")
 include("ap_marks.jl")

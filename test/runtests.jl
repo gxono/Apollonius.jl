@@ -1286,6 +1286,100 @@ using Base.MathConstants: golden
             e_piece = only(intersection(ang, e))
             @test e_piece isa APEllipticArc2 && isapprox(e_piece.p1, P(5.0, 0.0); atol=1e-9) && isapprox(e_piece.p2, P(0.0, 3.0); atol=1e-9)
         end
+        @testset "region intersected with another region: whichever type it collapses to" begin
+            P(x, y) = APPoint(x, y)
+            O = P(0.0, 0.0)
+            hp(x0, dir) = APHalfPlane2(APLine(P(x0, 0.0), P(x0, 4.0)), P(dir, 0.0))
+
+            # halfplane vs halfplane
+            @test intersection(hp(0.0, 10.0), hp(-5.0, 10.0)) == hp(0.0, 10.0)   # redundant, same direction
+            @test intersection(hp(5.0, 10.0), hp(0.0, -10.0)) === nothing        # disjoint
+            @test intersection(hp(0.0, 10.0), APHalfPlane2(APLine(P(0.0, 0.0), P(0.0, 4.0)), -1)) ==
+                  APHalfPlane2(APLine(P(0.0, 0.0), P(0.0, 4.0)), -1)             # literally the same halfplane
+            @test intersection(hp(0.0, 10.0), APHalfPlane2(APLine(P(0.0, 0.0), P(0.0, 4.0)), 1)) ==
+                  APLine(P(0.0, 0.0), P(0.0, -4.0))                             # same line, opposite sides
+            hp_y0 = APHalfPlane2(APLine(P(0.0, 0.0), P(4.0, 0.0)), P(0.0, 1.0))  # y >= 0
+            wedge = intersection(hp(0.0, 10.0), hp_y0)
+            @test wedge isa APAngle2 && isapprox(normalized_measure(wedge), pi / 2; atol=1e-9)
+
+            # halfplane vs strip
+            s = APStrip2(APLine(P(0.0, 0.0), P(1.0, 0.0)), APLine(P(0.0, 3.0), P(1.0, 3.0)))   # 0 <= y <= 3
+            r = intersection(hp(0.0, 10.0), s)   # x >= 0
+            @test r isa APUnboundedPolygon2
+            @test P(2.0, 1.5) in r && !(P(-1.0, 1.5) in r) && !(P(2.0, 5.0) in r)
+            @test distance(P(-3.0, 1.5), r) ≈ 3.0
+            @test intersection(s, hp(0.0, 10.0)) == r   # reverse order
+            @test intersection(APHalfPlane2(APLine(P(-5.0, 1.0), P(5.0, 1.0)), P(0.0, 3.0)), s) ==
+                  APStrip2(APLine(P(-5.0, 1.0), P(5.0, 1.0)), APLine(P(0.0, 3.0), P(-1.0, 3.0)))   # y >= 1 tightens the strip
+            @test intersection(APHalfPlane2(APLine(P(-5.0, 10.0), P(5.0, 10.0)), P(0.0, 20.0)), s) === nothing
+
+            # strip vs strip
+            s2 = APStrip2(APLine(P(0.0, 0.0), P(0.0, 1.0)), APLine(P(4.0, 0.0), P(4.0, 1.0)))   # 0 <= x <= 4
+            @test intersection(s, s2) == APQuadrilateral(P(0.0, 0.0), P(4.0, 0.0), P(4.0, 3.0), P(0.0, 3.0))
+
+            # convex angle vs halfplane/strip
+            ang = APAngle2(O, P(4.0, 0.0), P(0.0, 4.0))   # first quadrant
+            hp_cut = APHalfPlane2(APLine(P(6.0, 0.0), P(0.0, 6.0)), O)   # x + y <= 6
+            @test only(intersection(ang, hp_cut)) == APTriangle(P(6.0, 0.0), P(0.0, 6.0), P(0.0, 0.0))
+            hp_one_ray = APHalfPlane2(APLine(P(2.0, -5.0), P(2.0, 5.0)), O)   # x <= 2, crosses only one ray
+            u = only(intersection(ang, hp_one_ray))
+            @test u isa APUnboundedPolygon2 && P(1.0, 5.0) in u && !(P(3.0, 1.0) in u)
+            @test only(intersection(ang, s)) isa APUnboundedPolygon2   # 1 <= y <= 3 clipped to x >= 0
+
+            # reflex angle: distributes into up to 2 pieces
+            reflex = APAngle2(O, P(1.0, 0.0), P(0.0, -1.0))   # excludes the 4th quadrant
+            pieces = intersection(reflex, hp_cut)
+            @test length(pieces) == 2
+            @test any(p -> isapprox(p, APAngle2(P(6.0, 0.0), P(0.0, 6.0), P(5.0, 0.0)); atol=1e-9), pieces)
+            @test any(p -> isapprox(p, APAngle2(P(0.0, 6.0), P(-6.0, 12.0), P(0.0, 5.0)); atol=1e-9), pieces)
+
+            # angle vs angle: sharing only a boundary ray collapses to that ray
+            ang2 = APAngle2(O, P(0.0, 4.0), P(-4.0, 0.0))   # second quadrant
+            @test only(intersection(ang, ang2)) == APRay(O, P(0.0, 4.0))
+            # a redundant halfplane already implied by ang leaves ang unchanged
+            @test only(intersection(hp(0.0, 10.0), ang)) == ang
+            # genuinely disjoint angles (different vertices, opening away from each other)
+            ang3 = APAngle2(P(-10.0, 0.0), P(-11.0, 0.0), P(-10.0, -1.0))
+            @test isempty(intersection(ang, ang3))
+
+            # both operands reflex: distributes into up to 4 pieces (not merged
+            # even when adjacent, see ap_region_intersections.jl)
+            reflex2 = APAngle2(O, P(-1.0, 0.0), P(0.0, 1.0))
+            both = intersection(reflex, reflex2)
+            @test length(both) == 4
+            @test count(p -> p isa APLine, both) == 2
+            @test count(p -> p isa APAngle2, both) == 2
+        end
+        @testset "APUnboundedPolygon2" begin
+            P(x, y) = APPoint(x, y)
+            u = APUnboundedPolygon2(APRay(P(0.0, 3.0), P(1.0, 3.0)), APPoint{2,Float64}[], APRay(P(0.0, 0.0), P(1.0, 0.0)))
+            @test vertices(u) == [P(0.0, 3.0), P(0.0, 0.0)]
+            @test P(2.0, 1.5) in u && !(P(-1.0, 1.5) in u) && !(P(2.0, 5.0) in u)
+            @test distance(P(2.0, 1.5), u) == 0.0
+            @test distance(P(-3.0, 1.5), u) ≈ 3.0
+            @test distance(P(2.0, 10.0), u; mode=:boundary) ≈ 7.0
+            @test APBoundingBox(u) == APBoundingBox()
+
+            pts = [P(x, y) for x in -3.0:1.5:6.0 for y in -3.0:1.5:6.0]
+            transforms = [
+                p -> rotate(p, pi / 3), p -> translate(p, APVector(2.0, -1.0)),
+                p -> homothety(p, 1.7), p -> reflection(p, P(1.0, 1.0)),
+                p -> reflection(p, APLine(P(0.0, 0.0), P(1.0, 1.0))),
+            ]
+            objs = [
+                rotate(u, pi / 3), translate(u, APVector(2.0, -1.0)),
+                homothety(u, 1.7), reflection(u, P(1.0, 1.0)),
+                reflection(u, APLine(P(0.0, 0.0), P(1.0, 1.0))),
+            ]
+            for (T, obj) in zip(transforms, objs)
+                @test all((p in u) == (T(p) in obj) for p in pts)
+            end
+
+            m = APAffineMap(2.0, 0.0, 0.0, 1.0, 5.0, -3.0)
+            um = m(u)
+            @test um isa APUnboundedPolygon2
+            @test all((p in u) == (m(p) in um) for p in pts)
+        end
     end
     @testset "APAffineMap" begin
         src = (APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(0.0, 1.0))

@@ -255,6 +255,16 @@ function AP.path(s::AP.APStrip2; extend=1000.0, add=nothing, action=:path, rever
     AP.path(s.line2; extend=extend, add=add, action=action, reverse=reverse)
 end
 """
+    path(u::APUnboundedPolygon2; extend=1000.0, action=:path)
+
+Draws `u`'s actual boundary: `ray1`, the segments through its interior
+vertices, then `ray2`, via [`path(::Vector)`](@ref) (a mix of ray and
+segment pieces, the same way a reflex [`APAngle2`](@ref)'s clipped pieces
+are drawn).
+"""
+AP.path(u::AP.APUnboundedPolygon2; extend=1000.0, action=:path, reverse::Bool=false) =
+    AP.path(collect(AP._boundary_edges(u)); extend=extend, action=action, reverse=reverse)
+"""
     path(c::APCircle2; action=:path, reverse=false)
 
 With `reverse=true` the circle is traversed in the opposite direction
