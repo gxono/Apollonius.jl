@@ -79,6 +79,47 @@ distance(APPoint(1.0, 0.0), hp1; mode=:boundary)   # 1.0, even though the point 
 <img src="../assets/img/unbounded/halfplane.svg" alt="A half-plane bounded by a vertical line: points inside in purple, outside in gray, and the distance from one outside point to the boundary" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+        l = APLine(APPoint(0.0, 0.0), APPoint(0.0, 4.0))
+        q = APPoint(1.0, 0.0)
+        hp = APHalfPlane2(l, q)
+        pts = [APPoint(x, y) for x in (-3.0, -1.0, 1.0, 3.0) for y in (-2.0, 0.0, 2.0)]
+        far = APPoint(-3.0, 1.0)
+        foot = projection(far, l)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin(); fontsize(15)
+    inside = [p for p in pts if p in hp]
+    outside = [p for p in pts if !(p in hp)]
+    sethue(julia_blue)
+    path(l, action=:stroke)
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(APSegment(far, foot), action=:stroke)
+    grestore()
+    sethue("gray80")
+    sethue(julia_purple)
+    sethue(julia_red)
+    label("q", :N, q)
+    sethue("white"); path([outside; far], action=:fillpreserve); sethue("gray80"); strokepath()
+    sethue("white"); path(inside, action=:fillpreserve); sethue(julia_purple); strokepath()
+    sethue("white"); path([q], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 `rotate`/`homothety`/`translate` move the boundary and leave `side`
 unchanged: a rotation or a homothety of any ratio is always
 orientation-preserving in 2D, so "the same physical side" is still the
@@ -120,6 +161,38 @@ intersection(hp1, crossing)
 <img src="../assets/img/unbounded/halfplane_clip.svg" alt="A half-plane's boundary, a line crossing it, and the ray that is the part of the line inside the half-plane, drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        l = APLine(APPoint(0.0, -5.0), APPoint(0.0, 5.0))
+        hp = APHalfPlane2(l, APPoint(1.0, 0.0))
+        p1, p2 = APPoint(-6.0, -3.0), APPoint(6.0, 3.0)
+        input = APLine(p1, p2)
+        clipped = intersection(hp, input)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path(l, action=:stroke, extend=10)
+    grestore()
+    sethue(julia_blue)
+    path(input, action=:stroke, extend=10)
+    sethue(julia_purple); setline(3)
+    path(clipped, action=:stroke, extend=10)
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@example geo
 intersection(hp1, APLine(APPoint(2.0, -6.0), APPoint(2.0, 6.0))),    # parallel to the boundary, on the inside: the whole line
     intersection(hp1, APLine(APPoint(-2.0, -6.0), APPoint(-2.0, 6.0)))   # parallel, on the outside: nothing
@@ -145,6 +218,37 @@ rad2deg(measure(half_circle))
 ```@raw html
 <img src="../assets/img/unbounded/halfplane_clip_circle.svg" alt="A half-plane's boundary and a circle centered on it, with the half of the circle inside the half-plane drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        l = APLine(APPoint(0.0, -5.0), APPoint(0.0, 5.0))
+        hp = APHalfPlane2(l, APPoint(1.0, 0.0))
+        c = APCircle2(APPoint(0.0, 0.0), 3.0)
+        clipped = intersection(hp, c)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path(l, action=:stroke, extend=10)
+    grestore()
+    sethue(julia_blue)
+    path(c, action=:stroke)
+    sethue(julia_purple); setline(3)
+    path(clipped, action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
 
 ## `APStrip2`
 
@@ -187,6 +291,44 @@ distance(APPoint(0.5, 5.0), s), distance(APPoint(0.5, 5.0), s; mode=:boundary)
 <img src="../assets/img/unbounded/strip.svg" alt="A strip between two parallel lines, with points inside in purple and outside in gray" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+        l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
+        l2 = APLine(APPoint(0.0, 3.0), APPoint(1.0, 3.0))
+        s = APStrip2(l1, l2)
+        pts = [APPoint(x, y) for x in (-3.0, 0.0, 3.0) for y in (-1.5, 1.5, 4.5)]
+        far = APPoint(1.0, 4.5)
+        foot = projection(far, l2)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    inside = [p for p in pts if p in s]
+    outside = [p for p in pts if !(p in s)]
+    sethue(julia_blue)
+    path([l1, l2], action=:stroke)
+    gsave()
+    setline(1); setdash("dash")
+    sethue(julia_green)
+    path(APSegment(far, foot), action=:stroke)
+    grestore()
+    sethue("gray80")
+    sethue(julia_purple)
+    sethue("white"); path([outside; far], action=:fillpreserve); sethue("gray80"); strokepath()
+    sethue("white"); path(inside, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ```@example geo
 s_rotated = rotate(s, pi / 4)
 strip_width(s_rotated) ≈ strip_width(s)   # rotation preserves the perpendicular distance
@@ -226,6 +368,39 @@ intersection(s, crossing)
 <img src="../assets/img/unbounded/strip_clip.svg" alt="A strip's two boundary lines, a line crossing the band, and the segment that is the part of the line inside the strip, drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        l1 = APLine(APPoint(-6.0, 0.0), APPoint(6.0, 0.0))
+        l2 = APLine(APPoint(-6.0, 3.0), APPoint(6.0, 3.0))
+        st = APStrip2(l1, l2)
+        p1, p2 = APPoint(-6.0, -1.5), APPoint(6.0, 4.5)
+        input = APLine(p1, p2)
+        clipped = intersection(st, input)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path([l1, l2], action=:stroke, extend=10)
+    grestore()
+    sethue(julia_blue)
+    path(input, action=:stroke, extend=10)
+    sethue(julia_purple); setline(3)
+    path(clipped, action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
+
 A strip is bounded by two parallel lines, so unlike a half-plane or an
 angle, clipping a line/segment/ray to a strip is always a single piece:
 there's no way for it to leave and come back.
@@ -243,6 +418,38 @@ length(pieces), round.(rad2deg.(measure.(pieces)); digits=1)
 ```@raw html
 <img src="../assets/img/unbounded/strip_clip_circle.svg" alt="A strip and a circle wider than the band, split into two disjoint arcs where the circle pokes out on each side, drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        l1 = APLine(APPoint(-6.0, 0.0), APPoint(6.0, 0.0))
+        l2 = APLine(APPoint(-6.0, 3.0), APPoint(6.0, 3.0))
+        st = APStrip2(l1, l2)
+        c = APCircle2(APPoint(3.0, 1.5), 4.0)
+        pieces = intersection(st, c)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path([l1, l2], action=:stroke, extend=10)
+    grestore()
+    sethue(julia_blue)
+    path(c, action=:stroke)
+    sethue(julia_purple); setline(3)
+    foreach(pc -> path(pc, action=:stroke), pieces)
+
+    finish()
+    preview()
+    end
+    ```
 
 ## Intersecting two regions
 
@@ -270,6 +477,38 @@ intersection(s, s2)
 <img src="../assets/img/unbounded/region_intersect_strip_strip.svg" alt="Two crossing strips, with the parallelogram common to both drawn over them in purple" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        l1 = APLine(APPoint(-6.0, 0.0), APPoint(6.0, 0.0))
+        l2 = APLine(APPoint(-6.0, 3.0), APPoint(6.0, 3.0))
+        s = APStrip2(l1, l2)
+        l3 = APLine(APPoint(0.0, -5.0), APPoint(0.0, 5.0))
+        l4 = APLine(APPoint(4.0, -5.0), APPoint(4.0, 5.0))
+        s2 = APStrip2(l3, l4)
+        q = intersection(s, s2)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path([l1, l2, l3, l4], action=:stroke, extend=10)
+    grestore()
+    sethue(julia_purple); setline(3)
+    path(q, action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
+
 A half-plane crossing a strip on only *one* side, though, is neither
 bounded nor one of the three named types: it needs a fourth,
 [`APUnboundedPolygon2`](@ref) (below).
@@ -281,6 +520,41 @@ intersection(hp1, s)
 ```@raw html
 <img src="../assets/img/unbounded/region_intersect_halfplane_strip.svg" alt="A half-plane crossing a strip on one side: the result is bounded by both of the strip's rays and a segment of the half-plane's own boundary, drawn over them in purple" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        p1, p2 = APPoint(0.0, -5.0), APPoint(0.0, 5.0)
+        l = APLine(p1, p2)
+        hp = APHalfPlane2(l, APPoint(1.0, 0.0))
+        p3, p4 = APPoint(-6.0, 0.0), APPoint(6.0, 0.0)
+        p5, p6 = APPoint(-6.0, 3.0), APPoint(6.0, 3.0)
+        l1 = APLine(p3, p4)
+        l2 = APLine(p5, p6)
+        st = APStrip2(l1, l2)
+        u = intersection(hp, st)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path(l, action=:stroke, extend=10)
+    path([l1, l2], action=:stroke, extend=10)
+    grestore()
+    sethue(julia_purple); setline(3)
+    path(u, action=:stroke, extend=10)
+
+    finish()
+    preview()
+    end
+    ```
 
 See [Points, Lines & Rays: Angles](@ref) for the same idea against an
 `APAngle2`, including the reflex case that can give up to two pieces
@@ -337,6 +611,38 @@ intersection(hp1, t)
 ```@raw html
 <img src="../assets/img/unbounded/halfplane_clip_polygon.svg" alt="A triangle crossed by a half-plane's boundary, with the quadrilateral piece inside the half-plane drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        p1, p2 = APPoint(0.0, -5.0), APPoint(0.0, 5.0)
+        l = APLine(p1, p2)
+        hp = APHalfPlane2(l, APPoint(1.0, 0.0))
+        t = APTriangle(APPoint(-2.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 4.0))
+        clipped = intersection(hp, t)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path(l, action=:stroke, extend=10)
+    grestore()
+    sethue(julia_blue)
+    path(t, action=:stroke)
+    sethue(julia_purple); setline(3)
+    path(clipped, action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
 
 An `APAngle2` works the same way but always comes back as a `Vector` (see
 [Points, Lines & Rays: Angles](@ref) for why): 0 or 1 pieces for a convex

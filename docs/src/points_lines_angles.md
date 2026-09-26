@@ -213,6 +213,37 @@ intersection(reflex, APLine(APPoint(-6.0, -6.0), APPoint(16.0, 5.0)))
 <img src="../assets/img/points_lines/angle_clip_reflex.svg" alt="A reflex wedge's two boundary rays, a line crossing through the excluded quadrant, and the two disjoint rays of the line that lie inside the wedge, drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        vertex, a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, -4.0)
+        reflex = APAngle2(vertex, a, b)
+        p1, p2 = APPoint(-6.0, -6.0), APPoint(16.0, 5.0)
+        input = APLine(p1, p2)
+        pieces = intersection(reflex, input)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_blue)
+    path(APRay(vertex, a), action=:stroke, extend=10)
+    path(APRay(vertex, b), action=:stroke, extend=10)
+    path(input, action=:stroke, extend=10)
+    sethue(julia_purple); setline(3)
+    path(pieces, action=:stroke, extend=10)
+    sethue("white"); path([vertex], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 A point works the same way as `in`, without the two-piece question: the
 point itself if it's inside `ang`, `nothing` otherwise. Both argument
 orders work for all of these.
@@ -231,6 +262,36 @@ rad2deg(measure(quarter))
 <img src="../assets/img/points_lines/angle_clip_circle.svg" alt="A wedge and a circle at its vertex, with the quarter of the circle inside the wedge drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        vertex, a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0)
+        ang = APAngle2(vertex, a, b)
+        c = APCircle2(vertex, 2.0)
+        piece = only(intersection(ang, c))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_blue)
+    path(APRay(vertex, a), action=:stroke, extend=10)
+    path(APRay(vertex, b), action=:stroke, extend=10)
+    path(c, action=:stroke)
+    sethue(julia_purple); setline(3)
+    path(piece, action=:stroke)
+    sethue("white"); path([vertex], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+    finish()
+    preview()
+    end
+    ```
+
 ### Intersecting with another region
 
 [`intersection`](@ref)`(ang, other)` also works when `other` is itself an
@@ -247,6 +308,39 @@ only(intersection(ang, hp))
 ```@raw html
 <img src="../assets/img/points_lines/angle_intersect_halfplane.svg" alt="A wedge and a half-plane whose boundary crosses both of its rays, with the triangle common to both drawn over them in purple" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+        vertex, a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0)
+        ang = APAngle2(vertex, a, b)
+        l = APLine(APPoint(6.0, 0.0), APPoint(0.0, 6.0))
+        hp = APHalfPlane2(l, vertex)
+        t = only(intersection(ang, hp))
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_blue)
+    path(APRay(vertex, a), action=:stroke, extend=10)
+    path(APRay(vertex, b), action=:stroke, extend=10)
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path(l, action=:stroke, extend=10)
+    grestore()
+    sethue(julia_purple); setline(3)
+    path(t, action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
 
 Crossing only one ray gives an unbounded [`APUnboundedPolygon2`](@ref)
 instead (see [Unbounded Regions: Half-Planes, Strips & Angles](@ref) for

@@ -9,24 +9,14 @@ function bisect(V, P, Q)
     F = far(intersection(circ(D, E), circ(E, D)), V)
     return APLine(V, F)
 end
-A, B, C = APPoint(1.0, 4.0), APPoint(6.0, 1.0), APPoint(9.0, 3.0)
-D = equilateral(A, B)
-G = far(intersection(APRay(D, B), circ(B, C)), D)
-L = only(intersection(APRay(D, A), circ(D, G)))
-BC = APSegment(B, C); AL = APSegment(A, L)
-aids = [APSegment(D, G), APSegment(D, L), APSegment(A, D), APSegment(D, B), APSegment(A, B)]
-traces = [compass_trace(B, G; angle=pi / 5), compass_trace(D, L; angle=pi / 6)]
 lxm, lxo = @prepare_to_picture width=500 height=320 margin=30 begin
-    A
-    B
-    C
-    D
-    G
-    L
-    BC
-    AL
-    aids
-    traces
+    A, B, C = APPoint(1.0, 4.0), APPoint(6.0, 1.0), APPoint(9.0, 3.0)
+    D = equilateral(A, B)
+    G = far(intersection(APRay(D, B), circ(B, C)), D)
+    L = only(intersection(APRay(D, A), circ(D, G)))
+    BC = APSegment(B, C); AL = APSegment(A, L)
+    aids = [APSegment(D, G), APSegment(D, L), APSegment(A, D), APSegment(D, B), APSegment(A, B)]
+    traces = [compass_trace(B, G; angle=pi / 5), compass_trace(D, L; angle=pi / 6)]
 end
 (; A, B, C, D, G, L, BC, AL, aids, traces) = lxo
 @svg_doc(lxm, @__FILE__, begin

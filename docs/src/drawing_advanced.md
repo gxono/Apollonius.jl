@@ -110,6 +110,33 @@ The same idea with two discs and a triangle, shading everything else:
 <img src="../assets/img/drawing/clip_out.svg" alt="The outside of two circles and a triangle shaded" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+        shapes = [APCircle2(APPoint(0.0, 0.0), 2.0), APCircle2(APPoint(4.0, 0.0), 2.0), APTriangle(APPoint(1.0, 3.0), APPoint(3.0, 3.0), APPoint(2.0, -3.0))]
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    clip_out(shapes)
+    sethue(julia_purple); setopacity(0.25)
+    Luxor.paint()
+    grestore()
+    sethue(julia_blue)
+    path(shapes, action=:stroke)
+
+    finish()
+    preview()
+    end
+    ```
+
 Two calls keep what is outside both shapes, and a `Vector` argument does the
 same in one call, one clip per element. Like any Luxor clip, it lasts until
 `clipreset()` or the end of the enclosing `@layer`, so wrap it.
@@ -145,6 +172,40 @@ path(s; action=:fill)
 <img src="../assets/img/drawing/fill_halfplane_strip.svg" alt="A half-plane and a strip, each shaded up to the edge of the picture" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+        p1, p2 = APPoint(-2.0, -5.0), APPoint(-2.0, 5.0)
+        l = APLine(p1, p2)
+        hp = APHalfPlane2(l, APPoint(-10.0, 0.0))
+        p3, p4 = APPoint(0.0, -6.0), APPoint(8.0, -6.0)
+        p5, p6 = APPoint(0.0, -3.0), APPoint(8.0, -3.0)
+        l1 = APLine(p3, p4)
+        l2 = APLine(p5, p6)
+        s = APStrip2(l1, l2)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple); setopacity(0.25)
+    path(hp; action=:fill, bound=1000.0)
+    path(s; action=:fill, bound=1000.0)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path(hp; action=:stroke, extend=1000.0)
+    path(s; action=:stroke, extend=1000.0)
+
+    finish()
+    preview()
+    end
+    ```
+
 An [`APUnboundedPolygon2`](@ref) (see [Unbounded Regions: Half-Planes,
 Strips & Angles](@ref)) fills the same way, its mix of rays and segments
 closing off a shape that's bounded on some sides and open on others:
@@ -158,6 +219,36 @@ path(u; action=:fill)
 ```@raw html
 <img src="../assets/img/drawing/fill_unboundedpolygon.svg" alt="An unbounded polygon (bounded above and below, open on the right) shaded up to the edge of the picture" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+        p1, p2 = APPoint(0.0, 3.0), APPoint(1.0, 3.0)
+        p3, p4 = APPoint(0.0, 0.0), APPoint(1.0, 0.0)
+        ray1 = APRay(p1, p2)
+        ray2 = APRay(p3, p4)
+        u = APUnboundedPolygon2(ray1, APPoint{2,Float64}[], ray2)
+        corner1, corner2 = APPoint(-2.0, -1.0), APPoint(8.0, 4.0)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple); setopacity(0.25)
+    path(u; action=:fill, bound=1000.0)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path(u; action=:stroke, extend=1000.0)
+
+    finish()
+    preview()
+    end
+    ```
 
 [`APAngle2`](@ref) gets this as a new `as=:region` option (alongside its
 own `as=:rays`; the decorative vertex markers, a small arc/pie-wedge/corner
@@ -175,6 +266,32 @@ path(ang; as=:region, action=:fill)
 <img src="../assets/img/drawing/fill_angle_region.svg" alt="A convex angle's true wedge shaded up to the edge of the picture" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+        vertex, a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0)
+        ang = APAngle2(vertex, a, b)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple); setopacity(0.25)
+    path(ang; as=:region, action=:fill, bound=1000.0)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path(ang; as=:region, action=:stroke, bound=1000.0)
+
+    finish()
+    preview()
+    end
+    ```
+
 A *reflex* angle correctly fills as two pieces (everything except the
 small excluded wedge), the same way it can come back as two pieces from
 [`intersection`](@ref):
@@ -188,6 +305,32 @@ path(reflex; as=:region, action=:fill)
 ```@raw html
 <img src="../assets/img/drawing/fill_reflex_region.svg" alt="A reflex angle shaded everywhere except the small excluded wedge, as two filled pieces" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+        vertex, a, b = APPoint(0.0, 0.0), APPoint(0.0, 4.0), APPoint(4.0, 0.0)
+        reflex = APAngle2(vertex, a, b)
+    end
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple); setopacity(0.25)
+    path(reflex; as=:region, action=:fill, bound=1000.0)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path(reflex; as=:region, action=:stroke, bound=1000.0)
+
+    finish()
+    preview()
+    end
+    ```
 
 `as=:region` with `action` in `:path`/`:stroke`/`:strokepreserve` draws the
 same two true rays as `as=:rays`, and raise `bound` the same way `clip_out`

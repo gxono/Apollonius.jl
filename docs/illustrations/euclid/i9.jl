@@ -9,26 +9,16 @@ function bisect(V, P, Q)
     F = far(intersection(circ(D, E), circ(E, D)), V)
     return APLine(V, F)
 end
-A, B, C = APPoint(0.0, 0.0), APPoint(7.0, 1.0), APPoint(2.0, 6.0)
-r = min(distance(A, B), distance(A, C)) / 2
-D = only(intersection(APCircle2(A, r), APSegment(A, B)))
-E = only(intersection(APCircle2(A, r), APSegment(A, C)))
-F = far(intersection(circ(D, E), circ(E, D)), A)
-rays = [APSegment(A, B), APSegment(A, C)]
-bis = APSegment(A, F)
-aids = [APSegment(D, E), APSegment(D, F), APSegment(E, F)]
-traces = [APCircularArc2(circ(A, D), D, E), compass_trace(D, F; angle=pi / 6), compass_trace(E, F; angle=pi / 6)]
 lxm, lxo = @prepare_to_picture width=500 height=320 margin=30 begin
-    A
-    B
-    C
-    D
-    E
-    F
-    rays
-    bis
-    aids
-    traces
+    A, B, C = APPoint(0.0, 0.0), APPoint(7.0, 1.0), APPoint(2.0, 6.0)
+    r = min(distance(A, B), distance(A, C)) / 2
+    D = only(intersection(APCircle2(A, r), APSegment(A, B)))
+    E = only(intersection(APCircle2(A, r), APSegment(A, C)))
+    F = far(intersection(circ(D, E), circ(E, D)), A)
+    rays = [APSegment(A, B), APSegment(A, C)]
+    bis = APSegment(A, F)
+    aids = [APSegment(D, E), APSegment(D, F), APSegment(E, F)]
+    traces = [APCircularArc2(circ(A, D), D, E), compass_trace(D, F; angle=pi / 6), compass_trace(E, F; angle=pi / 6)]
 end
 (; A, B, C, D, E, F, rays, bis, aids, traces) = lxo
 @svg_doc(lxm, @__FILE__, begin

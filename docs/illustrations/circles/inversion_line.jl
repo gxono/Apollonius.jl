@@ -1,8 +1,7 @@
 include("../default_config.jl")
-P = APPoint(0.0, 0.0)
-inv5 = invert(P; k=5.0)
 lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
-    P
+    P = APPoint(0.0, 0.0)
+    @unbounded inv5 = invert(P; k=5.0)
     circ = APCircle2(P, 5.0)
     l1 = APLine(APPoint(2.0, 0.0), APPoint(2.0, 1.0))
     l2 = APLine(APPoint(-3.0, 0.0), APPoint(-3.0, 1.0))

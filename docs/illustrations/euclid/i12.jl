@@ -9,27 +9,15 @@ function bisect(V, P, Q)
     F = far(intersection(circ(D, E), circ(E, D)), V)
     return APLine(V, F)
 end
-A, B, C, D = APPoint(-3.0, 0.0), APPoint(9.0, 0.0), APPoint(3.0, 4.0), APPoint(5.0, -2.0)
-E, G = intersection(circ(C, D), APLine(A, B))
-K = equilateral(E, G)
-H = only(intersection(bisect(K, E, G), APSegment(E, G)))
-AB = APSegment(A, B)
-aids = [APSegment(E, K), APSegment(G, K)]
-traces = [compass_trace(C, D; angle=pi / 3), compass_trace(C, E; angle=pi / 8), compass_trace(C, G; angle=pi / 8), compass_trace(E, K; angle=pi / 6), compass_trace(G, K; angle=pi / 6)]
-ch = APSegment(C, H)
 lxm, lxo = @prepare_to_picture width=500 height=320 margin=30 begin
-    A
-    B
-    C
-    D
-    E
-    G
-    K
-    H
-    AB
-    aids
-    traces
-    ch
+    A, B, C, D = APPoint(-3.0, 0.0), APPoint(9.0, 0.0), APPoint(3.0, 4.0), APPoint(5.0, -2.0)
+    E, G = intersection(circ(C, D), APLine(A, B))
+    K = equilateral(E, G)
+    H = only(intersection(bisect(K, E, G), APSegment(E, G)))
+    AB = APSegment(A, B)
+    aids = [APSegment(E, K), APSegment(G, K)]
+    traces = [compass_trace(C, D; angle=pi / 3), compass_trace(C, E; angle=pi / 8), compass_trace(C, G; angle=pi / 8), compass_trace(E, K; angle=pi / 6), compass_trace(G, K; angle=pi / 6)]
+    ch = APSegment(C, H)
 end
 (; A, B, C, D, E, G, K, H, AB, aids, traces, ch) = lxo
 @svg_doc(lxm, @__FILE__, begin

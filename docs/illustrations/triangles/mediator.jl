@@ -1,9 +1,8 @@
 include("../default_config.jl")
-A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
-t = APTriangle(A, B, C)
-ll = reduce(vcat, mediator.(t, 1:3))
 lxm, lxo = @prepare_to_picture width=500 height=240 margin=20 begin
-    A; B; C; t; ll
+    A, B, C = APPoint(0.0, 0.0), APPoint(8.0, 0.0), APPoint(3.0, 6.0)
+    t = APTriangle(A, B, C)
+    ll = reduce(vcat, mediator.(t, 1:3))
 end
 (; A, B, C, t, ll) = lxo
 @svg_doc(lxm, @__FILE__, begin

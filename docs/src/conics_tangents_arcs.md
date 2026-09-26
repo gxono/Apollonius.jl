@@ -297,6 +297,41 @@ intersection(hp, par)
 <img src="../assets/img/conics/parabola_clip_two_rays.svg" alt="A parabola crossed twice by a half-plane's boundary with the middle piece excluded, leaving two disjoint half-infinite rays inside the half-plane, drawn over it in purple" style="width:100%; max-width: 700px;">
 ```
 
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=280 margin=20 begin
+        focus = APPoint(0.0, 1.0)
+        directrix = APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0))
+        par = APParabola2(focus, directrix)
+        p1, p2 = APPoint(-5.0, 4.0), APPoint(5.0, 4.0)
+        l = APLine(p1, p2)
+        hp = APHalfPlane2(l, APPoint(0.0, 10.0))
+        corner1, corner2 = APPoint(-6.0, -1.0), APPoint(6.0, 9.0)
+    end
+    pieces = intersection(hp, par)
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path(l, action=:stroke, extend=10)
+    grestore()
+    sethue(julia_blue)
+    path(par, action=:stroke)
+    sethue(julia_purple); setline(3)
+    foreach(pc -> path(pc, action=:stroke), pieces)
+
+    finish()
+    preview()
+    end
+    ```
+
 Whichever pieces survive come back in the tightest fitting type: an
 [`APParabolicRay2`](@ref)/[`APHyperbolicRay2`](@ref) when one end is still
 unbounded (what the example above gives, twice), the existing
@@ -330,6 +365,40 @@ intersection(hp2, h)
 ```@raw html
 <img src="../assets/img/conics/hyperbola_clip_branch.svg" alt="A hyperbola with one branch clipped to a bounded arc by a half-plane and the other branch surviving whole, drawn over them in purple" style="width:100%; max-width: 700px;">
 ```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm = @prepare_to_picture! width=500 height=280 margin=20 begin
+        h = APHyperbola2(APPoint(0.0, 0.0), 3.0, 4.0)
+        p1, p2 = APPoint(4.0, -20.0), APPoint(4.0, 20.0)
+        l = APLine(p1, p2)
+        hp = APHalfPlane2(l, APPoint(-10.0, 0.0))
+        corner1, corner2 = APPoint(-6.0, -8.0), APPoint(6.0, 8.0)
+    end
+    pieces = intersection(hp, h)
+
+
+    begin
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    gsave()
+    sethue("gray80"); setdash("dash")
+    path(l, action=:stroke, extend=10)
+    grestore()
+    sethue(julia_blue)
+    path(h; branch=1, action=:stroke)
+    path(h; branch=-1, action=:stroke)
+    sethue(julia_purple); setline(3)
+    foreach(pc -> path(pc, action=:stroke), pieces)
+
+    finish()
+    preview()
+    end
+    ```
 
 A half-plane that instead crosses *both* branches (a horizontal line meets
 each branch of this `h` exactly once, transversally, since `y` is monotonic
