@@ -23,12 +23,22 @@ function _coalesce_run(run::Vector; atol::Real=1e-9)
     return out
 end
 
-function _clip_loop_to_region(loop_pieces::Vector, region; atol::Real=1e-9)
+function _rep_point(loop::Vector)
+    lo, hi = _side_domain(loop[1])
+    # an offbeat fraction rather than the midpoint: two shapes built with a
+    # shared, "round" reference direction (two same-radius circles tangent
+    # along an axis, a shared vertex at a domain's own start) can otherwise
+    # put the representative point exactly on the other shape's boundary
+    return _side_point_at(loop[1], lo + 0.4139 * (hi - lo))
+end
+
+function _clip_loop_to_region(loop_pieces::Vector, region; atol::Real=1e-9, invert::Bool=false)
     region_pieces = _pieces(region)
     has_crossing = any(!isempty(intersection(piece, rp; atol=atol)) for piece in loop_pieces for rp in region_pieces)
     if !has_crossing
-        rep = _side_point_at(loop_pieces[1], _side_domain(loop_pieces[1])[1])
-        return rep in region ? Vector{Any}[collect(loop_pieces)] : Vector{Any}[]
+        rep = _rep_point(loop_pieces)
+        keep = invert ? !(rep in region) : (rep in region)
+        return keep ? Vector{Any}[collect(loop_pieces)] : Vector{Any}[]
     end
     runs = Vector{Any}[]
     current = Any[]
@@ -42,7 +52,8 @@ function _clip_loop_to_region(loop_pieces::Vector, region; atol::Real=1e-9)
         for j in 1:length(bounds)-1
             a, b = bounds[j], bounds[j+1]
             (b - a) <= atol * scale && continue
-            survives = _side_point_at(piece, (a + b) / 2) in region
+            inside = _side_point_at(piece, (a + b) / 2) in region
+            survives = invert ? !inside : inside
             first_survived === nothing && (first_survived = survives)
             if survives
                 push!(current, _side_between(piece, a, b))

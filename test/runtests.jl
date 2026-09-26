@@ -6812,3 +6812,70 @@ end
         @test isempty(intersection(tri_edge, quad_edge; mode=:region))
     end
 end
+
+@testset "region_union and region_difference" begin
+    P(x, y) = APPoint(x, y)
+    t1 = APTriangle(P(0.0, 0.0), P(4.0, 0.0), P(2.0, 4.0))
+    t2 = APTriangle(P(1.0, 1.0), P(5.0, 1.0), P(3.0, 5.0))
+    c1, c2 = APCircle2(P(0.0, 0.0), 3.0), APCircle2(P(4.0, 0.0), 3.0)
+
+    @testset "union" begin
+        u1 = only(region_union(t1, t2))
+        @test u1 isa APStraightNgon && area(u1) ≈ area(t1) + area(t2) - 3.125
+        uc = only(region_union(c1, c2))
+        lens_area = 2 * 9 * acos(4 / 6) - 2 * sqrt(4 * 9 - 16)
+        @test area(uc) ≈ area(c1) + area(c2) - lens_area
+        small, big = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(0.0, 0.0), 5.0)
+        @test only(region_union(small, big)) == big
+        d1, d2 = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(50.0, 0.0), 1.0)
+        @test Set(region_union(d1, d2)) == Set([d1, d2])
+        @test only(region_union(c1, c1)) == c1
+        # tangent circles: touching at one point is not a real merge
+        touch1, touch2 = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(2.0, 0.0), 1.0)
+        @test Set(region_union(touch1, touch2)) == Set([touch1, touch2])
+        # internally tangent: the bigger circle swallows the smaller whole
+        @test only(region_union(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(0.5, 0.0), 0.5))) == APCircle2(P(0.0, 0.0), 1.0)
+        # sharing a whole edge but no other overlap: a coincident boundary
+        # contributes no crossing (the same convention intersection already
+        # uses for two coincident curves), so this stays two separate pieces
+        # rather than merging into one bigger polygon
+        tri_e = APTriangle(P(0.0, 0.0), P(2.0, 0.0), P(1.0, 2.0))
+        quad_e = APQuadrilateral(P(0.0, 0.0), P(2.0, 0.0), P(2.0, -2.0), P(0.0, -2.0))
+        @test Set(region_union(tri_e, quad_e)) == Set([tri_e, quad_e])
+        # union always needs both shapes fully walked, unlike intersection
+        ann = APAnnularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 4.0), P(4.0, 0.0), P(0.0, 4.0)), 2.0)
+        @test_throws ArgumentError region_union(ann, t1)
+        @test_throws ArgumentError region_union(t1, ann)
+    end
+
+    @testset "difference" begin
+        d1 = only(region_difference(t1, t2))
+        @test area(d1) ≈ area(t1) - 3.125
+        # b (straight) biting into a's edge works for any a, curved included
+        bite = APTriangle(P(-1.0, -1.0), P(5.0, -1.0), P(-1.0, 5.0))
+        dd = region_difference(c1, bite)
+        overlap_area = sum(area.(intersection(c1, bite; mode=:region)))
+        @test sum(area.(dd)) ≈ area(c1) - overlap_area
+        # disjoint: a unchanged
+        @test only(region_difference(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(50.0, 0.0), 1.0))) == APCircle2(P(0.0, 0.0), 1.0)
+        # a entirely inside b: nothing left
+        @test isempty(region_difference(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(0.0, 0.0), 5.0)))
+        # a minus itself: nothing left
+        @test isempty(region_difference(c1, c1))
+        # b entirely inside a, not touching a's edge: would carve a hole
+        @test_throws ArgumentError region_difference(APCircle2(P(0.0, 0.0), 5.0), APCircle2(P(0.0, 0.0), 1.0))
+        # a curved b (circle) can never be walked backward for the bite,
+        # even when it only bites a's edge rather than sitting fully inside
+        @test_throws ArgumentError region_difference(c1, c2)
+        # tangent, not overlapping: a unchanged
+        @test only(region_difference(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(2.0, 0.0), 1.0))) == APCircle2(P(0.0, 0.0), 1.0)
+        # sharing a whole edge, zero area in common: a unchanged
+        tri_e = APTriangle(P(0.0, 0.0), P(2.0, 0.0), P(1.0, 2.0))
+        quad_e = APQuadrilateral(P(0.0, 0.0), P(2.0, 0.0), P(2.0, -2.0), P(0.0, -2.0))
+        @test only(region_difference(tri_e, quad_e)) == tri_e
+        # both a and b always need full walking, unlike intersection's escape hatch
+        ann = APAnnularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 4.0), P(4.0, 0.0), P(0.0, 4.0)), 2.0)
+        @test_throws ArgumentError region_difference(ann, t1)
+        @test_throws ArgumentError region_difference(t1, ann)
+    end
+end

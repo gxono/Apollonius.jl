@@ -79,9 +79,9 @@ function _region_overlap(a, b; atol::Real=1e-9)
     loop_b = _ccw_pieces(b)
     has_crossing = any(!isempty(intersection(pa, pb; atol=atol)) for pa in loop_a for pb in loop_b)
     if !has_crossing
-        rep_a = _side_point_at(loop_a[1], _side_domain(loop_a[1])[1])
+        rep_a = _rep_point(loop_a)
         rep_a in b && return Any[a]
-        rep_b = _side_point_at(loop_b[1], _side_domain(loop_b[1])[1])
+        rep_b = _rep_point(loop_b)
         rep_b in a && return Any[b]
         return Any[]
     end
@@ -99,6 +99,75 @@ function _region_overlap(a, b; atol::Real=1e-9)
     end
     for run in runs_b
         append!(fragments, run)
+    end
+    loops = _stitch_closed_loops(fragments; atol=atol)
+    return [_classify_loop(loop) for loop in loops]
+end
+
+function _region_union(a, b; atol::Real=1e-9)
+    loop_a = _ccw_pieces(a)
+    loop_b = _ccw_pieces(b)
+    has_crossing = any(!isempty(intersection(pa, pb; atol=atol)) for pa in loop_a for pb in loop_b)
+    if !has_crossing
+        rep_a = _rep_point(loop_a)
+        rep_a in b && return Any[b]
+        rep_b = _rep_point(loop_b)
+        rep_b in a && return Any[a]
+        return Any[a, b]
+    end
+    runs_a = _clip_loop_to_region(loop_a, b; atol=atol, invert=true)
+    runs_b = _clip_loop_to_region(loop_b, a; atol=atol, invert=true)
+    # a's whole boundary surviving the "outside b" clip is ambiguous on its
+    # own: it also happens when b sits entirely inside a (tangent at one
+    # point), not just when a and b are merely touching from outside, so the
+    # two cases need telling apart by where b actually is
+    if length(runs_a) == 1 && runs_a[1] == loop_a
+        rep_b = _rep_point(loop_b)
+        return rep_b in a ? Any[a] : Any[a, b]
+    end
+    if length(runs_b) == 1 && runs_b[1] == loop_b
+        rep_a = _rep_point(loop_a)
+        return rep_a in b ? Any[b] : Any[a, b]
+    end
+    fragments = Any[]
+    for run in runs_a
+        append!(fragments, run)
+    end
+    for run in runs_b
+        append!(fragments, run)
+    end
+    loops = _stitch_closed_loops(fragments; atol=atol)
+    return [_classify_loop(loop) for loop in loops]
+end
+
+function _region_difference(a, b; atol::Real=1e-9)
+    a == b && return Any[]
+    loop_a = _ccw_pieces(a)
+    loop_b = _ccw_pieces(b)
+    has_crossing = any(!isempty(intersection(pa, pb; atol=atol)) for pa in loop_a for pb in loop_b)
+    if !has_crossing
+        rep_b = _rep_point(loop_b)
+        rep_b in a && throw(ArgumentError("intersection: this difference would carve b entirely out of a's interior, leaving a hole; no type here can represent a region with a hole"))
+        rep_a = _rep_point(loop_a)
+        rep_a in b && return Any[]
+        return Any[a]
+    end
+    runs_a = _clip_loop_to_region(loop_a, b; atol=atol, invert=true)
+    runs_b = _clip_loop_to_region(loop_b, a; atol=atol)
+    # same tangent ambiguity as in _region_union: a's whole boundary
+    # surviving "outside b" also happens when b sits entirely inside a
+    # (tangent at one point), which is the hole case, not "disjoint"
+    if length(runs_a) == 1 && runs_a[1] == loop_a
+        rep_b = _rep_point(loop_b)
+        rep_b in a && throw(ArgumentError("intersection: this difference would carve b entirely out of a's interior, leaving a hole; no type here can represent a region with a hole"))
+        return Any[a]
+    end
+    fragments = Any[]
+    for run in runs_a
+        append!(fragments, run)
+    end
+    for run in runs_b
+        append!(fragments, [_reverse_piece(piece) for piece in Base.reverse(run)])
     end
     loops = _stitch_closed_loops(fragments; atol=atol)
     return [_classify_loop(loop) for loop in loops]

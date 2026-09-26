@@ -92,3 +92,63 @@ intersection(a::Union{APCircle2,APEllipse2}, b::APPolygon{2}; mode=(:boundary, :
     _bounded_region_intersection(a, b; mode=mode, atol=atol)
 intersection(a::Union{APCircle2,APEllipse2}, b::Union{APCircle2,APEllipse2}; mode=(:boundary, :boundary), atol::Real=1e-9) =
     _bounded_region_intersection(a, b; mode=mode, atol=atol)
+
+"""
+    region_union(a, b; atol=1e-9)
+
+The union of two bounded, closed shapes (any of `APCircle2`/`APEllipse2`/the
+`APPolygon` family, straight or curved), reading both as filled regions:
+always a `Vector` (there is no `mode`, since a union only makes sense
+between two regions), holding 0, 1, or more pieces, each the tightest
+fitting shape (as in [`intersection`](@ref)'s `(:region,:region)`). One
+shape entirely inside the other gives the outer one unchanged; disjoint
+shapes give both, unmerged, as the two elements of the `Vector`; touching
+at a single point, or along a whole shared edge with no other overlap,
+also gives both, unmerged, rather than one bigger polygon, since a
+coincident boundary contributes no crossing (the same convention
+[`intersection`](@ref) already uses for two coincident curves). Both
+argument orders work.
+
+There is no `:boundary`-side escape hatch here the way `intersection` has
+one: both `a` and `b` always need their own boundary walked in a single
+consistent direction to be merged, so `APAnnularSector2` and
+`APInterstice2` built as the natural curved gap between mutually tangent
+circles always raise the same `ArgumentError` as `intersection`'s
+`(:region,:region)`, in either argument position, for the same
+underlying reason (a circular/elliptic arc that would need walking
+backward). `APCircle2`, `APEllipse2`, any straight-sided type, and a
+curved type with a single arc side (`APCircularSector2`,
+`APCircularSegment2`) never hit this.
+"""
+function region_union(a::_BoundedRegion2, b::_BoundedRegion2; atol::Real=1e-9)
+    return _region_union(a, b; atol=atol)
+end
+
+"""
+    region_difference(a, b; atol=1e-9)
+
+The part of the bounded, closed shape `a` that lies outside `b` (both read
+as filled regions, `a` minus `b`): always a `Vector`, holding 0, 1, or more
+pieces, each the tightest fitting shape. `a` and `b` disjoint gives `a`
+unchanged; `a` entirely inside `b` gives an empty `Vector`. Unlike
+[`intersection`](@ref) and [`region_union`](@ref), the argument order
+matters here.
+
+Both `a` and `b` need their own boundary walked in a single consistent
+direction (as in [`region_union`](@ref)), so `APAnnularSector2` and
+`APInterstice2` built as the natural curved gap always raise an
+`ArgumentError` here in either position. On top of that, `b` bites cleanly
+into `a`'s edge only when `b`'s own contributing boundary is straight
+(`APTriangle`/`APQuadrilateral`/`APStraightNgon`, or the straight sides of
+a curved-region type): a genuine circular or elliptic arc of `b` can never
+be walked backward either, so a `b` that is a circle, an ellipse, or a
+curved-region shape whose bite includes one of its arcs also raises an
+`ArgumentError`, even when `a` itself has no such trouble. `b` entirely
+inside `a`, not touching `a`'s own boundary, raises a different
+`ArgumentError` for a different reason: it would carve a hole out of the
+middle of `a`, and no type in this package can represent a region with a
+hole.
+"""
+function region_difference(a::_BoundedRegion2, b::_BoundedRegion2; atol::Real=1e-9)
+    return _region_difference(a, b; atol=atol)
+end

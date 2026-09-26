@@ -7,7 +7,10 @@ CurrentModule = Apollonius
 [`intersection`](@ref)`(a, b)` returns the points where two objects meet, as
 a `Vector` of [`APPoint`](@ref)s. The vector is empty when they do not meet,
 so the result is always safe to `filter`, `map` or `length`, and it is never
-`nothing`. The arguments can be given in either order.
+`nothing`. The arguments can be given in either order. This page also covers
+[`region_union`](@ref) and [`region_difference`](@ref), the other two ways
+two bounded regions can combine, further down in
+[Union and difference](@ref).
 
 **Except** when one side is an [`APAngle2`](@ref), [`APHalfPlane2`](@ref) or
 [`APStrip2`](@ref) and the other a line, segment, ray, or a conic (circle,
@@ -250,19 +253,25 @@ intersection(tclip, cclip; mode=(:boundary, :region))
 
 !!! details "See script"
     ```julia
-    include("../default_config.jl")
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
     lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
         tclip = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 3.0))
         cclip = APCircle2(APPoint(2.0, 1.0), 1.5)
         clipped = intersection(tclip, cclip; mode=(:boundary, :region))
     end
     (; tclip, cclip, clipped) = lxo
-    @svg_doc(lxm, @__FILE__, begin
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
     sethue(julia_blue)
     path([tclip, cclip], action=:stroke)
     sethue(julia_purple); setline(3)
     path(clipped, action=:stroke)
-    end)
+    finish()
+    preview()
     ```
 
 `mode=(:boundary, :region)` kept the three pieces of `tclip`'s own boundary
@@ -282,14 +291,19 @@ intersection(t1, t2; mode=:region)
 
 !!! details "See script"
     ```julia
-    include("../default_config.jl")
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
     lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
         t1 = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 4.0))
         t2 = APTriangle(APPoint(1.0, 1.0), APPoint(5.0, 1.0), APPoint(3.0, 5.0))
         overlap = only(intersection(t1, t2; mode=:region))
     end
     (; t1, t2, overlap) = lxo
-    @svg_doc(lxm, @__FILE__, begin
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
     sethue(julia_purple); setopacity(0.25)
     path(overlap; action=:fill)
     setopacity(1.0)
@@ -298,7 +312,8 @@ intersection(t1, t2; mode=:region)
     sethue(julia_purple)
     path(overlap; action=:stroke)
     sethue("white"); path(vertices(overlap), action=:fillpreserve); sethue(julia_purple); strokepath()
-    end)
+    finish()
+    preview()
     ```
 
 The same `mode=:region` works for two circles, giving the lens between them:
@@ -316,14 +331,19 @@ area(lens)
 
 !!! details "See script"
     ```julia
-    include("../default_config.jl")
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
     lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
         c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
         c2 = APCircle2(APPoint(4.0, 0.0), 3.0)
         lens = only(intersection(c1, c2; mode=:region))
     end
     (; c1, c2, lens) = lxo
-    @svg_doc(lxm, @__FILE__, begin
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
     sethue(julia_purple); setopacity(0.25)
     path(lens; action=:fill)
     setopacity(1.0)
@@ -331,7 +351,8 @@ area(lens)
     path([c1, c2], action=:stroke)
     sethue(julia_purple)
     path(lens; action=:stroke)
-    end)
+    finish()
+    preview()
     ```
 
 The two shapes need not be the same kind: a straight-sided polygon overlapping
@@ -350,14 +371,19 @@ only(intersection(tri, circ; mode=:region))
 
 !!! details "See script"
     ```julia
-    include("../default_config.jl")
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
     lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
         tri = APTriangle(APPoint(0.0, 0.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0))
         circ = APCircle2(APPoint(0.0, 0.0), 2.0)
         overlap = only(intersection(tri, circ; mode=:region))
     end
     (; tri, circ, overlap) = lxo
-    @svg_doc(lxm, @__FILE__, begin
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
     sethue(julia_purple); setopacity(0.25)
     path(overlap; action=:fill)
     setopacity(1.0)
@@ -365,7 +391,8 @@ only(intersection(tri, circ; mode=:region))
     path([tri, circ], action=:stroke)
     sethue(julia_purple)
     path(overlap; action=:stroke)
-    end)
+    finish()
+    preview()
     ```
 
 The same works for the rest of the curved-region family (`APCircularSector2`,
@@ -385,14 +412,19 @@ only(intersection(sec, sc; mode=:region))
 
 !!! details "See script"
     ```julia
-    include("../default_config.jl")
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
     lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
         sec = APCircularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 3.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0)))
         sc = APCircle2(APPoint(1.0, 1.0), 2.0)
         overlap = only(intersection(sec, sc; mode=:region))
     end
     (; sec, sc, overlap) = lxo
-    @svg_doc(lxm, @__FILE__, begin
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
     sethue(julia_purple); setopacity(0.25)
     path(overlap; action=:fill)
     setopacity(1.0)
@@ -400,7 +432,8 @@ only(intersection(sec, sc; mode=:region))
     path([sec, sc], action=:stroke)
     sethue(julia_purple)
     path(overlap; action=:stroke)
-    end)
+    finish()
+    preview()
     ```
 
 `APAnnularSector2` is the one member with a real gap: its inner arc always
@@ -432,6 +465,124 @@ small = APCircle2(APPoint(0.0, 0.0), 1.0)
 big = APCircle2(APPoint(0.0, 0.0), 5.0)
 intersection(small, big; mode=:region), intersection(small, APCircle2(APPoint(50.0, 0.0), 1.0); mode=:region)
 ```
+
+## Union and difference
+
+The same bounded, closed shapes accept two more operations,
+[`region_union`](@ref) and [`region_difference`](@ref), each always reading
+both sides as filled regions (there is no `mode` here, since a union or a
+difference only makes sense between two regions in the first place):
+
+```@example geo
+c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
+c2 = APCircle2(APPoint(4.0, 0.0), 3.0)
+merged = only(region_union(c1, c2))
+area(merged)
+```
+
+```@raw html
+<img src="../assets/img/intersections/region_union_circles.svg" alt="Two circles whose union, one merged blob, is filled in purple" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
+        c2 = APCircle2(APPoint(4.0, 0.0), 3.0)
+        merged = only(region_union(c1, c2))
+    end
+    (; c1, c2, merged) = lxo
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple); setopacity(0.25)
+    path(merged; action=:fill)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path([c1, c2], action=:stroke)
+    sethue(julia_purple)
+    path(merged; action=:stroke)
+    finish()
+    preview()
+    ```
+
+Like `intersection`'s `(:region,:region)`, the result is always a `Vector`:
+one shape entirely inside the other gives the outer one unchanged, and
+disjoint shapes (including two that merely touch, at a point or along a
+whole shared edge with no other overlap) give both, unmerged, as the two
+elements of the `Vector`, since a coincident boundary contributes no
+crossing, the same as it does for `intersection`.
+
+[`region_difference`](@ref)`(a, b)` is `a` with `b` taken out, so unlike
+`intersection` and `region_union`, argument order matters:
+
+```@example geo
+disk = APCircle2(APPoint(0.0, 0.0), 3.0)
+bite = APTriangle(APPoint(2.0, -3.0), APPoint(5.0, -3.0), APPoint(2.0, 3.0))
+remainder = only(region_difference(disk, bite))
+area(remainder)
+```
+
+```@raw html
+<img src="../assets/img/intersections/region_difference_bite.svg" alt="A circle with a triangular bite taken out of its edge, the remainder filled in purple" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        disk = APCircle2(APPoint(0.0, 0.0), 3.0)
+        bite = APTriangle(APPoint(2.0, -3.0), APPoint(5.0, -3.0), APPoint(2.0, 3.0))
+        remainder = only(region_difference(disk, bite))
+    end
+    (; disk, bite, remainder) = lxo
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple); setopacity(0.25)
+    path(remainder; action=:fill)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path([disk, bite], action=:stroke)
+    sethue(julia_purple)
+    path(remainder; action=:stroke)
+    finish()
+    preview()
+    ```
+
+`a` can be any shape in scope, straight or curved: `bite` above cuts cleanly
+into `disk`'s edge because `bite` is straight-sided. `b`'s own contributing
+boundary has to be straight for that to work; a genuine circular or
+elliptic arc of `b` can never be walked backward (the same representability
+limit as `intersection`'s `(:region,:region)`), so a `b` that is a circle,
+an ellipse, or a curved-region shape whose bite includes one of its arcs
+raises an `ArgumentError` here instead of a wrong answer:
+
+```@example geo
+try
+    region_difference(c1, c2)
+catch e
+    e
+end
+```
+
+A `b` entirely inside `a`, not touching `a`'s own boundary, raises a
+different `ArgumentError` for a different reason: it would carve a hole out
+of the middle of `a`, and no type in this package can represent a region
+with a hole. `a` and `b` disjoint gives `a` unchanged, and `a` entirely
+inside `b` gives an empty `Vector`, same as an entirely-covered shape does
+for `region_union`. Both operations always need every shape's own boundary
+walked in a single consistent direction (unlike `intersection`, which has a
+`:boundary`-only escape hatch), so `APAnnularSector2` and `APInterstice2`
+built as the natural curved gap between mutually tangent circles always
+raise the `ArgumentError` here, in either argument position.
 
 ## Points
 
