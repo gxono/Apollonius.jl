@@ -6768,10 +6768,26 @@ end
 
         # a boundary that needs a circular/elliptic arc side walked backward
         # (APCircularArc2 only ever represents a counterclockwise sweep) is
-        # rejected with a clear error rather than a silently wrong overlap
+        # rejected with a clear error rather than a silently wrong overlap;
+        # for APAnnularSector2 this hits whenever it plays a role that walks
+        # it (:boundary, or either side of :region,:region), but not as the
+        # :region side next to a :boundary partner (in()-only, no walk needed)
         ann = APAnnularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 4.0), P(4.0, 0.0), P(0.0, 4.0)), 2.0)
         t3 = APTriangle(P(-1.0, -1.0), P(5.0, -1.0), P(-1.0, 5.0))
         @test_throws ArgumentError intersection(ann, t3; mode=:region)
+        @test_throws ArgumentError intersection(ann, t3; mode=(:boundary, :region))
+        @test length(intersection(t3, ann; mode=(:boundary, :region))) >= 1
+
+        # APInterstice2 built as the actual curved gap between 3 mutually
+        # tangent circles has the same arc-direction conflict, but only in
+        # (:region,:region); it works fine as either side of a mixed mode
+        c1i, c2i, c3i = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(2.0, 0.0), 1.0), APCircle2(P(1.0, sqrt(3)), 1.0)
+        t12, t23, t31 = P(1.0, 0.0), P(1.5, sqrt(3) / 2), P(0.5, sqrt(3) / 2)
+        gap = APInterstice2(APCircularArc2(c1i, t12, t31), APCircularArc2(c3i, t31, t23), APCircularArc2(c2i, t23, t12))
+        big_tri = APTriangle(P(-1.0, -1.0), P(4.0, -1.0), P(1.0, 3.0))
+        @test_throws ArgumentError intersection(gap, big_tri; mode=:region)
+        @test only(intersection(gap, big_tri; mode=(:boundary, :region))) == gap
+        @test length(intersection(big_tri, gap; mode=(:region, :boundary))) >= 1
     end
 
     @testset "in() at a tangent y-level of a curved region (regression)" begin
@@ -6779,5 +6795,20 @@ end
         @test !in(P(-1.0, 2.0), ann)
         @test in(P(1.0, 1.0), ann) == false
         @test in(P(2.5, 0.5), ann)
+    end
+
+    @testset "mode=:region at tangency and other degenerate touches (regression)" begin
+        @test_throws ArgumentError intersection(c1, c2; mode=:nonsense)
+        @test only(intersection(c1, c1; mode=:region)) == c1
+        # externally tangent: touch at one point, no area in common
+        outer_touch = APCircle2(P(2.0, 0.0), 1.0)
+        @test isempty(intersection(APCircle2(P(0.0, 0.0), 1.0), outer_touch; mode=:region))
+        # internally tangent: the smaller circle survives whole, untouched
+        big_c, small_c = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(0.5, 0.0), 0.5)
+        @test only(intersection(big_c, small_c; mode=:region)) == small_c
+        # sharing a whole edge but otherwise disjoint (zero-area overlap)
+        tri_edge = APTriangle(P(0.0, 0.0), P(2.0, 0.0), P(1.0, 2.0))
+        quad_edge = APQuadrilateral(P(0.0, 0.0), P(2.0, 0.0), P(2.0, -2.0), P(0.0, -2.0))
+        @test isempty(intersection(tri_edge, quad_edge; mode=:region))
     end
 end

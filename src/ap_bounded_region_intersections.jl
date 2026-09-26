@@ -44,6 +44,25 @@ own boundary curve or as the filled region it encloses, the same
 A bare `mode=:region` (or `:boundary`) is shorthand for applying the same
 choice to both sides. Both argument orders work.
 
+Any side read as `:boundary`, and both sides when the mode is
+`(:region, :region)`, need that shape's own boundary walked in a single
+consistent direction; a side read as `:region` next to a `:boundary` side
+only needs `in`, never a walk. `APCircularArc2`/`APEllipticArc2` can only
+represent a counterclockwise sweep, so a shape whose boundary needs one of
+its arcs walked the other way throws an `ArgumentError` (instead of a wrong
+answer) whenever it ends up in a role that walks it. `APAnnularSector2`'s
+inner arc always faces opposite its outer one, so it throws as a
+`:boundary` side and in `(:region, :region)`, but works as the `:region`
+side next to a `:boundary` partner. `APInterstice2` built as the curved gap
+between mutually tangent circles has the same underlying shape (each arc
+bulges away from the gap), but only in `(:region, :region)`: it works fine
+as either side of `(:boundary, :region)`/`(:region, :boundary)`, since
+`_ccw_pieces` (which needs the whole loop pointing one way) is the only
+caller that needs a full walk of *both* shapes together. Neither limitation
+ever applies to `APCircle2`, `APEllipse2`, any straight-sided type, or a
+curved type with a single arc side (`APCircularSector2`,
+`APCircularSegment2`).
+
 | Keyword | Default | Meaning |
 |:--------|:--------|:--------|
 | `mode` | `(:boundary, :boundary)` | `:region`/`:boundary` per side, or one shared value for both |

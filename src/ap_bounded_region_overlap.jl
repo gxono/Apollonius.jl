@@ -53,7 +53,10 @@ function _stitch_closed_loops(fragments::Vector; atol::Real=1e-9)
             end
             found || break
         end
-        push!(loops, loop)
+        # a fragment left over from a merely-touching boundary (shared edge,
+        # single tangent point) never finds its way back to start_pt; such an
+        # unclosed "loop" is not a real overlap piece, so it is dropped here
+        isapprox(last_pt, start_pt; atol=tol) && length(loop) >= 2 && push!(loops, loop)
     end
     return loops
 end
@@ -84,6 +87,12 @@ function _region_overlap(a, b; atol::Real=1e-9)
     end
     runs_a = _clip_loop_to_region(loop_a, b; atol=atol)
     runs_b = _clip_loop_to_region(loop_b, a; atol=atol)
+    # a lone tangent touch (no genuine transversal crossing) can still trip
+    # `has_crossing` above; when that leaves one loop kept whole and uncut,
+    # there is nothing to stitch, so short-circuit the same way the
+    # `!has_crossing` branch already does
+    length(runs_a) == 1 && runs_a[1] == loop_a && return Any[a]
+    length(runs_b) == 1 && runs_b[1] == loop_b && return Any[b]
     fragments = Any[]
     for run in runs_a
         append!(fragments, run)

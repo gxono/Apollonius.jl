@@ -60,17 +60,24 @@ that inner shape unchanged; disjoint shapes give an empty `Vector`. A bare
 sides. Two shapes that share part of a boundary edge or arc drop that shared
 piece, the same convention already noted above for two curves that coincide.
 
-Any side with a circular or elliptic arc needs to be walked in a single
-consistent direction to line up with `mode`'s clipping, and that direction is
-whichever one [`signed_area`](@ref) calls positive; [`APCircularArc2`](@ref)
-and [`APEllipticArc2`](@ref) can only represent a counterclockwise sweep, so
-a shape whose own boundary needs one of its arcs walked the other way, such
-as [`APAnnularSector2`](@ref)'s inner arc (always facing the opposite way
-from its outer arc) or a curved-sided shape built with `signed_area` negative,
-raises an `ArgumentError` instead of a wrong area. `APCircle2`, `APEllipse2`,
-every straight-sided type, and any curved type with a single arc side
-(`APCircularSector2`, `APCircularSegment2`) never hit this, whichever way
-their defining arc was built.
+A side read as `:boundary`, and both sides together when the mode is
+`(:region, :region)`, need that shape's own boundary walked in a single
+consistent direction, the one [`signed_area`](@ref) calls positive; a side
+read as `:region` next to a `:boundary` partner only needs `in`, never a
+walk. [`APCircularArc2`](@ref) and [`APEllipticArc2`](@ref) can only
+represent a counterclockwise sweep, so a shape whose boundary needs one of
+its arcs walked the other way raises an `ArgumentError` (instead of a wrong
+area) whenever it lands in a role that walks it. [`APAnnularSector2`](@ref)'s
+inner arc always faces opposite its outer one, so it always raises this as
+a `:boundary` side and in `(:region, :region)`, but works fine as the
+`:region` side next to a `:boundary` partner. [`APInterstice2`](@ref) built
+as the curved gap between mutually tangent circles has the same underlying
+shape (each arc bulges away from the gap), but only in `(:region, :region)`:
+it works as either side of `(:boundary, :region)`/`(:region, :boundary)`,
+since only `(:region, :region)` needs a full, consistent walk of *both*
+shapes at once. Neither limitation ever touches `APCircle2`, `APEllipse2`,
+any straight-sided type, or a curved type with a single arc side
+(`APCircularSector2`, `APCircularSegment2`).
 
 ```@example geo
 using Apollonius
@@ -396,10 +403,10 @@ only(intersection(sec, sc; mode=:region))
     end)
     ```
 
-`APAnnularSector2` is the one member that can't join in: its inner arc always
+`APAnnularSector2` is the one member with a real gap: its inner arc always
 faces opposite its outer arc, which an `APCircularArc2` (always
-counterclockwise) can't represent walked the way `mode` needs, so it raises
-an `ArgumentError` rather than a wrong area:
+counterclockwise) can't represent walked the way `mode` needs, so `:region`
+on both sides raises an `ArgumentError` rather than a wrong area:
 
 ```@example geo
 ann = APAnnularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 4.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0)), 2.0)
@@ -408,6 +415,13 @@ try
 catch e
     e
 end
+```
+
+It still works as the `:region` side next to a `:boundary` partner, since
+that role only ever asks `in`, never walks its own boundary:
+
+```@example geo
+length(intersection(sc, ann; mode=(:boundary, :region)))
 ```
 
 A shape entirely inside another comes back unchanged, and disjoint shapes give
