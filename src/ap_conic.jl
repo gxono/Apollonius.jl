@@ -78,6 +78,7 @@ function APCircle2(p1::APPoint, p2::APPoint, p3::APPoint; atol=1e-9)
     return APCircle2(center, distance(center, p1))
 end
 Base.:(==)(a::APCircle2, b::APCircle2) = a.center == b.center && a.r == b.r
+Base.hash(a::APCircle2, h::UInt) = hash((a.center, a.r), hash(:APCircle2, h))
 Base.convert(::Type{APCircle2{T}}, c::APCircle2) where {T} = APCircle2{T}(c.center, T(c.r))
 Base.isapprox(a::APCircle2, b::APCircle2; kwargs...) = isapprox(a.center, b.center; kwargs...) && isapprox(a.r, b.r; kwargs...)
 Base.show(io::IO, c::APCircle2) = print(io, "APCircle2(", c.center, ", ", c.r, ")")
@@ -152,6 +153,7 @@ function APEllipse2(f1::APPoint, f2::APPoint, p::APPoint)
     return APEllipse2(f1, f2, (distance(p, f1) + distance(p, f2)) / 2)
 end
 Base.:(==)(x::APEllipse2, y::APEllipse2) = x.center == y.center && x.a == y.a && x.b == y.b && x.angle == y.angle
+Base.hash(x::APEllipse2, h::UInt) = hash((x.center, x.a, x.b, x.angle), hash(:APEllipse2, h))
 Base.convert(::Type{APEllipse2{T}}, e::APEllipse2) where {T} = APEllipse2{T}(e.center, T(e.a), T(e.b), T(e.angle))
 function Base.isapprox(x::APEllipse2, y::APEllipse2; atol=1e-9, kwargs...)
     isapprox(x.center, y.center; atol=atol, kwargs...) && isapprox(x.a, y.a; atol=atol, kwargs...) &&
@@ -327,6 +329,7 @@ of a figure it's part of, the same as an `APLine`/`APRay`. Draw it with
 """
 APBoundingBox(::APHyperbola2) = APBoundingBox()
 Base.:(==)(x::APHyperbola2, y::APHyperbola2) = x.center == y.center && x.a == y.a && x.b == y.b && x.angle == y.angle
+Base.hash(x::APHyperbola2, h::UInt) = hash((x.center, x.a, x.b, x.angle), hash(:APHyperbola2, h))
 Base.convert(::Type{APHyperbola2{T}}, h::APHyperbola2) where {T} = APHyperbola2{T}(h.center, T(h.a), T(h.b), T(h.angle))
 function Base.isapprox(x::APHyperbola2, y::APHyperbola2; atol=1e-9, kwargs...)
     isapprox(x.center, y.center; atol=atol, kwargs...) && isapprox(x.a, y.a; atol=atol, kwargs...) &&
@@ -503,6 +506,7 @@ function APParabola2(vertex::APPoint, focus::APPoint)
     return APParabola2(focus, perpendicular_through(APLine(vertex, focus), reflection(focus, vertex)))
 end
 Base.:(==)(x::APParabola2, y::APParabola2) = x.focus == y.focus && x.directrix == y.directrix
+Base.hash(x::APParabola2, h::UInt) = hash((x.focus, x.directrix), hash(:APParabola2, h))
 Base.convert(::Type{APParabola2{T}}, p::APParabola2) where {T} = APParabola2{T}(p.focus, p.directrix)
 Base.isapprox(x::APParabola2, y::APParabola2; kwargs...) =
     isapprox(x.focus, y.focus; kwargs...) && isapprox(x.directrix, y.directrix; kwargs...)
@@ -668,6 +672,7 @@ above, with `r` taken to be `distance(center, p1)`.
 APCircularArc2(center::APPoint, p1::APPoint, p2::APPoint; ccw::Bool=true) =
     APCircularArc2(center, distance(center, p1), p1, p2; ccw=ccw)
 Base.:(==)(x::APCircularArc2, y::APCircularArc2) = x.circle == y.circle && x.p1 == y.p1 && x.p2 == y.p2
+Base.hash(x::APCircularArc2, h::UInt) = hash((x.circle, x.p1, x.p2), hash(:APCircularArc2, h))
 Base.convert(::Type{APCircularArc2{T}}, a::APCircularArc2) where {T} = APCircularArc2{T}(a.circle, a.p1, a.p2)
 Base.isapprox(x::APCircularArc2, y::APCircularArc2; kwargs...) =
     isapprox(x.circle, y.circle; kwargs...) && isapprox(x.p1, y.p1; kwargs...) && isapprox(x.p2, y.p2; kwargs...)

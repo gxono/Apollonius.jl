@@ -101,6 +101,9 @@ Base.eltype(::Type{<:APRay{Dim,T}}) where {Dim,T} = APPoint{Dim,T}
 Base.:(==)(a::APSegment, b::APSegment) = a.p1 == b.p1 && a.p2 == b.p2
 Base.:(==)(a::APLine, b::APLine) = a.p1 == b.p1 && a.p2 == b.p2
 Base.:(==)(a::APRay, b::APRay) = a.origin == b.origin && a.through == b.through
+Base.hash(a::APSegment, h::UInt) = hash((a.p1, a.p2), hash(:APSegment, h))
+Base.hash(a::APLine, h::UInt) = hash((a.p1, a.p2), hash(:APLine, h))
+Base.hash(a::APRay, h::UInt) = hash((a.origin, a.through), hash(:APRay, h))
 Base.convert(::Type{APSegment{Dim,T}}, s::APSegment{Dim}) where {Dim,T} = APSegment{Dim,T}(s.p1, s.p2)
 Base.convert(::Type{APLine{Dim,T}}, l::APLine{Dim}) where {Dim,T} = APLine{Dim,T}(l.p1, l.p2)
 Base.convert(::Type{APRay{Dim,T}}, r::APRay{Dim}) where {Dim,T} = APRay{Dim,T}(r.origin, r.through)
@@ -477,6 +480,7 @@ Whether `bb` is the empty box (see [`APBoundingBox()`](@ref)).
 """
 Base.isempty(bb::APBoundingBox) = bb.min[1] > bb.max[1]
 Base.:(==)(a::APBoundingBox, b::APBoundingBox) = a.min == b.min && a.max == b.max
+Base.hash(a::APBoundingBox, h::UInt) = hash((a.min, a.max), hash(:APBoundingBox, h))
 Base.isapprox(a::APBoundingBox, b::APBoundingBox; kwargs...) =
     isapprox(a.min, b.min; kwargs...) && isapprox(a.max, b.max; kwargs...)
 Base.:+(bb::APBoundingBox, v::APVector) = APBoundingBox(bb.min + v, bb.max + v)

@@ -315,6 +315,7 @@ Base.getindex(t::APTriangle, i::Integer) = vertices(t)[i]
 Base.length(::APTriangle) = 3
 Base.iterate(t::APTriangle, i::Int=1) = i > 3 ? nothing : (t[i], i + 1)
 Base.:(==)(x::APTriangle, y::APTriangle) = x.a == y.a && x.b == y.b && x.c == y.c
+Base.hash(x::APTriangle, h::UInt) = hash((x.a, x.b, x.c), hash(:APTriangle, h))
 Base.isapprox(x::APTriangle, y::APTriangle; kwargs...) =
     isapprox(x.a, y.a; kwargs...) && isapprox(x.b, y.b; kwargs...) && isapprox(x.c, y.c; kwargs...)
 Base.show(io::IO, t::APTriangle) = print(io, "APTriangle(", t.a, ", ", t.b, ", ", t.c, ")")
@@ -352,6 +353,7 @@ Base.getindex(q::APQuadrilateral, i::Integer) = vertices(q)[i]
 Base.length(::APQuadrilateral) = 4
 Base.iterate(q::APQuadrilateral, i::Int=1) = i > 4 ? nothing : (q[i], i + 1)
 Base.:(==)(x::APQuadrilateral, y::APQuadrilateral) = x.a == y.a && x.b == y.b && x.c == y.c && x.d == y.d
+Base.hash(x::APQuadrilateral, h::UInt) = hash((x.a, x.b, x.c, x.d), hash(:APQuadrilateral, h))
 Base.isapprox(x::APQuadrilateral, y::APQuadrilateral; kwargs...) =
     isapprox(x.a, y.a; kwargs...) && isapprox(x.b, y.b; kwargs...) &&
     isapprox(x.c, y.c; kwargs...) && isapprox(x.d, y.d; kwargs...)
@@ -446,6 +448,7 @@ Base.getindex(pg::APStraightNgon, i::Integer) = pg.vertices[i]
 Base.length(pg::APStraightNgon) = length(pg.vertices)
 Base.iterate(pg::APStraightNgon, i::Int=1) = i > length(pg) ? nothing : (pg[i], i + 1)
 Base.:(==)(x::APStraightNgon, y::APStraightNgon) = x.vertices == y.vertices
+Base.hash(x::APStraightNgon, h::UInt) = hash(x.vertices, hash(:APStraightNgon, h))
 Base.isapprox(x::APStraightNgon, y::APStraightNgon; kwargs...) =
     length(x) == length(y) && all(isapprox(a, b; kwargs...) for (a, b) in zip(x.vertices, y.vertices))
 Base.show(io::IO, pg::APStraightNgon) = print(io, "APStraightNgon(", pg.vertices, ")")

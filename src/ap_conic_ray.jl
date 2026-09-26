@@ -18,6 +18,7 @@ function APParabolicRay2(parabola::APParabola2, p::APPoint, dir::Int)
     return APParabolicRay2{T}(convert(APParabola2{T}, parabola), convert(APPoint{2,T}, p), dir)
 end
 Base.:(==)(x::APParabolicRay2, y::APParabolicRay2) = x.parabola == y.parabola && x.p == y.p && x.dir == y.dir
+Base.hash(x::APParabolicRay2, h::UInt) = hash((x.parabola, x.p, x.dir), hash(:APParabolicRay2, h))
 Base.isapprox(x::APParabolicRay2, y::APParabolicRay2; kwargs...) =
     isapprox(x.parabola, y.parabola; kwargs...) && isapprox(x.p, y.p; kwargs...) && x.dir == y.dir
 Base.show(io::IO, r::APParabolicRay2) = print(io, "APParabolicRay2(", r.parabola, ", ", r.p, ", dir=", r.dir, ")")
@@ -42,6 +43,7 @@ function APHyperbolicRay2(hyperbola::APHyperbola2, p::APPoint, branch::Int, dir:
 end
 Base.:(==)(x::APHyperbolicRay2, y::APHyperbolicRay2) =
     x.hyperbola == y.hyperbola && x.p == y.p && x.branch == y.branch && x.dir == y.dir
+Base.hash(x::APHyperbolicRay2, h::UInt) = hash((x.hyperbola, x.p, x.branch, x.dir), hash(:APHyperbolicRay2, h))
 Base.isapprox(x::APHyperbolicRay2, y::APHyperbolicRay2; kwargs...) =
     isapprox(x.hyperbola, y.hyperbola; kwargs...) && isapprox(x.p, y.p; kwargs...) && x.branch == y.branch && x.dir == y.dir
 Base.show(io::IO, r::APHyperbolicRay2) =
@@ -61,6 +63,7 @@ struct APHyperbolaBranch2{T<:Real} <: APCurve{2,T}
     branch::Int
 end
 Base.:(==)(x::APHyperbolaBranch2, y::APHyperbolaBranch2) = x.hyperbola == y.hyperbola && x.branch == y.branch
+Base.hash(x::APHyperbolaBranch2, h::UInt) = hash((x.hyperbola, x.branch), hash(:APHyperbolaBranch2, h))
 Base.isapprox(x::APHyperbolaBranch2, y::APHyperbolaBranch2; kwargs...) =
     isapprox(x.hyperbola, y.hyperbola; kwargs...) && x.branch == y.branch
 Base.show(io::IO, b::APHyperbolaBranch2) = print(io, "APHyperbolaBranch2(", b.hyperbola, ", branch=", b.branch, ")")

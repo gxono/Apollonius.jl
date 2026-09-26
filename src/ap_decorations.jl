@@ -60,6 +60,7 @@ function APDecorationBrace2(p1::APPoint{2}, p2::APPoint{2}; height::Union{Nothin
 end
 Base.:(==)(x::APDecorationBrace2, y::APDecorationBrace2) =
     x.p1 == y.p1 && x.p2 == y.p2 && x.arc_radius == y.arc_radius && x.pos == y.pos && x.side == y.side
+Base.hash(x::APDecorationBrace2, h::UInt) = hash((x.p1, x.p2, x.arc_radius, x.pos, x.side), hash(:APDecorationBrace2, h))
 Base.isapprox(x::APDecorationBrace2, y::APDecorationBrace2; kwargs...) =
     isapprox(x.p1, y.p1; kwargs...) && isapprox(x.p2, y.p2; kwargs...) &&
     isapprox(x.arc_radius, y.arc_radius; kwargs...) && isapprox(x.pos, y.pos; kwargs...) && x.side == y.side

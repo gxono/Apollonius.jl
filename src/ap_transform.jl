@@ -17,6 +17,7 @@ APAffineMap(a11::Real, a12::Real, a21::Real, a22::Real, tx::Real, ty::Real) =
     APAffineMap(promote(a11, a12, a21, a22, tx, ty)...)
 Base.:(==)(x::APAffineMap, y::APAffineMap) =
     x.a11 == y.a11 && x.a12 == y.a12 && x.a21 == y.a21 && x.a22 == y.a22 && x.tx == y.tx && x.ty == y.ty
+Base.hash(x::APAffineMap, h::UInt) = hash((x.a11, x.a12, x.a21, x.a22, x.tx, x.ty), hash(:APAffineMap, h))
 Base.isapprox(x::APAffineMap, y::APAffineMap; kwargs...) =
     isapprox(x.a11, y.a11; kwargs...) && isapprox(x.a12, y.a12; kwargs...) &&
     isapprox(x.a21, y.a21; kwargs...) && isapprox(x.a22, y.a22; kwargs...) &&

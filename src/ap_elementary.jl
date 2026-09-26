@@ -63,6 +63,9 @@ centroid(e::APEllipse2) = e.center
 Base.:(==)(x::APEllipticArc2, y::APEllipticArc2) = x.ellipse == y.ellipse && x.p1 == y.p1 && x.p2 == y.p2
 Base.:(==)(x::APHyperbolicArc2, y::APHyperbolicArc2) = x.hyperbola == y.hyperbola && x.p1 == y.p1 && x.p2 == y.p2
 Base.:(==)(x::APParabolicArc2, y::APParabolicArc2) = x.parabola == y.parabola && x.p1 == y.p1 && x.p2 == y.p2
+Base.hash(x::APEllipticArc2, h::UInt) = hash((x.ellipse, x.p1, x.p2), hash(:APEllipticArc2, h))
+Base.hash(x::APHyperbolicArc2, h::UInt) = hash((x.hyperbola, x.p1, x.p2), hash(:APHyperbolicArc2, h))
+Base.hash(x::APParabolicArc2, h::UInt) = hash((x.parabola, x.p1, x.p2), hash(:APParabolicArc2, h))
 Base.isapprox(x::APEllipticArc2, y::APEllipticArc2; kwargs...) =
     isapprox(x.ellipse, y.ellipse; kwargs...) && isapprox(x.p1, y.p1; kwargs...) && isapprox(x.p2, y.p2; kwargs...)
 Base.isapprox(x::APHyperbolicArc2, y::APHyperbolicArc2; kwargs...) =
@@ -73,6 +76,7 @@ const _CurvilinearRegion2 = Union{APCurvilinearTriangle2,APCurvilinearQuadrilate
 Base.isapprox(x::T, y::T; kwargs...) where {T<:_CurvilinearRegion2} =
     length(x.sides) == length(y.sides) && all(isapprox(a, b; kwargs...) for (a, b) in zip(x.sides, y.sides))
 Base.:(==)(x::APParametricCurve2, y::APParametricCurve2) = x.f === y.f && x.trange == y.trange
+Base.hash(x::APParametricCurve2, h::UInt) = hash((x.f, x.trange), hash(:APParametricCurve2, h))
 """
     isapprox(x::APParametricCurve2, y::APParametricCurve2; kwargs...)
 

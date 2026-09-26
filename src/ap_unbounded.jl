@@ -29,6 +29,7 @@ function APAngle2(vertex::APPoint, a::APPoint, b::APPoint)
     return APAngle2{T}(vertex, a, b)
 end
 Base.:(==)(x::APAngle2, y::APAngle2) = x.vertex == y.vertex && x.a == y.a && x.b == y.b
+Base.hash(x::APAngle2, h::UInt) = hash((x.vertex, x.a, x.b), hash(:APAngle2, h))
 Base.isapprox(x::APAngle2, y::APAngle2; kwargs...) =
     isapprox(x.vertex, y.vertex; kwargs...) && isapprox(x.a, y.a; kwargs...) && isapprox(x.b, y.b; kwargs...)
 Base.show(io::IO, ang::APAngle2) = print(io, "APAngle2(vertex=", ang.vertex, ", a=", ang.a, ", b=", ang.b, ")")
@@ -181,6 +182,7 @@ function APHalfPlane2(boundary::APLine{2}, p::APPoint{2})
     return APHalfPlane2(boundary, s)
 end
 Base.:(==)(x::APHalfPlane2, y::APHalfPlane2) = x.boundary == y.boundary && x.side == y.side
+Base.hash(x::APHalfPlane2, h::UInt) = hash((x.boundary, x.side), hash(:APHalfPlane2, h))
 Base.isapprox(x::APHalfPlane2, y::APHalfPlane2; kwargs...) =
     isapprox(x.boundary, y.boundary; kwargs...) && x.side == y.side
 Base.show(io::IO, hp::APHalfPlane2) = print(io, "APHalfPlane2(", hp.boundary, ", side=", hp.side, ")")
@@ -254,6 +256,7 @@ function APStrip2(line1::APLine{2,T1}, line2::APLine{2,T2}; atol=1e-9) where {T1
     return APStrip2{T}(convert(APLine{2,T}, line1), convert(APLine{2,T}, line2); atol=atol)
 end
 Base.:(==)(x::APStrip2, y::APStrip2) = x.line1 == y.line1 && x.line2 == y.line2
+Base.hash(x::APStrip2, h::UInt) = hash((x.line1, x.line2), hash(:APStrip2, h))
 Base.isapprox(x::APStrip2, y::APStrip2; kwargs...) =
     isapprox(x.line1, y.line1; kwargs...) && isapprox(x.line2, y.line2; kwargs...)
 Base.show(io::IO, s::APStrip2) = print(io, "APStrip2(", s.line1, ", ", s.line2, ")")

@@ -184,6 +184,8 @@ Base.iterate(p::APPointOrVector, state::Int=1) = state > length(p) ? nothing : (
 Base.eltype(::Type{<:APPointOrVector{Dim,T}}) where {Dim,T} = T
 Base.:(==)(a::APPoint, b::APPoint) = a.coords == b.coords
 Base.:(==)(a::APVector, b::APVector) = a.coords == b.coords
+Base.hash(a::APPoint, h::UInt) = hash(a.coords, hash(:APPoint, h))
+Base.hash(a::APVector, h::UInt) = hash(a.coords, hash(:APVector, h))
 Base.convert(::Type{APPoint{Dim,T}}, p::APPoint{Dim}) where {Dim,T} = APPoint{Dim,T}(T.(p.coords))
 Base.convert(::Type{APVector{Dim,T}}, v::APVector{Dim}) where {Dim,T} = APVector{Dim,T}(T.(v.coords))
 Base.isapprox(a::APPoint, b::APPoint; kwargs...) = all(isapprox(x, y; kwargs...) for (x, y) in zip(a.coords, b.coords))

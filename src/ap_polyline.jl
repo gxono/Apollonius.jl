@@ -24,6 +24,7 @@ Base.getindex(pl::APPolyline2, i::Integer) = pl.vertices[i]
 Base.length(pl::APPolyline2) = length(pl.vertices)
 Base.iterate(pl::APPolyline2, i::Int=1) = i > length(pl) ? nothing : (pl[i], i + 1)
 Base.:(==)(x::APPolyline2, y::APPolyline2) = x.vertices == y.vertices
+Base.hash(x::APPolyline2, h::UInt) = hash(x.vertices, hash(:APPolyline2, h))
 Base.isapprox(x::APPolyline2, y::APPolyline2; kwargs...) =
     length(x) == length(y) && all(isapprox(a, b; kwargs...) for (a, b) in zip(x.vertices, y.vertices))
 Base.show(io::IO, pl::APPolyline2) = print(io, "APPolyline2(", pl.vertices, ")")
@@ -99,6 +100,7 @@ Base.getindex(pg::APCurvilinearPolyline2, i::Integer) = pg.sides[i]
 Base.length(pg::APCurvilinearPolyline2) = length(pg.sides)
 Base.iterate(pg::APCurvilinearPolyline2, i::Int=1) = i > length(pg) ? nothing : (pg[i], i + 1)
 Base.:(==)(x::APCurvilinearPolyline2, y::APCurvilinearPolyline2) = x.sides == y.sides
+Base.hash(x::APCurvilinearPolyline2, h::UInt) = hash(x.sides, hash(:APCurvilinearPolyline2, h))
 Base.isapprox(x::APCurvilinearPolyline2, y::APCurvilinearPolyline2; kwargs...) =
     length(x) == length(y) && all(isapprox(a, b; kwargs...) for (a, b) in zip(x.sides, y.sides))
 Base.show(io::IO, pg::APCurvilinearPolyline2) = print(io, "APCurvilinearPolyline2(", pg.sides, ")")

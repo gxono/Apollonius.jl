@@ -26,6 +26,7 @@ function APUnboundedPolygon2(ray1::APRay{2}, vertices::AbstractVector{<:APPoint{
 end
 Base.:(==)(x::APUnboundedPolygon2, y::APUnboundedPolygon2) =
     x.ray1 == y.ray1 && x.vertices == y.vertices && x.ray2 == y.ray2
+Base.hash(x::APUnboundedPolygon2, h::UInt) = hash((x.ray1, x.vertices, x.ray2), hash(:APUnboundedPolygon2, h))
 Base.isapprox(x::APUnboundedPolygon2, y::APUnboundedPolygon2; kwargs...) =
     isapprox(x.ray1, y.ray1; kwargs...) && length(x.vertices) == length(y.vertices) &&
     all(isapprox(a, b; kwargs...) for (a, b) in zip(x.vertices, y.vertices)) &&

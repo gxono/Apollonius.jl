@@ -27,6 +27,7 @@ end
 """
 APEquipollentVector(vector::APVector{Dim,T}) where {Dim,T} = APEquipollentVector(vector, APPoint(ntuple(_ -> zero(T), Dim)))
 Base.:(==)(x::APEquipollentVector, y::APEquipollentVector) = x.vector == y.vector && x.point == y.point
+Base.hash(x::APEquipollentVector, h::UInt) = hash((x.vector, x.point), hash(:APEquipollentVector, h))
 Base.isapprox(x::APEquipollentVector, y::APEquipollentVector; kwargs...) =
     isapprox(x.vector, y.vector; kwargs...) && isapprox(x.point, y.point; kwargs...)
 Base.show(io::IO, ev::APEquipollentVector) = print(io, "APEquipollentVector(", ev.vector, ", ", ev.point, ")")

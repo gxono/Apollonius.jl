@@ -66,6 +66,7 @@ directly.
 """
 APCircularSector2(center::APPoint, r::Real, p1, p2) = APCircularSector2(APCircularArc2(center, r, p1, p2))
 Base.:(==)(x::APCircularSector2, y::APCircularSector2) = x.arc == y.arc
+Base.hash(x::APCircularSector2, h::UInt) = hash(x.arc, hash(:APCircularSector2, h))
 Base.isapprox(x::APCircularSector2, y::APCircularSector2; kwargs...) = isapprox(x.arc, y.arc; kwargs...)
 Base.show(io::IO, s::APCircularSector2) = print(io, "APCircularSector2(", s.arc, ")")
 sides(s::APCircularSector2) = [APSegment(s.arc.circle.center, s.arc.p1), s.arc, APSegment(s.arc.p2, s.arc.circle.center)]
@@ -118,6 +119,7 @@ directly.
 """
 APCircularSegment2(center::APPoint, r::Real, p1, p2) = APCircularSegment2(APCircularArc2(center, r, p1, p2))
 Base.:(==)(x::APCircularSegment2, y::APCircularSegment2) = x.arc == y.arc
+Base.hash(x::APCircularSegment2, h::UInt) = hash(x.arc, hash(:APCircularSegment2, h))
 Base.isapprox(x::APCircularSegment2, y::APCircularSegment2; kwargs...) = isapprox(x.arc, y.arc; kwargs...)
 Base.show(io::IO, s::APCircularSegment2) = print(io, "APCircularSegment2(", s.arc, ")")
 sides(s::APCircularSegment2) = [s.arc, APSegment(s.arc.p2, s.arc.p1)]
@@ -180,6 +182,7 @@ directly.
 APAnnularSector2(center::APPoint, r_outer::Real, p1, p2, r_inner::Real) =
     APAnnularSector2(APCircularArc2(center, r_outer, p1, p2), r_inner)
 Base.:(==)(x::APAnnularSector2, y::APAnnularSector2) = x.outer == y.outer && x.r_inner == y.r_inner
+Base.hash(x::APAnnularSector2, h::UInt) = hash((x.outer, x.r_inner), hash(:APAnnularSector2, h))
 Base.isapprox(x::APAnnularSector2, y::APAnnularSector2; kwargs...) =
     isapprox(x.outer, y.outer; kwargs...) && isapprox(x.r_inner, y.r_inner; kwargs...)
 Base.show(io::IO, s::APAnnularSector2) = print(io, "APAnnularSector2(", s.outer, ", r_inner=", s.r_inner, ")")
@@ -232,6 +235,7 @@ Base.getindex(g::APInterstice2, i::Integer) = (g.arc1, g.arc2, g.arc3)[i]
 Base.length(::APInterstice2) = 3
 Base.iterate(g::APInterstice2, i::Int=1) = i > 3 ? nothing : (g[i], i + 1)
 Base.:(==)(x::APInterstice2, y::APInterstice2) = x.arc1 == y.arc1 && x.arc2 == y.arc2 && x.arc3 == y.arc3
+Base.hash(x::APInterstice2, h::UInt) = hash((x.arc1, x.arc2, x.arc3), hash(:APInterstice2, h))
 Base.isapprox(x::APInterstice2, y::APInterstice2; kwargs...) =
     isapprox(x.arc1, y.arc1; kwargs...) && isapprox(x.arc2, y.arc2; kwargs...) && isapprox(x.arc3, y.arc3; kwargs...)
 Base.show(io::IO, g::APInterstice2) = print(io, "APInterstice2(", g.arc1, ", ", g.arc2, ", ", g.arc3, ")")
@@ -265,6 +269,7 @@ function APCurvilinearTriangle2(s1, s2, s3)
 end
 sides(t::APCurvilinearTriangle2) = t.sides
 Base.:(==)(x::APCurvilinearTriangle2, y::APCurvilinearTriangle2) = x.sides == y.sides
+Base.hash(x::APCurvilinearTriangle2, h::UInt) = hash(x.sides, hash(:APCurvilinearTriangle2, h))
 Base.show(io::IO, t::APCurvilinearTriangle2) = print(io, "APCurvilinearTriangle2", t.sides)
 _transform_side(f, s::APSegment) = f(s)
 _transform_side(f, s::APCircularArc2) = f(s)
@@ -288,6 +293,7 @@ function APCurvilinearQuadrilateral2(s1, s2, s3, s4)
 end
 sides(q::APCurvilinearQuadrilateral2) = q.sides
 Base.:(==)(x::APCurvilinearQuadrilateral2, y::APCurvilinearQuadrilateral2) = x.sides == y.sides
+Base.hash(x::APCurvilinearQuadrilateral2, h::UInt) = hash(x.sides, hash(:APCurvilinearQuadrilateral2, h))
 Base.show(io::IO, q::APCurvilinearQuadrilateral2) = print(io, "APCurvilinearQuadrilateral2", q.sides)
 rotate(q::APCurvilinearQuadrilateral2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APCurvilinearQuadrilateral2(map(s -> rotate(s, angle, center), q.sides))
@@ -333,6 +339,7 @@ Base.getindex(pg::APCurvilinearNgon2, i::Integer) = pg.sides[i]
 Base.length(pg::APCurvilinearNgon2) = length(pg.sides)
 Base.iterate(pg::APCurvilinearNgon2, i::Int=1) = i > length(pg) ? nothing : (pg[i], i + 1)
 Base.:(==)(x::APCurvilinearNgon2, y::APCurvilinearNgon2) = x.sides == y.sides
+Base.hash(x::APCurvilinearNgon2, h::UInt) = hash(x.sides, hash(:APCurvilinearNgon2, h))
 Base.show(io::IO, pg::APCurvilinearNgon2) = print(io, "APCurvilinearNgon2(", pg.sides, ")")
 rotate(pg::APCurvilinearNgon2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =
     APCurvilinearNgon2([rotate(s, angle, center) for s in pg.sides])
