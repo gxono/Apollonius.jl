@@ -8,9 +8,11 @@ CurrentModule = Apollonius
 a `Vector` of [`APPoint`](@ref)s. The vector is empty when they do not meet,
 so the result is always safe to `filter`, `map` or `length`, and it is never
 `nothing`. The arguments can be given in either order. This page also covers
-[`region_union`](@ref) and [`region_difference`](@ref), the other two ways
-two bounded regions can combine, further down in
-[Union and difference](@ref).
+[`region_union`](@ref), [`region_difference`](@ref), [`region_symdiff`](@ref),
+[`overlaps`](@ref), [`is_walkable`](@ref), and the N-ary forms of all
+three combining operations, further down in
+[Union and difference](@ref), [Symmetric difference, `overlaps`, and
+`is_walkable`](@ref), and [Combining more than two shapes at once](@ref).
 
 **Except** when one side is an [`APAngle2`](@ref), [`APHalfPlane2`](@ref) or
 [`APStrip2`](@ref) and the other a line, segment, ray, or a conic (circle,
@@ -583,6 +585,129 @@ walked in a single consistent direction (unlike `intersection`, which has a
 `:boundary`-only escape hatch), so `APAnnularSector2` and `APInterstice2`
 built as the natural curved gap between mutually tangent circles always
 raise the `ArgumentError` here, in either argument position.
+
+## Symmetric difference, `overlaps`, and `is_walkable`
+
+[`region_symdiff`](@ref)`(a, b)` is the parts of each shape that lie
+outside the other, `(a ∖ b) ∪ (b ∖ a)`, as a `Vector` holding every
+surviving piece from both sides (never fewer than the two
+[`region_difference`](@ref) calls it is built from, since those two pieces
+never overlap each other):
+
+```@example geo
+t1 = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 4.0))
+t2 = APTriangle(APPoint(1.0, 1.0), APPoint(5.0, 1.0), APPoint(3.0, 5.0))
+pieces = region_symdiff(t1, t2)
+length(pieces), sum(area.(pieces))
+```
+
+```@raw html
+<img src="../assets/img/intersections/region_symdiff_triangles.svg" alt="Two triangles whose symmetric difference, the two crescent-shaped parts each has outside the other, is filled in purple" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        t1 = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 4.0))
+        t2 = APTriangle(APPoint(1.0, 1.0), APPoint(5.0, 1.0), APPoint(3.0, 5.0))
+        pieces = region_symdiff(t1, t2)
+    end
+    (; t1, t2, pieces) = lxo
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple); setopacity(0.25)
+    path(pieces; action=:fill)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path([t1, t2], action=:stroke)
+    sethue(julia_purple)
+    path(pieces; action=:stroke)
+    finish()
+    preview()
+    ```
+
+Both argument orders give the same pieces. Disjoint shapes give both
+unchanged, identical shapes give an empty `Vector`, and it raises the same
+`ArgumentError`s as `region_difference` (from either order), for the same
+reasons.
+
+[`overlaps`](@ref)`(a, b)` answers the yes/no question alone, without
+building or classifying the overlap shape:
+
+```@example geo
+overlaps(t1, t2), overlaps(APCircle2(APPoint(0.0, 0.0), 1.0), APCircle2(APPoint(2.0, 0.0), 1.0))
+```
+
+The second pair only touches at a single point, so it counts as not
+overlapping, the same way `intersection`'s `(:region,:region)` and
+`region_union` already treat a merely-touching boundary.
+
+[`is_walkable`](@ref)`(pg)` checks, ahead of a call, whether `pg`'s own
+boundary can be walked in the single consistent direction `region_union`,
+`region_difference`, and `intersection`'s `(:region,:region)` all need:
+
+```@example geo
+ann = APAnnularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 4.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0)), 2.0)
+is_walkable(ann), is_walkable(t1)
+```
+
+`false` means the shape would raise the `ArgumentError` already described
+above for `APAnnularSector2` and `APInterstice2`; `true` covers everything
+else in scope, always.
+
+## Combining more than two shapes at once
+
+[`region_union`](@ref), [`intersection`](@ref), and
+[`region_difference`](@ref) each also take a whole collection of shapes at
+once, instead of exactly two:
+
+```@example geo
+d1 = APCircle2(APPoint(0.0, 0.0), 1.0)
+d2 = APCircle2(APPoint(1.5, 0.0), 1.0)
+d3 = APCircle2(APPoint(3.0, 0.0), 1.0)
+far = APCircle2(APPoint(100.0, 0.0), 1.0)
+region_union([d1, d2, d3, far])
+```
+
+`region_union(shapes)` merges every shape that touches or overlaps another,
+directly or through a chain of others (here `d1`, `d2` and `d3` chain
+together into one piece; `far` has nothing in common with any of them and
+stays on its own), as a `Vector` of the disjoint results; the order of
+`shapes` does not matter.
+
+```@example geo
+e1 = APCircle2(APPoint(0.0, 0.0), 3.0)
+e2 = APCircle2(APPoint(1.0, 0.0), 3.0)
+e3 = APCircle2(APPoint(2.0, 0.0), 3.0)
+only(intersection([e1, e2, e3])) |> area
+```
+
+`intersection(shapes)` is always the `(:region,:region)` reading (there is
+no per-shape `mode` for more than two shapes at once), the overlap common
+to every shape in `shapes`; it can hold more than one disjoint piece once
+four or more shapes are involved, even though two alone always overlap in
+one connected piece, and comes back empty as soon as the running overlap
+does, without checking what is left of `shapes`.
+
+```@example geo
+bite1 = APTriangle(APPoint(2.0, -3.0), APPoint(5.0, -3.0), APPoint(2.0, 3.0))
+bite2 = APTriangle(APPoint(-2.0, -3.0), APPoint(-5.0, -3.0), APPoint(-2.0, 3.0))
+region_difference(APCircle2(APPoint(0.0, 0.0), 3.0), [bite1, bite2])
+```
+
+`region_difference(a, others)` takes every shape out of `a` in turn (a
+single remaining piece of `a` can split into several partway through, each
+then checked against the rest of `others` independently), the same
+straight-sided-`b` restriction as the two-shape form applying to every
+shape in `others`. All three N-ary forms reduce to their two-shape
+counterpart for exactly two shapes, and raise the same `ArgumentError`s,
+for the same reasons, whenever a pair that needs one is compared along the
+way.
 
 ## Points
 

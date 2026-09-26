@@ -6813,6 +6813,8 @@ end
     end
 end
 
+_same_pieces(v1, v2) = length(v1) == length(v2) && all(x -> any(==(x), v2), v1)
+
 @testset "region_union and region_difference" begin
     P(x, y) = APPoint(x, y)
     t1 = APTriangle(P(0.0, 0.0), P(4.0, 0.0), P(2.0, 4.0))
@@ -6828,11 +6830,11 @@ end
         small, big = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(0.0, 0.0), 5.0)
         @test only(region_union(small, big)) == big
         d1, d2 = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(50.0, 0.0), 1.0)
-        @test Set(region_union(d1, d2)) == Set([d1, d2])
+        @test _same_pieces(region_union(d1, d2), [d1, d2])
         @test only(region_union(c1, c1)) == c1
         # tangent circles: touching at one point is not a real merge
         touch1, touch2 = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(2.0, 0.0), 1.0)
-        @test Set(region_union(touch1, touch2)) == Set([touch1, touch2])
+        @test _same_pieces(region_union(touch1, touch2), [touch1, touch2])
         # internally tangent: the bigger circle swallows the smaller whole
         @test only(region_union(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(0.5, 0.0), 0.5))) == APCircle2(P(0.0, 0.0), 1.0)
         # sharing a whole edge but no other overlap: a coincident boundary
@@ -6841,7 +6843,7 @@ end
         # rather than merging into one bigger polygon
         tri_e = APTriangle(P(0.0, 0.0), P(2.0, 0.0), P(1.0, 2.0))
         quad_e = APQuadrilateral(P(0.0, 0.0), P(2.0, 0.0), P(2.0, -2.0), P(0.0, -2.0))
-        @test Set(region_union(tri_e, quad_e)) == Set([tri_e, quad_e])
+        @test _same_pieces(region_union(tri_e, quad_e), [tri_e, quad_e])
         # union always needs both shapes fully walked, unlike intersection
         ann = APAnnularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 4.0), P(4.0, 0.0), P(0.0, 4.0)), 2.0)
         @test_throws ArgumentError region_union(ann, t1)
@@ -6877,5 +6879,75 @@ end
         ann = APAnnularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 4.0), P(4.0, 0.0), P(0.0, 4.0)), 2.0)
         @test_throws ArgumentError region_difference(ann, t1)
         @test_throws ArgumentError region_difference(t1, ann)
+    end
+end
+
+@testset "region_symdiff, overlaps, is_walkable, and N-ary forms" begin
+    P(x, y) = APPoint(x, y)
+    t1 = APTriangle(P(0.0, 0.0), P(4.0, 0.0), P(2.0, 4.0))
+    t2 = APTriangle(P(1.0, 1.0), P(5.0, 1.0), P(3.0, 5.0))
+    c1, c2 = APCircle2(P(0.0, 0.0), 3.0), APCircle2(P(4.0, 0.0), 3.0)
+    ann = APAnnularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 4.0), P(4.0, 0.0), P(0.0, 4.0)), 2.0)
+
+    @testset "region_symdiff" begin
+        sd = region_symdiff(t1, t2)
+        @test length(sd) == 2 && sum(area.(sd)) ≈ area(t1) + area(t2) - 2 * 3.125
+        # order does not matter (a\b then b\a, or the reverse, is the same set of pieces)
+        @test _same_pieces(region_symdiff(t1, t2), region_symdiff(t2, t1))
+        d1, d2 = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(50.0, 0.0), 1.0)
+        @test _same_pieces(region_symdiff(d1, d2), [d1, d2])
+        @test isempty(region_symdiff(c1, c1))
+        @test_throws ArgumentError region_symdiff(ann, t1)
+        @test_throws ArgumentError region_symdiff(c1, c2)
+    end
+
+    @testset "overlaps" begin
+        @test overlaps(t1, t2)
+        @test !overlaps(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(50.0, 0.0), 1.0))
+        @test !overlaps(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(2.0, 0.0), 1.0))
+        @test overlaps(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(0.5, 0.0), 0.5))
+        @test overlaps(t1, t1)
+    end
+
+    @testset "is_walkable" begin
+        @test !is_walkable(ann)
+        @test is_walkable(c1) && is_walkable(t1)
+        sec = APCircularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 3.0), P(3.0, 0.0), P(0.0, 3.0)))
+        @test is_walkable(sec)
+    end
+
+    @testset "N-ary region_union" begin
+        d1, d2, d3 = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(1.5, 0.0), 1.0), APCircle2(P(3.0, 0.0), 1.0)
+        far = APCircle2(P(100.0, 0.0), 1.0)
+        u = region_union([d1, d2, d3, far])
+        @test length(u) == 2 && far in u
+        chained = only(filter(!=(far), u))
+        @test area(chained) ≈ 8.518154453588654 atol = 1e-6
+        @test region_union([t1]) == [t1]
+        @test isempty(region_union(APTriangle[]))
+        @test_throws ArgumentError region_union([ann, t1])
+    end
+
+    @testset "N-ary intersection" begin
+        e1, e2, e3 = APCircle2(P(0.0, 0.0), 3.0), APCircle2(P(1.0, 0.0), 3.0), APCircle2(P(2.0, 0.0), 3.0)
+        ix = intersection([e1, e2, e3])
+        @test length(ix) == 1
+        pairwise = intersection(e1, e2; mode=:region)
+        @test area(only(ix)) <= area(only(pairwise)) + 1e-9
+        @test intersection([t1]) == [t1]
+        far = APCircle2(P(100.0, 0.0), 1.0)
+        @test isempty(intersection([e1, far, e2]))
+    end
+
+    @testset "N-ary region_difference" begin
+        disk = APCircle2(P(0.0, 0.0), 3.0)
+        bite1 = APTriangle(P(2.0, -3.0), P(5.0, -3.0), P(2.0, 3.0))
+        bite2 = APTriangle(P(-2.0, -3.0), P(-5.0, -3.0), P(-2.0, 3.0))
+        dd = region_difference(disk, [bite1, bite2])
+        overlap1 = sum(area.(intersection(disk, bite1; mode=:region)))
+        overlap2 = sum(area.(intersection(disk, bite2; mode=:region)))
+        @test sum(area.(dd)) ≈ area(disk) - overlap1 - overlap2
+        @test region_difference(disk, APTriangle[]) == [disk]
+        @test_throws ArgumentError region_difference(disk, [c2])
     end
 end

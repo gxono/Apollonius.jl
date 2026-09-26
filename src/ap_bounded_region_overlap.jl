@@ -74,25 +74,34 @@ function _classify_loop(loop::Vector)
     return APCurvilinearNgon2(loop)
 end
 
+_any_crossing(loop_a, loop_b; atol::Real=1e-9) =
+    any(!isempty(intersection(pa, pb; atol=atol)) for pa in loop_a for pb in loop_b)
+
+_whole_loop_kept(runs, loop) = length(runs) == 1 && runs[1] == loop
+
+function _pool_and_classify(fragments::Vector; atol::Real=1e-9)
+    loops = _stitch_closed_loops(fragments; atol=atol)
+    return [_classify_loop(loop) for loop in loops]
+end
+
+_hole_error() = ArgumentError("intersection: this difference would carve b entirely out of a's interior, leaving a hole; no type here can represent a region with a hole")
+
 function _region_overlap(a, b; atol::Real=1e-9)
-    loop_a = _ccw_pieces(a)
-    loop_b = _ccw_pieces(b)
-    has_crossing = any(!isempty(intersection(pa, pb; atol=atol)) for pa in loop_a for pb in loop_b)
-    if !has_crossing
-        rep_a = _rep_point(loop_a)
-        rep_a in b && return Any[a]
-        rep_b = _rep_point(loop_b)
-        rep_b in a && return Any[b]
+    a == b && return Any[a]
+    loop_a, loop_b = _ccw_pieces(a), _ccw_pieces(b)
+    if !_any_crossing(loop_a, loop_b; atol=atol)
+        _rep_point(loop_a) in b && return Any[a]
+        _rep_point(loop_b) in a && return Any[b]
         return Any[]
     end
     runs_a = _clip_loop_to_region(loop_a, b; atol=atol)
     runs_b = _clip_loop_to_region(loop_b, a; atol=atol)
     # a lone tangent touch (no genuine transversal crossing) can still trip
-    # `has_crossing` above; when that leaves one loop kept whole and uncut,
+    # `_any_crossing` above; when that leaves one loop kept whole and uncut,
     # there is nothing to stitch, so short-circuit the same way the
-    # `!has_crossing` branch already does
-    length(runs_a) == 1 && runs_a[1] == loop_a && return Any[a]
-    length(runs_b) == 1 && runs_b[1] == loop_b && return Any[b]
+    # no-crossing branch already does
+    _whole_loop_kept(runs_a, loop_a) && return Any[a]
+    _whole_loop_kept(runs_b, loop_b) && return Any[b]
     fragments = Any[]
     for run in runs_a
         append!(fragments, run)
@@ -100,19 +109,15 @@ function _region_overlap(a, b; atol::Real=1e-9)
     for run in runs_b
         append!(fragments, run)
     end
-    loops = _stitch_closed_loops(fragments; atol=atol)
-    return [_classify_loop(loop) for loop in loops]
+    return _pool_and_classify(fragments; atol=atol)
 end
 
 function _region_union(a, b; atol::Real=1e-9)
-    loop_a = _ccw_pieces(a)
-    loop_b = _ccw_pieces(b)
-    has_crossing = any(!isempty(intersection(pa, pb; atol=atol)) for pa in loop_a for pb in loop_b)
-    if !has_crossing
-        rep_a = _rep_point(loop_a)
-        rep_a in b && return Any[b]
-        rep_b = _rep_point(loop_b)
-        rep_b in a && return Any[a]
+    a == b && return Any[a]
+    loop_a, loop_b = _ccw_pieces(a), _ccw_pieces(b)
+    if !_any_crossing(loop_a, loop_b; atol=atol)
+        _rep_point(loop_a) in b && return Any[b]
+        _rep_point(loop_b) in a && return Any[a]
         return Any[a, b]
     end
     runs_a = _clip_loop_to_region(loop_a, b; atol=atol, invert=true)
@@ -121,13 +126,11 @@ function _region_union(a, b; atol::Real=1e-9)
     # own: it also happens when b sits entirely inside a (tangent at one
     # point), not just when a and b are merely touching from outside, so the
     # two cases need telling apart by where b actually is
-    if length(runs_a) == 1 && runs_a[1] == loop_a
-        rep_b = _rep_point(loop_b)
-        return rep_b in a ? Any[a] : Any[a, b]
+    if _whole_loop_kept(runs_a, loop_a)
+        return _rep_point(loop_b) in a ? Any[a] : Any[a, b]
     end
-    if length(runs_b) == 1 && runs_b[1] == loop_b
-        rep_a = _rep_point(loop_a)
-        return rep_a in b ? Any[b] : Any[a, b]
+    if _whole_loop_kept(runs_b, loop_b)
+        return _rep_point(loop_a) in b ? Any[b] : Any[a, b]
     end
     fragments = Any[]
     for run in runs_a
@@ -136,20 +139,15 @@ function _region_union(a, b; atol::Real=1e-9)
     for run in runs_b
         append!(fragments, run)
     end
-    loops = _stitch_closed_loops(fragments; atol=atol)
-    return [_classify_loop(loop) for loop in loops]
+    return _pool_and_classify(fragments; atol=atol)
 end
 
 function _region_difference(a, b; atol::Real=1e-9)
     a == b && return Any[]
-    loop_a = _ccw_pieces(a)
-    loop_b = _ccw_pieces(b)
-    has_crossing = any(!isempty(intersection(pa, pb; atol=atol)) for pa in loop_a for pb in loop_b)
-    if !has_crossing
-        rep_b = _rep_point(loop_b)
-        rep_b in a && throw(ArgumentError("intersection: this difference would carve b entirely out of a's interior, leaving a hole; no type here can represent a region with a hole"))
-        rep_a = _rep_point(loop_a)
-        rep_a in b && return Any[]
+    loop_a, loop_b = _ccw_pieces(a), _ccw_pieces(b)
+    if !_any_crossing(loop_a, loop_b; atol=atol)
+        _rep_point(loop_b) in a && throw(_hole_error())
+        _rep_point(loop_a) in b && return Any[]
         return Any[a]
     end
     runs_a = _clip_loop_to_region(loop_a, b; atol=atol, invert=true)
@@ -157,9 +155,8 @@ function _region_difference(a, b; atol::Real=1e-9)
     # same tangent ambiguity as in _region_union: a's whole boundary
     # surviving "outside b" also happens when b sits entirely inside a
     # (tangent at one point), which is the hole case, not "disjoint"
-    if length(runs_a) == 1 && runs_a[1] == loop_a
-        rep_b = _rep_point(loop_b)
-        rep_b in a && throw(ArgumentError("intersection: this difference would carve b entirely out of a's interior, leaving a hole; no type here can represent a region with a hole"))
+    if _whole_loop_kept(runs_a, loop_a)
+        _rep_point(loop_b) in a && throw(_hole_error())
         return Any[a]
     end
     fragments = Any[]
@@ -169,6 +166,70 @@ function _region_difference(a, b; atol::Real=1e-9)
     for run in runs_b
         append!(fragments, [_reverse_piece(piece) for piece in Base.reverse(run)])
     end
-    loops = _stitch_closed_loops(fragments; atol=atol)
-    return [_classify_loop(loop) for loop in loops]
+    return _pool_and_classify(fragments; atol=atol)
+end
+
+function _region_symdiff(a, b; atol::Real=1e-9)
+    return vcat(_region_difference(a, b; atol=atol), _region_difference(b, a; atol=atol))
+end
+
+_overlaps(a, b; atol::Real=1e-9) = !isempty(_region_overlap(a, b; atol=atol))
+
+function _is_walkable(pg)
+    pg isa Union{APCircle2,APEllipse2} && return true
+    try
+        _ccw_pieces(pg)
+        return true
+    catch e
+        e isa ArgumentError && return false
+        rethrow()
+    end
+end
+
+function _try_merge_one!(pieces::Vector; atol::Real=1e-9)
+    n = length(pieces)
+    for i in 1:n, j in (i+1):n
+        merged = _region_union(pieces[i], pieces[j]; atol=atol)
+        if length(merged) == 1
+            pieces[i] = only(merged)
+            deleteat!(pieces, j)
+            return true
+        end
+    end
+    return false
+end
+
+function _region_union_all(shapes; atol::Real=1e-9)
+    isempty(shapes) && return Any[]
+    pieces = Any[shapes...]
+    while _try_merge_one!(pieces; atol=atol)
+    end
+    return pieces
+end
+
+function _region_intersection_all(shapes; atol::Real=1e-9)
+    isempty(shapes) && throw(ArgumentError("intersection: needs at least one shape"))
+    pieces = Any[shapes[1]]
+    for s in shapes[2:end]
+        next_pieces = Any[]
+        for p in pieces
+            append!(next_pieces, _region_overlap(p, s; atol=atol))
+        end
+        pieces = next_pieces
+        isempty(pieces) && return pieces
+    end
+    return pieces
+end
+
+function _region_difference_all(a, others; atol::Real=1e-9)
+    pieces = Any[a]
+    for b in others
+        next_pieces = Any[]
+        for p in pieces
+            append!(next_pieces, _region_difference(p, b; atol=atol))
+        end
+        pieces = next_pieces
+        isempty(pieces) && return pieces
+    end
+    return pieces
 end

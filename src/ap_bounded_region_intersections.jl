@@ -106,8 +106,8 @@ shapes give both, unmerged, as the two elements of the `Vector`; touching
 at a single point, or along a whole shared edge with no other overlap,
 also gives both, unmerged, rather than one bigger polygon, since a
 coincident boundary contributes no crossing (the same convention
-[`intersection`](@ref) already uses for two coincident curves). Both
-argument orders work.
+[`intersection`](@ref) already uses for two coincident curves). `a` and `b`
+identical gives `[a]`. Both argument orders work.
 
 There is no `:boundary`-side escape hatch here the way `intersection` has
 one: both `a` and `b` always need their own boundary walked in a single
@@ -151,4 +151,105 @@ hole.
 """
 function region_difference(a::_BoundedRegion2, b::_BoundedRegion2; atol::Real=1e-9)
     return _region_difference(a, b; atol=atol)
+end
+
+"""
+    region_difference(a, others; atol=1e-9)
+
+`a` with every shape in `others` (any iterable of bounded, closed shapes)
+taken out in turn, equivalent to folding [`region_difference`](@ref)`(a, b)`
+over `others` one at a time and keeping every surviving piece at each step
+(a single shape can split into several disjoint pieces partway through,
+each then checked against the rest of `others` independently). Always a
+`Vector`; empty once nothing of `a` is left. Each step can raise the same
+`ArgumentError`s as the two-shape form, for the same reasons.
+"""
+function region_difference(a::_BoundedRegion2, others; atol::Real=1e-9)
+    return _region_difference_all(a, others; atol=atol)
+end
+
+"""
+    region_symdiff(a, b; atol=1e-9)
+
+The symmetric difference of two bounded, closed shapes: the parts of each
+that lie outside the other, `(a ∖ b) ∪ (b ∖ a)`, as a `Vector` holding every
+surviving piece from both (the two sides can never overlap each other, so
+no merging or restitching is needed beyond what
+[`region_difference`](@ref) already does). Both argument orders give the
+same result. Disjoint shapes give both unchanged; identical shapes give an
+empty `Vector`. Raises the same `ArgumentError`s as `region_difference`
+(from either `region_difference(a,b)` or `region_difference(b,a)`), for
+the same reasons: a hole-creating containment in either direction, or a
+circular/elliptic arc that would need walking backward.
+"""
+function region_symdiff(a::_BoundedRegion2, b::_BoundedRegion2; atol::Real=1e-9)
+    return _region_symdiff(a, b; atol=atol)
+end
+
+"""
+    overlaps(a, b; atol=1e-9)
+
+Whether the bounded, closed shapes `a` and `b` share any area at all
+(`!isempty(intersection(a, b; mode=:region))`, without needing to build
+and classify the overlap shape itself to find out). `false` for two shapes
+that only touch along a boundary (a single point, or a whole shared edge
+with no other overlap), the same as [`intersection`](@ref)'s
+`(:region,:region)` and [`region_union`](@ref) already treat that case.
+"""
+function overlaps(a::_BoundedRegion2, b::_BoundedRegion2; atol::Real=1e-9)
+    return _overlaps(a, b; atol=atol)
+end
+
+"""
+    is_walkable(pg)
+
+Whether `pg`'s own boundary can be walked in a single consistent direction,
+the requirement [`region_union`](@ref)/[`region_difference`](@ref) always
+have and [`intersection`](@ref)'s `(:region,:region)` (or a `:boundary`
+side) has too. `false` exactly when `pg` is an `APAnnularSector2`, an
+`APInterstice2` built as the natural curved gap between mutually tangent
+circles, or any other curved-region shape whose sides, taken together,
+would need a circular or elliptic arc walked backward; `true` for
+`APCircle2`, `APEllipse2`, every straight-sided type, and a curved type
+with a single arc side (`APCircularSector2`, `APCircularSegment2`), always.
+Check this before a call that would otherwise raise an `ArgumentError`, or
+use it to filter a collection of shapes down to the ones safe to pass to
+[`region_union`](@ref)'s or [`intersection`](@ref)'s N-ary forms.
+"""
+function is_walkable(pg::_BoundedRegion2)
+    return _is_walkable(pg)
+end
+
+"""
+    region_union(shapes)
+
+The union of every bounded, closed shape in `shapes` (any iterable of them)
+at once, as a `Vector` holding each disjoint merged piece: shapes that
+touch or overlap, directly or through a chain of others, merge into one
+piece each; shapes with nothing in common with any other stay as their own
+piece. Order in `shapes` does not affect the result. Reduces to
+[`region_union`](@ref)`(a, b)` for two shapes, and to `[only(shapes)]` for
+one. Raises the same `ArgumentError` as the two-shape form for any pair
+that would need it, exactly when two shapes end up compared against each
+other on the way to finding every merge.
+"""
+function region_union(shapes)
+    return _region_union_all(shapes)
+end
+
+"""
+    intersection(shapes; atol=1e-9)
+
+The overlap common to every bounded, closed shape in `shapes` (any
+iterable of them) at once, as a `Vector` holding each disjoint piece
+(there can be more than one once four or more shapes are involved, even
+though any two shapes alone always overlap in one connected piece). This
+is always the `(:region,:region)` reading, since there is no per-shape
+`mode` to give for more than two shapes at once. Reduces to
+[`intersection`](@ref)`(a, b; mode=:region)` for two shapes, and to
+`[only(shapes)]` for one. Empty as soon as the running overlap becomes
+empty, without checking the remaining shapes.
+"""
+function intersection(shapes::AbstractVector{<:_BoundedRegion2}; atol::Real=1e-9)
+    return _region_intersection_all(shapes; atol=atol)
 end

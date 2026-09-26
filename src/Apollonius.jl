@@ -87,7 +87,7 @@ export projection, reflection, rotate, homothety, translate, barycenter
 export parallel_through, perpendicular_through, perpendicular_bisector, angle_bisectors, angle_trisectors
 export vertical_line, horizontal_line
 export golden_ratio_point, harmonic_conjugate, apollonius_circle
-export intersection, region_union, region_difference
+export intersection, region_union, region_difference, region_symdiff, overlaps, is_walkable
 export centroid, circumcenter, circumradius, circumcircle,
        incenter, inradius, incircle, orthocenter, area, perimeter, is_degenerate
 export excenters, exradii, excircles, euler_line, nine_point_center, nine_point_circle, euler_points
