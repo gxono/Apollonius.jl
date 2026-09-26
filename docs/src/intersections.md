@@ -40,6 +40,26 @@ tightest fitting bounded type, a bare value unless one side is a reflex
 `APAngle2` (curved-sided polygons aren't supported yet). See [Unbounded
 Regions: Half-Planes, Strips & Angles](@ref).
 
+**Also except** when both sides are bounded and closed: an [`APCircle2`](@ref),
+an [`APEllipse2`](@ref), or any member of the `APPolygon` family (straight or
+curved). There a `mode` keyword picks, per side, whether it means just its own
+boundary curve or the filled region it encloses, the same `:boundary`/
+`:region` vocabulary [`distance`](@ref) already uses. `mode=(:boundary,
+:boundary)` (the default, and what happens when `mode` is left out) is the
+boundary-crossing points above, unchanged. `mode=(:boundary, :region)` or
+`(:region, :boundary)` gives the part of the *boundary-only* side's own curve
+that lies inside the *region* side, as a `Vector` (0, 1, or more disjoint
+pieces, since the region side need not be convex). `mode=(:region, :region)`
+gives the actual overlap of the two filled interiors, also always a `Vector`,
+each piece the tightest fitting shape: `APTriangle`/`APQuadrilateral`/
+`APStraightNgon` when every side of a piece is straight,
+`APCurvilinearTriangle2`/`APCurvilinearQuadrilateral2`/`APCurvilinearNgon2`
+when any side is curved. One shape entirely inside the other comes back as
+that inner shape unchanged; disjoint shapes give an empty `Vector`. A bare
+`mode=:region` (or `:boundary`) is shorthand for the same choice on both
+sides. Two shapes that share part of a boundary edge or arc drop that shared
+piece, the same convention already noted above for two curves that coincide.
+
 ```@example geo
 using Apollonius
 ```
@@ -59,6 +79,7 @@ using Apollonius
 | angle, half-plane or strip with a line, segment, ray, or any conic or arc | **not points** | the part of the other object inside the region, see above |
 | angle, half-plane or strip with another one of the three | **not points** | the region common to both, see above |
 | angle, half-plane or strip with a straight-sided triangle, quadrilateral or n-gon | **not points** | the part of the polygon inside the region, see above |
+| circle, ellipse, or any polygon-family shape with another one of those, given `mode` | **not points** | the clipped curve or the overlap region, see above |
 | parametric curve with a line, conic or any of the above | found by sampling | see below |
 | point with anything above | 0 or 1 | the point itself, if it lies on the curve or boundary |
 
@@ -191,6 +212,95 @@ The inside of a region is not part of its curve, so a point inside a polygon
 is not in the intersection of the polygon with a line that passes through it:
 the line meets the polygon's boundary where it enters and where it leaves.
 To ask whether a point is inside, use `in` (see [Predicates](@ref)).
+
+## Bounded regions: clip and overlap
+
+Two circles, two ellipses, or two polygon-family shapes (straight or curved,
+in any combination) accept `mode` on top of the plain boundary-crossing
+behavior above:
+
+```@example geo
+t1 = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 4.0))
+t2 = APTriangle(APPoint(1.0, 1.0), APPoint(5.0, 1.0), APPoint(3.0, 5.0))
+intersection(t1, t2; mode=(:boundary, :region))
+```
+
+`mode=(:boundary, :region)` kept the part of `t1`'s own boundary that lies
+inside `t2`. Asking for `mode=(:region, :region)` instead gives the actual
+overlap, as a filled shape of its own:
+
+```@example geo
+intersection(t1, t2; mode=:region)
+```
+
+```@raw html
+<img src="../assets/img/intersections/region_overlap_polygons.svg" alt="Two triangles whose overlap, a quadrilateral, is filled in purple" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    include("../default_config.jl")
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        t1 = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 4.0))
+        t2 = APTriangle(APPoint(1.0, 1.0), APPoint(5.0, 1.0), APPoint(3.0, 5.0))
+        overlap = only(intersection(t1, t2; mode=:region))
+    end
+    (; t1, t2, overlap) = lxo
+    @svg_doc(lxm, @__FILE__, begin
+    sethue(julia_purple); setopacity(0.25)
+    path(overlap; action=:fill)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path([t1, t2], action=:stroke)
+    sethue(julia_purple)
+    path(overlap; action=:stroke)
+    sethue("white"); path(vertices(overlap), action=:fillpreserve); sethue(julia_purple); strokepath()
+    end)
+    ```
+
+The same `mode=:region` works for two circles, giving the lens between them:
+
+```@example geo
+c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
+c2 = APCircle2(APPoint(4.0, 0.0), 3.0)
+lens = only(intersection(c1, c2; mode=:region))
+area(lens)
+```
+
+```@raw html
+<img src="../assets/img/intersections/region_overlap_circles.svg" alt="Two circles whose lens-shaped overlap is filled in purple" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    include("../default_config.jl")
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        c1 = APCircle2(APPoint(0.0, 0.0), 3.0)
+        c2 = APCircle2(APPoint(4.0, 0.0), 3.0)
+        lens = only(intersection(c1, c2; mode=:region))
+    end
+    (; c1, c2, lens) = lxo
+    @svg_doc(lxm, @__FILE__, begin
+    sethue(julia_purple); setopacity(0.25)
+    path(lens; action=:fill)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path([c1, c2], action=:stroke)
+    sethue(julia_purple)
+    path(lens; action=:stroke)
+    end)
+    ```
+
+A shape entirely inside another comes back unchanged, and disjoint shapes give
+an empty `Vector`, for every combination in scope, mixed types included (a
+polygon and a circle, an ellipse and a curved polygon-family shape, and so
+on):
+
+```@example geo
+small = APCircle2(APPoint(0.0, 0.0), 1.0)
+big = APCircle2(APPoint(0.0, 0.0), 5.0)
+intersection(small, big; mode=:region), intersection(small, APCircle2(APPoint(50.0, 0.0), 1.0); mode=:region)
+```
 
 ## Points
 

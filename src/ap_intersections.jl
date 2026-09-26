@@ -92,7 +92,7 @@ function _radical_foot(c1::APCircle2, c2::APCircle2)
     a = (c1.r^2 - c2.r^2 + d^2) / (2d)
     return c1.center + a * u, u, d, a
 end
-function intersection(c1::APCircle2, c2::APCircle2; atol=1e-9)
+function _circle_circle_boundary_intersection(c1::APCircle2, c2::APCircle2; atol=1e-9)
     r1, r2 = c1.r, c2.r
     d = distance(c1.center, c2.center)
     scale = max(r1, r2, 1.0)
@@ -106,6 +106,8 @@ function intersection(c1::APCircle2, c2::APCircle2; atol=1e-9)
     p1, p2 = m + h * perp, m - h * perp
     return [APPoint(p1[1], p1[2]), APPoint(p2[1], p2[2])]
 end
+intersection(c1::APCircle2, c2::APCircle2; mode=(:boundary, :boundary), atol=1e-9) =
+    _bounded_region_intersection(c1, c2; mode=mode, atol=atol)
 """
     nearest_point(points, p)
 

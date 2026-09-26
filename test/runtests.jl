@@ -6701,3 +6701,48 @@ end
     @test isapprox(signed_curvature(APParametricCurve2(t -> P(t, 2t), (0.0, 1.0)), 0.5), 0.0; atol=1e-6)
     @test_throws ArgumentError curvature(par, 3.0)
 end
+
+@testset "intersection mode: bounded region clip and overlap" begin
+    P(x, y) = APPoint(x, y)
+    t1 = APTriangle(P(0.0, 0.0), P(4.0, 0.0), P(2.0, 4.0))
+    t2 = APTriangle(P(1.0, 1.0), P(5.0, 1.0), P(3.0, 5.0))
+    c1, c2 = APCircle2(P(0.0, 0.0), 3.0), APCircle2(P(4.0, 0.0), 3.0)
+    e1, e2 = APEllipse2(P(0.0, 0.0), 3.0, 2.0), APEllipse2(P(2.0, 0.0), 3.0, 2.0)
+    # the default and a mode-less call are unchanged from before this feature
+    @test intersection(t1, t2) == intersection(t1, t2; mode=(:boundary, :boundary))
+    @test intersection(c1, c2) == intersection(c1, c2; mode=(:boundary, :boundary))
+    @test intersection(e1, e2) == intersection(e1, e2; mode=(:boundary, :boundary))
+    @test isempty(detect_ambiguities(Apollonius))
+
+    @testset "boundary,region" begin
+        t = APTriangle(P(0.0, 0.0), P(4.0, 0.0), P(2.0, 3.0))
+        c = APCircle2(P(2.0, 1.0), 1.5)
+        r = intersection(t, c; mode=(:boundary, :region))
+        @test length(r) == 3 && all(s -> s isa APSegment, r)
+        big = APQuadrilateral(P(-10.0, -10.0), P(10.0, -10.0), P(10.0, 10.0), P(-10.0, 10.0))
+        inner = APCircle2(P(0.0, 0.0), 2.0)
+        @test only(intersection(inner, big; mode=(:boundary, :region))) == inner
+        far_c = APCircle2(P(100.0, 100.0), 1.0)
+        @test isempty(intersection(t, far_c; mode=(:boundary, :region)))
+        staple = APStraightNgon([P(0.0, 0.0), P(1.0, 0.0), P(1.0, 3.0), P(4.0, 3.0), P(4.0, 0.0), P(5.0, 0.0), P(5.0, 4.0), P(0.0, 4.0)])
+        notch = APCircle2(P(2.5, 3.5), 1.6)
+        @test length(intersection(staple, notch; mode=(:boundary, :region))) == 2
+    end
+
+    @testset "region,region" begin
+        r1 = intersection(t1, t2; mode=:region)
+        @test only(r1) isa APTriangle && area(only(r1)) ≈ 3.125
+        lens = only(intersection(c1, c2; mode=:region))
+        d, rad = 4.0, 3.0
+        @test area(lens) ≈ 2 * rad^2 * acos(d / (2rad)) - (d / 2) * sqrt(4rad^2 - d^2) && length(sides(lens)) == 2
+        tri = APTriangle(P(0.0, 0.0), P(3.0, 0.0), P(0.0, 3.0))
+        circ = APCircle2(P(0.0, 0.0), 2.0)
+        @test area(only(intersection(tri, circ; mode=:region))) ≈ π
+        small, bigc = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(0.0, 0.0), 5.0)
+        @test only(intersection(small, bigc; mode=:region)) == small
+        d1, d2 = APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(50.0, 0.0), 1.0)
+        @test isempty(intersection(d1, d2; mode=:region))
+        re = only(intersection(e1, e2; mode=:region))
+        @test re isa APCurvilinearNgon2 && length(sides(re)) == 2
+    end
+end

@@ -65,14 +65,44 @@ function _dedupe_points(pts::Vector{APPoint{2,Float64}}; atol=1e-9)
     end
     return out
 end
+function _conic_conic_boundary_intersection(c1::APConic2, c2::APConic2; atol=1e-9)
+    shift = APVector(_conic_center(c1)[1], _conic_center(c1)[2])
+    c1s, c2s = translate(c1, -shift), translate(c2, -shift)
+    coeffs1, coeffs2 = _implicit_form(c1s), _implicit_form(c2s)
+    A1, B1, C1, D1, E1, F1 = coeffs1
+    A2, B2, C2, D2, E2, F2 = coeffs2
+    y0 = (_conic_center(c1s)[2] + _conic_center(c2s)[2]) / 2
+    yscale = max(_conic_scale(c1s) + _conic_scale(c2s), sqrt(atol))
+    ys = y0 .+ yscale .* (-2.0:1.0:2.0)
+    resvals = [_resultant_at_y(y, coeffs1..., coeffs2...) for y in ys]
+    V = [(y - y0)^k for y in ys, k in 0:4]
+    yroots = y0 .+ _real_roots_poly(collect(V \ resvals); atol=atol)
+    pts = APPoint{2,Float64}[]
+    for y in yroots
+        a1, b1, cc1 = A1, B1 * y + D1, C1 * y^2 + E1 * y + F1
+        a2, b2, cc2 = A2, B2 * y + D2, C2 * y^2 + E2 * y + F2
+        for x in _solve_quadratic(a1, b1, cc1; atol=atol)
+            r2 = a2 * x^2 + b2 * x + cc2
+            abs(r2) <= sqrt(atol) * max(abs(a2), abs(b2), abs(cc2), 1.0) && push!(pts, APPoint(x, y))
+        end
+    end
+    sanity_center = midpoint(_conic_center(c1s), _conic_center(c2s))
+    sanity_radius = 200 * (_conic_scale(c1s) + _conic_scale(c2s)) + distance(_conic_center(c1s), _conic_center(c2s))
+    pts = filter(p -> distance(p, sanity_center) <= sanity_radius, pts)
+    return translate.(_dedupe_points(pts; atol=atol), shift)
+end
 """
-    intersection(c1::APConic2, c2::APConic2; atol=1e-9)
+    intersection(c1::APConic2, c2::APConic2; mode=(:boundary,:boundary), atol=1e-9)
 
 The intersection points of two conics, up to 4 real points (Bézout's
 theorem for two degree-2 curves): covers every pair *except* two
 circles, which already has its own direct method
 ([`intersection`](@ref)`(::APCircle2, ::APCircle2)`, picked automatically
-since it's more specific).
+since it's more specific). When both `c1` and `c2` are an `APCircle2` or
+`APEllipse2`, `mode` also works exactly as described in
+[`intersection`](@ref)`(::APCircle2, ::APCircle2)`'s bounded-region entry;
+it has no meaning for a parabola or hyperbola, which are unbounded, and
+passing anything but the default there throws an `ArgumentError`.
 
 Built via the classical elimination method: write each conic as a general
 quadratic `Ax² + Bxy + Cy² + Dx + Ey + F = 0` (found once per type via a
@@ -100,31 +130,12 @@ squares them, so two conics far from `(0, 0)` (coordinates in the tens of
 thousands or beyond) lost enough precision to return points that don't
 actually lie on either curve.
 """
-function intersection(c1::APConic2, c2::APConic2; atol=1e-9)
-    shift = APVector(_conic_center(c1)[1], _conic_center(c1)[2])
-    c1s, c2s = translate(c1, -shift), translate(c2, -shift)
-    coeffs1, coeffs2 = _implicit_form(c1s), _implicit_form(c2s)
-    A1, B1, C1, D1, E1, F1 = coeffs1
-    A2, B2, C2, D2, E2, F2 = coeffs2
-    y0 = (_conic_center(c1s)[2] + _conic_center(c2s)[2]) / 2
-    yscale = max(_conic_scale(c1s) + _conic_scale(c2s), sqrt(atol))
-    ys = y0 .+ yscale .* (-2.0:1.0:2.0)
-    resvals = [_resultant_at_y(y, coeffs1..., coeffs2...) for y in ys]
-    V = [(y - y0)^k for y in ys, k in 0:4]
-    yroots = y0 .+ _real_roots_poly(collect(V \ resvals); atol=atol)
-    pts = APPoint{2,Float64}[]
-    for y in yroots
-        a1, b1, cc1 = A1, B1 * y + D1, C1 * y^2 + E1 * y + F1
-        a2, b2, cc2 = A2, B2 * y + D2, C2 * y^2 + E2 * y + F2
-        for x in _solve_quadratic(a1, b1, cc1; atol=atol)
-            r2 = a2 * x^2 + b2 * x + cc2
-            abs(r2) <= sqrt(atol) * max(abs(a2), abs(b2), abs(cc2), 1.0) && push!(pts, APPoint(x, y))
-        end
-    end
-    sanity_center = midpoint(_conic_center(c1s), _conic_center(c2s))
-    sanity_radius = 200 * (_conic_scale(c1s) + _conic_scale(c2s)) + distance(_conic_center(c1s), _conic_center(c2s))
-    pts = filter(p -> distance(p, sanity_center) <= sanity_radius, pts)
-    return translate.(_dedupe_points(pts; atol=atol), shift)
+function intersection(c1::APConic2, c2::APConic2; mode=(:boundary, :boundary), atol=1e-9)
+    m1, m2 = _check_intersection_mode(mode)
+    m1 === :boundary && m2 === :boundary && return _conic_conic_boundary_intersection(c1, c2; atol=atol)
+    c1 isa Union{APCircle2,APEllipse2} && c2 isa Union{APCircle2,APEllipse2} ||
+        throw(ArgumentError("intersection: mode only applies between bounded regions (APCircle2/APEllipse2/APPolygon), not $(typeof(c1))/$(typeof(c2))"))
+    return _bounded_region_intersection(c1, c2; mode=mode, atol=atol)
 end
 """
     intersection(c::APConic2, arc::APConicArc2; atol=1e-9)
