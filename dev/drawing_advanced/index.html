@@ -44,17 +44,135 @@ end</code></pre></div></details><div class="admonition is-warning" id="reversetr
     clip_out(APCircle2(APPoint(50.0, 0.0), 30.0))   # a second call narrows it further
     sethue(&quot;red&quot;)
     paint()                                          # everything except the two discs
-end</code></pre><p>The same idea with two discs and a triangle, shading everything else:</p><img src="../assets/img/drawing/clip_out.svg" alt="The outside of two circles and a triangle shaded" style="width:100%; max-width: 700px;"><p>Two calls keep what is outside both shapes, and a <code>Vector</code> argument does the same in one call, one clip per element. Like any Luxor clip, it lasts until <code>clipreset()</code> or the end of the enclosing <code>@layer</code>, so wrap it.</p><p>Internally it clips the region between a big box and the shape, using Luxor&#39;s even-odd fill rule. The box has half-side <code>bound</code> (default <code>1e5</code>), centered on the current origin, so raise <code>bound</code> if you have translated the origin far from the drawing.</p><div class="admonition is-warning" id="A-clip-stays-until-it-is-reset-283c000788b74cb5"><header class="admonition-header">A clip stays until it is reset<a class="admonition-anchor" href="#A-clip-stays-until-it-is-reset-283c000788b74cb5" title="Permalink"></a></header><div class="admonition-body"><p>Both <code>clip_out</code> and <code>path(obj; action=:clip)</code> last until <code>clipreset()</code> or the end of the enclosing <code>@layer</code>. Everything drawn after them is clipped, including the labels, so wrap the clip in a <code>@layer</code> and draw the rest outside it.</p></div></div><h2 id="Filling-an-unbounded-region"><a class="docs-heading-anchor" href="#Filling-an-unbounded-region">Filling an unbounded region</a><a id="Filling-an-unbounded-region-1"></a><a class="docs-heading-anchor-permalink" href="#Filling-an-unbounded-region" title="Permalink"></a></h2><p><a href="../api/#Apollonius.APHalfPlane2"><code>APHalfPlane2</code></a>, <a href="../api/#Apollonius.APStrip2"><code>APStrip2</code></a> and <a href="../api/#Apollonius.APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a> have no finite shape to fill: <code>path(obj; action=:fill)</code> used to draw nothing at all for them, since their ordinary path is just the boundary line(s), with zero area. It now fills the part of <code>obj</code> inside a square of half-side <code>bound</code> (default <code>1000.0</code>) centered on the current origin instead, the same big-box idea <code>clip_out</code> already uses, just filling the box&#39;s intersection with <code>obj</code> rather than clipping it out. <code>action=:fillstroke</code> also strokes the true boundary, not the square&#39;s edges:</p><pre><code class="language-julia hljs">hp = APHalfPlane2(APLine(APPoint(-2.0, -5.0), APPoint(-2.0, 5.0)), APPoint(-10.0, 0.0))
+end</code></pre><p>The same idea with two discs and a triangle, shading everything else:</p><img src="../assets/img/drawing/clip_out.svg" alt="The outside of two circles and a triangle shaded" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-6f70cc8774e498ad"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-6f70cc8774e498ad" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+    shapes = [APCircle2(APPoint(0.0, 0.0), 2.0), APCircle2(APPoint(4.0, 0.0), 2.0), APTriangle(APPoint(1.0, 3.0), APPoint(3.0, 3.0), APPoint(2.0, -3.0))]
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+clip_out(shapes)
+sethue(julia_purple); setopacity(0.25)
+Luxor.paint()
+grestore()
+sethue(julia_blue)
+path(shapes, action=:stroke)
+
+finish()
+preview()
+end</code></pre></div></details><p>Two calls keep what is outside both shapes, and a <code>Vector</code> argument does the same in one call, one clip per element. Like any Luxor clip, it lasts until <code>clipreset()</code> or the end of the enclosing <code>@layer</code>, so wrap it.</p><p>Internally it clips the region between a big box and the shape, using Luxor&#39;s even-odd fill rule. The box has half-side <code>bound</code> (default <code>1e5</code>), centered on the current origin, so raise <code>bound</code> if you have translated the origin far from the drawing.</p><div class="admonition is-warning" id="A-clip-stays-until-it-is-reset-283c000788b74cb5"><header class="admonition-header">A clip stays until it is reset<a class="admonition-anchor" href="#A-clip-stays-until-it-is-reset-283c000788b74cb5" title="Permalink"></a></header><div class="admonition-body"><p>Both <code>clip_out</code> and <code>path(obj; action=:clip)</code> last until <code>clipreset()</code> or the end of the enclosing <code>@layer</code>. Everything drawn after them is clipped, including the labels, so wrap the clip in a <code>@layer</code> and draw the rest outside it.</p></div></div><h2 id="Filling-an-unbounded-region"><a class="docs-heading-anchor" href="#Filling-an-unbounded-region">Filling an unbounded region</a><a id="Filling-an-unbounded-region-1"></a><a class="docs-heading-anchor-permalink" href="#Filling-an-unbounded-region" title="Permalink"></a></h2><p><a href="../api/#Apollonius.APHalfPlane2"><code>APHalfPlane2</code></a>, <a href="../api/#Apollonius.APStrip2"><code>APStrip2</code></a> and <a href="../api/#Apollonius.APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a> have no finite shape to fill: <code>path(obj; action=:fill)</code> used to draw nothing at all for them, since their ordinary path is just the boundary line(s), with zero area. It now fills the part of <code>obj</code> inside a square of half-side <code>bound</code> (default <code>1000.0</code>) centered on the current origin instead, the same big-box idea <code>clip_out</code> already uses, just filling the box&#39;s intersection with <code>obj</code> rather than clipping it out. <code>action=:fillstroke</code> also strokes the true boundary, not the square&#39;s edges:</p><pre><code class="language-julia hljs">hp = APHalfPlane2(APLine(APPoint(-2.0, -5.0), APPoint(-2.0, 5.0)), APPoint(-10.0, 0.0))
 s = APStrip2(APLine(APPoint(0.0, -6.0), APPoint(8.0, -6.0)), APLine(APPoint(0.0, -3.0), APPoint(8.0, -3.0)))
 sethue(julia_purple); setopacity(0.25)
 path(hp; action=:fill)
-path(s; action=:fill)</code></pre><img src="../assets/img/drawing/fill_halfplane_strip.svg" alt="A half-plane and a strip, each shaded up to the edge of the picture" style="width:100%; max-width: 700px;"><p>An <a href="../api/#Apollonius.APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a> (see <a href="../unbounded_sets/#Unbounded-Regions:-Half-Planes,-Strips-and-Angles">Unbounded Regions: Half-Planes, Strips &amp; Angles</a>) fills the same way, its mix of rays and segments closing off a shape that&#39;s bounded on some sides and open on others:</p><pre><code class="language-julia hljs">u = APUnboundedPolygon2(APRay(APPoint(0.0, 3.0), APPoint(1.0, 3.0)), APPoint{2,Float64}[], APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
+path(s; action=:fill)</code></pre><img src="../assets/img/drawing/fill_halfplane_strip.svg" alt="A half-plane and a strip, each shaded up to the edge of the picture" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-5ef2dcffc0dc3710"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-5ef2dcffc0dc3710" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+    p1, p2 = APPoint(-2.0, -5.0), APPoint(-2.0, 5.0)
+    l = APLine(p1, p2)
+    hp = APHalfPlane2(l, APPoint(-10.0, 0.0))
+    p3, p4 = APPoint(0.0, -6.0), APPoint(8.0, -6.0)
+    p5, p6 = APPoint(0.0, -3.0), APPoint(8.0, -3.0)
+    l1 = APLine(p3, p4)
+    l2 = APLine(p5, p6)
+    s = APStrip2(l1, l2)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
 sethue(julia_purple); setopacity(0.25)
-path(u; action=:fill)</code></pre><img src="../assets/img/drawing/fill_unboundedpolygon.svg" alt="An unbounded polygon (bounded above and below, open on the right) shaded up to the edge of the picture" style="width:100%; max-width: 700px;"><p><a href="../api/#Apollonius.APAngle2"><code>APAngle2</code></a> gets this as a new <code>as=:region</code> option (alongside its own <code>as=:rays</code>; the decorative vertex markers, a small arc/pie-wedge/corner marker regardless of <code>action</code>, live in <a href="../api/#Apollonius.marks-Tuple{APAngle2}"><code>marks</code></a> instead, see <a href="../decorations_marks/#Marks,-Labels-and-Decorations">Marks, Labels &amp; Decorations</a>): it fills the true infinite wedge, not a marker near the vertex:</p><pre><code class="language-julia hljs">ang = APAngle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0))
+path(hp; action=:fill, bound=1000.0)
+path(s; action=:fill, bound=1000.0)
+setopacity(1.0)
+sethue(julia_blue)
+path(hp; action=:stroke, extend=1000.0)
+path(s; action=:stroke, extend=1000.0)
+
+finish()
+preview()
+end</code></pre></div></details><p>An <a href="../api/#Apollonius.APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a> (see <a href="../unbounded_sets/#Unbounded-Regions:-Half-Planes,-Strips-and-Angles">Unbounded Regions: Half-Planes, Strips &amp; Angles</a>) fills the same way, its mix of rays and segments closing off a shape that&#39;s bounded on some sides and open on others:</p><pre><code class="language-julia hljs">u = APUnboundedPolygon2(APRay(APPoint(0.0, 3.0), APPoint(1.0, 3.0)), APPoint{2,Float64}[], APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
 sethue(julia_purple); setopacity(0.25)
-path(ang; as=:region, action=:fill)</code></pre><img src="../assets/img/drawing/fill_angle_region.svg" alt="A convex angle's true wedge shaded up to the edge of the picture" style="width:100%; max-width: 700px;"><p>A <em>reflex</em> angle correctly fills as two pieces (everything except the small excluded wedge), the same way it can come back as two pieces from <a href="../api/#Apollonius.intersection"><code>intersection</code></a>:</p><pre><code class="language-julia hljs">reflex = APAngle2(APPoint(0.0, 0.0), APPoint(0.0, 4.0), APPoint(4.0, 0.0))
+path(u; action=:fill)</code></pre><img src="../assets/img/drawing/fill_unboundedpolygon.svg" alt="An unbounded polygon (bounded above and below, open on the right) shaded up to the edge of the picture" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-64f1d9e7f7e76ebb"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-64f1d9e7f7e76ebb" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+    p1, p2 = APPoint(0.0, 3.0), APPoint(1.0, 3.0)
+    p3, p4 = APPoint(0.0, 0.0), APPoint(1.0, 0.0)
+    ray1 = APRay(p1, p2)
+    ray2 = APRay(p3, p4)
+    u = APUnboundedPolygon2(ray1, APPoint{2,Float64}[], ray2)
+    corner1, corner2 = APPoint(-2.0, -1.0), APPoint(8.0, 4.0)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
 sethue(julia_purple); setopacity(0.25)
-path(reflex; as=:region, action=:fill)</code></pre><img src="../assets/img/drawing/fill_reflex_region.svg" alt="A reflex angle shaded everywhere except the small excluded wedge, as two filled pieces" style="width:100%; max-width: 700px;"><p><code>as=:region</code> with <code>action</code> in <code>:path</code>/<code>:stroke</code>/<code>:strokepreserve</code> draws the same two true rays as <code>as=:rays</code>, and raise <code>bound</code> the same way <code>clip_out</code> suggests if the origin has moved far from the drawing.</p><p><code>action=:clip</code> works the same way as <code>:fill</code>, restricting later drawing to the region&#39;s part of the box instead of painting it, and <code>clip_out</code> does the opposite, restricting to everything outside it (see &quot;Clipping the outside&quot; above):</p><pre><code class="language-julia hljs">@layer begin
+path(u; action=:fill, bound=1000.0)
+setopacity(1.0)
+sethue(julia_blue)
+path(u; action=:stroke, extend=1000.0)
+
+finish()
+preview()
+end</code></pre></div></details><p><a href="../api/#Apollonius.APAngle2"><code>APAngle2</code></a> gets this as a new <code>as=:region</code> option (alongside its own <code>as=:rays</code>; the decorative vertex markers, a small arc/pie-wedge/corner marker regardless of <code>action</code>, live in <a href="../api/#Apollonius.marks-Tuple{APAngle2}"><code>marks</code></a> instead, see <a href="../decorations_marks/#Marks,-Labels-and-Decorations">Marks, Labels &amp; Decorations</a>): it fills the true infinite wedge, not a marker near the vertex:</p><pre><code class="language-julia hljs">ang = APAngle2(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0))
+sethue(julia_purple); setopacity(0.25)
+path(ang; as=:region, action=:fill)</code></pre><img src="../assets/img/drawing/fill_angle_region.svg" alt="A convex angle's true wedge shaded up to the edge of the picture" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-66553deb7ad9f3fc"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-66553deb7ad9f3fc" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+    vertex, a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0)
+    ang = APAngle2(vertex, a, b)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+sethue(julia_purple); setopacity(0.25)
+path(ang; as=:region, action=:fill, bound=1000.0)
+setopacity(1.0)
+sethue(julia_blue)
+path(ang; as=:region, action=:stroke, bound=1000.0)
+
+finish()
+preview()
+end</code></pre></div></details><p>A <em>reflex</em> angle correctly fills as two pieces (everything except the small excluded wedge), the same way it can come back as two pieces from <a href="../api/#Apollonius.intersection"><code>intersection</code></a>:</p><pre><code class="language-julia hljs">reflex = APAngle2(APPoint(0.0, 0.0), APPoint(0.0, 4.0), APPoint(4.0, 0.0))
+sethue(julia_purple); setopacity(0.25)
+path(reflex; as=:region, action=:fill)</code></pre><img src="../assets/img/drawing/fill_reflex_region.svg" alt="A reflex angle shaded everywhere except the small excluded wedge, as two filled pieces" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-96f5edccf0034de8"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-96f5edccf0034de8" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+    vertex, a, b = APPoint(0.0, 0.0), APPoint(0.0, 4.0), APPoint(4.0, 0.0)
+    reflex = APAngle2(vertex, a, b)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+sethue(julia_purple); setopacity(0.25)
+path(reflex; as=:region, action=:fill, bound=1000.0)
+setopacity(1.0)
+sethue(julia_blue)
+path(reflex; as=:region, action=:stroke, bound=1000.0)
+
+finish()
+preview()
+end</code></pre></div></details><p><code>as=:region</code> with <code>action</code> in <code>:path</code>/<code>:stroke</code>/<code>:strokepreserve</code> draws the same two true rays as <code>as=:rays</code>, and raise <code>bound</code> the same way <code>clip_out</code> suggests if the origin has moved far from the drawing.</p><p><code>action=:clip</code> works the same way as <code>:fill</code>, restricting later drawing to the region&#39;s part of the box instead of painting it, and <code>clip_out</code> does the opposite, restricting to everything outside it (see &quot;Clipping the outside&quot; above):</p><pre><code class="language-julia hljs">@layer begin
     path(hp; action=:clip)
     sethue(julia_purple); setopacity(0.25)
     paint()   # only the part of hp inside the box gets painted
@@ -63,4 +181,4 @@ end</code></pre><h2 id="Dimensions,-tick-lines-and-labels"><a class="docs-headin
 major, minor = Luxor.tickline(APPoint(-100.0, 0.0), APPoint(100.0, 0.0);
     major=4, minor=1, vertices=true)                                              # positions only
 path(major; radius=2, action=:fill)                                              # draw them as dots</code></pre><p>Drawn immediately (<code>vertices=false</code>, the default), <code>tickline</code> adds its own major/minor ticks and numbers along the way:</p><pre><code class="language-julia hljs">Luxor.tickline(a, b; major=7, minor=3, startnumber=0, finishnumber=7, rounding=0)</code></pre><img src="../assets/img/drawing/tickline.svg" alt="A tick-marked axis between two points, with major and minor ticks and numbered labels" style="width:100%; max-width: 700px;"><p>The measured text is the distance between the two points you pass, so on a canvas it is a length in pixels. Use <code>format</code> to show the value in your own units, and <code>textrotation=-pi/2</code> to keep the text upright on a horizontal dimension line (Luxor rotates it with the line by default):</p><pre><code class="language-julia hljs">Luxor.dimension(a, b; offset=40, format=d -&gt; &quot;7.0&quot;, textrotation=-pi / 2, textgap=25)</code></pre><img src="../assets/img/drawing/dimension.svg" alt="A dimension line with its measured text" style="width:100%; max-width: 700px;"><p><code>label</code> also takes a <code>LaTeXString</code> as the text once <code>LaTeXStrings</code> and <code>MathTeXEngine</code> are loaded (Luxor draws it with its own LaTeX support), so a label can be a formula:</p><pre><code class="language-julia hljs">using LaTeXStrings, MathTeXEngine
-label(L&quot;\alpha^2 + \beta_1&quot;, :N, APPoint(0.0, 0.0))</code></pre><p>To choose where a label goes and how it is aligned, see <a href="../api/#Apollonius.label_anchor"><code>label_anchor</code></a> on the <a href="../decorations_marks/#Marks,-Labels-and-Decorations">Marks, Labels &amp; Decorations</a> page.</p><div class="admonition is-warning" id="dimension-measures-the-distance-you-pass-9edd72d539282cf7"><header class="admonition-header">`dimension` measures the distance you pass<a class="admonition-anchor" href="#dimension-measures-the-distance-you-pass-9edd72d539282cf7" title="Permalink"></a></header><div class="admonition-body"><p>The text is the distance between the two points, in the units of those points. On fitted objects that is a length in drawing units, not in the units of your problem. Use <code>format</code> to show the value you mean, and <code>textrotation=-pi / 2</code> to keep the text upright on a horizontal line.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../drawing_shapes/">« What Each Type Builds</a><a class="docs-footer-nextpage" href="../drawing_appendix/">The Package Logo &amp; Name Collisions »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+label(L&quot;\alpha^2 + \beta_1&quot;, :N, APPoint(0.0, 0.0))</code></pre><p>To choose where a label goes and how it is aligned, see <a href="../api/#Apollonius.label_anchor"><code>label_anchor</code></a> on the <a href="../decorations_marks/#Marks,-Labels-and-Decorations">Marks, Labels &amp; Decorations</a> page.</p><div class="admonition is-warning" id="dimension-measures-the-distance-you-pass-9edd72d539282cf7"><header class="admonition-header">`dimension` measures the distance you pass<a class="admonition-anchor" href="#dimension-measures-the-distance-you-pass-9edd72d539282cf7" title="Permalink"></a></header><div class="admonition-body"><p>The text is the distance between the two points, in the units of those points. On fitted objects that is a length in drawing units, not in the units of your problem. Use <code>format</code> to show the value you mean, and <code>textrotation=-pi / 2</code> to keep the text upright on a horizontal line.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../drawing_shapes/">« What Each Type Builds</a><a class="docs-footer-nextpage" href="../drawing_appendix/">The Package Logo &amp; Name Collisions »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Saturday 26 September 2026 01:15">Saturday 26 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

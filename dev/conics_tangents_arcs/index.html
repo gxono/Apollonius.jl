@@ -94,12 +94,71 @@ intersection(APCircle2(APPoint(5.0, 5.0), 5.0), carc)   # circle against a circu
 hp = APHalfPlane2(l, APPoint(0.0, 10.0))
 intersection(hp, par)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{Any}:
  APParabolicRay2(APParabola2(focus=[0.0, 1.0], directrix=APLine([-5.0, -1.0] -&gt; [5.0, -1.0])), [4.0, 4.0], dir=-1)
- APParabolicRay2(APParabola2(focus=[0.0, 1.0], directrix=APLine([-5.0, -1.0] -&gt; [5.0, -1.0])), [-4.0, 4.0], dir=1)</code></pre><img src="../assets/img/conics/parabola_clip_two_rays.svg" alt="A parabola crossed twice by a half-plane's boundary with the middle piece excluded, leaving two disjoint half-infinite rays inside the half-plane, drawn over it in purple" style="width:100%; max-width: 700px;"><p>Whichever pieces survive come back in the tightest fitting type: an <a href="../api/#Apollonius.APParabolicRay2"><code>APParabolicRay2</code></a>/<a href="../api/#Apollonius.APHyperbolicRay2"><code>APHyperbolicRay2</code></a> when one end is still unbounded (what the example above gives, twice), the existing <a href="../api/#Apollonius.APParabolicArc2"><code>APParabolicArc2</code></a>/<a href="../api/#Apollonius.APHyperbolicArc2"><code>APHyperbolicArc2</code></a> when both ends are finite, or <code>curve</code> itself unchanged when the whole thing survives. <code>APParabolicRay2</code>/<code>APHyperbolicRay2</code> are the <a href="../api/#Apollonius.APRay"><code>APRay</code></a> of these two open conics: a starting point plus a direction to extend toward, this time along the curve&#39;s own parameter rather than a straight line. They also build directly, without going through <code>intersection</code> first:</p><pre><code class="language-julia hljs">ray = APParabolicRay2(par, point_on(par, 2.0), 1)   # from s = 2, extending toward s -&gt; +Inf
+ APParabolicRay2(APParabola2(focus=[0.0, 1.0], directrix=APLine([-5.0, -1.0] -&gt; [5.0, -1.0])), [-4.0, 4.0], dir=1)</code></pre><img src="../assets/img/conics/parabola_clip_two_rays.svg" alt="A parabola crossed twice by a half-plane's boundary with the middle piece excluded, leaving two disjoint half-infinite rays inside the half-plane, drawn over it in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-dbfcbf51c77de353"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-dbfcbf51c77de353" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=280 margin=20 begin
+    focus = APPoint(0.0, 1.0)
+    directrix = APLine(APPoint(-5.0, -1.0), APPoint(5.0, -1.0))
+    par = APParabola2(focus, directrix)
+    p1, p2 = APPoint(-5.0, 4.0), APPoint(5.0, 4.0)
+    l = APLine(p1, p2)
+    hp = APHalfPlane2(l, APPoint(0.0, 10.0))
+    corner1, corner2 = APPoint(-6.0, -1.0), APPoint(6.0, 9.0)
+end
+pieces = intersection(hp, par)
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path(l, action=:stroke, extend=10)
+grestore()
+sethue(julia_blue)
+path(par, action=:stroke)
+sethue(julia_purple); setline(3)
+foreach(pc -&gt; path(pc, action=:stroke), pieces)
+
+finish()
+preview()
+end</code></pre></div></details><p>Whichever pieces survive come back in the tightest fitting type: an <a href="../api/#Apollonius.APParabolicRay2"><code>APParabolicRay2</code></a>/<a href="../api/#Apollonius.APHyperbolicRay2"><code>APHyperbolicRay2</code></a> when one end is still unbounded (what the example above gives, twice), the existing <a href="../api/#Apollonius.APParabolicArc2"><code>APParabolicArc2</code></a>/<a href="../api/#Apollonius.APHyperbolicArc2"><code>APHyperbolicArc2</code></a> when both ends are finite, or <code>curve</code> itself unchanged when the whole thing survives. <code>APParabolicRay2</code>/<code>APHyperbolicRay2</code> are the <a href="../api/#Apollonius.APRay"><code>APRay</code></a> of these two open conics: a starting point plus a direction to extend toward, this time along the curve&#39;s own parameter rather than a straight line. They also build directly, without going through <code>intersection</code> first:</p><pre><code class="language-julia hljs">ray = APParabolicRay2(par, point_on(par, 2.0), 1)   # from s = 2, extending toward s -&gt; +Inf
 point_on(ray, 3.0), point_on(ray, 0.0) ≈ point_on(par, 2.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([-5.0, 6.25], true)</code></pre><pre><code class="language-julia hljs">distance(APPoint(0.0, 0.0), ray)   # the parabola&#39;s own vertex isn&#39;t on this ray, so its endpoint is closer</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2.23606797749979</code></pre><p>A hyperbola&#39;s two branches are independent open curves, so clipping one against a region can leave a whole branch untouched while the other is cut down or excluded entirely; <a href="../api/#Apollonius.APHyperbolaBranch2"><code>APHyperbolaBranch2</code></a> is what represents &quot;one whole branch&quot; on its own, something <code>APHyperbola2</code> itself (both branches together) can&#39;t:</p><pre><code class="language-julia hljs">hp2 = APHalfPlane2(APLine(APPoint(4.0, -20.0), APPoint(4.0, 20.0)), APPoint(-10.0, 0.0))
 intersection(hp2, h)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{Any}:
  APHyperbolicArc2{Float64}(APHyperbola2(center=[0.0, 0.0], a=3.0, b=4.0, angle=0.0), [3.999999999407602, -3.5276684135586245], [3.999999999407602, 3.5276684135586245])
- APHyperbolaBranch2(APHyperbola2(center=[0.0, 0.0], a=3.0, b=4.0, angle=0.0), branch=-1)</code></pre><img src="../assets/img/conics/hyperbola_clip_branch.svg" alt="A hyperbola with one branch clipped to a bounded arc by a half-plane and the other branch surviving whole, drawn over them in purple" style="width:100%; max-width: 700px;"><p>A half-plane that instead crosses <em>both</em> branches (a horizontal line meets each branch of this <code>h</code> exactly once, transversally, since <code>y</code> is monotonic along either branch) leaves an <code>APHyperbolicRay2</code> from each:</p><pre><code class="language-julia hljs">hp3 = APHalfPlane2(APLine(APPoint(-20.0, 2.0), APPoint(20.0, 2.0)), APPoint(0.0, 10.0))
+ APHyperbolaBranch2(APHyperbola2(center=[0.0, 0.0], a=3.0, b=4.0, angle=0.0), branch=-1)</code></pre><img src="../assets/img/conics/hyperbola_clip_branch.svg" alt="A hyperbola with one branch clipped to a bounded arc by a half-plane and the other branch surviving whole, drawn over them in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-ab2b5ae1e14d3521"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-ab2b5ae1e14d3521" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=280 margin=20 begin
+    h = APHyperbola2(APPoint(0.0, 0.0), 3.0, 4.0)
+    p1, p2 = APPoint(4.0, -20.0), APPoint(4.0, 20.0)
+    l = APLine(p1, p2)
+    hp = APHalfPlane2(l, APPoint(-10.0, 0.0))
+    corner1, corner2 = APPoint(-6.0, -8.0), APPoint(6.0, 8.0)
+end
+pieces = intersection(hp, h)
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path(l, action=:stroke, extend=10)
+grestore()
+sethue(julia_blue)
+path(h; branch=1, action=:stroke)
+path(h; branch=-1, action=:stroke)
+sethue(julia_purple); setline(3)
+foreach(pc -&gt; path(pc, action=:stroke), pieces)
+
+finish()
+preview()
+end</code></pre></div></details><p>A half-plane that instead crosses <em>both</em> branches (a horizontal line meets each branch of this <code>h</code> exactly once, transversally, since <code>y</code> is monotonic along either branch) leaves an <code>APHyperbolicRay2</code> from each:</p><pre><code class="language-julia hljs">hp3 = APHalfPlane2(APLine(APPoint(-20.0, 2.0), APPoint(20.0, 2.0)), APPoint(0.0, 10.0))
 intersection(hp3, h)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{Any}:
  APHyperbolicRay2(APHyperbola2(center=[0.0, 0.0], a=3.0, b=4.0, angle=0.0), [3.35410196616028, 1.9999999997334452], branch=1, dir=1)
  APHyperbolicRay2(APHyperbola2(center=[0.0, 0.0], a=3.0, b=4.0, angle=0.0), [-3.35410196616028, 1.9999999997334452], branch=-1, dir=1)</code></pre><p><code>in</code>/<code>distance</code>/<code>rotate</code>/<code>homothety</code>/<code>translate</code>/<code>reflection</code>/ <a href="../api/#Apollonius.APAffineMap"><code>APAffineMap</code></a> all work on the three new types the same way they do on every other curve in the package; see <a href="../drawing_basics/#Drawing-with-Luxor.jl">Drawing with Luxor.jl</a> for how they render (a sampled polyline, the same as the full conics and their arcs).</p><p>An <code>APStrip2</code>/convex <code>APAngle2</code> chains two such half-plane clips together; a <em>reflex</em> <code>APAngle2</code> can still add more disjoint pieces, the same way it does for a line, segment, ray, circle or ellipse.</p><h3 id="Random-points"><a class="docs-heading-anchor" href="#Random-points">Random points</a><a id="Random-points-1"></a><a class="docs-heading-anchor-permalink" href="#Random-points" title="Permalink"></a></h3><p><a href="../api/#Base.rand-Tuple{Random.AbstractRNG, Random.SamplerTrivial{&lt;:APObject}}"><code>rand</code></a> draws a random point on an <code>APEllipse2</code> or any of these three arc types (see <a href="../points_lines_special/#Points,-Lines-and-Rays:-Special-Points-and-Curves">Points, Lines &amp; Rays: Special Points &amp; Curves</a> for the general story across every shape in the package). Unlike a circle or circular arc, this is uniform in the curve&#39;s own parameter, <em>not</em> in arc length: exact arc-length sampling would need elliptic integrals for these three, so points cluster slightly more densely near the flatter parts of the curve (near an ellipse&#39;s minor axis, for instance):</p><pre><code class="language-julia hljs">is_on_ellipse(rand(e), e)   # true, but not uniformly spread along the perimeter
-in(rand(earc), earc), in(rand(parc), parc), in(rand(harc), harc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true, true)</code></pre><img src="../assets/img/conics/random_points.svg" alt="Random points on an ellipse, denser near the flatter parts" style="width:100%; max-width: 700px;"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../conics_constructors/">« Building From Other Data</a><a class="docs-footer-nextpage" href="../conics_transform_fit/">Transforming &amp; Fitting »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+in(rand(earc), earc), in(rand(parc), parc), in(rand(harc), harc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true, true)</code></pre><img src="../assets/img/conics/random_points.svg" alt="Random points on an ellipse, denser near the flatter parts" style="width:100%; max-width: 700px;"></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../conics_constructors/">« Building From Other Data</a><a class="docs-footer-nextpage" href="../conics_transform_fit/">Transforming &amp; Fitting »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Saturday 26 September 2026 01:15">Saturday 26 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

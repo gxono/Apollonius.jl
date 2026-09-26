@@ -52,7 +52,86 @@ intersection(ang, crossing)</code></pre><pre class="documenter-example-output"><
 rad2deg(normalized_measure(reflex))            # 270°: more than a straight angle
 intersection(reflex, APLine(APPoint(-6.0, -6.0), APPoint(16.0, 5.0)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{APRay{2, Float64}}:
  APRay([0.0, -3.0] -&gt; [-22.0, -14.0])
- APRay([6.0, 0.0] -&gt; [28.0, 11.0])</code></pre><img src="../assets/img/points_lines/angle_clip_reflex.svg" alt="A reflex wedge's two boundary rays, a line crossing through the excluded quadrant, and the two disjoint rays of the line that lie inside the wedge, drawn over it in purple" style="width:100%; max-width: 700px;"><p>A point works the same way as <code>in</code>, without the two-piece question: the point itself if it&#39;s inside <code>ang</code>, <code>nothing</code> otherwise. Both argument orders work for all of these.</p><p>The same clipping works against an <a href="../api/#Apollonius.APCircle2"><code>APCircle2</code></a> or <a href="../api/#Apollonius.APEllipse2"><code>APEllipse2</code></a> (or one of their arcs), still always as a <code>Vector</code> of pieces in that curve&#39;s own type, since a reflex <code>ang</code> can split a circle into two arcs too:</p><pre><code class="language-julia hljs">c = APCircle2(O, 2.0)
+ APRay([6.0, 0.0] -&gt; [28.0, 11.0])</code></pre><img src="../assets/img/points_lines/angle_clip_reflex.svg" alt="A reflex wedge's two boundary rays, a line crossing through the excluded quadrant, and the two disjoint rays of the line that lie inside the wedge, drawn over it in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-a802429a9fd6d13"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-a802429a9fd6d13" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    vertex, a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, -4.0)
+    reflex = APAngle2(vertex, a, b)
+    p1, p2 = APPoint(-6.0, -6.0), APPoint(16.0, 5.0)
+    input = APLine(p1, p2)
+    pieces = intersection(reflex, input)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+sethue(julia_blue)
+path(APRay(vertex, a), action=:stroke, extend=10)
+path(APRay(vertex, b), action=:stroke, extend=10)
+path(input, action=:stroke, extend=10)
+sethue(julia_purple); setline(3)
+path(pieces, action=:stroke, extend=10)
+sethue(&quot;white&quot;); path([vertex], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p>A point works the same way as <code>in</code>, without the two-piece question: the point itself if it&#39;s inside <code>ang</code>, <code>nothing</code> otherwise. Both argument orders work for all of these.</p><p>The same clipping works against an <a href="../api/#Apollonius.APCircle2"><code>APCircle2</code></a> or <a href="../api/#Apollonius.APEllipse2"><code>APEllipse2</code></a> (or one of their arcs), still always as a <code>Vector</code> of pieces in that curve&#39;s own type, since a reflex <code>ang</code> can split a circle into two arcs too:</p><pre><code class="language-julia hljs">c = APCircle2(O, 2.0)
 quarter = only(intersection(ang, c))
-rad2deg(measure(quarter))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">90.0</code></pre><img src="../assets/img/points_lines/angle_clip_circle.svg" alt="A wedge and a circle at its vertex, with the quarter of the circle inside the wedge drawn over it in purple" style="width:100%; max-width: 700px;"><h3 id="Intersecting-with-another-region"><a class="docs-heading-anchor" href="#Intersecting-with-another-region">Intersecting with another region</a><a id="Intersecting-with-another-region-1"></a><a class="docs-heading-anchor-permalink" href="#Intersecting-with-another-region" title="Permalink"></a></h3><p><a href="../api/#Apollonius.intersection"><code>intersection</code></a><code>(ang, other)</code> also works when <code>other</code> is itself an <a href="../api/#Apollonius.APHalfPlane2"><code>APHalfPlane2</code></a>/<a href="../api/#Apollonius.APStrip2"><code>APStrip2</code></a>/<code>APAngle2</code>: the region common to both, always as a <code>Vector</code> (0, 1, or, only when one side is reflex, up to 2 pieces). A half-plane crossing both of <code>ang</code>&#39;s rays closes it off into a bounded triangle:</p><pre><code class="language-julia hljs">hp = APHalfPlane2(APLine(APPoint(6.0, 0.0), APPoint(0.0, 6.0)), O)
-only(intersection(ang, hp))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APTriangle([6.0, 0.0], [0.0, 6.0], [0.0, 0.0])</code></pre><img src="../assets/img/points_lines/angle_intersect_halfplane.svg" alt="A wedge and a half-plane whose boundary crosses both of its rays, with the triangle common to both drawn over them in purple" style="width:100%; max-width: 700px;"><p>Crossing only one ray gives an unbounded <a href="../api/#Apollonius.APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a> instead (see <a href="../unbounded_sets/#Unbounded-Regions:-Half-Planes,-Strips-and-Angles">Unbounded Regions: Half-Planes, Strips &amp; Angles</a> for that type, and for the same idea against <code>APHalfPlane2</code>/<code>APStrip2</code> themselves). The same clipping also works against a straight-sided <a href="../api/#Apollonius.APTriangle"><code>APTriangle</code></a>/<a href="../api/#Apollonius.APQuadrilateral"><code>APQuadrilateral</code></a>/<a href="../api/#Apollonius.APStraightNgon"><code>APStraightNgon</code></a>, giving the part of the polygon inside <code>ang</code>; see <a href="../unbounded_sets/#Unbounded-Regions:-Half-Planes,-Strips-and-Angles">Unbounded Regions: Half-Planes, Strips &amp; Angles</a>&#39;s &quot;Clipping a bounded polygon&quot;.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../points_lines_transforms/">« Direction &amp; Transforms</a><a class="docs-footer-nextpage" href="../points_lines_special/">Special Points &amp; Curves »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+rad2deg(measure(quarter))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">90.0</code></pre><img src="../assets/img/points_lines/angle_clip_circle.svg" alt="A wedge and a circle at its vertex, with the quarter of the circle inside the wedge drawn over it in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-42d61fc4d96a4348"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-42d61fc4d96a4348" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    vertex, a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0)
+    ang = APAngle2(vertex, a, b)
+    c = APCircle2(vertex, 2.0)
+    piece = only(intersection(ang, c))
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+sethue(julia_blue)
+path(APRay(vertex, a), action=:stroke, extend=10)
+path(APRay(vertex, b), action=:stroke, extend=10)
+path(c, action=:stroke)
+sethue(julia_purple); setline(3)
+path(piece, action=:stroke)
+sethue(&quot;white&quot;); path([vertex], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><h3 id="Intersecting-with-another-region"><a class="docs-heading-anchor" href="#Intersecting-with-another-region">Intersecting with another region</a><a id="Intersecting-with-another-region-1"></a><a class="docs-heading-anchor-permalink" href="#Intersecting-with-another-region" title="Permalink"></a></h3><p><a href="../api/#Apollonius.intersection"><code>intersection</code></a><code>(ang, other)</code> also works when <code>other</code> is itself an <a href="../api/#Apollonius.APHalfPlane2"><code>APHalfPlane2</code></a>/<a href="../api/#Apollonius.APStrip2"><code>APStrip2</code></a>/<code>APAngle2</code>: the region common to both, always as a <code>Vector</code> (0, 1, or, only when one side is reflex, up to 2 pieces). A half-plane crossing both of <code>ang</code>&#39;s rays closes it off into a bounded triangle:</p><pre><code class="language-julia hljs">hp = APHalfPlane2(APLine(APPoint(6.0, 0.0), APPoint(0.0, 6.0)), O)
+only(intersection(ang, hp))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APTriangle([6.0, 0.0], [0.0, 6.0], [0.0, 0.0])</code></pre><img src="../assets/img/points_lines/angle_intersect_halfplane.svg" alt="A wedge and a half-plane whose boundary crosses both of its rays, with the triangle common to both drawn over them in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-3d3fae909a4be1d8"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-3d3fae909a4be1d8" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    vertex, a, b = APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0)
+    ang = APAngle2(vertex, a, b)
+    l = APLine(APPoint(6.0, 0.0), APPoint(0.0, 6.0))
+    hp = APHalfPlane2(l, vertex)
+    t = only(intersection(ang, hp))
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+sethue(julia_blue)
+path(APRay(vertex, a), action=:stroke, extend=10)
+path(APRay(vertex, b), action=:stroke, extend=10)
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path(l, action=:stroke, extend=10)
+grestore()
+sethue(julia_purple); setline(3)
+path(t, action=:stroke)
+
+finish()
+preview()
+end</code></pre></div></details><p>Crossing only one ray gives an unbounded <a href="../api/#Apollonius.APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a> instead (see <a href="../unbounded_sets/#Unbounded-Regions:-Half-Planes,-Strips-and-Angles">Unbounded Regions: Half-Planes, Strips &amp; Angles</a> for that type, and for the same idea against <code>APHalfPlane2</code>/<code>APStrip2</code> themselves). The same clipping also works against a straight-sided <a href="../api/#Apollonius.APTriangle"><code>APTriangle</code></a>/<a href="../api/#Apollonius.APQuadrilateral"><code>APQuadrilateral</code></a>/<a href="../api/#Apollonius.APStraightNgon"><code>APStraightNgon</code></a>, giving the part of the polygon inside <code>ang</code>; see <a href="../unbounded_sets/#Unbounded-Regions:-Half-Planes,-Strips-and-Angles">Unbounded Regions: Half-Planes, Strips &amp; Angles</a>&#39;s &quot;Clipping a bounded polygon&quot;.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../points_lines_transforms/">« Direction &amp; Transforms</a><a class="docs-footer-nextpage" href="../points_lines_special/">Special Points &amp; Curves »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Saturday 26 September 2026 01:15">Saturday 26 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -9,13 +9,102 @@ hp1 == hp2</code></pre><pre class="documenter-example-output"><code class="nohig
     APHalfPlane2(l, APPoint(0.0, 2.0))    # on l itself
 catch e
     e
-end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ArgumentError(&quot;APHalfPlane2: interior_point must not lie on boundary&quot;)</code></pre><p><code>p in hp</code> is a <strong>closed</strong> test (the boundary line itself counts as inside):</p><pre><code class="language-julia hljs">APPoint(1.0, 0.0) in hp1, APPoint(0.0, 0.0) in hp1, APPoint(-1.0, 0.0) in hp1</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true, false)</code></pre><p><a href="../api/#Apollonius.distance"><code>distance</code></a><code>(p, hp)</code> is <code>0.0</code> from anywhere inside, and the perpendicular distance to the boundary from outside; pass <code>mode=:boundary</code> to always get the distance to the boundary line, even from inside:</p><pre><code class="language-julia hljs">distance(APPoint(1.0, 0.0), hp1), distance(APPoint(-3.0, 0.0), hp1)   # (0.0, 3.0): the second point is outside</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(0.0, 3.0)</code></pre><pre><code class="language-julia hljs">distance(APPoint(1.0, 0.0), hp1; mode=:boundary)   # 1.0, even though the point is already inside</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1.0</code></pre><img src="../assets/img/unbounded/halfplane.svg" alt="A half-plane bounded by a vertical line: points inside in purple, outside in gray, and the distance from one outside point to the boundary" style="width:100%; max-width: 700px;"><p><code>rotate</code>/<code>homothety</code>/<code>translate</code> move the boundary and leave <code>side</code> unchanged: a rotation or a homothety of any ratio is always orientation-preserving in 2D, so &quot;the same physical side&quot; is still the same <code>side</code> value afterward. <code>reflection</code> about a point is the same story, but reflecting about a <em>line</em> is a true mirror: it reverses orientation, so <code>side</code> flips too, otherwise the reflected half-plane would describe the wrong side of its own (also reflected) boundary:</p><pre><code class="language-julia hljs">reflection(hp1, APPoint(1.0, 1.0)).side,                                       # point reflection: side unchanged (-1)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ArgumentError(&quot;APHalfPlane2: interior_point must not lie on boundary&quot;)</code></pre><p><code>p in hp</code> is a <strong>closed</strong> test (the boundary line itself counts as inside):</p><pre><code class="language-julia hljs">APPoint(1.0, 0.0) in hp1, APPoint(0.0, 0.0) in hp1, APPoint(-1.0, 0.0) in hp1</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, true, false)</code></pre><p><a href="../api/#Apollonius.distance"><code>distance</code></a><code>(p, hp)</code> is <code>0.0</code> from anywhere inside, and the perpendicular distance to the boundary from outside; pass <code>mode=:boundary</code> to always get the distance to the boundary line, even from inside:</p><pre><code class="language-julia hljs">distance(APPoint(1.0, 0.0), hp1), distance(APPoint(-3.0, 0.0), hp1)   # (0.0, 3.0): the second point is outside</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(0.0, 3.0)</code></pre><pre><code class="language-julia hljs">distance(APPoint(1.0, 0.0), hp1; mode=:boundary)   # 1.0, even though the point is already inside</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1.0</code></pre><img src="../assets/img/unbounded/halfplane.svg" alt="A half-plane bounded by a vertical line: points inside in purple, outside in gray, and the distance from one outside point to the boundary" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-3ac451a6b1e6297"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-3ac451a6b1e6297" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+    l = APLine(APPoint(0.0, 0.0), APPoint(0.0, 4.0))
+    q = APPoint(1.0, 0.0)
+    hp = APHalfPlane2(l, q)
+    pts = [APPoint(x, y) for x in (-3.0, -1.0, 1.0, 3.0) for y in (-2.0, 0.0, 2.0)]
+    far = APPoint(-3.0, 1.0)
+    foot = projection(far, l)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin(); fontsize(15)
+inside = [p for p in pts if p in hp]
+outside = [p for p in pts if !(p in hp)]
+sethue(julia_blue)
+path(l, action=:stroke)
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(julia_green)
+path(APSegment(far, foot), action=:stroke)
+grestore()
+sethue(&quot;gray80&quot;)
+sethue(julia_purple)
+sethue(julia_red)
+label(&quot;q&quot;, :N, q)
+sethue(&quot;white&quot;); path([outside; far], action=:fillpreserve); sethue(&quot;gray80&quot;); strokepath()
+sethue(&quot;white&quot;); path(inside, action=:fillpreserve); sethue(julia_purple); strokepath()
+sethue(&quot;white&quot;); path([q], action=:fillpreserve); sethue(julia_blue); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><p><code>rotate</code>/<code>homothety</code>/<code>translate</code> move the boundary and leave <code>side</code> unchanged: a rotation or a homothety of any ratio is always orientation-preserving in 2D, so &quot;the same physical side&quot; is still the same <code>side</code> value afterward. <code>reflection</code> about a point is the same story, but reflecting about a <em>line</em> is a true mirror: it reverses orientation, so <code>side</code> flips too, otherwise the reflected half-plane would describe the wrong side of its own (also reflected) boundary:</p><pre><code class="language-julia hljs">reflection(hp1, APPoint(1.0, 1.0)).side,                                       # point reflection: side unchanged (-1)
     reflection(hp1, APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0))).side          # line reflection: side flips (+1)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(-1, 1)</code></pre><h3 id="From-a-point-and-a-normal"><a class="docs-heading-anchor" href="#From-a-point-and-a-normal">From a point and a normal</a><a id="From-a-point-and-a-normal-1"></a><a class="docs-heading-anchor-permalink" href="#From-a-point-and-a-normal" title="Permalink"></a></h3><p><code>APHalfPlane2(p, normal)</code> builds the half-plane whose boundary passes through <code>p</code> perpendicular to <code>normal</code>, on the side that <code>normal</code> points to:</p><pre><code class="language-julia hljs">hp_n = APHalfPlane2(APPoint(0.0, 1.0), APVector(0.0, 1.0))
 APPoint(0.0, 2.0) in hp_n, APPoint(0.0, 0.0) in hp_n</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, false)</code></pre><h3 id="Clipping-a-line,-segment-or-ray"><a class="docs-heading-anchor" href="#Clipping-a-line,-segment-or-ray">Clipping a line, segment or ray</a><a id="Clipping-a-line,-segment-or-ray-1"></a><a class="docs-heading-anchor-permalink" href="#Clipping-a-line,-segment-or-ray" title="Permalink"></a></h3><p><a href="../api/#Apollonius.intersection"><code>intersection</code></a><code>(hp, obj)</code> for a line, a segment or a ray is not the usual points-where-they-cross: <code>hp</code> is a region, and this is the part of <code>obj</code> that lies <em>inside</em> it, in <code>obj</code>&#39;s own type. A line crossing the boundary comes back as a ray; a ray or a segment already fully inside comes back unchanged; one fully outside, or a line parallel to the boundary on the wrong side, comes back as <code>nothing</code>:</p><pre><code class="language-julia hljs">crossing = APLine(APPoint(-6.0, -3.0), APPoint(6.0, 3.0))
-intersection(hp1, crossing)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APRay([0.0, 0.0] -&gt; [12.0, 6.0])</code></pre><img src="../assets/img/unbounded/halfplane_clip.svg" alt="A half-plane's boundary, a line crossing it, and the ray that is the part of the line inside the half-plane, drawn over it in purple" style="width:100%; max-width: 700px;"><pre><code class="language-julia hljs">intersection(hp1, APLine(APPoint(2.0, -6.0), APPoint(2.0, 6.0))),    # parallel to the boundary, on the inside: the whole line
+intersection(hp1, crossing)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APRay([0.0, 0.0] -&gt; [12.0, 6.0])</code></pre><img src="../assets/img/unbounded/halfplane_clip.svg" alt="A half-plane's boundary, a line crossing it, and the ray that is the part of the line inside the half-plane, drawn over it in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-7553af873625b743"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-7553af873625b743" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    l = APLine(APPoint(0.0, -5.0), APPoint(0.0, 5.0))
+    hp = APHalfPlane2(l, APPoint(1.0, 0.0))
+    p1, p2 = APPoint(-6.0, -3.0), APPoint(6.0, 3.0)
+    input = APLine(p1, p2)
+    clipped = intersection(hp, input)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path(l, action=:stroke, extend=10)
+grestore()
+sethue(julia_blue)
+path(input, action=:stroke, extend=10)
+sethue(julia_purple); setline(3)
+path(clipped, action=:stroke, extend=10)
+
+finish()
+preview()
+end</code></pre></div></details><pre><code class="language-julia hljs">intersection(hp1, APLine(APPoint(2.0, -6.0), APPoint(2.0, 6.0))),    # parallel to the boundary, on the inside: the whole line
     intersection(hp1, APLine(APPoint(-2.0, -6.0), APPoint(-2.0, 6.0)))   # parallel, on the outside: nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(APLine([2.0, -6.0] -&gt; [2.0, 6.0]), nothing)</code></pre><p>A point works the same way, just without a range to clip: the point itself if it&#39;s in <code>hp</code>, <code>nothing</code> otherwise. Both argument orders work, and see <a href="../points_lines_angles/#Points,-Lines-and-Rays:-Angles">Points, Lines &amp; Rays: Angles</a> for the same idea on an <code>APAngle2</code>, including the one case (a <em>reflex</em> angle) where the result can be two separate pieces instead of one.</p><p>The same clipping works against an <a href="../api/#Apollonius.APCircle2"><code>APCircle2</code></a> or <a href="../api/#Apollonius.APEllipse2"><code>APEllipse2</code></a> (or one of their arcs), in that curve&#39;s own type: a circle crossed by the boundary comes back as an arc, not a <code>Vector</code> (a single line only ever crosses a circle twice, so there&#39;s at most one piece to keep):</p><pre><code class="language-julia hljs">c = APCircle2(APPoint(0.0, 0.0), 3.0)
 half_circle = intersection(hp1, c)
-rad2deg(measure(half_circle))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">180.0</code></pre><img src="../assets/img/unbounded/halfplane_clip_circle.svg" alt="A half-plane's boundary and a circle centered on it, with the half of the circle inside the half-plane drawn over it in purple" style="width:100%; max-width: 700px;"><h2 id="APStrip2"><a class="docs-heading-anchor" href="#APStrip2"><code>APStrip2</code></a><a id="APStrip2-1"></a><a class="docs-heading-anchor-permalink" href="#APStrip2" title="Permalink"></a></h2><p>The closed band between two <strong>parallel</strong> lines: think of it as an <code>APHalfPlane2</code> closed off on both sides instead of just one:</p><pre><code class="language-julia hljs">l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
+rad2deg(measure(half_circle))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">180.0</code></pre><img src="../assets/img/unbounded/halfplane_clip_circle.svg" alt="A half-plane's boundary and a circle centered on it, with the half of the circle inside the half-plane drawn over it in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-6fb34105e63ef814"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-6fb34105e63ef814" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    l = APLine(APPoint(0.0, -5.0), APPoint(0.0, 5.0))
+    hp = APHalfPlane2(l, APPoint(1.0, 0.0))
+    c = APCircle2(APPoint(0.0, 0.0), 3.0)
+    clipped = intersection(hp, c)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path(l, action=:stroke, extend=10)
+grestore()
+sethue(julia_blue)
+path(c, action=:stroke)
+sethue(julia_purple); setline(3)
+path(clipped, action=:stroke)
+
+finish()
+preview()
+end</code></pre></div></details><h2 id="APStrip2"><a class="docs-heading-anchor" href="#APStrip2"><code>APStrip2</code></a><a id="APStrip2-1"></a><a class="docs-heading-anchor-permalink" href="#APStrip2" title="Permalink"></a></h2><p>The closed band between two <strong>parallel</strong> lines: think of it as an <code>APHalfPlane2</code> closed off on both sides instead of just one:</p><pre><code class="language-julia hljs">l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
 l2 = APLine(APPoint(0.0, 3.0), APPoint(1.0, 3.0))
 s = APStrip2(l1, l2)
 
@@ -23,16 +112,188 @@ strip_width(s)   # 3.0: the perpendicular distance between the two lines</code><
     APStrip2(l1, APLine(APPoint(0.0, 0.0), APPoint(1.0, 1.0)))
 catch e
     e
-end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ArgumentError(&quot;APStrip2: line1 and line2 must be parallel&quot;)</code></pre><p><code>in</code>, <code>distance</code> and the transforms all work exactly like <code>APHalfPlane2</code>, except a strip has no <code>side</code> bookkeeping to worry about: &quot;the band between two lines&quot; doesn&#39;t depend on either line&#39;s own orientation, so membership is simply recomputed fresh after any transform:</p><pre><code class="language-julia hljs">APPoint(0.5, 1.5) in s, APPoint(0.5, 5.0) in s</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, false)</code></pre><pre><code class="language-julia hljs">distance(APPoint(0.5, 5.0), s), distance(APPoint(0.5, 5.0), s; mode=:boundary)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(2.0, 2.0)</code></pre><img src="../assets/img/unbounded/strip.svg" alt="A strip between two parallel lines, with points inside in purple and outside in gray" style="width:100%; max-width: 700px;"><pre><code class="language-julia hljs">s_rotated = rotate(s, pi / 4)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ArgumentError(&quot;APStrip2: line1 and line2 must be parallel&quot;)</code></pre><p><code>in</code>, <code>distance</code> and the transforms all work exactly like <code>APHalfPlane2</code>, except a strip has no <code>side</code> bookkeeping to worry about: &quot;the band between two lines&quot; doesn&#39;t depend on either line&#39;s own orientation, so membership is simply recomputed fresh after any transform:</p><pre><code class="language-julia hljs">APPoint(0.5, 1.5) in s, APPoint(0.5, 5.0) in s</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, false)</code></pre><pre><code class="language-julia hljs">distance(APPoint(0.5, 5.0), s), distance(APPoint(0.5, 5.0), s; mode=:boundary)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(2.0, 2.0)</code></pre><img src="../assets/img/unbounded/strip.svg" alt="A strip between two parallel lines, with points inside in purple and outside in gray" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-90ee2e0e7f2a4ce6"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-90ee2e0e7f2a4ce6" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=260 margin=30 begin
+    l1 = APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0))
+    l2 = APLine(APPoint(0.0, 3.0), APPoint(1.0, 3.0))
+    s = APStrip2(l1, l2)
+    pts = [APPoint(x, y) for x in (-3.0, 0.0, 3.0) for y in (-1.5, 1.5, 4.5)]
+    far = APPoint(1.0, 4.5)
+    foot = projection(far, l2)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+inside = [p for p in pts if p in s]
+outside = [p for p in pts if !(p in s)]
+sethue(julia_blue)
+path([l1, l2], action=:stroke)
+gsave()
+setline(1); setdash(&quot;dash&quot;)
+sethue(julia_green)
+path(APSegment(far, foot), action=:stroke)
+grestore()
+sethue(&quot;gray80&quot;)
+sethue(julia_purple)
+sethue(&quot;white&quot;); path([outside; far], action=:fillpreserve); sethue(&quot;gray80&quot;); strokepath()
+sethue(&quot;white&quot;); path(inside, action=:fillpreserve); sethue(julia_purple); strokepath()
+
+finish()
+preview()
+end</code></pre></div></details><pre><code class="language-julia hljs">s_rotated = rotate(s, pi / 4)
 strip_width(s_rotated) ≈ strip_width(s)   # rotation preserves the perpendicular distance</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p>See <a href="../drawing_basics/#Drawing-with-Luxor.jl">Drawing with Luxor.jl</a> for how <code>APHalfPlane2</code>/<code>APStrip2</code> render (as their boundary line(s), since the region itself is unbounded), <a href="../drawing_advanced/#Drawing:-Clipping,-Dimensions-and-Reversing">Drawing: Clipping, Dimensions &amp; Reversing</a> for how to fill them up to the edge of the picture instead, and <a href="../affine_maps/#Affine-Maps">Affine Maps</a> for how a general <a href="../api/#Apollonius.APAffineMap"><code>APAffineMap</code></a> applies to both.</p><h3 id="From-a-line-and-a-width"><a class="docs-heading-anchor" href="#From-a-line-and-a-width">From a line and a width</a><a id="From-a-line-and-a-width-1"></a><a class="docs-heading-anchor-permalink" href="#From-a-line-and-a-width" title="Permalink"></a></h3><p><code>APStrip2(l, width)</code> is the strip between <code>l</code> and the parallel line at distance <code>width</code> on its left (on its right for a negative <code>width</code>), built with <a href="../api/#Apollonius.offset_line-Tuple{APLine, Real}"><code>offset_line</code></a>:</p><pre><code class="language-julia hljs">st_w = APStrip2(APLine(APPoint(0.0, 0.0), APPoint(1.0, 0.0)), 2.0)
 APPoint(0.0, 1.0) in st_w, APPoint(0.0, 3.0) in st_w, strip_width(st_w)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, false, 2.0)</code></pre><h3 id="Clipping-a-line,-segment-or-ray-to-the-strip"><a class="docs-heading-anchor" href="#Clipping-a-line,-segment-or-ray-to-the-strip">Clipping a line, segment or ray to the strip</a><a id="Clipping-a-line,-segment-or-ray-to-the-strip-1"></a><a class="docs-heading-anchor-permalink" href="#Clipping-a-line,-segment-or-ray-to-the-strip" title="Permalink"></a></h3><p>The same idea as for a half-plane, above: <code>s</code> is a region, so <code>intersection(s, obj)</code> is the part of <code>obj</code> inside the band, not crossing points. A transversal line comes back as a segment, clipped by each of <code>s</code>&#39;s two boundary lines in turn:</p><pre><code class="language-julia hljs">crossing = APLine(APPoint(-6.0, -1.5), APPoint(6.0, 4.5))
-intersection(s, crossing)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APSegment([-3.0, 0.0] -&gt; [3.0, 3.0])</code></pre><img src="../assets/img/unbounded/strip_clip.svg" alt="A strip's two boundary lines, a line crossing the band, and the segment that is the part of the line inside the strip, drawn over it in purple" style="width:100%; max-width: 700px;"><p>A strip is bounded by two parallel lines, so unlike a half-plane or an angle, clipping a line/segment/ray to a strip is always a single piece: there&#39;s no way for it to leave and come back.</p><p>A closed curve, though, can: a circle or ellipse large enough to poke out through <em>both</em> boundary lines comes back clipped into <strong>two</strong> disjoint arcs, one on each side, so this case always returns a <code>Vector</code>:</p><pre><code class="language-julia hljs">big_circle = APCircle2(APPoint(3.0, 1.5), 4.0)
+intersection(s, crossing)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APSegment([-3.0, 0.0] -&gt; [3.0, 3.0])</code></pre><img src="../assets/img/unbounded/strip_clip.svg" alt="A strip's two boundary lines, a line crossing the band, and the segment that is the part of the line inside the strip, drawn over it in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-5734f565661aa8ef"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-5734f565661aa8ef" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    l1 = APLine(APPoint(-6.0, 0.0), APPoint(6.0, 0.0))
+    l2 = APLine(APPoint(-6.0, 3.0), APPoint(6.0, 3.0))
+    st = APStrip2(l1, l2)
+    p1, p2 = APPoint(-6.0, -1.5), APPoint(6.0, 4.5)
+    input = APLine(p1, p2)
+    clipped = intersection(st, input)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path([l1, l2], action=:stroke, extend=10)
+grestore()
+sethue(julia_blue)
+path(input, action=:stroke, extend=10)
+sethue(julia_purple); setline(3)
+path(clipped, action=:stroke)
+
+finish()
+preview()
+end</code></pre></div></details><p>A strip is bounded by two parallel lines, so unlike a half-plane or an angle, clipping a line/segment/ray to a strip is always a single piece: there&#39;s no way for it to leave and come back.</p><p>A closed curve, though, can: a circle or ellipse large enough to poke out through <em>both</em> boundary lines comes back clipped into <strong>two</strong> disjoint arcs, one on each side, so this case always returns a <code>Vector</code>:</p><pre><code class="language-julia hljs">big_circle = APCircle2(APPoint(3.0, 1.5), 4.0)
 pieces = intersection(s, big_circle)
-length(pieces), round.(rad2deg.(measure.(pieces)); digits=1)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(2, [44.0, 44.0])</code></pre><img src="../assets/img/unbounded/strip_clip_circle.svg" alt="A strip and a circle wider than the band, split into two disjoint arcs where the circle pokes out on each side, drawn over it in purple" style="width:100%; max-width: 700px;"><h2 id="Intersecting-two-regions"><a class="docs-heading-anchor" href="#Intersecting-two-regions">Intersecting two regions</a><a id="Intersecting-two-regions-1"></a><a class="docs-heading-anchor-permalink" href="#Intersecting-two-regions" title="Permalink"></a></h2><p><a href="../api/#Apollonius.intersection"><code>intersection</code></a> also works between two of <code>APAngle2</code>/<code>APHalfPlane2</code>/ <code>APStrip2</code> themselves: the region common to both, as whichever type it collapses to, not necessarily one of these three. Two crossing half-planes give an <a href="../api/#Apollonius.APAngle2"><code>APAngle2</code></a> (the wedge between their boundaries, on the side each keeps):</p><pre><code class="language-julia hljs">hp_y0 = APHalfPlane2(APLine(APPoint(-5.0, 0.0), APPoint(5.0, 0.0)), APPoint(0.0, 1.0))   # y &gt;= 0
+length(pieces), round.(rad2deg.(measure.(pieces)); digits=1)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(2, [44.0, 44.0])</code></pre><img src="../assets/img/unbounded/strip_clip_circle.svg" alt="A strip and a circle wider than the band, split into two disjoint arcs where the circle pokes out on each side, drawn over it in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-b089c7f69636a5a8"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-b089c7f69636a5a8" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    l1 = APLine(APPoint(-6.0, 0.0), APPoint(6.0, 0.0))
+    l2 = APLine(APPoint(-6.0, 3.0), APPoint(6.0, 3.0))
+    st = APStrip2(l1, l2)
+    c = APCircle2(APPoint(3.0, 1.5), 4.0)
+    pieces = intersection(st, c)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path([l1, l2], action=:stroke, extend=10)
+grestore()
+sethue(julia_blue)
+path(c, action=:stroke)
+sethue(julia_purple); setline(3)
+foreach(pc -&gt; path(pc, action=:stroke), pieces)
+
+finish()
+preview()
+end</code></pre></div></details><h2 id="Intersecting-two-regions"><a class="docs-heading-anchor" href="#Intersecting-two-regions">Intersecting two regions</a><a id="Intersecting-two-regions-1"></a><a class="docs-heading-anchor-permalink" href="#Intersecting-two-regions" title="Permalink"></a></h2><p><a href="../api/#Apollonius.intersection"><code>intersection</code></a> also works between two of <code>APAngle2</code>/<code>APHalfPlane2</code>/ <code>APStrip2</code> themselves: the region common to both, as whichever type it collapses to, not necessarily one of these three. Two crossing half-planes give an <a href="../api/#Apollonius.APAngle2"><code>APAngle2</code></a> (the wedge between their boundaries, on the side each keeps):</p><pre><code class="language-julia hljs">hp_y0 = APHalfPlane2(APLine(APPoint(-5.0, 0.0), APPoint(5.0, 0.0)), APPoint(0.0, 1.0))   # y &gt;= 0
 wedge = intersection(hp1, hp_y0)
 rad2deg(normalized_measure(wedge))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">90.0</code></pre><p>Two crossing strips give a bounded <a href="../api/#Apollonius.APQuadrilateral"><code>APQuadrilateral</code></a> instead, since all four boundaries end up finite on both ends:</p><pre><code class="language-julia hljs">s2 = APStrip2(APLine(APPoint(0.0, 0.0), APPoint(0.0, 1.0)), APLine(APPoint(4.0, 0.0), APPoint(4.0, 1.0)))
-intersection(s, s2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APQuadrilateral([0.0, 0.0], [4.0, 0.0], [4.0, 3.0], [0.0, 3.0])</code></pre><img src="../assets/img/unbounded/region_intersect_strip_strip.svg" alt="Two crossing strips, with the parallelogram common to both drawn over them in purple" style="width:100%; max-width: 700px;"><p>A half-plane crossing a strip on only <em>one</em> side, though, is neither bounded nor one of the three named types: it needs a fourth, <a href="../api/#Apollonius.APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a> (below).</p><pre><code class="language-julia hljs">intersection(hp1, s)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APUnboundedPolygon2(APRay([0.0, 3.0] -&gt; [1.0, 3.0]), APPoint{2, Float64}[], APRay([0.0, 0.0] -&gt; [1.0, 0.0]))</code></pre><img src="../assets/img/unbounded/region_intersect_halfplane_strip.svg" alt="A half-plane crossing a strip on one side: the result is bounded by both of the strip's rays and a segment of the half-plane's own boundary, drawn over them in purple" style="width:100%; max-width: 700px;"><p>See <a href="../points_lines_angles/#Points,-Lines-and-Rays:-Angles">Points, Lines &amp; Rays: Angles</a> for the same idea against an <code>APAngle2</code>, including the reflex case that can give up to two pieces instead of one.</p><h2 id="APUnboundedPolygon2"><a class="docs-heading-anchor" href="#APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a><a id="APUnboundedPolygon2-1"></a><a class="docs-heading-anchor-permalink" href="#APUnboundedPolygon2" title="Permalink"></a></h2><p>The general shape an intersection of half-planes can produce when it&#39;s unbounded but doesn&#39;t collapse to <code>APHalfPlane2</code>/<code>APStrip2</code>/<code>APAngle2</code> either: two rays capping a chain of straight segments in between (zero or more of them). It&#39;s rare to build one directly, since it&#39;s mostly what <a href="../api/#Apollonius.intersection"><code>intersection</code></a> hands back above, but the constructor takes the two rays and the interior vertices between them, in order:</p><pre><code class="language-julia hljs">u = APUnboundedPolygon2(APRay(APPoint(0.0, 3.0), APPoint(1.0, 3.0)), APPoint{2,Float64}[], APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
+intersection(s, s2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APQuadrilateral([0.0, 0.0], [4.0, 0.0], [4.0, 3.0], [0.0, 3.0])</code></pre><img src="../assets/img/unbounded/region_intersect_strip_strip.svg" alt="Two crossing strips, with the parallelogram common to both drawn over them in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-10ef9fe4e3f5848e"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-10ef9fe4e3f5848e" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    l1 = APLine(APPoint(-6.0, 0.0), APPoint(6.0, 0.0))
+    l2 = APLine(APPoint(-6.0, 3.0), APPoint(6.0, 3.0))
+    s = APStrip2(l1, l2)
+    l3 = APLine(APPoint(0.0, -5.0), APPoint(0.0, 5.0))
+    l4 = APLine(APPoint(4.0, -5.0), APPoint(4.0, 5.0))
+    s2 = APStrip2(l3, l4)
+    q = intersection(s, s2)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path([l1, l2, l3, l4], action=:stroke, extend=10)
+grestore()
+sethue(julia_purple); setline(3)
+path(q, action=:stroke)
+
+finish()
+preview()
+end</code></pre></div></details><p>A half-plane crossing a strip on only <em>one</em> side, though, is neither bounded nor one of the three named types: it needs a fourth, <a href="../api/#Apollonius.APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a> (below).</p><pre><code class="language-julia hljs">intersection(hp1, s)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APUnboundedPolygon2(APRay([0.0, 3.0] -&gt; [1.0, 3.0]), APPoint{2, Float64}[], APRay([0.0, 0.0] -&gt; [1.0, 0.0]))</code></pre><img src="../assets/img/unbounded/region_intersect_halfplane_strip.svg" alt="A half-plane crossing a strip on one side: the result is bounded by both of the strip's rays and a segment of the half-plane's own boundary, drawn over them in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-278b158f9721606e"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-278b158f9721606e" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    p1, p2 = APPoint(0.0, -5.0), APPoint(0.0, 5.0)
+    l = APLine(p1, p2)
+    hp = APHalfPlane2(l, APPoint(1.0, 0.0))
+    p3, p4 = APPoint(-6.0, 0.0), APPoint(6.0, 0.0)
+    p5, p6 = APPoint(-6.0, 3.0), APPoint(6.0, 3.0)
+    l1 = APLine(p3, p4)
+    l2 = APLine(p5, p6)
+    st = APStrip2(l1, l2)
+    u = intersection(hp, st)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path(l, action=:stroke, extend=10)
+path([l1, l2], action=:stroke, extend=10)
+grestore()
+sethue(julia_purple); setline(3)
+path(u, action=:stroke, extend=10)
+
+finish()
+preview()
+end</code></pre></div></details><p>See <a href="../points_lines_angles/#Points,-Lines-and-Rays:-Angles">Points, Lines &amp; Rays: Angles</a> for the same idea against an <code>APAngle2</code>, including the reflex case that can give up to two pieces instead of one.</p><h2 id="APUnboundedPolygon2"><a class="docs-heading-anchor" href="#APUnboundedPolygon2"><code>APUnboundedPolygon2</code></a><a id="APUnboundedPolygon2-1"></a><a class="docs-heading-anchor-permalink" href="#APUnboundedPolygon2" title="Permalink"></a></h2><p>The general shape an intersection of half-planes can produce when it&#39;s unbounded but doesn&#39;t collapse to <code>APHalfPlane2</code>/<code>APStrip2</code>/<code>APAngle2</code> either: two rays capping a chain of straight segments in between (zero or more of them). It&#39;s rare to build one directly, since it&#39;s mostly what <a href="../api/#Apollonius.intersection"><code>intersection</code></a> hands back above, but the constructor takes the two rays and the interior vertices between them, in order:</p><pre><code class="language-julia hljs">u = APUnboundedPolygon2(APRay(APPoint(0.0, 3.0), APPoint(1.0, 3.0)), APPoint{2,Float64}[], APRay(APPoint(0.0, 0.0), APPoint(1.0, 0.0)))
 vertices(u)   # ray1.origin, then the interior vertices, then ray2.origin</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{APPoint{2, Float64}}:
  [0.0, 3.0]
  [0.0, 0.0]</code></pre><p><code>in</code>/<code>distance</code>/the transforms all follow the same conventions as <code>APHalfPlane2</code>/<code>APStrip2</code>/<code>APAngle2</code>:</p><pre><code class="language-julia hljs">APPoint(2.0, 1.5) in u, APPoint(-1.0, 1.5) in u, APPoint(2.0, 5.0) in u</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(true, false, false)</code></pre><pre><code class="language-julia hljs">distance(APPoint(-3.0, 1.5), u), distance(APPoint(2.0, 10.0), u; mode=:boundary)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(3.0, 7.0)</code></pre><p>Being unbounded, it has no <code>area</code>/<code>perimeter</code> and an empty <a href="../api/#Apollonius.APBoundingBox"><code>APBoundingBox</code></a>, the same as the other three; see <a href="../drawing_basics/#Drawing-with-Luxor.jl">Drawing with Luxor.jl</a> for how it renders (its actual boundary: the two rays and the segments between them), <a href="../drawing_advanced/#Drawing:-Clipping,-Dimensions-and-Reversing">Drawing: Clipping, Dimensions &amp; Reversing</a> for how to fill it up to the edge of the picture instead, and <a href="../affine_maps/#Affine-Maps">Affine Maps</a> for how a general <a href="../api/#Apollonius.APAffineMap"><code>APAffineMap</code></a> applies to it.</p><h2 id="Clipping-a-bounded-polygon"><a class="docs-heading-anchor" href="#Clipping-a-bounded-polygon">Clipping a bounded polygon</a><a id="Clipping-a-bounded-polygon-1"></a><a class="docs-heading-anchor-permalink" href="#Clipping-a-bounded-polygon" title="Permalink"></a></h2><p><a href="../api/#Apollonius.intersection"><code>intersection</code></a> also works between any of <code>APHalfPlane2</code>/<code>APStrip2</code>/ <code>APAngle2</code> and a straight-sided <a href="../api/#Apollonius.APPolygon"><code>APPolygon</code></a> (an <a href="../api/#Apollonius.APTriangle"><code>APTriangle</code></a>, <a href="../api/#Apollonius.APQuadrilateral"><code>APQuadrilateral</code></a> or <a href="../api/#Apollonius.APStraightNgon"><code>APStraightNgon</code></a>): the part of the polygon inside the region, in the tightest fitting type, not the points where the region&#39;s boundary crosses the polygon&#39;s perimeter. Unlike a line/segment/ray, the result is always <em>bounded</em> already, since the polygon was:</p><pre><code class="language-julia hljs">t = APTriangle(APPoint(-2.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 4.0))
-intersection(hp1, t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APQuadrilateral([0.0, 2.666666666666667], [0.0, 0.0], [4.0, 0.0], [1.0, 4.0])</code></pre><img src="../assets/img/unbounded/halfplane_clip_polygon.svg" alt="A triangle crossed by a half-plane's boundary, with the quadrilateral piece inside the half-plane drawn over it in purple" style="width:100%; max-width: 700px;"><p>An <code>APAngle2</code> works the same way but always comes back as a <code>Vector</code> (see <a href="../points_lines_angles/#Points,-Lines-and-Rays:-Angles">Points, Lines &amp; Rays: Angles</a> for why): 0 or 1 pieces for a convex angle, or up to 2 for a <em>reflex</em> one, which can still split the polygon into two disjoint pieces, the same way it can a line, segment, ray, circle, ellipse or another region. Curved-sided polygons (<a href="../api/#Apollonius.APCircularSector2"><code>APCircularSector2</code></a> and similar) aren&#39;t supported yet.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tangency_fixed/">« Fixing a Point, Radius or Center</a><a class="docs-footer-nextpage" href="../affine_maps/">Affine Maps »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 25 September 2026 23:23">Friday 25 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+intersection(hp1, t)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">APQuadrilateral([0.0, 2.666666666666667], [0.0, 0.0], [4.0, 0.0], [1.0, 4.0])</code></pre><img src="../assets/img/unbounded/halfplane_clip_polygon.svg" alt="A triangle crossed by a half-plane's boundary, with the quadrilateral piece inside the half-plane drawn over it in purple" style="width:100%; max-width: 700px;"><details class="admonition is-details" id="See-script-f16e6f899ac3f100"><summary class="admonition-header">See script<a class="admonition-anchor" href="#See-script-f16e6f899ac3f100" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">using Apollonius, Luxor
+import Luxor: julia_red, julia_blue, julia_green, julia_purple
+import Apollonius: rotate, translate, distance, midpoint
+
+lxm = @prepare_to_picture! width=500 height=240 margin=20 begin
+    p1, p2 = APPoint(0.0, -5.0), APPoint(0.0, 5.0)
+    l = APLine(p1, p2)
+    hp = APHalfPlane2(l, APPoint(1.0, 0.0))
+    t = APTriangle(APPoint(-2.0, 0.0), APPoint(4.0, 0.0), APPoint(1.0, 4.0))
+    clipped = intersection(hp, t)
+end
+
+
+begin
+Drawing(lxm.width, lxm.height, :svg)
+origin()
+gsave()
+sethue(&quot;gray80&quot;); setdash(&quot;dash&quot;)
+path(l, action=:stroke, extend=10)
+grestore()
+sethue(julia_blue)
+path(t, action=:stroke)
+sethue(julia_purple); setline(3)
+path(clipped, action=:stroke)
+
+finish()
+preview()
+end</code></pre></div></details><p>An <code>APAngle2</code> works the same way but always comes back as a <code>Vector</code> (see <a href="../points_lines_angles/#Points,-Lines-and-Rays:-Angles">Points, Lines &amp; Rays: Angles</a> for why): 0 or 1 pieces for a convex angle, or up to 2 for a <em>reflex</em> one, which can still split the polygon into two disjoint pieces, the same way it can a line, segment, ray, circle, ellipse or another region. Curved-sided polygons (<a href="../api/#Apollonius.APCircularSector2"><code>APCircularSector2</code></a> and similar) aren&#39;t supported yet.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tangency_fixed/">« Fixing a Point, Radius or Center</a><a class="docs-footer-nextpage" href="../affine_maps/">Affine Maps »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Saturday 26 September 2026 01:15">Saturday 26 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
