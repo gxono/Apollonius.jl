@@ -194,10 +194,26 @@ Whether the bounded, closed shapes `a` and `b` share any area at all
 and classify the overlap shape itself to find out). `false` for two shapes
 that only touch along a boundary (a single point, or a whole shared edge
 with no other overlap), the same as [`intersection`](@ref)'s
-`(:region,:region)` and [`region_union`](@ref) already treat that case.
+`(:region,:region)` and [`region_union`](@ref) already treat that case; use
+[`touches`](@ref) to ask about that boundary-only case directly.
 """
 function overlaps(a::_BoundedRegion2, b::_BoundedRegion2; atol::Real=1e-9)
     return _overlaps(a, b; atol=atol)
+end
+
+"""
+    touches(a, b; atol=1e-9)
+
+Whether the bounded, closed shapes `a` and `b` meet at their boundary
+without sharing any area: a single tangent point, or a whole shared edge
+with no other overlap, the two cases [`overlaps`](@ref) already reports as
+`false`. `false` whenever `a` and `b` share area (`overlaps(a, b)` is
+`true`, including when `a` and `b` are identical) and also whenever they
+are entirely disjoint, so `touches(a, b)` and `overlaps(a, b)` are never
+both `true` at once, but can both be `false` together.
+"""
+function touches(a::_BoundedRegion2, b::_BoundedRegion2; atol::Real=1e-9)
+    return _touches(a, b; atol=atol)
 end
 
 """

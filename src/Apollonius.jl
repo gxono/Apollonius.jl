@@ -39,6 +39,7 @@ include("ap_intersections_composite.jl")
 include("ap_unbounded_intersections.jl")
 include("ap_conic_region_intersections.jl")
 include("ap_region_intersections.jl")
+include("ap_unbounded_region_ops.jl")
 include("ap_open_conic_region_intersections.jl")
 include("ap_side_parametrization.jl")
 include("ap_bounded_region_clip.jl")
@@ -87,7 +88,7 @@ export projection, reflection, rotate, homothety, translate, barycenter
 export parallel_through, perpendicular_through, perpendicular_bisector, angle_bisectors, angle_trisectors
 export vertical_line, horizontal_line
 export golden_ratio_point, harmonic_conjugate, apollonius_circle
-export intersection, region_union, region_difference, region_symdiff, overlaps, is_walkable
+export intersection, region_union, region_difference, region_symdiff, overlaps, touches, is_walkable
 export centroid, circumcenter, circumradius, circumcircle,
        incenter, inradius, incircle, orthocenter, area, perimeter, is_degenerate
 export excenters, exradii, excircles, euler_line, nine_point_center, nine_point_circle, euler_points

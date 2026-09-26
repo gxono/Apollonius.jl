@@ -560,6 +560,130 @@ See [Points, Lines & Rays: Angles](@ref) for the same idea against an
 `APAngle2`, including the reflex case that can give up to two pieces
 instead of one.
 
+## Union, difference, and symmetric difference of two regions
+
+The same three types (`APHalfPlane2`/`APStrip2`/`APAngle2`) also take
+[`region_union`](@ref), [`region_difference`](@ref), and
+[`region_symdiff`](@ref), always as a `Vector` (a `Vector` is the only
+sensible return type here, since these operations don't collapse to a
+single named type the way [`intersection`](@ref) does above). Two
+half-planes with crossing boundaries merge into a single reflex
+`APAngle2`, the wedge that is outside neither:
+
+```@example geo
+wedge = only(region_union(hp1, hp_y0))
+rad2deg(normalized_measure(wedge))
+```
+
+```@raw html
+<img src="../assets/img/unbounded/region_union_halfplanes.svg" alt="Two half-planes with crossing boundaries, their union a reflex wedge covering three of the four quadrants, filled in purple" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        origin_pt, up = APPoint(0.0, 0.0), APPoint(0.0, 4.0)
+        l = APLine(origin_pt, up)
+        hp1 = APHalfPlane2(l, -1)
+        left_pt, right_pt = APPoint(-4.0, 0.0), APPoint(4.0, 0.0)
+        l2 = APLine(left_pt, right_pt)
+        hp_y0 = APHalfPlane2(l2, APPoint(0.0, 1.0))
+        wedge = only(region_union(hp1, hp_y0))
+    end
+    (; hp1, hp_y0, wedge) = lxo
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple); setopacity(0.25)
+    path(wedge; as=:region, action=:fill, bound=1000.0)
+    setopacity(1.0)
+    gsave()
+    setline(1); setdash("dash")
+    sethue("gray80")
+    path([hp1.boundary, hp_y0.boundary], action=:stroke, extend=1000.0)
+    grestore()
+    sethue(julia_purple)
+    path(wedge; as=:region, action=:stroke, bound=1000.0)
+    finish()
+    preview()
+    ```
+
+Every other pair that doesn't collapse to one shape (two identical
+regions do) comes back as the two original regions unmerged, `[a, b]`:
+still an exact answer, since a `Vector` of pieces here means their union,
+but not always the *simplest* one, since spotting a redundant subset
+(two parallel half-planes, or a strip inside a wider one) isn't
+attempted.
+
+[`region_difference`](@ref)`(a, b)` is `a` intersected with `b`'s own
+complement, reusing [`intersection`](@ref) and
+[`Base.reverse`](@ref)`(::APAngle2)` directly: no new geometry beyond
+what already existed. A half-plane crossing both sides of a strip gives
+two disjoint wedges, one on each side of the strip:
+
+```@example geo
+region_difference(hp1, s)
+```
+
+```@raw html
+<img src="../assets/img/unbounded/region_difference_halfplane_strip.svg" alt="A half-plane with a strip removed from its middle, leaving two wedge-shaped pieces above and below the strip, filled in purple" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    using Apollonius, Luxor
+    import Luxor: julia_red, julia_blue, julia_green, julia_purple
+    import Apollonius: rotate, translate, distance, midpoint
+
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        origin_pt, up = APPoint(0.0, 0.0), APPoint(0.0, 4.0)
+        l = APLine(origin_pt, up)
+        hp1 = APHalfPlane2(l, -1)
+        p1, p2 = APPoint(-4.0, 0.0), APPoint(4.0, 0.0)
+        p3, p4 = APPoint(-4.0, 3.0), APPoint(4.0, 3.0)
+        l1, l2 = APLine(p1, p2), APLine(p3, p4)
+        s = APStrip2(l1, l2)
+        @unbounded pieces = region_difference(hp1, s)
+    end
+    (; hp1, s, pieces) = lxo
+
+    Drawing(lxm.width, lxm.height, :svg)
+    origin()
+    sethue(julia_purple); setopacity(0.25)
+    for piece in pieces
+        path(piece; as=:region, action=:fill, bound=1000.0)
+    end
+    setopacity(1.0)
+    gsave()
+    setline(1); setdash("dash")
+    sethue("gray80")
+    path([hp1.boundary, s.line1, s.line2], action=:stroke, extend=1000.0)
+    grestore()
+    sethue(julia_purple)
+    for piece in pieces
+        path(piece; as=:region, action=:stroke, bound=1000.0)
+    end
+    finish()
+    preview()
+    ```
+
+Unlike `region_union`, argument order matters for `region_difference`, and
+it never raises an error: every combination in this family has a
+representable difference (a half-plane's complement is the opposite
+half-plane, a strip's is the union of the two half-planes outside it, and
+an angle's is [`Base.reverse`](@ref) of itself).
+
+[`region_symdiff`](@ref)`(a, b)` is `(a ∖ b) ∪ (b ∖ a)`, both argument
+orders giving the same pieces:
+
+```@example geo
+region_symdiff(hp1, hp_y0)
+```
+
 ## `APUnboundedPolygon2`
 
 The general shape an intersection of half-planes can produce when it's

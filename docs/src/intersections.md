@@ -9,8 +9,8 @@ a `Vector` of [`APPoint`](@ref)s. The vector is empty when they do not meet,
 so the result is always safe to `filter`, `map` or `length`, and it is never
 `nothing`. The arguments can be given in either order. This page also covers
 [`region_union`](@ref), [`region_difference`](@ref), [`region_symdiff`](@ref),
-[`overlaps`](@ref), [`is_walkable`](@ref), and the N-ary forms of all
-three combining operations, further down in
+[`overlaps`](@ref), [`touches`](@ref), [`is_walkable`](@ref), and the N-ary
+forms of all three combining operations, further down in
 [Union and difference](@ref), [Symmetric difference, `overlaps`, and
 `is_walkable`](@ref), and [Combining more than two shapes at once](@ref).
 
@@ -645,7 +645,17 @@ overlaps(t1, t2), overlaps(APCircle2(APPoint(0.0, 0.0), 1.0), APCircle2(APPoint(
 
 The second pair only touches at a single point, so it counts as not
 overlapping, the same way `intersection`'s `(:region,:region)` and
-`region_union` already treat a merely-touching boundary.
+`region_union` already treat a merely-touching boundary. Ask about that
+boundary-only case directly with [`touches`](@ref):
+
+```@example geo
+touches(t1, t2), touches(APCircle2(APPoint(0.0, 0.0), 1.0), APCircle2(APPoint(2.0, 0.0), 1.0))
+```
+
+`overlaps` and `touches` are never both `true` for the same pair: sharing
+area rules out a boundary-only touch, and vice versa, so together they
+tell apart all three cases (overlapping, merely touching, or fully
+disjoint).
 
 [`is_walkable`](@ref)`(pg)` checks, ahead of a call, whether `pg`'s own
 boundary can be walked in the single consistent direction `region_union`,

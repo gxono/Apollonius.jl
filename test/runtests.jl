@@ -6907,6 +6907,20 @@ end
         @test overlaps(t1, t1)
     end
 
+    @testset "touches" begin
+        @test !touches(t1, t2)
+        @test touches(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(2.0, 0.0), 1.0))
+        tri_e = APTriangle(P(0.0, 0.0), P(2.0, 0.0), P(1.0, 2.0))
+        quad_e = APQuadrilateral(P(0.0, 0.0), P(2.0, 0.0), P(2.0, -2.0), P(0.0, -2.0))
+        @test touches(tri_e, quad_e)
+        @test !touches(APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(50.0, 0.0), 1.0))
+        @test !touches(t1, t1)
+        # overlaps and touches never both hold for the same pair
+        for (a, b) in ((t1, t2), (APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(2.0, 0.0), 1.0)), (tri_e, quad_e), (APCircle2(P(0.0, 0.0), 1.0), APCircle2(P(50.0, 0.0), 1.0)))
+            @test !(overlaps(a, b) && touches(a, b))
+        end
+    end
+
     @testset "is_walkable" begin
         @test !is_walkable(ann)
         @test is_walkable(c1) && is_walkable(t1)
@@ -6981,4 +6995,53 @@ end
     t1 = APTriangle(O, P(4.0, 0.0), P(2.0, 4.0))
     t2 = APTriangle(P(1.0, 1.0), P(5.0, 1.0), P(3.0, 5.0))
     @test Set(region_symdiff(t1, t2)) == Set(region_symdiff(t2, t1))
+end
+
+@testset "region_union/region_difference/region_symdiff for unbounded regions" begin
+    P(x, y) = APPoint(x, y)
+    O = P(0.0, 0.0)
+    hp1 = APHalfPlane2(APLine(O, P(0.0, 1.0)), P(1.0, 0.0))  # x >= 0
+    hp2 = APHalfPlane2(APLine(O, P(1.0, 0.0)), P(0.0, 1.0))  # y >= 0
+    strip = APStrip2(APLine(P(0.0, -1.0), P(1.0, -1.0)), APLine(P(0.0, 1.0), P(1.0, 1.0)))
+    ang = APAngle2(O, P(1.0, 0.0), P(0.0, 1.0))
+
+    mc_match(f_true, f_test; n=100_000, lo=-10.0, hi=10.0) =
+        count(1:n) do _
+            p = P(lo + rand() * (hi - lo), lo + rand() * (hi - lo))
+            f_true(p) != f_test(p)
+        end
+
+    @testset "region_union" begin
+        u = region_union(hp1, hp2)
+        @test length(u) == 1 && only(u) isa APAngle2 && normalized_measure(only(u)) ≈ 3π / 2
+        @test mc_match(p -> in(p, hp1) || in(p, hp2), p -> any(r -> in(p, r), u)) == 0
+        @test region_union(hp1, hp1) == [hp1]
+        # parallel/nested pairs and strip/angle pairs fall back to the two
+        # pieces unmerged, still a correct (if not simplest) answer
+        hp_narrow = APHalfPlane2(APLine(P(0.0, -1.0), P(1.0, -1.0)), O)
+        u2 = region_union(strip, hp_narrow)
+        @test length(u2) == 2
+        @test mc_match(p -> in(p, strip) || in(p, hp_narrow), p -> any(r -> in(p, r), u2)) == 0
+    end
+
+    @testset "region_difference" begin
+        d = region_difference(hp1, hp2)
+        @test length(d) == 1 && only(d) isa APAngle2
+        @test mc_match(p -> in(p, hp1) && !in(p, hp2), p -> any(r -> in(p, r), d)) == 0
+        d2 = region_difference(hp1, strip)
+        @test length(d2) == 2
+        @test mc_match(p -> in(p, hp1) && !in(p, strip), p -> any(r -> in(p, r), d2)) == 0
+        d3 = region_difference(strip, hp1)
+        @test mc_match(p -> in(p, strip) && !in(p, hp1), p -> any(r -> in(p, r), d3)) == 0
+        d4 = region_difference(ang, hp1)
+        @test mc_match(p -> in(p, ang) && !in(p, hp1), p -> any(r -> in(p, r), d4)) == 0
+    end
+
+    @testset "region_symdiff" begin
+        sd = region_symdiff(hp1, hp2)
+        @test mc_match(p -> in(p, hp1) ⊻ in(p, hp2), p -> any(r -> in(p, r), sd)) == 0
+        hp_narrow = APHalfPlane2(APLine(P(0.0, -1.0), P(1.0, -1.0)), O)
+        hp_wide = APHalfPlane2(APLine(P(0.0, -10.0), P(1.0, -10.0)), O)
+        @test only(region_symdiff(hp_wide, hp_narrow)) isa APStrip2
+    end
 end

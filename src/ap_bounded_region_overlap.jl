@@ -175,6 +175,11 @@ end
 
 _overlaps(a, b; atol::Real=1e-9) = !isempty(_region_overlap(a, b; atol=atol))
 
+function _touches(a, b; atol::Real=1e-9)
+    _overlaps(a, b; atol=atol) && return false
+    return _any_crossing(_ccw_pieces(a), _ccw_pieces(b); atol=atol)
+end
+
 function _is_walkable(pg)
     pg isa Union{APCircle2,APEllipse2} && return true
     try
