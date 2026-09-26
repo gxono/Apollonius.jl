@@ -6,7 +6,7 @@ function _assemble_run(run::Vector, whole, loop::Vector)
 end
 
 function _boundary_clip(a, region; atol::Real=1e-9)
-    loop = collect(_pieces(a))
+    loop = _walked_pieces(a)
     runs = _clip_loop_to_region(loop, region; atol=atol)
     return [_assemble_run(run, a, loop) for run in runs]
 end
@@ -14,11 +14,15 @@ end
 _reverse_piece(s::APSegment) = APSegment(s.p2, s.p1)
 _reverse_piece(arc::Union{APParabolicArc2,APHyperbolicArc2}) = Base.reverse(arc)
 _reverse_piece(::Union{APCircularArc2,APEllipticArc2}) =
-    throw(ArgumentError("mode=:region: this polygon's circular/elliptic-arc side is wound clockwise; build it with the opposite arc direction"))
+    throw(ArgumentError("intersection: mode=:region/:boundary needs to walk one of this shape's circular or elliptic arcs backward, which APCircularArc2/APEllipticArc2 (always a counterclockwise sweep) cannot represent; this happens for a concave, hole-like boundary such as APAnnularSector2's inner arc, and isn't supported yet"))
 
+function _walked_pieces(pg)
+    pg isa Union{APCircle2,APEllipse2} && return collect(_pieces(pg))
+    return [reversed ? _reverse_piece(piece) : piece for (piece, reversed) in _polygon_walk(sides(pg))]
+end
 function _ccw_pieces(pg)
     pg isa Union{APCircle2,APEllipse2} && return collect(_pieces(pg))
-    pcs = collect(_pieces(pg))
+    pcs = _walked_pieces(pg)
     signed_area(pg) >= 0 && return pcs
     return [_reverse_piece(p) for p in Base.reverse(pcs)]
 end

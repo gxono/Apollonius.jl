@@ -60,6 +60,18 @@ that inner shape unchanged; disjoint shapes give an empty `Vector`. A bare
 sides. Two shapes that share part of a boundary edge or arc drop that shared
 piece, the same convention already noted above for two curves that coincide.
 
+Any side with a circular or elliptic arc needs to be walked in a single
+consistent direction to line up with `mode`'s clipping, and that direction is
+whichever one [`signed_area`](@ref) calls positive; [`APCircularArc2`](@ref)
+and [`APEllipticArc2`](@ref) can only represent a counterclockwise sweep, so
+a shape whose own boundary needs one of its arcs walked the other way, such
+as [`APAnnularSector2`](@ref)'s inner arc (always facing the opposite way
+from its outer arc) or a curved-sided shape built with `signed_area` negative,
+raises an `ArgumentError` instead of a wrong area. `APCircle2`, `APEllipse2`,
+every straight-sided type, and any curved type with a single arc side
+(`APCircularSector2`, `APCircularSegment2`) never hit this, whichever way
+their defining arc was built.
+
 ```@example geo
 using Apollonius
 ```
@@ -348,6 +360,55 @@ only(intersection(tri, circ; mode=:region))
     path(overlap; action=:stroke)
     end)
     ```
+
+The same works for the rest of the curved-region family (`APCircularSector2`,
+`APCircularSegment2`, `APAnnularSector2`, `APInterstice2`,
+`APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2`, `APCurvilinearNgon2`),
+against anything else in scope:
+
+```@example geo
+sec = APCircularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 3.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0)))
+sc = APCircle2(APPoint(1.0, 1.0), 2.0)
+only(intersection(sec, sc; mode=:region))
+```
+
+```@raw html
+<img src="../assets/img/intersections/region_overlap_sector.svg" alt="A circular sector and a circle whose overlap, a curvilinear shape, is filled in purple" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    include("../default_config.jl")
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        sec = APCircularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 3.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0)))
+        sc = APCircle2(APPoint(1.0, 1.0), 2.0)
+        overlap = only(intersection(sec, sc; mode=:region))
+    end
+    (; sec, sc, overlap) = lxo
+    @svg_doc(lxm, @__FILE__, begin
+    sethue(julia_purple); setopacity(0.25)
+    path(overlap; action=:fill)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path([sec, sc], action=:stroke)
+    sethue(julia_purple)
+    path(overlap; action=:stroke)
+    end)
+    ```
+
+`APAnnularSector2` is the one member that can't join in: its inner arc always
+faces opposite its outer arc, which an `APCircularArc2` (always
+counterclockwise) can't represent walked the way `mode` needs, so it raises
+an `ArgumentError` rather than a wrong area:
+
+```@example geo
+ann = APAnnularSector2(APCircularArc2(APCircle2(APPoint(0.0, 0.0), 4.0), APPoint(4.0, 0.0), APPoint(0.0, 4.0)), 2.0)
+try
+    intersection(ann, sc; mode=:region)
+catch e
+    e
+end
+```
 
 A shape entirely inside another comes back unchanged, and disjoint shapes give
 an empty `Vector`, for every combination in scope:

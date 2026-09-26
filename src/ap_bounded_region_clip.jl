@@ -1,4 +1,4 @@
-_merge_adjacent(a, b) = nothing
+_merge_adjacent(a, b; atol::Real=1e-9) = nothing
 function _merge_adjacent(a::APCircularArc2, b::APCircularArc2; atol::Real=1e-9)
     a.circle == b.circle && isapprox(a.p2, b.p1; atol=atol) || return nothing
     return APCircularArc2(a.circle, a.p1, b.p2)

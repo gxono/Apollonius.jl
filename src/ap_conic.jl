@@ -750,9 +750,11 @@ the even-odd rule to a region with one or more arc sides.
 """
 function _ray_crossings(p::APPoint, arc::APCircularArc2)
     horiz = APLine(p, APPoint(p[1] + 1.0, p[2]))
+    pts = intersection(horiz, arc.circle)
+    length(pts) < 2 && return 0
     θ1, Δθ = _arc_angle(arc, arc.p1), measure(arc)
     count = 0
-    for q in intersection(horiz, arc.circle)
+    for q in pts
         q[1] > p[1] || continue
         _angle_in_arc_range(_arc_angle(arc, q), θ1, Δθ) && (count += 1)
     end
@@ -893,9 +895,11 @@ end
 distance(arc::APEllipticArc2, p::APPoint) = distance(p, arc)
 function _ray_crossings(p::APPoint, arc::APEllipticArc2)
     horiz = APLine(p, APPoint(p[1] + 1.0, p[2]))
+    pts = intersection(horiz, arc.ellipse)
+    length(pts) < 2 && return 0
     θ1, Δθ = _ellipse_param(arc, arc.p1), measure(arc)
     count = 0
-    for q in intersection(horiz, arc.ellipse)
+    for q in pts
         q[1] > p[1] || continue
         _angle_in_arc_range(_ellipse_param(arc, q), θ1, Δθ) && (count += 1)
     end
@@ -1032,9 +1036,11 @@ end
 distance(arc::APParabolicArc2, p::APPoint) = distance(p, arc)
 function _ray_crossings(p::APPoint, arc::APParabolicArc2)
     horiz = APLine(p, APPoint(p[1] + 1.0, p[2]))
+    pts = intersection(horiz, arc.parabola)
+    length(pts) < 2 && return 0
     smin, smax = minmax(_parabola_param(arc, arc.p1), _parabola_param(arc, arc.p2))
     count = 0
-    for q in intersection(horiz, arc.parabola)
+    for q in pts
         q[1] > p[1] || continue
         s = _parabola_param(arc, q)
         smin <= s <= smax && (count += 1)
@@ -1173,11 +1179,13 @@ end
 distance(arc::APHyperbolicArc2, p::APPoint) = distance(p, arc)
 function _ray_crossings(p::APPoint, arc::APHyperbolicArc2)
     horiz = APLine(p, APPoint(p[1] + 1.0, p[2]))
+    pts = intersection(horiz, arc.hyperbola)
+    length(pts) < 2 && return 0
     t1, branch = _hyperbola_param(arc, arc.p1)
     t2, _ = _hyperbola_param(arc, arc.p2)
     tmin, tmax = minmax(t1, t2)
     count = 0
-    for q in intersection(horiz, arc.hyperbola)
+    for q in pts
         q[1] > p[1] || continue
         t, b = _hyperbola_param(arc, q)
         b == branch && tmin <= t <= tmax && (count += 1)

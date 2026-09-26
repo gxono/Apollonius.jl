@@ -6745,4 +6745,39 @@ end
         re = only(intersection(e1, e2; mode=:region))
         @test re isa APCurvilinearNgon2 && length(sides(re)) == 2
     end
+
+    @testset "curved polygon-family members" begin
+        sec = APCircularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 3.0), P(3.0, 0.0), P(0.0, 3.0)))
+        circ = APCircle2(P(1.0, 1.0), 2.0)
+        r = intersection(sec, circ; mode=:region)
+        @test only(r) isa APCurvilinearNgon2
+
+        seg = APCircularSegment2(APCircularArc2(APCircle2(P(0.0, 0.0), 3.0), P(3.0, 0.0), P(-3.0, 0.0)))
+        quad = APQuadrilateral(P(-2.0, -2.0), P(2.0, -2.0), P(2.0, 2.0), P(-2.0, 2.0))
+        r2 = intersection(seg, quad; mode=(:boundary, :region))
+        @test length(r2) == 1 && only(r2) isa APSegment
+
+        A, B, C = P(0.0, 0.0), P(4.0, 0.0), P(4.0, 4.0)
+        cvt = APCurvilinearTriangle2(APSegment(A, B), APCircularArc2(APCircle2(P(4.0, 2.0), 2.0), B, C), APSegment(C, A))
+        c3 = APCircle2(P(2.0, 2.0), 1.5)
+        @test only(intersection(cvt, c3; mode=:region)) isa APCurvilinearNgon2
+
+        ngon = APStraightNgon([P(0.0, 0.0), P(4.0, 0.0), P(5.0, 3.0), P(2.0, 5.0), P(-1.0, 3.0)])
+        e3 = APEllipse2(P(2.0, 2.0), 3.0, 2.0)
+        @test only(intersection(ngon, e3; mode=:region)) isa APCurvilinearQuadrilateral2
+
+        # a boundary that needs a circular/elliptic arc side walked backward
+        # (APCircularArc2 only ever represents a counterclockwise sweep) is
+        # rejected with a clear error rather than a silently wrong overlap
+        ann = APAnnularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 4.0), P(4.0, 0.0), P(0.0, 4.0)), 2.0)
+        t3 = APTriangle(P(-1.0, -1.0), P(5.0, -1.0), P(-1.0, 5.0))
+        @test_throws ArgumentError intersection(ann, t3; mode=:region)
+    end
+
+    @testset "in() at a tangent y-level of a curved region (regression)" begin
+        ann = APAnnularSector2(APCircularArc2(APCircle2(P(0.0, 0.0), 4.0), P(4.0, 0.0), P(0.0, 4.0)), 2.0)
+        @test !in(P(-1.0, 2.0), ann)
+        @test in(P(1.0, 1.0), ann) == false
+        @test in(P(2.5, 0.5), ann)
+    end
 end
