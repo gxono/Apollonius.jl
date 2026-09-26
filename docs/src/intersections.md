@@ -220,16 +220,40 @@ in any combination) accept `mode` on top of the plain boundary-crossing
 behavior above:
 
 ```@example geo
-t1 = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 4.0))
-t2 = APTriangle(APPoint(1.0, 1.0), APPoint(5.0, 1.0), APPoint(3.0, 5.0))
-intersection(t1, t2; mode=(:boundary, :region))
+tclip = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 3.0))
+cclip = APCircle2(APPoint(2.0, 1.0), 1.5)
+intersection(tclip, cclip; mode=(:boundary, :region))
 ```
 
-`mode=(:boundary, :region)` kept the part of `t1`'s own boundary that lies
-inside `t2`. Asking for `mode=(:region, :region)` instead gives the actual
-overlap, as a filled shape of its own:
+```@raw html
+<img src="../assets/img/intersections/region_clip_polygon.svg" alt="A triangle whose boundary is clipped to the three segments that fall inside a circle" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    include("../default_config.jl")
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        tclip = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 3.0))
+        cclip = APCircle2(APPoint(2.0, 1.0), 1.5)
+        clipped = intersection(tclip, cclip; mode=(:boundary, :region))
+    end
+    (; tclip, cclip, clipped) = lxo
+    @svg_doc(lxm, @__FILE__, begin
+    sethue(julia_blue)
+    path([tclip, cclip], action=:stroke)
+    sethue(julia_purple); setline(3)
+    path(clipped, action=:stroke)
+    end)
+    ```
+
+`mode=(:boundary, :region)` kept the three pieces of `tclip`'s own boundary
+that lie inside `cclip`, each still an `APSegment`. Asking for
+`mode=(:region, :region)` on two shapes instead gives the actual overlap, as
+a filled shape of its own:
 
 ```@example geo
+t1 = APTriangle(APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(2.0, 4.0))
+t2 = APTriangle(APPoint(1.0, 1.0), APPoint(5.0, 1.0), APPoint(3.0, 5.0))
 intersection(t1, t2; mode=:region)
 ```
 
@@ -291,10 +315,42 @@ area(lens)
     end)
     ```
 
+The two shapes need not be the same kind: a straight-sided polygon overlapping
+a circle comes back as a curved-region type, mixing the polygon's own straight
+sides with an arc of the circle:
+
+```@example geo
+tri = APTriangle(APPoint(0.0, 0.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0))
+circ = APCircle2(APPoint(0.0, 0.0), 2.0)
+only(intersection(tri, circ; mode=:region))
+```
+
+```@raw html
+<img src="../assets/img/intersections/region_overlap_mixed.svg" alt="A triangle and a circle whose overlap, a curvilinear shape with two straight sides and one arc, is filled in purple" style="width:100%; max-width: 700px;">
+```
+
+!!! details "See script"
+    ```julia
+    include("../default_config.jl")
+    lxm, lxo = @prepare_to_picture width=500 height=280 margin=30 begin
+        tri = APTriangle(APPoint(0.0, 0.0), APPoint(3.0, 0.0), APPoint(0.0, 3.0))
+        circ = APCircle2(APPoint(0.0, 0.0), 2.0)
+        overlap = only(intersection(tri, circ; mode=:region))
+    end
+    (; tri, circ, overlap) = lxo
+    @svg_doc(lxm, @__FILE__, begin
+    sethue(julia_purple); setopacity(0.25)
+    path(overlap; action=:fill)
+    setopacity(1.0)
+    sethue(julia_blue)
+    path([tri, circ], action=:stroke)
+    sethue(julia_purple)
+    path(overlap; action=:stroke)
+    end)
+    ```
+
 A shape entirely inside another comes back unchanged, and disjoint shapes give
-an empty `Vector`, for every combination in scope, mixed types included (a
-polygon and a circle, an ellipse and a curved polygon-family shape, and so
-on):
+an empty `Vector`, for every combination in scope:
 
 ```@example geo
 small = APCircle2(APPoint(0.0, 0.0), 1.0)
