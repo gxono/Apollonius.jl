@@ -116,6 +116,20 @@ length(pts) == 5 && all(q -> is_on_segment(q, s), pts)
 <img src="../assets/img/points_lines/random_disk.svg" alt="Random points on a circle and inside it" style="width:100%; max-width: 700px;">
 ```
 
+The curved region family samples the same way, by two different routes: a
+circular sector and an annular sector have an exact closed form (left and
+right below), while a circular segment and an interstice fall back to
+rejection sampling against an exact superset (their own enclosing sector,
+or their own bounding box) that is itself exact, not an approximation.
+
+```@raw html
+<img src="../assets/img/points_lines/random_sector_annular.svg" alt="Random interior points in a circular sector and an annular sector" style="width:100%; max-width: 700px;">
+```
+
+```@raw html
+<img src="../assets/img/points_lines/random_segment_interstice.svg" alt="Random interior points in a circular segment and an interstice between three tangent circles" style="width:100%; max-width: 700px;">
+```
+
 Every other page repeats this for its own types where it matters: see
 [Circles: Arcs](@ref), [Conics: Ellipse, Parabola & Hyperbola](@ref) and
 [Polygons: Measurements & Operations](@ref).
