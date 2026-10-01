@@ -13,7 +13,7 @@ which return a `Symbol`, and [`side_of_line`](@ref), which returns
 
 | Question | Predicates |
 |:---------|:-----------|
-| Is a point on an object? | [`is_on_line`](@ref), [`is_on_ray`](@ref), [`is_on_segment`](@ref), [`is_on_ellipse`](@ref), [`is_on_hyperbola`](@ref), [`is_on_parabola`](@ref), `in` |
+| Is a point on an object? | [`is_on_line`](@ref), [`is_on_ray`](@ref), [`is_on_segment`](@ref), [`is_on_circle`](@ref), [`is_on_ellipse`](@ref), [`is_on_hyperbola`](@ref), [`is_on_parabola`](@ref), `in` |
 | How do two lines relate? | [`is_parallel`](@ref), [`is_perpendicular`](@ref) |
 | Do points line up, or lie on a circle? | [`is_collinear`](@ref), [`is_concyclic`](@ref), [`is_degenerate`](@ref), [`is_cyclic`](@ref) |
 | Which side of a line? | [`side_of_line`](@ref) |
@@ -245,9 +245,14 @@ figures for both are in [Circles: How They Relate](@ref).
 
 ## Points on conics
 
-[`is_on_ellipse`](@ref), [`is_on_hyperbola`](@ref) and
+[`is_on_circle`](@ref), [`is_on_ellipse`](@ref), [`is_on_hyperbola`](@ref) and
 [`is_on_parabola`](@ref) test whether a point lies on the curve itself, not
 inside it. For the inside of an ellipse or a circle, use `in`.
+
+```@example geo
+c = APCircle2(APPoint(0.0, 0.0), 3.0)
+is_on_circle(APPoint(3.0, 0.0), c), is_on_circle(APPoint(1.0, 0.0), c), APPoint(1.0, 0.0) in c
+```
 
 ```@example geo
 e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0)

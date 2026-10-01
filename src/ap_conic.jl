@@ -83,6 +83,15 @@ Base.convert(::Type{APCircle2{T}}, c::APCircle2) where {T} = APCircle2{T}(c.cent
 Base.isapprox(a::APCircle2, b::APCircle2; kwargs...) = isapprox(a.center, b.center; kwargs...) && isapprox(a.r, b.r; kwargs...)
 Base.show(io::IO, c::APCircle2) = print(io, "APCircle2(", c.center, ", ", c.r, ")")
 Base.in(p::APPoint, c::APCircle2) = distance(p, c.center) <= c.r
+"""
+    is_on_circle(p::APPoint, c::APCircle2; atol=1e-9)
+
+Whether `p` lies on the circumference of `c` itself (not just anywhere
+inside it, the way `in` does): see [`is_on_ellipse`](@ref)/
+[`is_on_hyperbola`](@ref)/[`is_on_parabola`](@ref) for the same idea on
+the other three conics.
+"""
+is_on_circle(p::APPoint, c::APCircle2; atol=1e-9) = abs(distance(p, c.center) - c.r) <= sqrt(atol) * max(c.r, 1.0)
 area(c::APCircle2) = pi * c.r^2
 perimeter(c::APCircle2) = 2 * pi * c.r
 rotate(c::APCircle2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) = APCircle2(rotate(c.center, angle, center), c.r)
@@ -772,8 +781,7 @@ Whether `p` lies exactly on `arc` itself: on the circle, and within its
 angular sweep from `p1` to `p2` (not just anywhere on the full circle).
 """
 function Base.in(p::APPoint, arc::APCircularArc2; atol=1e-9)
-    c = arc.circle
-    abs(distance(p, c.center) - c.r) <= sqrt(atol) * max(c.r, 1.0) || return false
+    is_on_circle(p, arc.circle; atol=atol) || return false
     return _angle_in_arc_range(_arc_angle(arc, p), _arc_angle(arc, arc.p1), measure(arc))
 end
 rotate(arc::APCircularArc2, angle::Real, center::APPoint=APPoint(0.0, 0.0)) =

@@ -133,7 +133,7 @@ export invert, invert_neg, polar_line, pole
 export parallelogram, square_on_segment, rectangle_on_segment, regular_polygon
 export offset_line, tangent_circles_with_radius, tangent_circles_with_center
 export affine_map, translation_map, rotation_map, homothety_map, reflection_map
-export is_on_ellipse, foci, orthoptic
+export is_on_circle, is_on_ellipse, foci, orthoptic
 export tangent_circles
 export vertex, focal_parameter, is_on_parabola
 export is_on_hyperbola, asymptotes

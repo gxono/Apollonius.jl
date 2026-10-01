@@ -356,6 +356,15 @@ using Base.MathConstants: golden
             @test_throws ArgumentError APCircle2(APPoint(0.0, 0.0), APPoint(1.0, 0.0), APPoint(2.0, 0.0))
             @test antipode(APPoint(6.0, 2.0), c) == APPoint(-4.0, 2.0)   # opposite end of the diameter through (6,2)
             @test midpoint(APPoint(6.0, 2.0), antipode(APPoint(6.0, 2.0), c)) == c.center
+            @test is_on_circle(APPoint(6.0, 2.0), c)
+            @test !is_on_circle(c.center, c)
+            @test !is_on_circle(APPoint(1.0, 2.1), c)
+            @test !is_on_circle(APPoint(100.0, 2.0), c)
+            earc = APCircularArc2(c, APPoint(6.0, 2.0), APPoint(1.0, 7.0))
+            @test is_on_circle(point_on(earc, pi / 4), c)
+            @test APPoint(6.0, 2.0) in earc
+            @test !(antipode(APPoint(6.0, 2.0), c) in earc)   # on the circle, but outside the arc's own sweep
+            @test !(APPoint(1.0, 2.1) in earc)   # off the circle entirely
         end
         @testset "APEllipse2" begin
             e = APEllipse2(APPoint(0.0, 0.0), 5.0, 3.0, 0.4)
