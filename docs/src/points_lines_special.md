@@ -88,12 +88,20 @@ For a point in the *interior*, use [`rand_inside`](@ref)`([rng,] s)`: uniform
 over the area of an [`APCircle2`](@ref) (the disk), an [`APEllipse2`](@ref),
 an [`APBoundingBox`](@ref), an [`APTriangle`](@ref), an [`APQuadrilateral`](@ref)
 or an [`APStraightNgon`](@ref) (the last two by triangulating first, so a
-concave polygon works too).
+concave polygon works too), and for every curved region
+(`APCircularSector2`, `APCircularSegment2`, `APAnnularSector2`,
+`APInterstice2`, `APCurvilinearTriangle2`, `APCurvilinearQuadrilateral2`,
+`APCurvilinearNgon2`).
 
 ```@example geo
 using Random
 q = rand_inside(Xoshiro(1), APCircle2(APPoint(0.0, 0.0), 2.0))
 distance(q, APPoint(0.0, 0.0)) <= 2.0
+```
+
+```@example geo
+sector = APCircularSector2(APCircle2(APPoint(0.0, 0.0), 2.0), APPoint(2.0, 0.0), APPoint(0.0, 2.0))
+rand_inside(Xoshiro(1), sector) in sector
 ```
 
 ```@example geo

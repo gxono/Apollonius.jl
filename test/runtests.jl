@@ -739,6 +739,27 @@ using Base.MathConstants: golden
         @test !is_convex(dart) && all(_ -> in(rand_inside(rng, dart), dart), 1:400)
         L = APStraightNgon([APPoint(0.0, 0.0), APPoint(4.0, 0.0), APPoint(4.0, 1.0), APPoint(1.0, 1.0), APPoint(1.0, 4.0), APPoint(0.0, 4.0)])
         @test all(_ -> in(rand_inside(rng, L), L), 1:400)
+        # random interior points for the curved region family
+        cc = APCircle2(APPoint(0.0, 0.0), 5.0)
+        sector = APCircularSector2(cc, APPoint(5.0, 0.0), APPoint(0.0, 5.0))
+        segment = APCircularSegment2(cc, APPoint(5.0, 0.0), APPoint(0.0, 5.0))
+        annsec = APAnnularSector2(APPoint(0.0, 0.0), 5.0, APPoint(5.0, 0.0), APPoint(0.0, 5.0), 2.0)
+        @test all(_ -> in(rand_inside(rng, sector), sector), 1:400)
+        @test all(_ -> in(rand_inside(rng, segment), segment), 1:400)
+        @test all(_ -> in(rand_inside(rng, annsec), annsec), 1:400)
+        c1, c2, c3 = APCircle2(APPoint(0.0, 0.0), 1.0), APCircle2(APPoint(2.0, 0.0), 1.0), APCircle2(APPoint(1.0, sqrt(3.0)), 1.0)
+        ints = interstices(c1, c2, c3)[1]
+        @test all(_ -> in(rand_inside(rng, ints), ints), 1:400)
+        curv_tri = APCurvilinearTriangle2(sides(sector)...)
+        @test all(_ -> in(rand_inside(rng, curv_tri), curv_tri), 1:400)
+        curv_quad = APCurvilinearQuadrilateral2(sides(annsec)...)
+        @test all(_ -> in(rand_inside(rng, curv_quad), curv_quad), 1:400)
+        curv_ngon = APCurvilinearNgon2(sides(sector)...)
+        @test all(_ -> in(rand_inside(rng, curv_ngon), curv_ngon), 1:400)
+        # uniform over area, not just contained: empirical centroid matches the exact formula
+        pts = [rand_inside(rng, sector) for _ in 1:30_000]
+        emp = reduce((a, p) -> a + (p - APPoint(0.0, 0.0)), pts; init=APVector(0.0, 0.0)) / length(pts)
+        @test distance(APPoint(0.0, 0.0) + emp, centroid(sector)) < 0.05
     end
 
     @testset "extend_line (tkz add, relative)" begin

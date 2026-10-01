@@ -50,7 +50,11 @@ A random point in the *interior* of `s`, uniformly distributed over its
 area, where [`rand`](@ref) gives a point on its boundary. Defined for
 [`APCircle2`](@ref) (the disk), [`APEllipse2`](@ref), [`APBoundingBox`](@ref),
 [`APTriangle`](@ref), [`APQuadrilateral`](@ref) and [`APStraightNgon`](@ref)
-(the last two by triangulating first, so a concave polygon works too).
+(the last two by triangulating first, so a concave polygon works too), and
+for every curved region ([`APCircularSector2`](@ref), `APCircularSegment2`,
+`APAnnularSector2`, `APInterstice2`, `APCurvilinearTriangle2`,
+`APCurvilinearQuadrilateral2`, `APCurvilinearNgon2`), via the dedicated
+methods below for how each of those is sampled.
 """
 rand_inside(s) = rand_inside(Random.default_rng(), s)
 function rand_inside(rng::Random.AbstractRNG, c::APCircle2)
@@ -81,3 +85,58 @@ function rand_inside(rng::Random.AbstractRNG, pg::Union{APQuadrilateral,APStraig
     end
     return rand_inside(rng, last(tris))
 end
+"""
+    rand_inside(rng, s::APCircularSector2)
+    rand_inside(rng, s::APAnnularSector2)
+
+Exact closed-form sampling, the same polar technique as
+[`rand_inside(::APCircle2)`](@ref) restricted to `s`'s own angular range
+(and, for the annular sector, its own radial range too).
+"""
+function rand_inside(rng::Random.AbstractRNG, s::APCircularSector2)
+    c = s.arc.circle
+    θ1 = atan(s.arc.p1[2] - c.center[2], s.arc.p1[1] - c.center[1])
+    θ = θ1 + measure(s.arc) * rand(rng)
+    return polar_point(c.r * sqrt(rand(rng)), θ, c.center)
+end
+function rand_inside(rng::Random.AbstractRNG, s::APAnnularSector2)
+    c = s.outer.circle
+    θ1 = atan(s.outer.p1[2] - c.center[2], s.outer.p1[1] - c.center[1])
+    θ = θ1 + measure(s.outer) * rand(rng)
+    ρ = sqrt(s.r_inner^2 + rand(rng) * (c.r^2 - s.r_inner^2))
+    return polar_point(ρ, θ, c.center)
+end
+function _rand_inside_reject(rng::Random.AbstractRNG, candidate, s; max_tries::Integer=10_000)
+    for _ in 1:max_tries
+        p = candidate(rng)
+        p in s && return p
+    end
+    throw(ArgumentError("rand_inside: no point landed inside $(typeof(s)) after $max_tries tries"))
+end
+"""
+    rand_inside(rng, s::APCircularSegment2)
+
+No closed form as direct as the sector's (the chord cuts it asymmetrically),
+so this samples the segment's own enclosing [`APCircularSector2`](@ref)
+(exact, closed-form) and keeps the point if it also lands inside `s`.
+Rejection sampling from an exact uniform superset is itself exact, not an
+approximation, and the segment-to-sector area ratio is bounded well away
+from 0 for any non-degenerate segment, so acceptance is fast.
+"""
+rand_inside(rng::Random.AbstractRNG, s::APCircularSegment2) =
+    _rand_inside_reject(rng, r -> rand_inside(r, APCircularSector2(s.arc)), s)
+"""
+    rand_inside(rng, s::APInterstice2)
+    rand_inside(rng, s::APCurvilinearTriangle2)
+    rand_inside(rng, s::APCurvilinearQuadrilateral2)
+    rand_inside(rng, s::APCurvilinearNgon2)
+
+No general closed form exists for an arbitrary mix of straight and curved
+sides, so this samples `s`'s own [`APBoundingBox`](@ref) (exact) and keeps
+the point if it also lands inside `s` (via the generic ray-casting
+[`Base.in`](@ref) along [`sides`](@ref)`(s)`), exact rather than an
+approximation for the same reason as
+[`rand_inside(::APCircularSegment2)`](@ref).
+"""
+rand_inside(rng::Random.AbstractRNG, s::Union{APInterstice2,APCurvilinearTriangle2,APCurvilinearQuadrilateral2,APCurvilinearNgon2}) =
+    _rand_inside_reject(rng, r -> rand_inside(r, APBoundingBox(s)), s)
