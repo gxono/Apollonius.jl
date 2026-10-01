@@ -294,7 +294,7 @@ function rhombus_on_segment(a::APPoint{2}, b::APPoint{2}, angle::Real; ccw::Bool
     return APQuadrilateral(a, b, b + w, a + w)
 end
 """
-    square_from_diagonal(a::APPoint, c::APPoint; ccw=true)
+    square_on_diagonal(a::APPoint, c::APPoint; ccw=true)
 
 The square with diagonal `[a, c]`, with vertices `a`, `b`, `c`, `d` in
 counterclockwise order (`ccw=false` lists them clockwise).
@@ -303,13 +303,13 @@ counterclockwise order (`ccw=false` lists them clockwise).
 |:--------|:--------|:--------|
 | `ccw` | `true` | `true` lists the vertices counterclockwise, `false` clockwise |
 """
-function square_from_diagonal(a::APPoint{2}, c::APPoint{2}; ccw::Bool=true)
+function square_on_diagonal(a::APPoint{2}, c::APPoint{2}; ccw::Bool=true)
     m = midpoint(a, c)
     b, d = rotate(a, pi / 2, m), rotate(a, -pi / 2, m)
     return ccw ? APQuadrilateral(a, b, c, d) : APQuadrilateral(a, d, c, b)
 end
 """
-    rectangle_from_diagonal(a::APPoint, c::APPoint, angle::Real; ccw=true)
+    rectangle_on_diagonal(a::APPoint, c::APPoint, angle::Real; ccw=true)
 
 The rectangle with diagonal `[a, c]` in which the diagonal makes `angle`
 (radians, in `(0, π/2)`) with the side that starts at `a`. The vertices `a`,
@@ -320,8 +320,8 @@ and clockwise for `ccw=false`. With `angle = π/4` it is a square.
 |:--------|:--------|:--------|
 | `ccw` | `true` | `true` lists the vertices counterclockwise, `false` clockwise |
 """
-function rectangle_from_diagonal(a::APPoint{2}, c::APPoint{2}, angle::Real; ccw::Bool=true)
-    0 < angle < pi / 2 || throw(ArgumentError("rectangle_from_diagonal: the angle must be in (0, π/2)"))
+function rectangle_on_diagonal(a::APPoint{2}, c::APPoint{2}, angle::Real; ccw::Bool=true)
+    0 < angle < pi / 2 || throw(ArgumentError("rectangle_on_diagonal: the angle must be in (0, π/2)"))
     diag = c - a
     b = a + (norm(diag) * cos(angle)) * normalize(rotate(diag, ccw ? -angle : angle))
     d = a + (c - b)

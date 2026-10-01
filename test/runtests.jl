@@ -6476,11 +6476,11 @@ end
         @test near(vertices(h2)[2], P(2.0, 0.0)) && vertices(h2)[3][2] < 0
         @test area(rhombus_on_segment(O, P(2.0, 0.0), pi / 3)) ≈ 4sin(pi / 3)
         @test isapprox(rhombus_on_segment(O, P(2.0, 0.0), pi / 2), square_on_segment(O, P(2.0, 0.0)); atol=1e-9)
-        sq = square_from_diagonal(O, P(2.0, 2.0))
+        sq = square_on_diagonal(O, P(2.0, 2.0))
         @test area(sq) ≈ 4 && near(sq.b, P(2.0, 0.0))
-        r = rectangle_from_diagonal(O, P(4.0, 3.0), 0.3)
+        r = rectangle_on_diagonal(O, P(4.0, 3.0), 0.3)
         @test near(r.c, P(4.0, 3.0)) && is_perpendicular(APLine(r.a, r.b), APLine(r.b, r.c)) && area(r) ≈ 25 * sin(0.3) * cos(0.3)
-        @test isapprox(rectangle_from_diagonal(O, P(2.0, 2.0), pi / 4), sq; atol=1e-9)
+        @test isapprox(rectangle_on_diagonal(O, P(2.0, 2.0), pi / 4), sq; atol=1e-9)
         @test area(rectangle_with_center(P(1.0, 1.0), 4.0, 2.0; angle=0.4)) ≈ 8 && near(centroid(rectangle_with_center(P(1.0, 1.0), 4.0, 2.0; angle=0.4)), P(1.0, 1.0))
         @test area(square_with_center(P(1.0, 1.0), 3.0)) ≈ 9
         @test area(isosceles_trapezoid_on_segment(O, P(6.0, 0.0), 2.0, 3.0)) ≈ 12

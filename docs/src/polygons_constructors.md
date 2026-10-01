@@ -77,8 +77,8 @@ picks the side or the direction of the vertices where it exists.
 | [`regular_polygon_on_segment`](@ref)`(a, b, n)` | the regular `n`-gon with side `[a, b]` | `APStraightNgon` |
 | [`star_polygon`](@ref)`(center, vertex, n, k)` | the star `{n/k}` on the regular `n`-gon, `{5/2}` being the pentagram | `APStraightNgon` |
 | [`rhombus_on_segment`](@ref)`(a, b, angle)` | the rhombus with side `[a, b]` and the given angle at `a` | `APQuadrilateral` |
-| [`square_from_diagonal`](@ref)`(a, c)` | the square with diagonal `[a, c]` | `APQuadrilateral` |
-| [`rectangle_from_diagonal`](@ref)`(a, c, angle)` | the rectangle with diagonal `[a, c]`, at `angle` with the side from `a` | `APQuadrilateral` |
+| [`square_on_diagonal`](@ref)`(a, c)` | the square with diagonal `[a, c]` | `APQuadrilateral` |
+| [`rectangle_on_diagonal`](@ref)`(a, c, angle)` | the rectangle with diagonal `[a, c]`, at `angle` with the side from `a` | `APQuadrilateral` |
 | [`rectangle_with_center`](@ref)`(center, w, h)`, [`square_with_center`](@ref)`(center, side)` | a rectangle or square of a given size, turned by the keyword `angle` | `APQuadrilateral` |
 | [`isosceles_trapezoid_on_segment`](@ref)`(a, b, top, height)` | the trapezoid on base `[a, b]` with equal legs | `APQuadrilateral` |
 | [`right_trapezoid_on_segment`](@ref)`(a, b, top, height)` | the trapezoid with right angles at `a` and at the other end of the leg | `APQuadrilateral` |
@@ -90,7 +90,7 @@ area(regular_polygon_on_segment(pa, pb, 6)), area(rhombus_on_segment(pa, pb, pi 
 ```
 
 ```@example geo
-sd = square_from_diagonal(APPoint(0.0, 0.0), APPoint(2.0, 2.0))
+sd = square_on_diagonal(APPoint(0.0, 0.0), APPoint(2.0, 2.0))
 area(sd), area(rectangle_with_center(APPoint(1.0, 1.0), 4.0, 2.0; angle=pi / 6)), area(kite_on_diagonal(pa, APPoint(0.0, 6.0), 0.4, 2.0))
 ```
 
@@ -139,8 +139,8 @@ area(sd), area(rectangle_with_center(APPoint(1.0, 1.0), 4.0, 2.0; angle=pi / 6))
 
     lxm = @prepare_to_picture! width=560 height=320 margin=30 begin
         rh = rhombus_on_segment(APPoint(0.0, 0.0), APPoint(3.0, 0.0), pi / 3)
-        sq = square_from_diagonal(APPoint(5.0, 0.0), APPoint(8.0, 3.0))
-        re = rectangle_from_diagonal(APPoint(10.0, 0.0), APPoint(15.0, 3.0), 0.5)
+        sq = square_on_diagonal(APPoint(5.0, 0.0), APPoint(8.0, 3.0))
+        re = rectangle_on_diagonal(APPoint(10.0, 0.0), APPoint(15.0, 3.0), 0.5)
         it = isosceles_trapezoid_on_segment(APPoint(0.0, -5.0), APPoint(4.0, -5.0), 2.0, 2.5)
         rt = right_trapezoid_on_segment(APPoint(6.0, -5.0), APPoint(10.0, -5.0), 2.0, 2.5)
         kt = kite_on_diagonal(APPoint(13.0, -5.0), APPoint(13.0, -1.0), 0.6, 1.5)
