@@ -232,8 +232,8 @@ path(APQuadrilateral(ang.vertex, poly.vertices...); action=:fill)   # ...wrapped
     path(tv, action=:stroke)
 
     sethue(julia_purple)
-    path(angv[1]; as=:rays, action=:stroke)
-    path(angv[2]; as=:region, action=:fill)
+    path(angv[1]; as=:region, action=:fill)
+    path(angv[2]; as=:rays, action=:stroke, radius = 50)
     path(only(marks(angv[3])); action=:stroke)
     path(APCircularSector2(only(marks(angv[4]))); action=:fill)
     path(only(marks(angv[5]; style=:parallelogram)); action=:stroke)
