@@ -18,6 +18,10 @@ triangle centers are implemented, with plenty more in the literature
 (Clark Kimberling's Encyclopedia of Triangle Centers alone catalogues
 thousands).
 
+AI assistance was used for part of this package: translating the
+documentation, writing function docstrings, and extending some existing
+methods. Every change was reviewed and tested by hand before merging.
+
 ## Example
 
 ```julia
