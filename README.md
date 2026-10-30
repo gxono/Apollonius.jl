@@ -1,5 +1,9 @@
 # Apollonius [![Build Status](https://github.com/gxono/Apollonius.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/gxono/Apollonius.jl/actions/workflows/CI.yml?query=branch%3Amaster) [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://gxono.github.io/Apollonius.jl/stable/) [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://gxono.github.io/Apollonius.jl/dev/) [![Coverage](https://codecov.io/gh/gxono/Apollonius.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gxono/Apollonius.jl)
 
+<p align="center">
+  <img src="docs/src/assets/logo.svg" width="200" alt="Apollonius.jl logo">
+</p>
+
 A Julia toolkit for planar Euclidean geometry: points, segments, lines,
 rays, circles, triangles, quadrilaterals, conics and circular arcs, plus
 the constructions you build with them (midpoints, intersections,
@@ -22,7 +26,9 @@ AI assistance was used for part of this package: translating the
 documentation, writing function docstrings, and extending some existing
 methods. Every change was reviewed and tested by hand before merging.
 
-## Example
+## Examples
+
+Triangle centers and constructions:
 
 ```julia
 using Apollonius
@@ -38,3 +44,15 @@ l = APLine(a, b)
 perpendicular_through(l, c)   # altitude from c
 intersection(l, circumcircle(t))
 ```
+
+Inversion of a hexagon through a circle:
+
+```julia
+circ = APCircle2(APPoint(0.0, 0.0), 1)
+hexagon = APStraightNgon([polar_point_deg(0.6, a) for a in 0:60:330]) |> translate(APVector(1.25, 0))
+invert(hexagon, circ)   # the hexagon's image under inversion in circ
+```
+
+<p align="center">
+  <img src="docs/src/assets/img/circles/inversion_ngon.svg" width="500" alt="Inversion of a hexagon through a circle">
+</p>
