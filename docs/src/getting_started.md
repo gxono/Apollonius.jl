@@ -14,7 +14,7 @@ Apollonius needs Julia 1.10 or later. From the Julia REPL:
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/gxono/Apollonius.jl")
+Pkg.add("Apollonius")
 ```
 
 The geometry needs nothing else. To draw figures, also install
